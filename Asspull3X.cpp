@@ -7,6 +7,7 @@ extern "C" {
 
 static bool quit = 0;
 int line = 0, interrupts = 0;
+extern INLINE void m68ki_set_sr(unsigned int value);
 
 void pc_change(unsigned int new_pc)
 {
@@ -54,7 +55,14 @@ int _tmain(int argc, _TCHAR* argv[])
 	//nfdchar_t* biosPath = NULL;
 	//nfdresult_t nfdResult = NFD_OpenDialog(NULL, NULL, &biosPath);
 	//if (nfdResult != NFD_OKAY) return 0;
-	const char* biosPath = "C:\\devkitPro\\asspull\\ass-bios.apb";
+	//const char* biosPath = "C:\\devkitPro\\asspull\\ass-bios.apb";
+	FILE* settings = NULL;
+	char biosPath[256];
+	int err = fopen_s(&settings, "settings.txt", "r");
+	if (err)
+		strcpy_s(biosPath, 256, "roms\\ass-bios.apb");
+	else
+		fgets(biosPath, 256, settings);
 	SDL_Log("Loading BIOS, %s ...", biosPath);
 	Slurp(romBIOS, biosPath);
 
@@ -68,6 +76,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	m68k_init();
 	m68k_set_pc_changed_callback(pc_change);
 	m68k_set_cpu_type(M68K_CPU_TYPE_68020);
+	m68ki_set_sr(0);
 	m68k_pulse_reset();
 
 	SDL_Log("Asspull IIIx is ready.");
@@ -193,7 +202,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		{
 			VBlank();
 			frames++;
-			m68k_set_virq(M68K_IRQ_1, 1); //m_ViaInterruptState);
+			m68k_set_virq(M68K_IRQ_7, 1); //m_ViaInterruptState);
 			//m68k_set_irq(6);
 			//interrupts &= ~0x80;
 		}
@@ -202,6 +211,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		if (line == trueLines)
 		{
 			//m68k_reset_irq();
+			//m68k_set_virq(M68K_IRQ_6, 0);
 			tickTock ^= 1;
 			if (tickTock == 0)
 				ticks++;

@@ -22,3 +22,5 @@ Debug
 *.sdf
 *.VC.*
 *.vcxproj.*
+ipch
+*.opensdf
