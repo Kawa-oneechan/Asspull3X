@@ -202,16 +202,16 @@ int _tmain(int argc, _TCHAR* argv[])
 		{
 			VBlank();
 			frames++;
-			m68k_set_virq(M68K_IRQ_7, 1); //m_ViaInterruptState);
-			//m68k_set_irq(6);
-			//interrupts &= ~0x80;
+			if ((interrupts & 0x80) == 0)
+			{
+				interrupts |= 4; //set VBlank signal
+				m68k_set_virq(M68K_IRQ_7, 1);
+			}
 		}
 		m68k_execute(hBlankLasts);
 		line++;
 		if (line == trueLines)
 		{
-			//m68k_reset_irq();
-			//m68k_set_virq(M68K_IRQ_6, 0);
 			tickTock ^= 1;
 			if (tickTock == 0)
 				ticks++;
