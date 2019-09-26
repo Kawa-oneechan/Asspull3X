@@ -27,6 +27,10 @@ unsigned int dmaLength;
 bool hdmaOn[8], hdmaDouble[8];
 int hdmaSource[8], hdmaTarget[8], hdmaWidth[8], hdmaStart[8], hdmaCount[8];
 
+void HandleBlitter(unsigned int function);
+unsigned int blitLength;
+int blitAddrA, blitAddrB;
+
 long ticks = 0;
 
 extern bool gfx320, gfx240, gfxTextBold, gfxSprites;
@@ -381,9 +385,9 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 				hdmaTarget[channel] = value;
 				break;
 				}
-			/*
+
 			case 0x100: //Blitter function
-				HandleBlitter((uint)value);
+				HandleBlitter(value);
 				break;
 			case 0x104: //Blitter address A
 				blitAddrA = value;
@@ -394,7 +398,6 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 			case 0x10C: //Blitter length
 				blitLength =  value;
 				break;
-			*/
 		}
 		return;
 	}
@@ -402,6 +405,99 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 	m68k_write_memory_8(address + 1, (value >> 16));
 	m68k_write_memory_8(address + 2, (value >> 8));
 	m68k_write_memory_8(address + 3, (value >> 0));
+}
+
+void HandleBlitter(unsigned int function)
+{
+	auto fun = function & 0xF;
+	switch (fun)
+	{
+		case 0: return;
+		case 1: //Blit
+		case 2: //Clear
+		case 3: //Invert
+			{
+				auto strideSkip = ((function & 0x10) >> 4) == 1; //1 2 3
+				auto colorKey = ((function & 0x20) >> 5) == 1; //1
+				auto source4 = ((function & 0x40) >> 6) == 1; //1
+				auto width = ((function & 0x60) >> 5); //2
+				auto target4 = ((function & 0x80) >> 7) == 1; //1
+				auto sourceStride = ((function >> 8) & 0xFFF); //1 2 3
+				auto targetStride = ((function >> 20) & 0xFFF); //1 2 3
+
+				auto read = m68k_read_memory_8;
+				if (width == 1) read = m68k_read_memory_16;
+				else if (width == 2) read = m68k_read_memory_32;
+				auto write = m68k_write_memory_8;
+				if (width == 1) write = m68k_write_memory_16;
+				else if (width == 2) write = m68k_write_memory_32;
+
+				if (fun == 1) //Blit
+				{
+					//throw new NotImplementedException();
+				}
+				else if (fun == 2) //Clear
+				{
+					/*
+					Copies the value of ADDRESS A to B.
+					If STRIDESKIP is enabled, copies SOURCE STRIDE bytes,
+					then skips over TARGET STRIDE - SOURCE STRIDE bytes,
+					until LENGTH bytes are copied in total.
+					If WIDTH is set to 0, sets B to the low byte of the source value.
+					If WIDTH is set to 1, sets B to the lower short instead.
+					If WIDTH is set to 2, sets B to the full word.
+					If WIDTH is set to 3, behavior is undefined.
+					*/
+					while (blitLength > 0)
+					{
+						if (strideSkip)
+						{
+							for (int i = 0; i < sourceStride && blitLength > 0; i++, blitAddrB += (1 << width), blitLength--)
+								write(blitAddrB, blitAddrA);
+							blitAddrB += (int)(targetStride - sourceStride) << width;
+						}
+						else
+						{
+							write(blitAddrB, read(blitAddrB));
+							blitAddrB += (1 << width);
+							blitLength--;
+						}
+					}
+				}
+				else if (fun == 3) //Invert
+				{
+					while (blitLength > 0)
+					{
+						if (strideSkip)
+						{
+							for (int i = 0; i < sourceStride && blitLength > 0; i++, blitAddrB++, blitLength--)
+								m68k_write_memory_8(blitAddrB, ~m68k_read_memory_8(blitAddrB));
+							blitAddrB += (int)(targetStride - sourceStride);
+						}
+						else
+						{
+							m68k_write_memory_8(blitAddrB, ~m68k_read_memory_8(blitAddrB));
+							blitAddrB++;
+							blitLength--;
+						}
+					}
+				}
+			}
+			break;
+		case 4: //UnRLE
+			unsigned int i = 0;
+			unsigned char rle = 0;
+			char data = 0;
+			while (i < blitLength)
+			{
+				rle = m68k_read_memory_8(blitAddrA++);
+				rle++;
+				data = m68k_read_memory_8(blitAddrA++);
+				for (; rle > 0; rle--, i++)
+					m68k_write_memory_8(blitAddrB++, data);
+			}
+			break;
+	}
 }
 
 }
