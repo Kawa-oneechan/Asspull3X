@@ -24,3 +24,5 @@ Debug
 *.vcxproj.*
 ipch
 *.opensdf
+*.exe
+*.dll
