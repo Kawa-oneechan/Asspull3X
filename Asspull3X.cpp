@@ -135,6 +135,7 @@ int _tmain(int argc, _TCHAR* argv[])
 							{
 								SDL_Log("Unmounting diskette...");
 								fclose(diskFile);
+								diskFile = NULL;
 							}
 							SDL_Log("Mounting diskette, %s ...", romPath);
 							auto err = fopen_s(&diskFile, romPath, "rb+");
@@ -151,6 +152,7 @@ int _tmain(int argc, _TCHAR* argv[])
 							{
 								SDL_Log("Unmounting diskette...");
 								fclose(diskFile);
+								diskFile = NULL;
 							}
 						}
 						else
@@ -169,6 +171,7 @@ int _tmain(int argc, _TCHAR* argv[])
 							{
 								SDL_Log("Unmounting diskette...");
 								fclose(diskFile);
+								diskFile = NULL;
 							}
 						}
 						SDL_Log("Resetting Musashi...");

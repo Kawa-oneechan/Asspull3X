@@ -103,7 +103,7 @@ unsigned int m68k_read_memory_8(unsigned int address)
 			return interrupts;
 		case 0x32: //Disk Control
 			auto ret = diskError << 1;
-			ret += (diskFile == NULL) ? 0 : 1;
+			ret |= (diskFile == NULL) ? 0 : 1;
 			return ret;
 		}
 		return 0;
