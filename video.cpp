@@ -321,7 +321,7 @@ void RenderTileMode(int line)
 		auto tile = data & 0x1FF;
 		auto tileX = xxx & 7;
 		auto tileY = yyy & 7;
-				
+
 		auto hFlip = (data & 0x0400) == 0x0400;
 		auto vFlip = (data & 0x0800) == 0x0800;
 
@@ -345,8 +345,8 @@ void RenderTileMode(int line)
 			RenderPixel(line + 1, (x * 2) + 1, color);
 		}
 
-		if (hFlip && tileX == 0) screenSource += 2;
-		else if (tileX == 7) screenSource += 2;
+		if (hFlip) tileX = 7 - tileX;
+		if (tileX == 7) screenSource += 2;
 
 		xxx++;
 		if (xxx == 512)
