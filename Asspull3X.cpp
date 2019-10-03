@@ -1,4 +1,5 @@
 #include "asspull.h"
+#include "ini.h"
 
 extern "C" {
 
@@ -134,19 +135,6 @@ int Slurp(unsigned char* dest, const char* filePath)
 	return 0;
 }
 
-void SaveSettings()
-{
-	FILE* settings = NULL;
-	int err = fopen_s(&settings, "settings.txt", "w");
-	if (!err)
-	{
-		fputs(biosPath, settings); fputc('\n', settings);
-		fputs(romPath, settings); fputc('\n', settings);
-		fputs(diskPath, settings); fputc('\n', settings);
-	}
-	fclose(settings);
-}
-
 int _tmain(int argc, _TCHAR* argv[])
 {
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -162,6 +150,13 @@ int _tmain(int argc, _TCHAR* argv[])
 	if (InitSound() < 0)
 		return 0;
 
+	auto ini = new IniFile();
+	ini->autoSave = true;
+	ini->Load("settings.ini");
+	auto thing = ini->Get("media", "bios", "roms\\ass-bios.apb"); strcpy_s(biosPath, 256, thing);
+	thing = ini->Get("media", "lastROM", ""); strcpy_s(romPath, 256, thing);
+	thing = ini->Get("media", "lastDisk", ""); strcpy_s(diskPath, 256, thing);
+	/*
 	FILE* settings = NULL;
 	int err = fopen_s(&settings, "settings.txt", "r");
 	if (err)
@@ -180,14 +175,16 @@ int _tmain(int argc, _TCHAR* argv[])
 		if (diskPath[strlen(diskPath) - 1] == '\n') diskPath[strlen(diskPath) - 1] = 0;
 		fclose(settings);
 	}
+	*/
+
 	SDL_Log("Loading BIOS, %s ...", biosPath);
 	Slurp(romBIOS, biosPath);
-	if (romPath[0] != '-')
+	if (romPath[0] != 0)
 	{
 		SDL_Log("Loading ROM, %s ...", romPath);
 		Slurp(romCartridge, romPath);
 	}
-	if (diskPath[0] != '-')
+	if (diskPath[0] != 0)
 	{
 		SDL_Log("Mounting diskette, %s ...", diskPath);
 		auto err = fopen_s(&diskFile, diskPath, "rb+");
@@ -257,7 +254,8 @@ int _tmain(int argc, _TCHAR* argv[])
 							strcpy_s(romPath, 256, thePath);
 							SDL_Log("Loading ROM, %s ...", romPath);
 							Slurp(romCartridge, romPath);
-							SaveSettings();
+							ini->Set("media", "lastROM", romPath);
+							
 						}
 						else if (SDL_strncasecmp(ext, "img", 3) == 0)
 						{
@@ -270,7 +268,7 @@ int _tmain(int argc, _TCHAR* argv[])
 							}
 							SDL_Log("Mounting diskette, %s ...", diskPath);
 							auto err = fopen_s(&diskFile, diskPath, "rb+");
-							SaveSettings();
+							ini->Set("media", "lastDisk", diskPath);
 						}
 						else
 							SDL_Log("Don't know what to do with %s.", romPath);
@@ -285,16 +283,16 @@ int _tmain(int argc, _TCHAR* argv[])
 								SDL_Log("Unmounting diskette...");
 								fclose(diskFile);
 								diskFile = NULL;
-								strcpy_s(diskPath, 256, "-");
-								SaveSettings();
+								strcpy_s(diskPath, 256, "");
+								ini->Set("media", "lastDisk", diskPath);
 							}
 						}
 						else
 						{
 							SDL_Log("Unloading ROM...");
 							memset(romCartridge, 0, 0x0FF0000);
-							strcpy_s(romPath, 256, "-");
-							SaveSettings();
+							strcpy_s(romPath, 256, "");
+							ini->Set("media", "lastROM", romPath);
 						}
 					}
 					else if (ev.key.keysym.sym == SDLK_r)
@@ -309,7 +307,8 @@ int _tmain(int argc, _TCHAR* argv[])
 								fclose(diskFile);
 								diskFile = NULL;
 							}
-							SaveSettings();
+							strcpy_s(romPath, 256, "");
+							ini->Set("media", "lastROM", romPath);
 						}
 						SDL_Log("Resetting Musashi...");
 						m68k_pulse_reset();
