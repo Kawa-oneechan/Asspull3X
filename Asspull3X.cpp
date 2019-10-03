@@ -9,6 +9,8 @@ static bool quit = 0;
 int line = 0, interrupts = 0;
 extern INLINE void m68ki_set_sr(unsigned int value);
 
+char biosPath[256], romPath[256], diskPath[256];
+
 void pc_change(unsigned int new_pc)
 {
 }
@@ -27,6 +29,19 @@ int Slurp(unsigned char* dest, const char* filePath)
 	return 0;
 }
 
+void SaveSettings()
+{
+	FILE* settings = NULL;
+	int err = fopen_s(&settings, "settings.txt", "w");
+	if (!err)
+	{
+		fputs(biosPath, settings); fputc('\n', settings);
+		fputs(romPath, settings); fputc('\n', settings);
+		fputs(diskPath, settings); fputc('\n', settings);
+	}
+	fclose(settings);
+}
+
 int _tmain(int argc, _TCHAR* argv[])
 {
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -42,35 +57,36 @@ int _tmain(int argc, _TCHAR* argv[])
 	if (InitSound() < 0)
 		return 0;
 
-	/* SDL_Log("Loading test data...");
-	FILE* ranma = NULL;
-	auto err = fopen_s(&ranma, "ranma.img.bin", "rb");
-	fread(ramVideo, 1, 76800, ranma);
-	fclose(ranma);
-	err = fopen_s(&ranma, "ranma.pal.bin", "rb");
-	fread(ramVideo + 0x100000, 1, 76800, ranma);
-	fclose(ranma); */
-
-//#define BIOS "C:\\devkitPro\\asspull\\ass-bios.apb"
-	//nfdchar_t* biosPath = NULL;
-	//nfdresult_t nfdResult = NFD_OpenDialog(NULL, NULL, &biosPath);
-	//if (nfdResult != NFD_OKAY) return 0;
-	//const char* biosPath = "C:\\devkitPro\\asspull\\ass-bios.apb";
 	FILE* settings = NULL;
-	char biosPath[256];
 	int err = fopen_s(&settings, "settings.txt", "r");
 	if (err)
+	{
 		strcpy_s(biosPath, 256, "roms\\ass-bios.apb");
+		strcpy_s(romPath, 256, "-");
+		strcpy_s(diskPath, 256, "-");
+	}
 	else
+	{
 		fgets(biosPath, 256, settings);
+		fgets(romPath, 256, settings);
+		fgets(diskPath, 256, settings);
+		if (biosPath[strlen(biosPath) - 1] == '\n') biosPath[strlen(biosPath) - 1] = 0;
+		if (romPath[strlen(romPath) - 1] == '\n') romPath[strlen(romPath) - 1] = 0;
+		if (diskPath[strlen(diskPath) - 1] == '\n') diskPath[strlen(diskPath) - 1] = 0;
+		fclose(settings);
+	}
 	SDL_Log("Loading BIOS, %s ...", biosPath);
 	Slurp(romBIOS, biosPath);
-
-	//const char* romPath = "C:\\devkitPro\\asspull\\tiletest.ap3";
-	//SDL_Log("Loading ROM, %s ...", romPath);
-	//Slurp(romCartridge, romPath);
-
-	//int err = fopen_s(&diskFile, "C:\\devkitPro\\asspull\\disk1.img", "rb+");
+	if (romPath[0] != '-')
+	{
+		SDL_Log("Loading ROM, %s ...", romPath);
+		Slurp(romCartridge, romPath);
+	}
+	if (diskPath[0] != '-')
+	{
+		SDL_Log("Mounting diskette, %s ...", diskPath);
+		auto err = fopen_s(&diskFile, diskPath, "rb+");
+	}
 
 	SDL_Log("Resetting Musashi...");
 	m68k_init();
@@ -120,25 +136,29 @@ int _tmain(int argc, _TCHAR* argv[])
 				{
 					if (ev.key.keysym.sym == SDLK_l)
 					{
-						nfdchar_t* romPath = NULL;
-						nfdresult_t nfdResult = NFD_OpenDialog("ap3,img", NULL, &romPath);
+						nfdchar_t* thePath = NULL;
+						nfdresult_t nfdResult = NFD_OpenDialog("ap3,img", NULL, &thePath);
 						if (nfdResult != NFD_OKAY) break;
-						auto ext = strrchr(romPath, '.') + 1;
+						auto ext = strrchr(thePath, '.') + 1;
 						if (SDL_strncasecmp(ext, "ap3", 3) == 0)
 						{
+							strcpy_s(romPath, 256, thePath);
 							SDL_Log("Loading ROM, %s ...", romPath);
 							Slurp(romCartridge, romPath);
+							SaveSettings();
 						}
 						else if (SDL_strncasecmp(ext, "img", 3) == 0)
 						{
+							strcpy_s(diskPath, 256, thePath);
 							if (diskFile != NULL)
 							{
 								SDL_Log("Unmounting diskette...");
 								fclose(diskFile);
 								diskFile = NULL;
 							}
-							SDL_Log("Mounting diskette, %s ...", romPath);
-							auto err = fopen_s(&diskFile, romPath, "rb+");
+							SDL_Log("Mounting diskette, %s ...", diskPath);
+							auto err = fopen_s(&diskFile, diskPath, "rb+");
+							SaveSettings();
 						}
 						else
 							SDL_Log("Don't know what to do with %s.", romPath);
@@ -153,12 +173,16 @@ int _tmain(int argc, _TCHAR* argv[])
 								SDL_Log("Unmounting diskette...");
 								fclose(diskFile);
 								diskFile = NULL;
+								strcpy_s(diskPath, 256, "-");
+								SaveSettings();
 							}
 						}
 						else
 						{
 							SDL_Log("Unloading ROM...");
 							memset(romCartridge, 0, 0x0FF0000);
+							strcpy_s(romPath, 256, "-");
+							SaveSettings();
 						}
 					}
 					else if (ev.key.keysym.sym == SDLK_r)
@@ -173,6 +197,7 @@ int _tmain(int argc, _TCHAR* argv[])
 								fclose(diskFile);
 								diskFile = NULL;
 							}
+							SaveSettings();
 						}
 						SDL_Log("Resetting Musashi...");
 						m68k_pulse_reset();
