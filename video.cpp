@@ -334,11 +334,9 @@ void RenderTileMode(int line)
 		if ((tileX & 1) == 1) color >>= 4;
 		color &= 0x0F;
 
-		if (color > 0 || layer == 0)
+		if (color || layer == 0)
 		{
-
-			color += pal * 16;
-
+			if (color) color += pal * 16;
 			RenderPixel(line, (x * 2) + 0, color);
 			RenderPixel(line, (x * 2) + 1, color);
 			RenderPixel(line + 1, (x * 2) + 0, color);
