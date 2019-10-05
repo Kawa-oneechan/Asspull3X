@@ -34,7 +34,7 @@ int blitAddrA, blitAddrB;
 long ticks = 0;
 
 extern bool gfx320, gfx240, gfxTextBold, gfxSprites;
-extern int gfxMode, gfxFade, scrollX, scrollY;
+extern int gfxMode, gfxFade, scrollX[2], scrollY[2], tileShift[2], mapEnabled[2];
 
 extern int line, interrupts;
 
@@ -208,6 +208,11 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				//Console.Write((char)value);
 				printf("%c", (char)value);
 				break;
+			case 0x10:
+			case 0x11:
+				mapEnabled[reg - 0x10] = value >> 7;
+				tileShift[reg - 0x10] = value & 15;
+				break;
 			case 0x2A: //DMA Control
 				{
 				if ((value & 1) == 0) return;
@@ -307,17 +312,13 @@ void m68k_write_memory_16(unsigned int address, unsigned int value)
 		auto reg = address & 0x000FFFFF;
 		switch (reg)
 		{
-			case 0x10: //Horizontal scroll
+			case 0x12: //Horizontal scroll
 			case 0x14:
-			case 0x18:
-			case 0x1C:
-				scrollX = value & 511;
+				scrollX[(reg - 0x12) / 2] = value & 511;
 				break;
-			case 0x12: //Vertical scroll
-			case 0x16:
-			case 0x1A:
-			case 0x1E:
-				scrollY = value & 511;
+			case 0x16: //Vertical scroll
+			case 0x18:
+				scrollY[(reg - 0x16) / 2] = value & 511;
 				break;
 			case 0x30: //Disk sector
 				if (diskFile != NULL)
@@ -460,7 +461,7 @@ void HandleBlitter(unsigned int function)
 					{
 						if (strideSkip)
 						{
-							for (int i = 0; i < sourceStride && blitLength > 0; i++, blitAddrB += (1 << width), blitLength--)
+							for (unsigned int i = 0; i < sourceStride && blitLength > 0; i++, blitAddrB += (1 << width), blitLength--)
 								write(blitAddrB, blitAddrA);
 							blitAddrB += (int)(targetStride - sourceStride) << width;
 						}
@@ -478,7 +479,7 @@ void HandleBlitter(unsigned int function)
 					{
 						if (strideSkip)
 						{
-							for (int i = 0; i < sourceStride && blitLength > 0; i++, blitAddrB++, blitLength--)
+							for (unsigned int i = 0; i < sourceStride && blitLength > 0; i++, blitAddrB++, blitLength--)
 								m68k_write_memory_8(blitAddrB, ~m68k_read_memory_8(blitAddrB));
 							blitAddrB += (int)(targetStride - sourceStride);
 						}

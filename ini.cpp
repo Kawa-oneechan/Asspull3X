@@ -29,7 +29,7 @@ void IniFile::Set(const char* section, const char* key, char* val)
 			{
 				if (!_stricmp(tat->first, key))
 				{
-					tat->second = strdup(val);
+					tat->second = _strdup(val);
 					if (autoSave) Save(filename);
 					return;
 				}

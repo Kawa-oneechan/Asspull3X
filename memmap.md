@@ -108,15 +108,14 @@ The amount of ticks since the system was turned on as a `uint32`.
 Pipe characters to `STDOUT`.
 ### 00010 TilemapSet1
 ### 00011 TilemapSet2
-    EVH. TTTT
-    |||  |_____ Tile offset
-    |||________ Extra horizontal scroll
-    ||_________ Extra vertical scroll
+    E... TTTT
+    |    |_____ Tile shift
     |__________ Enabled
+Tile shift adds 64 << T to the tile # when rendering, so a shift value of 3 means a whole separate set of 512 tiles.
 ### 00012	TilemapScrollH1
-### 00013	TilemapScrollH2
-### 00014	TilemapScrollV1
-### 00015	TilemapScrollV2
+### 00014	TilemapScrollH2
+### 00016	TilemapScrollV1
+### 00018	TilemapScrollV2
 The tile map controls are a work in progress.
 ### 00020	DMASource
 Either a pointer or a value.

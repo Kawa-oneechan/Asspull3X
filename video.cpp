@@ -7,7 +7,7 @@
 extern "C" {
 
 bool gfx320, gfx240, gfxTextBold, gfxSprites;
-int gfxMode, gfxFade, scrollX, scrollY;
+int gfxMode, gfxFade, scrollX[2], scrollY[2], tileShift[2], mapEnabled[2];
 
 SDL_Window* sdlWindow = NULL;
 SDL_Surface* sdlSurface = NULL;
@@ -301,67 +301,77 @@ void RenderTileMode(int line)
 {
 	if (line % 2 == 1) return;
 	auto sourceLine = line / 2;
-	auto layer = 0;
 	auto charBase = 0x080000;
 	auto screenBase = 0;
 	auto sizeX = 512;
 	auto sizeY = 256;
 	auto maskX = sizeX - 1;
 	auto maskY = sizeY - 1;
-	auto xxx = scrollX & maskX;
-	auto yyy = (scrollY + sourceLine) & maskY;
 
-	auto yShift = ((yyy >> 3) << 6);
-	//yShift = 0;
-	auto screenSource = screenBase + (0x000 * (xxx >> 8) + ((xxx & 511) >> 3) + yShift) * 2;
-	for (auto x = 0; x < 320; x++)
+	for (int layer = 0; layer < 2; layer++)
 	{
-		//PPPP VH.T TTTT TTTT
-		auto data = (ramVideo[screenSource] << 8) | ramVideo[screenSource+1];
-		auto tile = data & 0x1FF;
-		auto tileX = xxx & 7;
-		auto tileY = yyy & 7;
+		if (!mapEnabled[layer])
+			continue;
 
-		auto hFlip = (data & 0x0400) == 0x0400;
-		auto vFlip = (data & 0x0800) == 0x0800;
+		auto xxx = scrollX[layer] & maskX;
+		auto yyy = (scrollY[layer] + sourceLine) & maskY;
 
-		auto pal = data >> 12;
+		auto yShift = ((yyy >> 3) << 6);
+		//yShift = 0;
+		auto screenSource = screenBase + (0x000 * (xxx >> 8) + ((xxx & 511) >> 3) + yShift) * 2;
+		auto shift = 64 << (tileShift[layer] - 1);
 
-		if (hFlip) tileX = 7 - tileX;
-		if (vFlip) tileY = 7 - tileY;
-
-		auto color = (int)ramVideo[charBase + (tile << 5) + (tileY << 2) + (tileX >> 1)];
-		if ((tileX & 1) == 1) color >>= 4;
-		color &= 0x0F;
-
-		if (color || layer == 0)
+		for (auto x = 0; x < 320; x++)
 		{
-			if (color) color += pal * 16;
-			RenderPixel(line, (x * 2) + 0, color);
-			RenderPixel(line, (x * 2) + 1, color);
-			RenderPixel(line + 1, (x * 2) + 0, color);
-			RenderPixel(line + 1, (x * 2) + 1, color);
-		}
+			//PPPP VH.T TTTT TTTT
+			auto data = (ramVideo[screenSource] << 8) | ramVideo[screenSource+1];
+			auto tile = (data & 0x1FF) + shift;
+			auto tileX = xxx & 7;
+			auto tileY = yyy & 7;
 
-		if (hFlip) tileX = 7 - tileX;
-		if (tileX == 7) screenSource += 2;
+			auto hFlip = (data & 0x0400) == 0x0400;
+			auto vFlip = (data & 0x0800) == 0x0800;
 
-		xxx++;
-		if (xxx == 512)
-		{
-			if (sizeX > 512)
-				screenSource = screenBase + (0x400 + yShift * 2);
-			else
+			auto pal = data >> 12;
+
+			if (hFlip) tileX = 7 - tileX;
+			if (vFlip) tileY = 7 - tileY;
+
+			auto color = (int)ramVideo[charBase + (tile << 5) + (tileY << 2) + (tileX >> 1)];
+			if ((tileX & 1) == 1) color >>= 4;
+			color &= 0x0F;
+
+			if (color || layer == 0)
 			{
-				screenSource = screenBase + (yShift * 2);
+				if (color) color += pal * 16;
+				RenderPixel(line, (x * 2) + 0, color);
+				RenderPixel(line, (x * 2) + 1, color);
+				RenderPixel(line + 1, (x * 2) + 0, color);
+				RenderPixel(line + 1, (x * 2) + 1, color);
+			}
+
+			if (hFlip) tileX = 7 - tileX;
+			if (tileX == 7) screenSource += 2;
+
+			xxx++;
+			if (xxx == 512)
+			{
+				if (sizeX > 512)
+					screenSource = screenBase + (0x400 + yShift * 2);
+				else
+				{
+					screenSource = screenBase + (yShift * 2);
+					xxx = 0;
+				}
+			}
+			else if (xxx >= sizeX)
+			{
 				xxx = 0;
+				screenSource = screenBase + (yShift * 2);
 			}
 		}
-		else if (xxx >= sizeX)
-		{
-			xxx = 0;
-			screenSource = screenBase + (yShift * 2);
-		}
+
+		screenBase += 0x8000;
 	}
 }
 
