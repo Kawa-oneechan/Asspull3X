@@ -216,8 +216,16 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				auto asValue = ((value >> 3) & 1) == 1;
 				auto dataWidth = (value >> 4) & 3;
 				auto increaseStep = (dataWidth == 0) ? 1 : (dataWidth == 1) ? 2 : 4;
-				if (dmaTarget == 0x0E000000)
+				if (dmaTarget == 0xE000000)
 					dmaTarget += 0;
+				if (asValue && dataWidth == 2 && dmaTarget >= 0x1000000 && dmaTarget < 0xA000000)
+				{
+					//Do it quicker!
+					//TODO: allow this for all long-sized transfers that aren't into register space?
+					//SDL_Log("DMA: detected a long-width memset into WRAM.");
+					SDL_memset((void*)&ramInternal[dmaTarget - 0x1000000], dmaSource, dmaLength);
+					break;
+				}
 				while (dmaLength > 0)
 				{
 					if (asValue)
