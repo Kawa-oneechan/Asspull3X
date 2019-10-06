@@ -20,7 +20,7 @@ unsigned char* ramVideo = NULL;
 FILE* diskFile = NULL;
 int diskError, diskSector;
 
-int keyScan;
+int keyScan, joypad;
 
 int dmaSource, dmaTarget;
 unsigned int dmaLength;
@@ -156,6 +156,8 @@ unsigned int m68k_read_memory_16(unsigned int address)
 				if (diskFile == NULL)
 					return 0;
 				return diskSector;
+			case 0x44: //Joypad
+				return joypad;
 		}
 		return 0;
 	}

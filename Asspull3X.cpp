@@ -149,7 +149,7 @@ int Dump(const char* filePath, unsigned char* source, unsigned long size)
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	if (SDL_Init(SDL_INIT_VIDEO) < 0)
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) < 0)
 		return 0;
 	if (InitVideo() < 0)
 		return 0;
@@ -166,6 +166,13 @@ int _tmain(int argc, _TCHAR* argv[])
 		return 0;
 	if (InitSound(midiNum) < 0)
 		return 0;
+
+	SDL_Joystick *controller = NULL;
+	if (SDL_NumJoysticks() > 0)
+	{
+		SDL_Log("Trying to hook up joystick...");
+		controller = SDL_JoystickOpen(0);
+	}
 
 	SDL_Log("Loading BIOS, %s ...", biosPath);
 	Slurp(romBIOS, biosPath);
@@ -219,6 +226,19 @@ int _tmain(int argc, _TCHAR* argv[])
 			{
 			case SDL_QUIT:
 				quit = true;
+				break;
+
+			case SDL_JOYBUTTONDOWN:
+				if (ev.jbutton.which == 0)
+					joypad |= 16 << ev.jbutton.button;
+				break;
+			case SDL_JOYBUTTONUP:
+				if (ev.jbutton.which == 0)
+					joypad &= ~(16 << ev.jbutton.button);
+				break;
+			case SDL_JOYHATMOTION:
+				if (ev.jhat.which == 0 && ev.jhat.hat == 0)
+					joypad = (joypad & ~15) | ev.jhat.value;
 				break;
 			case SDL_KEYDOWN:
 				if (ev.key.keysym.scancode < 100)
