@@ -31,7 +31,7 @@ extern int UninitVideo();
 extern void HandleHdma(int line);
 extern int InitMemory();
 
-extern int InitSound();
+extern int InitSound(int device);
 extern int UninitSound();
 
 }

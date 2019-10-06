@@ -6,11 +6,12 @@ extern "C" {
 
 #include <Windows.h>
 
-static const int midiNum = 0;
+int midiNum = 0;
 HMIDIOUT midiDevice = 0;
 
-int InitSound()
+int InitSound(int device)
 {
+	midiNum = device;
 	midiOutOpen(&midiDevice, midiNum, NULL, NULL, 0);
 	midiOutReset(midiDevice);
 	return 0;

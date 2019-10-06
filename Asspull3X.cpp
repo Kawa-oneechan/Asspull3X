@@ -152,14 +152,6 @@ int _tmain(int argc, _TCHAR* argv[])
 		return 0;
 	if (InitVideo() < 0)
 		return 0;
-	//SDL_FillRect(sdlSurface, NULL, SDL_MapRGB(sdlSurface->format, 0x60, 0x40, 0x20));
-	//SDL_UpdateWindowSurface(sdlWindow);
-
-	if (InitMemory() < 0)
-		return 0;
-
-	if (InitSound() < 0)
-		return 0;
 
 	auto ini = new IniFile();
 	ini->autoSave = true;
@@ -167,6 +159,12 @@ int _tmain(int argc, _TCHAR* argv[])
 	auto thing = ini->Get("media", "bios", "roms\\ass-bios.apb"); strcpy_s(biosPath, 256, thing);
 	thing = ini->Get("media", "lastROM", ""); strcpy_s(romPath, 256, thing);
 	thing = ini->Get("media", "lastDisk", ""); strcpy_s(diskPath, 256, thing);
+	thing = ini->Get("media", "midiDevice", ""); auto midiNum = SDL_atoi(thing);
+
+	if (InitMemory() < 0)
+		return 0;
+	if (InitSound(midiNum) < 0)
+		return 0;
 
 	SDL_Log("Loading BIOS, %s ...", biosPath);
 	Slurp(romBIOS, biosPath);
