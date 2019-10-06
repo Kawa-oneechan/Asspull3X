@@ -135,6 +135,17 @@ int Slurp(unsigned char* dest, const char* filePath)
 	return 0;
 }
 
+int Dump(const char* filePath, unsigned char* source, unsigned long size)
+{
+	FILE* file = NULL;
+	int err = fopen_s(&file, filePath, "wb");
+	if (err)
+		return err;
+	fwrite(source, size, 1, file);
+	fclose(file);
+	return 0;
+}
+
 int _tmain(int argc, _TCHAR* argv[])
 {
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -156,26 +167,6 @@ int _tmain(int argc, _TCHAR* argv[])
 	auto thing = ini->Get("media", "bios", "roms\\ass-bios.apb"); strcpy_s(biosPath, 256, thing);
 	thing = ini->Get("media", "lastROM", ""); strcpy_s(romPath, 256, thing);
 	thing = ini->Get("media", "lastDisk", ""); strcpy_s(diskPath, 256, thing);
-	/*
-	FILE* settings = NULL;
-	int err = fopen_s(&settings, "settings.txt", "r");
-	if (err)
-	{
-		strcpy_s(biosPath, 256, "roms\\ass-bios.apb");
-		strcpy_s(romPath, 256, "-");
-		strcpy_s(diskPath, 256, "-");
-	}
-	else
-	{
-		fgets(biosPath, 256, settings);
-		fgets(romPath, 256, settings);
-		fgets(diskPath, 256, settings);
-		if (biosPath[strlen(biosPath) - 1] == '\n') biosPath[strlen(biosPath) - 1] = 0;
-		if (romPath[strlen(romPath) - 1] == '\n') romPath[strlen(romPath) - 1] = 0;
-		if (diskPath[strlen(diskPath) - 1] == '\n') diskPath[strlen(diskPath) - 1] = 0;
-		fclose(settings);
-	}
-	*/
 
 	SDL_Log("Loading BIOS, %s ...", biosPath);
 	Slurp(romBIOS, biosPath);
@@ -201,6 +192,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	SDL_Log("Press Ctrl-L to load a ROM or diskette.");
 	SDL_Log("Press Ctrl-U to unload ROM, Ctrl-Shift-U to unload diskette.");
 	SDL_Log("Press Ctrl-R to reset, Ctrl-Shift-R to unload and reset.");
+	SDL_Log("Press Ctrl-D to dump RAM.");
 
 	SDL_Event ev;
 	
@@ -313,6 +305,12 @@ int _tmain(int argc, _TCHAR* argv[])
 						SDL_Log("Resetting Musashi...");
 						m68k_pulse_reset();
 						break;
+					}
+					else if (ev.key.keysym.sym == SDLK_d)
+					{
+						SDL_Log("Dumping core...");
+						Dump("wram.bin", ramInternal, 0xA000000);
+						Dump("vram.bin", ramVideo, 0x0200000);
 					}
 				}
 				keyScan = 0;

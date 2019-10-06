@@ -12,6 +12,7 @@ extern void m68k_reset_irq();
 extern unsigned char* romBIOS;
 extern unsigned char* romCartridge;
 extern unsigned char* ramVideo;
+extern unsigned char* ramInternal;
 
 extern SDL_Window* sdlWindow;
 
