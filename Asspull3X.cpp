@@ -1,3 +1,4 @@
+#include <time.h>
 #include "asspull.h"
 #include "ini.h"
 
@@ -181,7 +182,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	SDL_Log("Resetting Musashi...");
 	m68k_init();
-	m68k_set_pc_changed_callback(pc_change);
+	//m68k_set_pc_changed_callback(pc_change);
 	m68k_set_cpu_type(M68K_CPU_TYPE_68020);
 	m68ki_set_sr(0);
 	m68k_pulse_reset();
@@ -190,7 +191,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	SDL_Log("Press Ctrl-L to load a ROM or diskette.");
 	SDL_Log("Press Ctrl-U to unload ROM, Ctrl-Shift-U to unload diskette.");
 	SDL_Log("Press Ctrl-R to reset, Ctrl-Shift-R to unload and reset.");
-	SDL_Log("Press Ctrl-D to dump RAM.");
+	SDL_Log("Press Ctrl-D to dump RAM, Ctrl-S to take a screenshot.");
 
 	SDL_Event ev;
 	
@@ -309,6 +310,15 @@ int _tmain(int argc, _TCHAR* argv[])
 						SDL_Log("Dumping core...");
 						Dump("wram.bin", ramInternal, 0xA000000);
 						Dump("vram.bin", ramVideo, 0x0200000);
+					}
+					else if (ev.key.keysym.sym == SDLK_s)
+					{
+						char snap[128];
+						__time64_t now;
+						_time64(&now);
+						sprintf_s(snap, 128, "%u.bmp", now);
+						SDL_SaveBMP(sdlSurface, snap);
+						SDL_Log("Snap! %s saved.", snap);
 					}
 				}
 				keyScan = 0;

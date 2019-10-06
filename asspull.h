@@ -15,6 +15,7 @@ extern unsigned char* ramVideo;
 extern unsigned char* ramInternal;
 
 extern SDL_Window* sdlWindow;
+extern SDL_Surface* sdlSurface;
 
 extern int keyScan;
 
