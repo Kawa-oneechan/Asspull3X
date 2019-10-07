@@ -77,7 +77,7 @@ inline void RenderPixel(int row, int column, int color)
 }
 #endif
 
-void RenderSprites16(int line)
+void RenderSprites(int line, int withPriority)
 {
 	auto tileBase = 0x080000;
 	auto spriteBaseA = 0x108000;
@@ -101,12 +101,16 @@ void RenderSprites16(int line)
 		//spriteB += ramVideo[spriteBaseB + 2 + (i * 2)] * 0x100;
 		//spriteB += ramVideo[spriteBaseB + 3 + (i * 2)] * 0x1;
 		auto prio = (spriteB >> 30) & 3;
+		if (withPriority > -1 && prio != withPriority)
+			continue;
 		auto tile = (spriteA >> 0) & 0x1FF;
 		auto pal = (spriteA >> 12) & 0x0F;
 		//var hPos = (spriteB >> 0) & 0x3FF;
 		//var vPos = (spriteB >> 12) & 0x1FF;
 		auto hPos = ((spriteB & 0x7FF) << 21) >> 21;
 		auto vPos = ((spriteB & 0x7FF000) << 10) >> 22;
+		if (gfx320) hPos *= 2;
+		if (gfx240) vPos *= 2;
 
 		auto doubleWidth = ((spriteB >> 24) & 1) == 1;
 		auto doubleHeight = ((spriteB >> 25) & 1) == 1;
@@ -129,7 +133,7 @@ void RenderSprites16(int line)
 		if (line < vPos || line >= vPos + effectiveHeight)
 			continue;
 
-		if (hPos + effectiveWidth <= 0 || hPos > imgWidth)
+		if (hPos + effectiveWidth <= 0 || hPos > 640)
 			continue;
 
 		if (hFlip)
@@ -153,15 +157,19 @@ void RenderSprites16(int line)
 
 			for (auto j = 0; j < renderWidth; j += step)
 			{
-				if (hPos + j < 0 || hPos + j > imgWidth)
+				if (hPos + j < 0 || hPos + j > 640)
 					continue;
 
 				auto hfJ = j;
 				if (hFlip) hfJ = -j;
 
 				auto twoPix = ramVideo[tilePic + (j / step)];
+				if (twoPix == 0)
+					continue;
 				auto l = (twoPix >> 0) & 0x0F;
 				auto r = (twoPix >> 4) & 0x0F;
+				if (l) l += pal * 16;
+				if (r) r += pal * 16;
 				if (hFlip)
 				{
 					auto lt = l;
@@ -241,7 +249,7 @@ void RenderTextMode(int line)
 			}
 		}
 	}
-	if (gfxSprites) RenderSprites16(line);
+	if (gfxSprites) RenderSprites(line, -1);
 }
 
 void RenderBitmapMode1(int line)
@@ -308,10 +316,34 @@ void RenderTileMode(int line)
 	auto maskX = sizeX - 1;
 	auto maskY = sizeY - 1;
 
-	for (int layer = 0; layer < 2; layer++)
+	for (int layer = -1; layer < 2; layer++)
 	{
-		if (!mapEnabled[layer])
+		if (layer == -1)
+		{
+			for (auto x = 0; x < 320; x++)
+			{
+				RenderPixel(line, (x * 2) + 0, 0);
+				RenderPixel(line, (x * 2) + 1, 0);
+				RenderPixel(line + 1, (x * 2) + 0, 0);
+				RenderPixel(line + 1, (x * 2) + 1, 0);
+			}
+			if (gfxSprites)
+			{
+				RenderSprites(line, 2);
+				RenderSprites(line + 1, 2);
+			}
 			continue;
+		}
+
+		if (!mapEnabled[layer])
+		{
+			if (gfxSprites)
+			{
+				RenderSprites(line, 1 - layer);
+				RenderSprites(line + 1, 1 - layer);
+			}
+			continue;
+		}
 
 		auto xxx = scrollX[layer] & maskX;
 		auto yyy = (scrollY[layer] + sourceLine) & maskY;
@@ -341,7 +373,7 @@ void RenderTileMode(int line)
 			if ((tileX & 1) == 1) color >>= 4;
 			color &= 0x0F;
 
-			if (color || layer == 0)
+			if (color)
 			{
 				if (color) color += pal * 16;
 				RenderPixel(line, (x * 2) + 0, color);
@@ -370,7 +402,11 @@ void RenderTileMode(int line)
 				screenSource = screenBase + (yShift * 2);
 			}
 		}
-
+		if (gfxSprites)
+		{
+			RenderSprites(line, 1 - layer);
+			RenderSprites(line + 1, 1 - layer);
+		}
 		screenBase += 0x8000;
 	}
 }
