@@ -16,10 +16,10 @@ char biosPath[256], romPath[256], diskPath[256];
 //Map SDL scancodes
 static const unsigned char keyMap[] =
 {
-	0x00, 
-	0x00, 
-	0x00, 
-	0x00, 
+	0x00,
+	0x00,
+	0x00,
+	0x00,
 	0x1E, //a
 	0x30, //b
 	0x2E, //c
@@ -66,13 +66,13 @@ static const unsigned char keyMap[] =
 	0x1A, //[
 	0x1B, //]
 	0x2B, //backslash
-	0x00, 
+	0x00,
 	0x27, //;
 	0x28, //'
 	0x29, //`
 	0x33, //,
 	0x34, //.
-	0x35, //slash 
+	0x35, //slash
 	0x3A, //caps
 	0x3B, //f1
 	0x3C, //f2
@@ -117,10 +117,6 @@ static const unsigned char keyMap[] =
 	0x52, //kp0
 	0x53, //kp.
 };
-
-void pc_change(unsigned int new_pc)
-{
-}
 
 int Slurp(unsigned char* dest, const char* filePath)
 {
@@ -189,7 +185,6 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	SDL_Log("Resetting Musashi...");
 	m68k_init();
-	//m68k_set_pc_changed_callback(pc_change);
 	m68k_set_cpu_type(M68K_CPU_TYPE_68020);
 	m68ki_set_sr(0);
 	m68k_pulse_reset();
@@ -201,7 +196,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	SDL_Log("Press Ctrl-D to dump RAM, Ctrl-S to take a screenshot.");
 
 	SDL_Event ev;
-	
+
 	auto mHz = 4;
 	auto screenFreq = 60;
 	auto pixsPerRow = 640;
@@ -266,7 +261,7 @@ int _tmain(int argc, _TCHAR* argv[])
 							SDL_Log("Loading ROM, %s ...", romPath);
 							Slurp(romCartridge, romPath);
 							ini->Set("media", "lastROM", romPath);
-							
+
 						}
 						else if (SDL_strncasecmp(ext, "img", 3) == 0)
 						{
@@ -367,7 +362,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		{
 			VBlank();
 			frames++;
-			if ((interrupts & 0x80) == 0)
+			if ((interrupts & 0x84) == 0) //if interrupts are enabled and not already in VBlank
 			{
 				interrupts |= 4; //set VBlank signal
 				m68k_set_virq(M68K_IRQ_7, 1);
