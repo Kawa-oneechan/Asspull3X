@@ -17,14 +17,14 @@ Address space is 28 bits:
 | FF00000 | FFFFFFF | 00FFFFF | STACK
 
 ## VRAM
-| from   | content
-|--------|---------
-| 000000 | Text/Bitmap/Tilemaps
-| 080000 | Tileset
-| 100000 | Palette
-| 100200 | Font
-| 108000 | Sprite tile/pal
-| 108200 | Sprite position/flip/priority
+| from  | content
+|-------|---------
+| 00000 | Text/Bitmap/Tilemaps
+| 10000 | Tileset
+| 40000 | Palette
+| 40200 | Font
+| 44000 | Sprite tile/pal
+| 44200 | Sprite position/flip/priority
 
 ### Size considerations
 * text: up to 80×60=4800 16-bit cells: 4800×2 = 9600 => `$02580`

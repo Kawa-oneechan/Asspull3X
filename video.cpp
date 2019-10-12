@@ -4,6 +4,16 @@
 #define ENABLE_FADE 1
 #define ENABLE_SCANLINES 0
 
+#define TEXT	0x00000
+#define BITMAP	0x00000
+#define MAP1	0x00000
+#define MAP2	0x08000
+#define TILESET	0x10000
+#define PALETTE	0x40000
+#define FONT	0x40200
+#define SPRITE1	0x44000
+#define SPRITE2 0x44200
+
 extern "C" {
 
 bool gfx320, gfx240, gfxTextBold, gfxSprites;
@@ -50,7 +60,7 @@ unsigned char* pixels;
 #define RenderPixel(row, column, color) \
 { \
 	auto target = (((row) * 640) + (column)) * 4; \
-	auto snes = (ramVideo[0x100000 + ((color) * 2) + 0] << 8) + ramVideo[0x100000 + ((color) * 2) + 1]; \
+	auto snes = (ramVideo[PALETTE + ((color) * 2) + 0] << 8) + ramVideo[PALETTE + ((color) * 2) + 1]; \
 	auto r = (snes >> 0) & 0x1F; \
 	auto g = (snes >> 5) & 0x1F; \
 	auto b = (snes >> 10) & 0x1F; \
@@ -65,7 +75,7 @@ inline void RenderPixel(int row, int column, int color)
 {
 	//auto target = ((row * sdlSurface->w) + column) * format->BytesPerPixel;
 	auto target = ((row * 640) + column) * 4;
-	auto snes = (ramVideo[0x100000 + (color * 2) + 0] << 8) + ramVideo[0x100000 + (color * 2) + 1];
+	auto snes = (ramVideo[PALETTE + (color * 2) + 0] << 8) + ramVideo[PALETTE + (color * 2) + 1];
 	auto r = (snes >> 0) & 0x1F;
 	auto g = (snes >> 5) & 0x1F;
 	auto b = (snes >> 10) & 0x1F;
@@ -79,27 +89,20 @@ inline void RenderPixel(int row, int column, int color)
 
 void RenderSprites(int line, int withPriority)
 {
-	auto tileBase = 0x080000;
-	auto spriteBaseA = 0x108000;
-	auto spriteBaseB = 0x108200;
 	auto imgWidth = gfx320 ? 320 : 640;
 	auto step = gfx320 ? 4 : 2;
 	for (auto i = 0; i < 256; i++)
 	{
-		auto spriteA = (ramVideo[spriteBaseA + 0 + (i * 2)] << 8) | (ramVideo[spriteBaseA + 1 + (i * 2)] << 0);
+		auto spriteA = (ramVideo[SPRITE1 + 0 + (i * 2)] << 8) | (ramVideo[SPRITE1 + 1 + (i * 2)] << 0);
 		if (spriteA == 0)
 			continue;
 		if ((spriteA & 0x800) != 0x800)
 			continue;
 		auto spriteB =
-			(ramVideo[spriteBaseB + 0 + (i * 2)] << 24) |
-			(ramVideo[spriteBaseB + 1 + (i * 2)] << 16) |
-			(ramVideo[spriteBaseB + 2 + (i * 2)] << 8) |
-			(ramVideo[spriteBaseB + 3 + (i * 2)] << 0);
-		//var spriteB = ramVideo[spriteBaseB + 0 + (i * 2)] * 0x1000000;
-		//spriteB += ramVideo[spriteBaseB + 1 + (i * 2)] * 0x10000;
-		//spriteB += ramVideo[spriteBaseB + 2 + (i * 2)] * 0x100;
-		//spriteB += ramVideo[spriteBaseB + 3 + (i * 2)] * 0x1;
+			(ramVideo[SPRITE2 + 0 + (i * 2)] << 24) |
+			(ramVideo[SPRITE2 + 1 + (i * 2)] << 16) |
+			(ramVideo[SPRITE2 + 2 + (i * 2)] << 8) |
+			(ramVideo[SPRITE2 + 3 + (i * 2)] << 0);
 		auto prio = (spriteB >> 30) & 3;
 		if (withPriority > -1 && prio != withPriority)
 			continue;
@@ -139,7 +142,7 @@ void RenderSprites(int line, int withPriority)
 		if (hFlip)
 			hPos += (gfx320 ? (effectiveWidth * 2) - 4 : effectiveWidth - 2);
 
-		auto tileBasePic = tileBase + (tile * 32);
+		auto tileBasePic = TILESET + (tile * 32);
 		for (auto col = 0; col < tileWidth; col++)
 		{
 			auto tilePic = tileBasePic;
@@ -216,14 +219,13 @@ void RenderSprites(int line, int withPriority)
 
 void RenderTextMode(int line)
 {
-	auto mapBase = 0;
 	auto width = gfx320 ? 40 : 80;
 	auto height = gfx240 ? 16 : 8;
 	auto bgY = line / height;
-	auto tileIndex = mapBase + (((bgY % width) * width) * 2);
-	auto font = 0x100200 + (gfxTextBold ? 0x800 : 0);
+	auto tileIndex = TEXT + (((bgY % width) * width) * 2);
+	auto font = FONT + (gfxTextBold ? 0x800 : 0);
 	if (gfx240)
-		font = 0x101200 + (gfxTextBold ? 0x1000 : 0);
+		font = FONT + 0x1000 + (gfxTextBold ? 0x1000 : 0);
 	auto tileY = line % (gfx240 ? 16 : 8); //8;
 	//if (gfxTextHigh)
 	//	tileY = (line2 / 2) % 8;
@@ -254,10 +256,9 @@ void RenderTextMode(int line)
 
 void RenderBitmapMode1(int line)
 {
-	auto mapBase = 0;
 	auto imgWidth = gfx320 ? 160 : 320; //image is 160 or 320 bytes wide
 	auto sourceLine = gfxTextBold ? (int)(line * 0.835) : line;
-	auto effective = mapBase + (gfx240 ? sourceLine / 2 : sourceLine);
+	auto effective = BITMAP + (gfx240 ? sourceLine / 2 : sourceLine);
 	auto p = 0;
 	for (auto col = 0; col < 640; col += (gfx320 ? 4 : 2))
 	{
@@ -283,10 +284,9 @@ void RenderBitmapMode1(int line)
 
 void RenderBitmapMode2(int line)
 {
-	auto mapBase = 0;
 	auto imgWidth = gfx320 ? 320 : 640;
 	auto sourceLine = gfxTextBold ? (int)(line * 0.835) : line;
-	auto effective = mapBase + (gfx240 ? sourceLine / 2 : sourceLine);
+	auto effective = BITMAP + (gfx240 ? sourceLine / 2 : sourceLine);
 	auto p = 0;
 	for (auto col = 0; col < 640; col++)
 	{
@@ -309,8 +309,8 @@ void RenderTileMode(int line)
 {
 	if (line % 2 == 1) return;
 	auto sourceLine = line / 2;
-	auto charBase = 0x080000;
-	auto screenBase = 0;
+	auto charBase = TILESET;
+	auto screenBase = MAP1;
 	auto sizeX = 512;
 	auto sizeY = 256;
 	auto maskX = sizeX - 1;
@@ -388,13 +388,13 @@ void RenderTileMode(int line)
 			xxx++;
 			if (xxx == 512)
 			{
-				if (sizeX > 512)
-					screenSource = screenBase + (0x400 + yShift * 2);
-				else
-				{
+				//if (sizeX > 512)
+				//	screenSource = screenBase + (0x400 + yShift * 2);
+				//else
+				//{
 					screenSource = screenBase + (yShift * 2);
 					xxx = 0;
-				}
+				//}
 			}
 			else if (xxx >= sizeX)
 			{

@@ -324,7 +324,7 @@ int _tmain(int argc, _TCHAR* argv[])
 					{
 						SDL_Log("Dumping core...");
 						Dump("wram.bin", ramInternal, 0xA000000);
-						Dump("vram.bin", ramVideo, 0x0200000);
+						Dump("vram.bin", ramVideo, 0x0050000);
 					}
 					else if (ev.key.keysym.sym == SDLK_s)
 					{
