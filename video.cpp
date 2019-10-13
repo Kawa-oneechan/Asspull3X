@@ -108,10 +108,16 @@ void RenderSprites(int line, int withPriority)
 			continue;
 		auto tile = (spriteA >> 0) & 0x1FF;
 		auto pal = (spriteA >> 12) & 0x0F;
-		//var hPos = (spriteB >> 0) & 0x3FF;
-		//var vPos = (spriteB >> 12) & 0x1FF;
-		auto hPos = ((spriteB & 0x7FF) << 21) >> 21;
-		auto vPos = ((spriteB & 0x7FF000) << 10) >> 22;
+		short hPos = ((spriteB & 0x7FF) << 21) >> 21;
+		short vPos = ((spriteB & 0x7FF000) << 10) >> 22;
+		if (hPos & 0x200) //extend sign because lolbitfields
+			hPos |= 0xFC00;
+		else
+			hPos &= 0x3FF;
+		if (vPos & 0x100)
+			vPos |= 0xFE00;
+		else
+			vPos &= 0x1FF;
 		if (gfx320) hPos *= 2;
 		if (gfx240) vPos *= 2;
 
@@ -136,7 +142,8 @@ void RenderSprites(int line, int withPriority)
 		if (line < vPos || line >= vPos + effectiveHeight)
 			continue;
 
-		if (hPos + effectiveWidth <= 0 || hPos > 640)
+		auto renderWidth = (gfx320 ? 16 : 8);
+		if (hPos + (effectiveWidth * (gfx320 ? 2 : 1)) <= 0 || hPos > 640)
 			continue;
 
 		if (hFlip)
@@ -156,13 +163,9 @@ void RenderSprites(int line, int withPriority)
 			if (tileWidth == 4) tilePic += tileLine * 96;
 
 			tilePic += part * 4;
-			auto renderWidth = (gfx320 ? 16 : 8);
 
 			for (auto j = 0; j < renderWidth; j += step)
 			{
-				if (hPos + j < 0 || hPos + j > 640)
-					continue;
-
 				auto hfJ = j;
 				if (hFlip) hfJ = -j;
 
@@ -182,17 +185,18 @@ void RenderSprites(int line, int withPriority)
 
 				if (!gfx320)
 				{
-					if (l != 0) RenderPixel(line, hPos + hfJ  + 0, l);
-					if (r != 0) RenderPixel(line, hPos + hfJ + 1, r);
+					//if (hPos + j < 0 || hPos + j > 640)	
+					if (l != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640) RenderPixel(line, hPos + hfJ + 0, l);
+					if (r != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640) RenderPixel(line, hPos + hfJ + 1, r);
 				}
 				else
 				{
-					if (l != 0)
+					if (l != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640)
 					{
 						RenderPixel(line, hPos + hfJ + 0, l);
 						RenderPixel(line, hPos + hfJ + 1, l);
 					}
-					if (r != 0)
+					if (r != 0 && hPos + hfJ + 2 >= 0 && hPos + hfJ + 2 < 640)
 					{
 						RenderPixel(line, hPos + hfJ + 2, r);
 						RenderPixel(line, hPos + hfJ + 3, r);
