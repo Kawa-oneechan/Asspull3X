@@ -33,7 +33,7 @@ int blitAddrA, blitAddrB;
 
 long ticks = 0;
 
-extern bool gfx320, gfx240, gfxTextBold, gfxSprites;
+extern bool gfx320, gfx240, gfxTextBold;
 extern int gfxMode, gfxFade, scrollX[2], scrollY[2], tileShift[2], mapEnabled[2];
 
 extern int line, interrupts;
@@ -95,7 +95,6 @@ unsigned int m68k_read_memory_8(unsigned int address)
 		{
 		case 4: //Screen Mode
 			return (gfxMode |
-				(gfxSprites ? 1 << 8 : 0) |
 				(gfx240 ? 1 << 5 : 0) |
 				(gfx320 ? 1 << 6 : 0) |
 				(gfxTextBold ? 1 << 7 : 0));
@@ -152,12 +151,12 @@ unsigned int m68k_read_memory_16(unsigned int address)
 				return line;
 			case 0x6: //Keyscan
 				return keyScan;
+			case 0xF: //Joypad
+				return joypad;
 			case 0x30: //Disk sector
 				if (diskFile == NULL)
 					return 0;
 				return diskSector;
-			case 0x44: //Joypad
-				return joypad;
 		}
 		return 0;
 	}
@@ -197,7 +196,6 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				gfxTextBold = ((u8 >> 7) & 1) == 1;
 				gfx320 = ((u8 >> 6) & 1) == 1;
 				gfx240 = ((u8 >> 5) & 1) == 1;
-				gfxSprites = ((u8 >> 4) & 1) == 1;
 				gfxMode = u8 & 0x0F;
 				break;
 			case 5: //VBlankMode
@@ -211,9 +209,10 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				printf("%c", (char)value);
 				break;
 			case 0x10:
-			case 0x11:
-				mapEnabled[reg - 0x10] = value >> 7;
-				tileShift[reg - 0x10] = value & 15;
+				mapEnabled[0] = (value & 0x80);
+				mapEnabled[1] = (value & 0x40);
+				tileShift[0] = (value >> 2) & 3;
+				tileShift[1] = value & 3;
 				break;
 			case 0x2A: //DMA Control
 				{

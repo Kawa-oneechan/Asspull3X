@@ -16,7 +16,7 @@
 
 extern "C" {
 
-bool gfx320, gfx240, gfxTextBold, gfxSprites;
+bool gfx320, gfx240, gfxTextBold;
 int gfxMode, gfxFade, scrollX[2], scrollY[2], tileShift[2], mapEnabled[2];
 
 SDL_Window* sdlWindow = NULL;
@@ -251,7 +251,7 @@ void RenderTextMode(int line)
 			}
 		}
 	}
-	if (gfxSprites) RenderSprites(line, -1);
+	RenderSprites(line, -1);
 }
 
 void RenderBitmapMode1(int line)
@@ -279,7 +279,7 @@ void RenderBitmapMode1(int line)
 			RenderPixel(line, col + 3, r);
 		}
 	}
-	//if (gfxSprites) RenderSprites16(line);
+	RenderSprites(line, -1);
 }
 
 void RenderBitmapMode2(int line)
@@ -302,7 +302,7 @@ void RenderBitmapMode2(int line)
 			RenderPixel(line, col, pixel);
 		}
 	}
-	//if (gfxSprites) RenderSpritesPal(line, 0); //RenderSprites256(line);
+	RenderSprites(line, -1);
 }
 
 void RenderTileMode(int line)
@@ -327,21 +327,15 @@ void RenderTileMode(int line)
 				RenderPixel(line + 1, (x * 2) + 0, 0);
 				RenderPixel(line + 1, (x * 2) + 1, 0);
 			}
-			if (gfxSprites)
-			{
-				RenderSprites(line, 2);
-				RenderSprites(line + 1, 2);
-			}
+			RenderSprites(line, 2);
+			RenderSprites(line + 1, 2);
 			continue;
 		}
 
 		if (!mapEnabled[layer])
 		{
-			if (gfxSprites)
-			{
-				RenderSprites(line, 1 - layer);
-				RenderSprites(line + 1, 1 - layer);
-			}
+			RenderSprites(line, 1 - layer);
+			RenderSprites(line + 1, 1 - layer);
 			continue;
 		}
 
@@ -351,7 +345,7 @@ void RenderTileMode(int line)
 		auto yShift = ((yyy >> 3) << 6);
 		//yShift = 0;
 		auto screenSource = screenBase + (0x000 * (xxx >> 8) + ((xxx & 511) >> 3) + yShift) * 2;
-		auto shift = 64 << (tileShift[layer] - 1);
+		auto shift = 128 << (tileShift[layer] - 1);
 
 		for (auto x = 0; x < 320; x++)
 		{
@@ -402,11 +396,8 @@ void RenderTileMode(int line)
 				screenSource = screenBase + (yShift * 2);
 			}
 		}
-		if (gfxSprites)
-		{
-			RenderSprites(line, 1 - layer);
-			RenderSprites(line + 1, 1 - layer);
-		}
+		RenderSprites(line, 1 - layer);
+		RenderSprites(line + 1, 1 - layer);
 		screenBase += 0x8000;
 	}
 }

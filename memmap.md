@@ -80,9 +80,8 @@ Alternative:
 ### 00000 Line
 The current line being drawn as a `uint16`.
 ### 00004 ScreenMode
-    B32S ..MM
-    ||||   |___ Mode
-    ||||_______ Enable sprites
+    B32. ..MM
+    |||    |___ Mode
     |||________ 240px tall instead of 480px
     ||_________ 320px wide instead of 640px
     |__________ Bold in text mode, 200 or 400px in bitmap mode
@@ -106,12 +105,15 @@ The amount of ticks since the system was turned on as a `uint32`.
     |__________ To white
 ### 0000E	DebugOut
 Pipe characters to `STDOUT`.
+### 0000F	Joypad
+    YXBA RLDU
 ### 00010 TilemapSet1
-### 00011 TilemapSet2
     E... TTTT
-    |    |_____ Tile shift
-    |__________ Enabled
-Tile shift adds 64 << T to the tile # when rendering, so a shift value of 3 means a whole separate set of 512 tiles.
+    ||   | |___ Tile shift for layer 1
+    ||   |_____ Tile shift for layer 2
+    ||_________ Layer 1 enabled
+    |__________ Layer 2 enabled
+Tile shift adds 128 << T to the tile # when rendering, so a shift value of 3 means a whole separate set of 1024 tiles.
 ### 00012	TilemapScrollH1
 ### 00014	TilemapScrollH2
 ### 00016	TilemapScrollV1
