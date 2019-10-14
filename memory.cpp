@@ -81,8 +81,8 @@ int InitMemory()
 	SDL_memset(ramInternal, 0, 0xA000000);
 	if ((disk = (unsigned char*)malloc(0x0000200)) == NULL) return -1;
 	SDL_memset(disk, 0, 0x0000200);
-	if ((ramVideo = (unsigned char*)malloc(0x0050000)) == NULL) return -1;
-	SDL_memset(ramVideo, 0, 0x0050000);
+	if ((ramVideo = (unsigned char*)malloc(0x0060000)) == NULL) return -1;
+	SDL_memset(ramVideo, 0, 0x0060000);
 	return 0;
 }
 
@@ -299,7 +299,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				break;
 			}
 		case 0xE:
-			if (addr >= 0x0050000)
+			if (addr >= 0x0060000)
 				break;
 			ramVideo[addr] = (unsigned char)value; break;
 		//default: memory[address & 0x0FFFFFFF] = (byte)value; break;

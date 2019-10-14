@@ -21,10 +21,10 @@ Address space is 28 bits:
 |-------|---------
 | 00000 | Text/Bitmap/Tilemaps
 | 10000 | Tileset
-| 40000 | Palette
-| 40200 | Font
-| 44000 | Sprite tile/pal
-| 44200 | Sprite position/flip/priority
+| 50000 | Palette
+| 50200 | Font
+| 54000 | Sprite tile/pal
+| 54200 | Sprite position/flip/priority
 
 ### Size considerations
 * text: up to 80×60=4800 16-bit cells: 4800×2 = 9600 => `$02580`

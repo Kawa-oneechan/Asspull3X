@@ -9,10 +9,10 @@
 #define MAP1	0x00000
 #define MAP2	0x08000
 #define TILESET	0x10000
-#define PALETTE	0x40000
-#define FONT	0x40200
-#define SPRITE1	0x44000
-#define SPRITE2 0x44200
+#define PALETTE	0x50000
+#define FONT	0x50200
+#define SPRITE1	0x54000
+#define SPRITE2 0x54200
 
 extern "C" {
 
