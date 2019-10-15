@@ -267,14 +267,13 @@ int _tmain(int argc, _TCHAR* argv[])
 						{
 							strcpy_s(diskPath, 256, thePath);
 							if (diskFile != NULL)
+								SDL_Log("Unmount the diskette first, with Ctrl-Shift-U.");
+							else
 							{
-								SDL_Log("Unmounting diskette...");
-								fclose(diskFile);
-								diskFile = NULL;
+								SDL_Log("Mounting diskette, %s ...", diskPath);
+								auto err = fopen_s(&diskFile, diskPath, "rb+");
+								ini->Set("media", "lastDisk", diskPath);
 							}
-							SDL_Log("Mounting diskette, %s ...", diskPath);
-							auto err = fopen_s(&diskFile, diskPath, "rb+");
-							ini->Set("media", "lastDisk", diskPath);
 						}
 						else
 							SDL_Log("Don't know what to do with %s.", romPath);
@@ -323,7 +322,7 @@ int _tmain(int argc, _TCHAR* argv[])
 					else if (ev.key.keysym.sym == SDLK_d)
 					{
 						SDL_Log("Dumping core...");
-						Dump("wram.bin", ramInternal, 0xA000000);
+						Dump("wram.bin", ramInternal, 0x0400000);
 						Dump("vram.bin", ramVideo, 0x0060000);
 					}
 					else if (ev.key.keysym.sym == SDLK_s)

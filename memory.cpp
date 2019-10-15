@@ -77,8 +77,8 @@ int InitMemory()
 	SDL_memset(romBIOS, 0, 0x0020000);
 	if ((romCartridge = (unsigned char*)malloc(0x0FF0000)) == NULL) return -1;
 	SDL_memset(romCartridge, 0, 0x0FF0000);
-	if ((ramInternal = (unsigned char*)malloc(0xA000000)) == NULL) return -1;
-	SDL_memset(ramInternal, 0, 0xA000000);
+	if ((ramInternal = (unsigned char*)malloc(0x0400000)) == NULL) return -1;
+	SDL_memset(ramInternal, 0, 0x0400000);
 	if ((disk = (unsigned char*)malloc(0x0000200)) == NULL) return -1;
 	SDL_memset(disk, 0, 0x0000200);
 	if ((ramVideo = (unsigned char*)malloc(0x0060000)) == NULL) return -1;
@@ -116,15 +116,9 @@ unsigned int m68k_read_memory_8(unsigned int address)
 				return romBIOS[addr];
 			return romCartridge[addr - 0x00020000];
 		case 0x1:
-		case 0x2:
-		case 0x3:
-		case 0x4:
-		case 0x5:
-		case 0x6:
-		case 0x7:
-		case 0x8:
-		case 0x9:
-			return ramInternal[addr + (0x1000000 * (bank - 1))];
+			if (addr >= 0x00400000)
+				return 0;
+			return ramInternal[addr];
 		case 0xD:
 			{
 				if (addr >= 0x7FFE00)
@@ -283,15 +277,9 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 	{
 		case 0x0: /* BIOS is ROM */ break;
 		case 0x1:
-		case 0x2:
-		case 0x3:
-		case 0x4:
-		case 0x5:
-		case 0x6:
-		case 0x7:
-		case 0x8:
-		case 0x9:
-			ramInternal[addr + (0x1000000 * (bank - 1))] = (unsigned char)value; break;
+			if (addr < 0x00400000)
+				ramInternal[addr] = (unsigned char)value;
+			break;
 		case 0xD:
 			{
 				if (addr >= 0x7FFE00)

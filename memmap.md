@@ -10,7 +10,7 @@ Address space is 28 bits:
 | ------- |---------|---------|------
 | 0000000 | 000FFFF | 000FFFF | BIOS
 | 0010000 | 0FFFFFF | 0FF0000 | ROM
-| 1000000 | 9FFFFFF | 8FFFFFF | RAM
+| 1000000 | 1400000 | 0400000 | RAM
 | D7FFE00 | D7FFFFF | 0000200 | DISK
 | D800000 |         |         | IO
 | E000000 | EFFFFFF | 0FFFFFF | VRAM
