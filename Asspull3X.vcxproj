@@ -87,6 +87,7 @@
     <ClInclude Include="nativefiledialog\src\include\nfd.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="device.cpp" />
     <ClCompile Include="ini.cpp" />
     <ClCompile Include="memory.cpp" />
     <ClCompile Include="musashi\m68kcpu.c" />

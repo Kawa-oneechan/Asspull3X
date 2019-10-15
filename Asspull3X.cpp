@@ -163,6 +163,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	if (InitSound(midiNum) < 0)
 		return 0;
 
+	devices[0] = (Device*)(new DiskDrive());
+
 	SDL_Joystick *controller = NULL;
 	if (SDL_NumJoysticks() > 0)
 	{

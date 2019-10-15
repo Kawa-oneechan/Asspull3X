@@ -35,4 +35,29 @@ extern int InitMemory();
 extern int InitSound(int device);
 extern int UninitSound();
 
+#define MAXDEVS 16
+class Device
+{
+public:
+	Device(void);
+	~Device(void);
+	virtual unsigned int Read(unsigned int address);
+	virtual void Write(unsigned int address, unsigned int value);
+};
+
+class DiskDrive : Device
+{
+private:
+	unsigned char* data;
+	unsigned short sector;
+	int error;
+public:
+	DiskDrive(void);
+	~DiskDrive(void);
+	unsigned int Read(unsigned int address);
+	void Write(unsigned int address, unsigned int value);
+};
+
+extern Device* devices[MAXDEVS];
+
 }

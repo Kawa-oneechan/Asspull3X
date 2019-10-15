@@ -14,11 +14,7 @@ void m68k_write_memory_32(unsigned int address, unsigned int value);
 unsigned char* romBIOS = NULL;
 unsigned char* romCartridge = NULL;
 unsigned char* ramInternal = NULL;
-unsigned char* disk = NULL;
 unsigned char* ramVideo = NULL;
-
-FILE* diskFile = NULL;
-int diskError, diskSector;
 
 int keyScan, joypad;
 
@@ -79,8 +75,6 @@ int InitMemory()
 	SDL_memset(romCartridge, 0, 0x0FF0000);
 	if ((ramInternal = (unsigned char*)malloc(0x0400000)) == NULL) return -1;
 	SDL_memset(ramInternal, 0, 0x0400000);
-	if ((disk = (unsigned char*)malloc(0x0000200)) == NULL) return -1;
-	SDL_memset(disk, 0, 0x0000200);
 	if ((ramVideo = (unsigned char*)malloc(0x0060000)) == NULL) return -1;
 	SDL_memset(ramVideo, 0, 0x0060000);
 	return 0;
@@ -100,15 +94,11 @@ unsigned int m68k_read_memory_8(unsigned int address)
 				(gfxTextBold ? 1 << 7 : 0));
 		case 5: //VBlankMode
 			return interrupts;
-		case 0x32: //Disk Control
-			auto ret = diskError << 1;
-			ret |= (diskFile == NULL) ? 0 : 1;
-			return ret;
 		}
 		return 0;
 	}
 	auto bank = (address & 0x0F000000) >> 24;
-	auto addr =  address & 0x00FFFFFF;
+	auto addr = address & 0x00FFFFFF;
 	switch (bank)
 	{
 		case 0x0:
@@ -119,13 +109,14 @@ unsigned int m68k_read_memory_8(unsigned int address)
 			if (addr >= 0x00400000)
 				return 0;
 			return ramInternal[addr];
-		case 0xD:
+		case 0x2: //DEV
 			{
-				if (addr >= 0x7FFE00)
-					return disk[addr - 0x7FFE00];
-				else
-					return 0;
+				auto devnum = addr / 0x8000;
+				if (devices[devnum] != NULL)
+					return devices[devnum]->Read(addr % 0x8000);
+				return 0;
 			}
+			break;
 		case 0xE:
 			if (addr >= 0x0050000)
 				return 0;
@@ -147,10 +138,6 @@ unsigned int m68k_read_memory_16(unsigned int address)
 				return keyScan;
 			case 0xF: //Joypad
 				return joypad;
-			case 0x30: //Disk sector
-				if (diskFile == NULL)
-					return 0;
-				return diskSector;
 		}
 		return 0;
 	}
@@ -246,25 +233,6 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				}
 				break;
 				}
-			case 0x32: //Disk Control
-				if (diskFile == NULL)
-					break;
-				fseek(diskFile, diskSector * 512, SEEK_SET);
-				//diskStream.Seek(diskSector * 512, System.IO.SeekOrigin.Begin);
-				diskError = false;
-				if (value == 4)
-				{
-					diskError = (fread(disk, 1, 512, diskFile) == 0);
-					//diskError = diskStream.Read(disk, 0, 512) == 0;
-				}
-				else if (value == 8)
-				{
-					fwrite(disk, 1, 512, diskFile);
-					fflush(diskFile);
-					//diskStream.Write(disk, 0, 512);
-					//diskStream.Flush();
-				}
-				break;
 			case 0x110: //Blitter key
 				//blitKey = (byte)value;
 				break;
@@ -272,7 +240,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 		return;
 	}
 	auto bank = (address & 0x0F000000) >> 24;
-	auto addr =  address & 0x00FFFFFF;
+	auto addr = address & 0x00FFFFFF;
 	switch (bank)
 	{
 		case 0x0: /* BIOS is ROM */ break;
@@ -280,12 +248,13 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 			if (addr < 0x00400000)
 				ramInternal[addr] = (unsigned char)value;
 			break;
-		case 0xD:
+		case 0x2: //DEV
 			{
-				if (addr >= 0x7FFE00)
-					disk[addr - 0x7FFE00] =(unsigned char)value;
-				break;
+				auto devnum = addr / 0x8000;
+				if (devices[devnum] != NULL)
+					devices[devnum]->Write(addr % 0x8000, value);
 			}
+			break;
 		case 0xE:
 			if (addr >= 0x0060000)
 				break;
@@ -308,10 +277,6 @@ void m68k_write_memory_16(unsigned int address, unsigned int value)
 			case 0x16: //Vertical scroll
 			case 0x18:
 				scrollY[(reg - 0x16) / 2] = value & 511;
-				break;
-			case 0x30: //Disk sector
-				if (diskFile != NULL)
-					diskSector = value;
 				break;
 		}
 		return;
@@ -391,10 +356,10 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 				blitAddrA = value;
 				break;
 			case 0x108: //Blitter address B
-				blitAddrB =  value;
+				blitAddrB = value;
 				break;
 			case 0x10C: //Blitter length
-				blitLength =  value;
+				blitLength = value;
 				break;
 		}
 		return;

@@ -7,11 +7,11 @@ Address space is 28 bits:
 
 ## Regions
 | from    | to      | size    | name
-| ------- |---------|---------|------
+| ------- | ------- | ------- |------
 | 0000000 | 000FFFF | 000FFFF | BIOS
 | 0010000 | 0FFFFFF | 0FF0000 | ROM
 | 1000000 | 1400000 | 0400000 | RAM
-| D7FFE00 | D7FFFFF | 0000200 | DISK
+| 2000000 | 2080000 | 0080000 | DEV
 | D800000 |         |         | IO
 | E000000 | EFFFFFF | 0FFFFFF | VRAM
 | FF00000 | FFFFFFF | 00FFFFF | STACK
@@ -76,6 +76,22 @@ Alternative:
 1. Stuff
 2. Sprites with any priority
 
+## Device I/O
+Each of the sixteen blocks of `8000` bytes starting from `2000000` may or may not map to a device. The first two bytes of each block identify what kind of device it is. If those bytes are the value `0000` or `FFFF` there is no device.
+### Disk drive
+The disk drive is identified by the value `0144`.  The next `uint16` value selects which sector to read or write (IO register `00030` before) and the next byte controls the device (`00032` before):
+
+    ...B WREP
+       | ||||__ Disk present (read only)
+       | |||___ Error state (read only)
+       | ||____ Read now
+       | |_____ Write now
+       |_______ Busy state (read only)
+
+From the 512th byte on, another 512 bytes form the disk controller's internal RAM, used to hold a sector's worth of data to read or write. That leaves plenty room for expansion.
+### Line printer
+Identified by the value `4C50`, writing to the next byte pipes directly to the printer. Reading it returns `00` or an error value, to be determined. *This might make a nice alternative to `REG_DEBUGOUT`...*
+
 ## Register map
 ### 00000 Line
 The current line being drawn as a `uint16`.
@@ -132,14 +148,6 @@ Certainly a value.
       |  ||____ Increase target every loop
       |  |_____ Use source as direct value, not as a pointer
       |________ Width of data to copy
-### 00030	DiskSector
-Selects the sector of the floppy diskette to read or write as a `uint16`.
-### 00032	DiskControl
-    .... WREP
-         ||||__ Present (read only)
-         |||___ Error state (read only)
-         ||____ Read now
-         |_____ Write now
 #### 00040	MidiOut
 Send a raw 32-bit message through the MIDI OUT port.
 ### 00080	HDMAControl1
