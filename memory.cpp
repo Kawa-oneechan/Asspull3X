@@ -186,7 +186,6 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				gfxFade = u8;
 				break;
 			case 0xE: //Debug
-				//Console.Write((char)value);
 				printf("%c", (char)value);
 				break;
 			case 0x10:

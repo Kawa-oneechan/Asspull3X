@@ -158,12 +158,14 @@ int _tmain(int argc, _TCHAR* argv[])
 	thing = ini->Get("media", "lastDisk", ""); strcpy_s(diskPath, 256, thing);
 	thing = ini->Get("media", "midiDevice", ""); auto midiNum = SDL_atoi(thing);
 
+	//TODO: set these by INI, though probably leave the diskdrive hardcoded.
+	devices[0] = (Device*)(new DiskDrive());
+	devices[1] = (Device*)(new LinePrinter());
+
 	if (InitMemory() < 0)
 		return 0;
 	if (InitSound(midiNum) < 0)
 		return 0;
-
-	devices[0] = (Device*)(new DiskDrive());
 
 	SDL_Joystick *controller = NULL;
 	if (SDL_NumJoysticks() > 0)
@@ -179,10 +181,12 @@ int _tmain(int argc, _TCHAR* argv[])
 		SDL_Log("Loading ROM, %s ...", romPath);
 		Slurp(romCartridge, romPath);
 	}
-	if (diskPath[0] != 0)
+	if (diskPath[0] != 0 && devices[0] != NULL && devices[0]->Read(0) == 0x01)
 	{
 		SDL_Log("Mounting diskette, %s ...", diskPath);
-		auto err = fopen_s(&diskFile, diskPath, "rb+");
+		auto err = ((DiskDrive*)devices[0])->Mount(diskPath);
+		if (err)
+			SDL_Log("Error %d trying to open disk image.", err);
 	}
 
 	SDL_Log("Resetting Musashi...");
@@ -268,13 +272,15 @@ int _tmain(int argc, _TCHAR* argv[])
 						else if (SDL_strncasecmp(ext, "img", 3) == 0)
 						{
 							strcpy_s(diskPath, 256, thePath);
-							if (diskFile != NULL)
-								SDL_Log("Unmount the diskette first, with Ctrl-Shift-U.");
-							else
+							if (devices[0] != NULL && devices[0]->Read(0) == 0x01)
 							{
-								SDL_Log("Mounting diskette, %s ...", diskPath);
-								auto err = fopen_s(&diskFile, diskPath, "rb+");
-								ini->Set("media", "lastDisk", diskPath);
+								auto ret = ((DiskDrive*)devices[0])->Mount(diskPath);
+								if (ret == -1)
+									SDL_Log("Unmount the diskette first, with Ctrl-Shift-U.");
+								else if (ret != 0)
+									SDL_Log("Error %d trying to open disk image.", ret);
+								else
+									ini->Set("media", "lastDisk", diskPath);
 							}
 						}
 						else
@@ -285,14 +291,10 @@ int _tmain(int argc, _TCHAR* argv[])
 					{
 						if (ev.key.keysym.mod & KMOD_LSHIFT)
 						{
-							if (diskFile != NULL)
-							{
-								SDL_Log("Unmounting diskette...");
-								fclose(diskFile);
-								diskFile = NULL;
-								strcpy_s(diskPath, 256, "");
-								ini->Set("media", "lastDisk", diskPath);
-							}
+							if (devices[0] != NULL && devices[0]->Read(0) == 0x01)
+								((DiskDrive*)devices[0])->Unmount();
+							strcpy_s(diskPath, 256, "");
+							ini->Set("media", "lastDisk", diskPath);
 						}
 						else
 						{
@@ -308,12 +310,8 @@ int _tmain(int argc, _TCHAR* argv[])
 						{
 							SDL_Log("Unloading ROM...");
 							memset(romCartridge, 0, 0x0FF0000);
-							if (diskFile != NULL)
-							{
-								SDL_Log("Unmounting diskette...");
-								fclose(diskFile);
-								diskFile = NULL;
-							}
+							if (devices[0] != NULL && devices[0]->Read(0) == 0x01)
+								((DiskDrive*)devices[0])->Unmount();
 							strcpy_s(romPath, 256, "");
 							ini->Set("media", "lastROM", romPath);
 						}
