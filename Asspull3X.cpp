@@ -158,9 +158,28 @@ int _tmain(int argc, _TCHAR* argv[])
 	thing = ini->Get("media", "lastDisk", ""); strcpy_s(diskPath, 256, thing);
 	thing = ini->Get("media", "midiDevice", ""); auto midiNum = SDL_atoi(thing);
 
-	//TODO: set these by INI, though probably leave the diskdrive hardcoded.
-	devices[0] = (Device*)(new DiskDrive());
-	devices[1] = (Device*)(new LinePrinter());
+	for (int i = 0; i < MAXDEVS; i++)
+	{
+		char key[8];
+		char dft[24] = "";
+		//Always load a diskdrive and lineprinter as #0 and #1 by default
+		if (i == 0) strcpy_s(dft, 24, "diskDrive");
+		else if (i == 1) strcpy_s(dft, 24, "linePrinter");
+		SDL_itoa(i, key, 10);
+		thing = ini->Get("devices", key, dft);
+		if (thing[0] == 0) continue;
+		if (!strcmp(thing, "diskDrive"))
+		{
+			SDL_Log("Attached a disk drive as device #%d.", i);
+			devices[i] = (Device*)(new DiskDrive());
+		}
+		else if (!strcmp(thing, "linePrinter"))
+		{
+			SDL_Log("Attached a line printer as device #%d.", i);
+			devices[i] = (Device*)(new LinePrinter());
+		}
+		else SDL_Log("Don't know what a \"%s\" is to connect as device #%d.", thing, i);
+	}
 
 	if (InitMemory() < 0)
 		return 0;
