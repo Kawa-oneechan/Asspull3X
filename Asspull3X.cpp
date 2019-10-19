@@ -222,7 +222,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	SDL_Event ev;
 
-	auto mHz = 4;
+	auto mHz = 8;
 	auto screenFreq = 60;
 	auto pixsPerRow = 640;
 	auto lines = 480;
