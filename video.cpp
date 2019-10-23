@@ -47,7 +47,7 @@ unsigned short add_rgb(unsigned short rgb, unsigned short add)
 		else \
 			snes = ~add_rgb(~snes, gfxFade & 31); \
 	} \
-	pixels[((row * 640) + column)] = snes; \
+	pixels[((row) * 640) + (column)] = snes; \
 }
 #else
 inline void RenderPixel(int row, int column, int color)
