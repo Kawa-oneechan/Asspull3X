@@ -19,48 +19,52 @@ int gfxMode, gfxFade, scrollX[2], scrollY[2], tileShift[2], mapEnabled[2];
 
 SDL_Window* sdlWindow = NULL;
 SDL_Surface* sdlSurface = NULL;
-SDL_Surface* sdlWinSurface = NULL;
 
-unsigned short* pixels;
+unsigned char* pixels;
 
-//by Alcaro
-unsigned short add_rgb(unsigned short rgb, unsigned short add)
-{
-  unsigned short low_bit = ((1<<10) | (1<<5) | (1<<0));
-  add = add * low_bit;
-  unsigned short out_low = rgb ^ add; // this is the correct value in the low bit, others are garbage
-  unsigned short out_add = rgb + add;
-  unsigned short overflowed = (out_add^out_low) & (low_bit<<5); // if low^add is nonzero at positions 5, 10 or 15, it overflowed
-  out_add -= overflowed; // remove overflow from 5/10/15
-  out_add |= (overflowed - (overflowed>>5)); // and saturate the overflowed channels
-  return out_add;
-}
+#define FADECODE \
+	if (gfxFade > 0) \
+	{ \
+		auto f = (gfxFade & 31); \
+		if ((gfxFade & 0x80) == 0x80) \
+		{ \
+			r = ((r + f > 31) ? 31 : r + f); \
+			g = ((g + f > 31) ? 31 : g + f); \
+			b = ((b + f > 31) ? 31 : b + f); \
+		} \
+		else \
+		{ \
+			r = ((r - f < 0) ? 0 : r - f); \
+			g = ((g - f < 0) ? 0 : g - f); \
+			b = ((b - f < 0) ? 0 : b - f); \
+		} \
+	}
 
 #ifdef RENDERPIXELS_DEFINE
 #define RenderPixel(row, column, color) \
 { \
 	auto snes = (ramVideo[PALETTE + ((color) * 2) + 0] << 8) + ramVideo[PALETTE + ((color) * 2) + 1]; \
-	if (gfxFade != 0) \
-	{ \
-		if (gfxFade & 0x80) \
-			snes = add_rgb(snes, gfxFade & 31); \
-		else \
-			snes = ~add_rgb(~snes, gfxFade & 31); \
-	} \
-	pixels[((row) * 640) + (column)] = snes; \
+	auto target = (((row) * 640) + (column)) * 4; \
+	auto r = (snes >> 0) & 0x1F; \
+	auto g = (snes >> 5) & 0x1F; \
+	auto b = (snes >> 10) & 0x1F; \
+	FADECODE; \
+	pixels[target + 0] = (b << 3) + (b >> 2); \
+	pixels[target + 1] = (g << 3) + (g >> 2); \
+	pixels[target + 2] = (r << 3) + (r >> 2); \
 }
 #else
 inline void RenderPixel(int row, int column, int color)
 {
-	auto snes = (ramVideo[PALETTE + ((color) * 2) + 0] << 8) + ramVideo[PALETTE + ((color) * 2) + 1];
-	if (gfxFade != 0)
-	{
-		if (gfxFade & 0x80)
-			snes = add_rgb(snes, gfxFade & 31);
-		else
-			snes = ~add_rgb(~snes, gfxFade & 31);
-	}
-	pixels[((row * 640) + column)] = snes;
+	auto snes = (ramVideo[PALETTE + ((color) * 2) + 0] << 8) + ramVideo[PALETTE + ((color) * 2) + 1];	
+	auto target = ((row * 640) + column) * 4;
+	auto r = (snes >> 0) & 0x1F;
+	auto g = (snes >> 5) & 0x1F;
+	auto b = (snes >> 10) & 0x1F;
+	FADECODE;
+	pixels[target + 0] = (b << 3) + (b >> 2);
+	pixels[target + 1] = (g << 3) + (g >> 2);
+	pixels[target + 2] = (r << 3) + (r >> 2);
 }
 #endif
 
@@ -396,7 +400,6 @@ void RenderLine(int line)
 
 void VBlank()
 {
-	SDL_BlitSurface(sdlSurface, NULL, sdlWinSurface, NULL);
 	SDL_UpdateWindowSurface(sdlWindow);
 }
 
@@ -408,17 +411,12 @@ int InitVideo()
 		SDL_Log("Could not create window: %s", SDL_GetError());
 		return -1;
 	}
-	if ((sdlWinSurface = SDL_GetWindowSurface(sdlWindow)) == NULL)
-	{
-		SDL_Log("Could not get window surface: %s", SDL_GetError());
-		return -2;
-	}
-	if ((sdlSurface = SDL_CreateRGBSurfaceWithFormat(0, 640, 480, 16, SDL_PIXELFORMAT_BGR555)) == NULL)
+	if ((sdlSurface = SDL_GetWindowSurface(sdlWindow)) == NULL)
 	{
 		SDL_Log("Could not get surface: %s", SDL_GetError());
 		return -2;
 	}
-	pixels = (unsigned short*)sdlSurface->pixels;
+	pixels = (unsigned char*)sdlSurface->pixels;
 
 	if (sdlSurface->format->format != SDL_PIXELFORMAT_RGB888)
 		SDL_Log("Surface format is wrong, should be 32-bit XRGB. Output may be fucky.");
@@ -429,7 +427,6 @@ int InitVideo()
 int UninitVideo()
 {
 	SDL_FreeSurface(sdlSurface);
-	SDL_FreeSurface(sdlWinSurface);
 	SDL_DestroyWindow(sdlWindow);
 	return 0;
 }
