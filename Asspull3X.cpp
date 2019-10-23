@@ -1,6 +1,5 @@
 #include <time.h>
 #include "asspull.h"
-#include "ini.h"
 
 extern "C" {
 
@@ -10,6 +9,8 @@ extern "C" {
 static bool quit = 0;
 int line = 0, interrupts = 0;
 extern INLINE void m68ki_set_sr(unsigned int value);
+
+IniFile* ini;
 
 char biosPath[256], romPath[256], diskPath[256];
 
@@ -145,18 +146,23 @@ int Dump(const char* filePath, unsigned char* source, unsigned long size)
 
 int _tmain(int argc, _TCHAR* argv[])
 {
+#ifdef WITH_OPENGL
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_VIDEO_OPENGL | SDL_INIT_GAMECONTROLLER) < 0)
+#else
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) < 0)
-		return 0;
-	if (InitVideo() < 0)
+#endif
 		return 0;
 
-	auto ini = new IniFile();
+	ini = new IniFile();
 	ini->autoSave = true;
 	ini->Load("settings.ini");
 	auto thing = ini->Get("media", "bios", "roms\\ass-bios.apb"); strcpy_s(biosPath, 256, thing);
 	thing = ini->Get("media", "lastROM", ""); strcpy_s(romPath, 256, thing);
 	thing = ini->Get("media", "lastDisk", ""); strcpy_s(diskPath, 256, thing);
 	thing = ini->Get("media", "midiDevice", ""); auto midiNum = SDL_atoi(thing);
+
+	if (InitVideo() < 0)
+		return 0;
 
 	for (int i = 0; i < MAXDEVS; i++)
 	{
@@ -350,7 +356,7 @@ int _tmain(int argc, _TCHAR* argv[])
 						__time64_t now;
 						_time64(&now);
 						sprintf_s(snap, 128, "%u.bmp", now);
-						SDL_SaveBMP(sdlSurface, snap);
+						//SDL_SaveBMP(sdlSurface, snap);
 						SDL_Log("Snap! %s saved.", snap);
 					}
 				}

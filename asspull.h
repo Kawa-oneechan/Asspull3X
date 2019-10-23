@@ -4,6 +4,9 @@
 #include <string.h>
 #include <tchar.h>
 #include <SDL.h>
+#include "ini.h"
+
+#define WITH_OPENGL
 
 extern "C" {
 
@@ -34,6 +37,8 @@ extern int InitMemory();
 
 extern int InitSound(int device);
 extern int UninitSound();
+
+extern IniFile* ini;
 
 #define MAXDEVS 16
 class Device

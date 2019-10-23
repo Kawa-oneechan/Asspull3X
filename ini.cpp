@@ -133,8 +133,8 @@ void IniFile::Load(const char* filename)
 					while (!feof(fd) && fgetc(fd) != '\n');
 					break;
 				}
-				if (iswspace(c))
-					continue;
+				//if (iswspace(c))
+				//	continue;
 				*b++ = c;
 			}
 			*b++ = 0;

@@ -1,5 +1,14 @@
 #include "asspull.h"
 
+#ifdef WITH_OPENGL
+#include <SDL_opengl.h>
+#include <SDL_opengl_glext.h>
+//undo some irrelevant Windows stuff
+#ifdef TEXT
+#undef TEXT
+#endif
+#endif
+
 #define RENDERPIXELS_DEFINE
 
 #define TEXT	0x00000
@@ -18,7 +27,13 @@ bool gfx320, gfx240, gfxTextBold;
 int gfxMode, gfxFade, scrollX[2], scrollY[2], tileShift[2], mapEnabled[2];
 
 SDL_Window* sdlWindow = NULL;
+#ifdef WITH_OPENGL
+SDL_Renderer* sdlRenderer = NULL;
+SDL_Texture* sdlTexture = NULL;
+unsigned int programId = 0;
+#else
 SDL_Surface* sdlSurface = NULL;
+#endif
 
 unsigned char* pixels;
 
@@ -398,6 +413,242 @@ void RenderLine(int line)
 	}
 }
 
+#ifdef WITH_OPENGL
+PFNGLCREATESHADERPROC glCreateShader;
+PFNGLSHADERSOURCEPROC glShaderSource;
+PFNGLCOMPILESHADERPROC glCompileShader;
+PFNGLGETSHADERIVPROC glGetShaderiv;
+PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog;
+PFNGLDELETESHADERPROC glDeleteShader;
+PFNGLATTACHSHADERPROC glAttachShader;
+PFNGLCREATEPROGRAMPROC glCreateProgram;
+PFNGLLINKPROGRAMPROC glLinkProgram;
+PFNGLVALIDATEPROGRAMPROC glValidateProgram;
+PFNGLGETPROGRAMIVPROC glGetProgramiv;
+PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog;
+PFNGLUSEPROGRAMPROC glUseProgram;
+
+const char* vertexShader = "varying vec4 v_color;"
+"varying vec2 v_texCoord;"
+"void main() {"
+"gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;"
+"v_color = gl_Color;"
+"v_texCoord = vec2(gl_MultiTexCoord0);"
+"}";
+
+bool initGLExtensions() {
+	glCreateShader = (PFNGLCREATESHADERPROC)SDL_GL_GetProcAddress("glCreateShader");
+	glShaderSource = (PFNGLSHADERSOURCEPROC)SDL_GL_GetProcAddress("glShaderSource");
+	glCompileShader = (PFNGLCOMPILESHADERPROC)SDL_GL_GetProcAddress("glCompileShader");
+	glGetShaderiv = (PFNGLGETSHADERIVPROC)SDL_GL_GetProcAddress("glGetShaderiv");
+	glGetShaderInfoLog = (PFNGLGETSHADERINFOLOGPROC)SDL_GL_GetProcAddress("glGetShaderInfoLog");
+	glDeleteShader = (PFNGLDELETESHADERPROC)SDL_GL_GetProcAddress("glDeleteShader");
+	glAttachShader = (PFNGLATTACHSHADERPROC)SDL_GL_GetProcAddress("glAttachShader");
+	glCreateProgram = (PFNGLCREATEPROGRAMPROC)SDL_GL_GetProcAddress("glCreateProgram");
+	glLinkProgram = (PFNGLLINKPROGRAMPROC)SDL_GL_GetProcAddress("glLinkProgram");
+	glValidateProgram = (PFNGLVALIDATEPROGRAMPROC)SDL_GL_GetProcAddress("glValidateProgram");
+	glGetProgramiv = (PFNGLGETPROGRAMIVPROC)SDL_GL_GetProcAddress("glGetProgramiv");
+	glGetProgramInfoLog = (PFNGLGETPROGRAMINFOLOGPROC)SDL_GL_GetProcAddress("glGetProgramInfoLog");
+	glUseProgram = (PFNGLUSEPROGRAMPROC)SDL_GL_GetProcAddress("glUseProgram");
+
+	return glCreateShader && glShaderSource && glCompileShader && glGetShaderiv && 
+		glGetShaderInfoLog && glDeleteShader && glAttachShader && glCreateProgram &&
+		glLinkProgram && glValidateProgram && glGetProgramiv && glGetProgramInfoLog &&
+		glUseProgram;
+}
+
+GLuint compileShader(const char* source, GLuint shaderType)
+{
+	if (source == NULL)
+	{
+		SDL_Log("Cannot compile shader, source is null.");
+		return 0;
+	}
+	//SDL_Log("Compiling shader: %s", source);
+	// Create ID for shader
+	GLuint result = glCreateShader(shaderType);
+	// Define shader text
+	glShaderSource(result, 1, &source, NULL);
+	// Compile shader
+	glCompileShader(result);
+
+	//Check vertex shader for errors
+	GLint shaderCompiled = GL_FALSE;
+	glGetShaderiv( result, GL_COMPILE_STATUS, &shaderCompiled );
+	if( shaderCompiled != GL_TRUE )
+	{
+		SDL_Log("Error compiling shader: %d", result);
+		GLint logLength;
+		glGetShaderiv(result, GL_INFO_LOG_LENGTH, &logLength);
+		if (logLength > 0)
+		{
+			GLchar *log = (GLchar*)malloc(logLength);
+			glGetShaderInfoLog(result, logLength, &logLength, log);
+			SDL_Log("%s", log);
+			free(log);
+		}
+		glDeleteShader(result);
+		result = 0;
+	}
+	return result;
+}
+
+char* ReadTextFile(const char* filePath)
+{
+	FILE* file = NULL;
+	int err = fopen_s(&file, filePath, "rb");
+	if (err)
+		return NULL;
+	fseek(file, 0, SEEK_END);
+	long size = ftell(file);
+	fseek(file, 0, SEEK_SET);
+	char* dest = (char*)malloc(size + 1);
+	fread(dest, 1, size, file);
+	dest[size] = 0;
+	fclose(file);
+	return dest;
+}
+
+GLuint compileProgram(const char* fragFile)
+{
+	if (fragFile == NULL || fragFile[0] == 0)
+		return 0;
+
+	GLuint programId = 0;
+	GLuint vtxShaderId, fragShaderId;
+
+	programId = glCreateProgram();
+
+	vtxShaderId = compileShader(vertexShader, GL_VERTEX_SHADER);
+
+	auto source = ReadTextFile(fragFile);
+	fragShaderId = compileShader(source, GL_FRAGMENT_SHADER);
+	free(source);
+
+	if(vtxShaderId && fragShaderId)
+	{
+		// Associate shader with program
+		glAttachShader(programId, vtxShaderId);
+		glAttachShader(programId, fragShaderId);
+		glLinkProgram(programId);
+		glValidateProgram(programId);
+
+		// Check the status of the compile/link
+		GLint logLen;
+		glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &logLen);
+		if(logLen > 0)
+		{
+			char* log = (char*) malloc(logLen * sizeof(char));
+			// Show any errors as appropriate
+			glGetProgramInfoLog(programId, logLen, &logLen, log);
+			SDL_Log("Prog Info Log: %s", log);
+			free(log);
+		}
+	}
+	if(vtxShaderId) glDeleteShader(vtxShaderId);
+	if(fragShaderId) glDeleteShader(fragShaderId);
+	return programId;
+}
+
+void presentBackBuffer(SDL_Renderer *renderer, SDL_Window* win, SDL_Texture* backBuffer, GLuint programId)
+{
+	GLint oldProgramId;
+
+	SDL_SetRenderTarget(renderer, NULL);
+	SDL_RenderClear(renderer);
+
+	SDL_GL_BindTexture(backBuffer, NULL, NULL);
+	if(programId != 0)
+	{
+		glGetIntegerv(GL_CURRENT_PROGRAM,&oldProgramId);
+		glUseProgram(programId);
+	}
+
+	GLfloat minx, miny, maxx, maxy;
+	GLfloat minu, maxu, minv, maxv;
+
+	int winWidth, winHeight;
+	SDL_GetWindowSize(sdlWindow, &winWidth, &winHeight);
+	if (winHeight < 480) SDL_SetWindowSize(sdlWindow, winWidth, 480);
+	if (winWidth < 640) SDL_SetWindowSize(sdlWindow, 640, winHeight);
+	int scrWidth = (winWidth / 640) * 640;
+	int scrHeight = (winHeight / 480) * 480;
+	scrWidth = (int)(scrHeight * 1.33f);
+
+	minx = (winWidth - scrWidth) * 0.5f;
+	miny = (winHeight - scrHeight) * 0.5f;
+	maxx = minx + scrWidth;
+	maxy = miny + scrHeight;
+
+	minu = 0.0f;
+	maxu = 1.0f;
+	minv = 0.0f;
+	maxv = 1.0f;
+
+	glBegin(GL_TRIANGLE_STRIP);
+		glTexCoord2f(minu, minv);
+		glVertex2f(minx, miny);
+		glTexCoord2f(maxu, minv);
+		glVertex2f(maxx, miny);
+		glTexCoord2f(minu, maxv);
+		glVertex2f(minx, maxy);
+		glTexCoord2f(maxu, maxv);
+		glVertex2f(maxx, maxy);
+	glEnd();
+	SDL_GL_SwapWindow(win);
+
+	if(programId != 0)
+		glUseProgram(oldProgramId);
+}
+
+void VBlank()
+{
+	SDL_SetRenderTarget(sdlRenderer, sdlTexture);
+	SDL_UpdateTexture(sdlTexture, NULL, pixels, 640 * 4);
+	presentBackBuffer(sdlRenderer, sdlWindow, sdlTexture, programId);
+	//SDL_UpdateWindowSurface(sdlWindow);
+}
+
+int InitVideo()
+{
+	SDL_Log("Creating window...");
+	auto winWidth = SDL_atoi(ini->Get("video", "width", "640"));
+	auto winHeight = SDL_atoi(ini->Get("video", "height", "480"));
+	if ((sdlWindow = SDL_CreateWindow("Asspull IIIx", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, winWidth, winHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE)) == NULL)
+	{
+		SDL_Log("Could not create window: %s", SDL_GetError());
+		return -1;
+	}
+
+	SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
+
+	if ((sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE)) == NULL)
+	{
+		SDL_Log("Could not create renderer: %s", SDL_GetError());
+		return -2;
+	}
+
+	initGLExtensions();
+	programId = compileProgram(ini->Get("video", "shader", "")); //("crt.fragment");
+
+	if ((sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_TARGET, 640, 480)) == NULL)
+	{
+		SDL_Log("Could not create renderer: %s", SDL_GetError());
+		return -2;
+	}
+
+	pixels = (unsigned char*)malloc(640 * 480 * 4);
+	return 0;
+}
+
+int UninitVideo()
+{
+	SDL_DestroyRenderer(sdlRenderer);
+	SDL_DestroyTexture(sdlTexture);
+	SDL_DestroyWindow(sdlWindow);
+	return 0;
+}
+#else
 void VBlank()
 {
 	SDL_UpdateWindowSurface(sdlWindow);
@@ -406,7 +657,9 @@ void VBlank()
 int InitVideo()
 {
 	SDL_Log("Creating window...");
-	if ((sdlWindow = SDL_CreateWindow("Asspull IIIx", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_SHOWN)) == NULL)
+	auto winWidth = SDL_atoi(ini->Get("video", "width", "640"));
+	auto winHeight = SDL_atoi(ini->Get("video", "height", "480"));
+	if ((sdlWindow = SDL_CreateWindow("Asspull IIIx", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, winWidth, winHeight, SDL_WINDOW_SHOWN)) == NULL)
 	{
 		SDL_Log("Could not create window: %s", SDL_GetError());
 		return -1;
@@ -430,5 +683,5 @@ int UninitVideo()
 	SDL_DestroyWindow(sdlWindow);
 	return 0;
 }
-
+#endif
 }
