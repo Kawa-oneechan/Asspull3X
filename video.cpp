@@ -1,5 +1,7 @@
 #include "asspull.h"
 
+#include <time.h>
+
 #ifdef WITH_OPENGL
 #include <SDL_opengl.h>
 #include <SDL_opengl_glext.h>
@@ -573,7 +575,7 @@ void presentBackBuffer(SDL_Renderer *renderer, SDL_Window* win, SDL_Texture* bac
 	if (winWidth < 640) SDL_SetWindowSize(sdlWindow, 640, winHeight);
 	int scrWidth = (winWidth / 640) * 640;
 	int scrHeight = (winHeight / 480) * 480;
-	scrWidth = (int)(scrHeight * 1.33f);
+	scrWidth = (int)(scrHeight * 1.33334f);
 
 	minx = (winWidth - scrWidth) * 0.5f;
 	miny = (winHeight - scrHeight) * 0.5f;
@@ -648,6 +650,47 @@ int UninitVideo()
 	SDL_DestroyWindow(sdlWindow);
 	return 0;
 }
+
+void Screenshot()
+{
+	char snap[128];
+	__time64_t now;
+	_time64(&now);
+	sprintf_s(snap, 128, "%u.bmp", now);
+
+	int winWidth, winHeight;
+	SDL_GetWindowSize(sdlWindow, &winWidth, &winHeight);
+	int scrWidth = (winWidth / 640) * 640;
+	int scrHeight = (winHeight / 480) * 480;
+	scrWidth = (int)(scrHeight * 1.33334f);
+	int left = (winWidth - scrWidth) / 2;
+	int top = (winHeight - scrHeight) / 2;
+	int size = scrWidth * scrHeight * 3;
+
+	char* shot = (char*)malloc(4 * scrWidth * scrHeight);
+	glReadPixels(left, top, scrWidth, scrHeight, GL_BGR, GL_UNSIGNED_BYTE, shot);
+
+	FILE* f = NULL;
+	fopen_s(&f, snap, "wb");
+	short s = 0x4D42; fwrite(&s, 2, 1, f);
+	long l = size + 54; fwrite(&l, 4, 1, f);
+	s = 0; fwrite(&s, 2, 2, f);
+	l = 54; fwrite(&l, 4, 1, f);
+	l = 40; fwrite(&l, 4, 1, f);
+	l = scrWidth; fwrite(&l, 4, 1, f);
+	l = scrHeight; fwrite(&l, 4, 1, f);
+	s = 1; fwrite(&s, 2, 1, f);
+	s = 24; fwrite(&s, 2, 1, f);
+	l = 0; fwrite(&l, 4, 1, f);
+	l = size; fwrite(&l, 4, 1, f);
+	l = 7874; fwrite(&l, 4, 2, f);
+	l = 0; fwrite(&l, 4, 2, f);
+	fwrite(shot, size, 1, f);
+	fclose(f);
+
+	free(shot);
+	SDL_Log("Snap! %s saved.", snap);
+}
 #else
 void VBlank()
 {
@@ -682,6 +725,16 @@ int UninitVideo()
 	SDL_FreeSurface(sdlSurface);
 	SDL_DestroyWindow(sdlWindow);
 	return 0;
+}
+
+void Screenshot()
+{
+	char snap[128];
+	__time64_t now;
+	_time64(&now);
+	sprintf_s(snap, 128, "%u.bmp", now);
+	SDL_SaveBMP(sdlSurface, snap);
+	SDL_Log("Snap! %s saved.", snap);
 }
 #endif
 }

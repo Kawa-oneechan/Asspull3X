@@ -1,4 +1,3 @@
-#include <time.h>
 #include "asspull.h"
 
 extern "C" {
@@ -9,6 +8,7 @@ extern "C" {
 static bool quit = 0;
 int line = 0, interrupts = 0;
 extern INLINE void m68ki_set_sr(unsigned int value);
+extern void Screenshot();
 
 IniFile* ini;
 
@@ -352,12 +352,7 @@ int _tmain(int argc, _TCHAR* argv[])
 					}
 					else if (ev.key.keysym.sym == SDLK_s)
 					{
-						char snap[128];
-						__time64_t now;
-						_time64(&now);
-						sprintf_s(snap, 128, "%u.bmp", now);
-						//SDL_SaveBMP(sdlSurface, snap);
-						SDL_Log("Snap! %s saved.", snap);
+						Screenshot();
 					}
 				}
 				keyScan = 0;
