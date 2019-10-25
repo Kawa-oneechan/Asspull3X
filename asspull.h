@@ -18,7 +18,9 @@ extern unsigned char* ramVideo;
 extern unsigned char* ramInternal;
 
 extern SDL_Window* sdlWindow;
+#ifndef WITH_OPENGL
 extern SDL_Surface* sdlSurface;
+#endif
 
 extern int keyScan, joypad;
 
@@ -38,7 +40,20 @@ extern int InitMemory();
 extern int InitSound(int device);
 extern int UninitSound();
 
+extern void HandleUI();
+
 extern IniFile* ini;
+
+enum uiCommands
+{
+	cmdNone,
+	cmdLoadRom,
+	cmdUnloadRom,
+	cmdReset,
+	cmdScreenshot,
+	cmdDump,
+	cmdQuit
+};
 
 #define MAXDEVS 16
 class Device

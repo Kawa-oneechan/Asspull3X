@@ -96,6 +96,7 @@
     <ClCompile Include="nativefiledialog\src\nfd_win.cpp" />
     <ClCompile Include="Asspull3X.cpp" />
     <ClCompile Include="sound.cpp" />
+    <ClCompile Include="ui.cpp" />
     <ClCompile Include="video.cpp" />
   </ItemGroup>
   <ItemGroup>

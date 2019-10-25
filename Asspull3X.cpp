@@ -9,6 +9,9 @@ static bool quit = 0;
 int line = 0, interrupts = 0;
 extern INLINE void m68ki_set_sr(unsigned int value);
 extern void Screenshot();
+extern int uiCommand, uiData;
+extern char uiFPS[];
+extern void SetStatus(char*);
 
 IniFile* ini;
 
@@ -277,96 +280,109 @@ int _tmain(int argc, _TCHAR* argv[])
 				}
 				break;
 			case SDL_KEYUP:
-				//SDL_Log("keyup: sym %d, mod 0x%x", ev.key.keysym.sym, ev.key.keysym.mod);
 				if (ev.key.keysym.mod & KMOD_LCTRL)
 				{
-					if (ev.key.keysym.sym == SDLK_l)
-					{
-						nfdchar_t* thePath = NULL;
-						nfdresult_t nfdResult = NFD_OpenDialog("ap3,img", NULL, &thePath);
-						if (nfdResult != NFD_OKAY) break;
-						auto ext = strrchr(thePath, '.') + 1;
-						if (SDL_strncasecmp(ext, "ap3", 3) == 0)
-						{
-							strcpy_s(romPath, 256, thePath);
-							SDL_Log("Loading ROM, %s ...", romPath);
-							Slurp(romCartridge, romPath);
-							ini->Set("media", "lastROM", romPath);
-
-						}
-						else if (SDL_strncasecmp(ext, "img", 3) == 0)
-						{
-							strcpy_s(diskPath, 256, thePath);
-							if (devices[0] != NULL && devices[0]->Read(0) == 0x01)
-							{
-								auto ret = ((DiskDrive*)devices[0])->Mount(diskPath);
-								if (ret == -1)
-									SDL_Log("Unmount the diskette first, with Ctrl-Shift-U.");
-								else if (ret != 0)
-									SDL_Log("Error %d trying to open disk image.", ret);
-								else
-									ini->Set("media", "lastDisk", diskPath);
-							}
-						}
-						else
-							SDL_Log("Don't know what to do with %s.", romPath);
-						break;
-					}
-					else if (ev.key.keysym.sym == SDLK_u)
-					{
-						if (ev.key.keysym.mod & KMOD_LSHIFT)
-						{
-							if (devices[0] != NULL && devices[0]->Read(0) == 0x01)
-								((DiskDrive*)devices[0])->Unmount();
-							strcpy_s(diskPath, 256, "");
-							ini->Set("media", "lastDisk", diskPath);
-						}
-						else
-						{
-							SDL_Log("Unloading ROM...");
-							memset(romCartridge, 0, 0x0FF0000);
-							strcpy_s(romPath, 256, "");
-							ini->Set("media", "lastROM", romPath);
-						}
-					}
-					else if (ev.key.keysym.sym == SDLK_r)
-					{
-						if (ev.key.keysym.mod & KMOD_LSHIFT)
-						{
-							SDL_Log("Unloading ROM...");
-							memset(romCartridge, 0, 0x0FF0000);
-							if (devices[0] != NULL && devices[0]->Read(0) == 0x01)
-								((DiskDrive*)devices[0])->Unmount();
-							strcpy_s(romPath, 256, "");
-							ini->Set("media", "lastROM", romPath);
-						}
-						SDL_Log("Resetting Musashi...");
-						m68k_pulse_reset();
-						break;
-					}
+					if (ev.key.keysym.sym == SDLK_r)
+						uiCommand = cmdReset;
 					else if (ev.key.keysym.sym == SDLK_d)
-					{
-						SDL_Log("Dumping core...");
-						Dump("wram.bin", ramInternal, 0x0400000);
-						Dump("vram.bin", ramVideo, 0x0060000);
-					}
+						uiCommand = cmdDump;
 					else if (ev.key.keysym.sym == SDLK_s)
-					{
-						Screenshot();
-					}
+						uiCommand = cmdScreenshot;
 				}
 				keyScan = 0;
 				break;
 			}
 		}
 
+		//TODO: enumerate the uiCommands.
+		if (uiCommand != cmdNone)
+		{
+			if (uiCommand == cmdLoadRom)
+			{
+				//TODO: split off the disk image parts
+				nfdchar_t* thePath = NULL;
+				nfdresult_t nfdResult = NFD_OpenDialog("ap3,img", NULL, &thePath);
+				if (nfdResult != NFD_OKAY) break;
+				auto ext = strrchr(thePath, '.') + 1;
+				if (SDL_strncasecmp(ext, "ap3", 3) == 0)
+				{
+					strcpy_s(romPath, 256, thePath);
+					SDL_Log("Loading ROM, %s ...", romPath);
+					Slurp(romCartridge, romPath);
+					ini->Set("media", "lastROM", romPath);
+				}
+				else if (SDL_strncasecmp(ext, "img", 3) == 0)
+				{
+					strcpy_s(diskPath, 256, thePath);
+					if (devices[0] != NULL && devices[0]->Read(0) == 0x01)
+					{
+						auto ret = ((DiskDrive*)devices[0])->Mount(diskPath);
+						if (ret == -1)
+							SDL_Log("Unmount the diskette first, with Ctrl-Shift-U.");
+						else if (ret != 0)
+							SDL_Log("Error %d trying to open disk image.", ret);
+						else
+							ini->Set("media", "lastDisk", diskPath);
+					}
+				}
+				else
+					SDL_Log("Don't know what to do with %s.", romPath);
+			}
+			else if (uiCommand == cmdUnloadRom)
+			{
+				//TODO: split off the disk image parts
+				if (uiData)
+				{
+					if (devices[0] != NULL && devices[0]->Read(0) == 0x01)
+						((DiskDrive*)devices[0])->Unmount();
+					strcpy_s(diskPath, 256, "");
+					ini->Set("media", "lastDisk", diskPath);
+				}
+				else
+				{
+					SDL_Log("Unloading ROM...");
+					memset(romCartridge, 0, 0x0FF0000);
+					strcpy_s(romPath, 256, "");
+					ini->Set("media", "lastROM", romPath);
+				}
+			}
+			else if (uiCommand == cmdReset)
+			{
+				if (uiData)
+				{
+					SDL_Log("Unloading ROM...");
+					memset(romCartridge, 0, 0x0FF0000);
+					if (devices[0] != NULL && devices[0]->Read(0) == 0x01)
+						((DiskDrive*)devices[0])->Unmount();
+					strcpy_s(romPath, 256, "");
+					ini->Set("media", "lastROM", romPath);
+				}
+				SDL_Log("Resetting Musashi...");
+				SetStatus("System reset.");
+				m68k_pulse_reset();
+			}
+			else if (uiCommand == cmdQuit)
+			{
+				quit = true;
+			}
+			else if (uiCommand == cmdDump)
+			{
+				SDL_Log("Dumping core...");
+				Dump("wram.bin", ramInternal, 0x0400000);
+				Dump("vram.bin", ramVideo, 0x0060000);
+			}
+			else if (uiCommand == cmdScreenshot)
+			{
+				Screenshot();
+			}
+			uiCommand = uiData = 0;
+		}
+
 		auto newTicks = SDL_GetTicks();
 		if (newTicks >= oldTicks + 1000)
 		{
 			oldTicks = newTicks;
-			char buff[256];
-			sprintf_s(buff, 256, "Asspull IIIx - %d FPS", frames);
-			SDL_SetWindowTitle(sdlWindow, buff);
+			sprintf_s(uiFPS, 32, "%d", frames);
 			frames = 0;
 		}
 
@@ -379,6 +395,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 		if (line == lines)
 		{
+			HandleUI();
 			VBlank();
 			frames++;
 			if ((interrupts & 0x84) == 0) //if interrupts are enabled and not already in VBlank
