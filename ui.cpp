@@ -56,6 +56,7 @@ int pullDownLevel = 0;
 uiMenu* pullDowns[4] = { 0 };
 int pullDownLefts[4] = { 0 };
 int pullDownTops[4] = { 0 };
+int currentTopMenu = -1;
 
 extern unsigned char* pixels;
 #define RenderPixel(row, column, color) \
@@ -67,6 +68,14 @@ extern unsigned char* pixels;
 	pixels[target + 0] = (b << 3) + (b >> 2); \
 	pixels[target + 1] = (g << 3) + (g >> 2); \
 	pixels[target + 2] = (r << 3) + (r >> 2); \
+}
+
+#define DarkenPixel(row, column) \
+{ \
+	auto target = (((row) * 640) + (column)) * 4; \
+	pixels[target + 0] = pixels[target + 0] / 2; \
+	pixels[target + 1] = pixels[target + 1] / 2; \
+	pixels[target + 2] = pixels[target + 2] / 2; \
 }
 
 #ifdef WITH_OPENGL
@@ -95,14 +104,14 @@ int GetMouseState(int *x, int *y)
 
 static unsigned short cursor[] =
 {
-	0x739C,0x77BD,0x7FFF,0x7FFF,0x7FFF,0x7FFF,0x2108,0x0000,
-	0x6F7B,0x739C,0x77BD,0x77BD,0x7FFF,0x2108,0x2108,0x0000,
-	0x6739,0x6F7B,0x739C,0x77BD,0x2108,0x2108,0x0000,0x0000,
-	0x6739,0x6F7B,0x6F7B,0x739C,0x77BD,0x0000,0x0000,0x0000,
-	0x6739,0x6739,0x2108,0x6F7B,0x739C,0x77BD,0x0000,0x0000,
-	0x6739,0x2108,0x2108,0x0000,0x6F7B,0x739C,0x2108,0x0000,
-	0x2108,0x2108,0x0000,0x0000,0x0000,0x2108,0x2108,0x0000,
-	0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
+	0x739C,0x77BD,0x7FFF,0x7FFF,0x7FFF,0x7FFF,0x2108,0x8000,
+	0x6F7B,0x739C,0x77BD,0x77BD,0x7FFF,0x2108,0x2108,0x8000,
+	0x6739,0x6F7B,0x739C,0x77BD,0x2108,0x2108,0x8000,0x8000,
+	0x6739,0x6F7B,0x6F7B,0x739C,0x77BD,0x8000,0x8000,0x0000,
+	0x6739,0x6739,0x2108,0x6F7B,0x739C,0x77BD,0x8000,0x0000,
+	0x6739,0x2108,0x2108,0x8000,0x6F7B,0x739C,0x2108,0x8000,
+	0x2108,0x2108,0x8000,0x8000,0x8000,0x2108,0x2108,0x8000,
+	0x8000,0x8000,0x8000,0x0000,0x0000,0x8000,0x8000,0x8000,
 };
 
 int oldX, oldY, cursorTimer = 1000;
@@ -132,6 +141,11 @@ void DrawCursor()
 				break;
 			if (pix == 0x0000)
 				continue;
+			if (pix == 0x8000)
+			{
+				DarkenPixel(y + row, x + col);
+				continue;
+			}
 			RenderPixel(y + row, x + col, pix);
 		}
 	}
@@ -222,12 +236,22 @@ int uiHandleMenuDrop(uiMenu* menu, int left, int top, int *openedTop)
 			}
 			RenderPixel(y + line, left + 1 + width, PULLDOWN_BORDER);
 		}
-
 		DrawString(left + 2, y + 1, PULLDOWN_TEXT, menu->items[i].caption);
+	}
+	for (int y = top; y <= top + (menu->numItems * 8); y++)
+	{
+		DarkenPixel(y + 2, left + 2 + width);
+		DarkenPixel(y + 2, left + 3 + width);
+	}
+	for (int col = 0; col < width; col++)
+	{
+		DarkenPixel(top + (menu->numItems * 8) + 1, col + 4);
+		DarkenPixel(top + (menu->numItems * 8) + 2, col + 4);
 	}
 
 	if (buttons == 1 && focused != -1)
 	{
+		currentTopMenu = -1;
 		if (menu->items[focused].onSelect)
 			return menu->items[focused].onSelect(focused, left + width, top + (focused * 8));
 		return focused;
@@ -253,6 +277,7 @@ int uiHandleMenuBar(uiMenu* menu, int *openedLeft)
 
 	int focused = -1;
 	int focusL = -32, focusR = -32;
+	int otherFocusL = -32, otherFocusR = -32;
 	if (x < extents[0])
 	{
 		focused = 0;
@@ -272,17 +297,33 @@ int uiHandleMenuBar(uiMenu* menu, int *openedLeft)
 			}
 		}
 	}
+	if (currentTopMenu != -1)
+	{
+		if (currentTopMenu == 0)
+			otherFocusL = 0;
+		else
+			otherFocusL = extents[currentTopMenu - 1];
+		otherFocusR = extents[currentTopMenu];
+	}
 
 	for (int i = 0; i < width; i++)
 	{
 		int color = BAR_FILL;
-		if (i >= focusL && i < focusR)
+		if ((i >= focusL && i < focusR) || (i >= otherFocusL && i < otherFocusR))
 			color = BAR_HIGHLIGHT;
 		for (int j = 0; j < 10; j++)
 		{
 			RenderPixel(j, i, color);
 		}
+		DarkenPixel(10, i);
+		DarkenPixel(11, i);
 	}
+	for (int j = 0; j < 12; j++)
+	{
+		DarkenPixel(j, width + 0);
+		DarkenPixel(j, width + 1);
+	}
+
 	for (int i = 0, x = 4; i < menu->numItems; i++, x = extents[i - 1] + 4)
 	{
 		DrawString(x, 2, BAR_TEXT, menu->items[i].caption);
@@ -290,6 +331,7 @@ int uiHandleMenuBar(uiMenu* menu, int *openedLeft)
 
 	if (buttons == 1 && focused != -1)
 	{
+		currentTopMenu = focused;
 		*openedLeft = focusL;
 		if (menu->items[focused].onSelect)
 			return menu->items[focused].onSelect(focused, focusL, 0);
