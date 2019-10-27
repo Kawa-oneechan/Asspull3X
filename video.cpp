@@ -640,6 +640,8 @@ int InitVideo()
 	}
 
 	pixels = (unsigned char*)malloc(640 * 480 * 4);
+
+	SDL_ShowCursor(0);
 	return 0;
 }
 

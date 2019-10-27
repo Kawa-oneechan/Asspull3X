@@ -69,6 +69,74 @@ extern unsigned char* pixels;
 	pixels[target + 2] = (r << 3) + (r >> 2); \
 }
 
+#ifdef WITH_OPENGL
+int GetMouseState(int *x, int *y)
+{
+	int buttons = SDL_GetMouseState(x, y);
+
+	int winWidth, winHeight;
+	SDL_GetWindowSize(sdlWindow, &winWidth, &winHeight);
+	int scrWidth = (winWidth / 640) * 640;
+	int scrHeight = (winHeight / 480) * 480;
+	scrWidth = (int)(scrHeight * 1.33334f);
+	int minx = (winWidth - scrWidth) / 2;
+	int miny = (winHeight - scrHeight) / 2;
+	float scaleX = 640.0f / winWidth;
+	float scaleY = 480.0f / winHeight;
+	*x = (int)(*x * scaleX);
+	*y = (int)(*y * scaleY);
+	*x -= minx;
+	*y -= miny;	
+	return buttons;
+}
+#else
+#define GetMouseState SDL_GetMouseState
+#endif
+
+static unsigned short cursor[] =
+{
+	0x739C,0x77BD,0x7FFF,0x7FFF,0x7FFF,0x7FFF,0x2108,0x0000,
+	0x6F7B,0x739C,0x77BD,0x77BD,0x7FFF,0x2108,0x2108,0x0000,
+	0x6739,0x6F7B,0x739C,0x77BD,0x2108,0x2108,0x0000,0x0000,
+	0x6739,0x6F7B,0x6F7B,0x739C,0x77BD,0x0000,0x0000,0x0000,
+	0x6739,0x6739,0x2108,0x6F7B,0x739C,0x77BD,0x0000,0x0000,
+	0x6739,0x2108,0x2108,0x0000,0x6F7B,0x739C,0x2108,0x0000,
+	0x2108,0x2108,0x0000,0x0000,0x0000,0x2108,0x2108,0x0000,
+	0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
+};
+
+int oldX, oldY, cursorTimer = 1000;
+void DrawCursor()
+{
+	int x, y;
+	GetMouseState(&x, &y);
+	if (oldX != x || oldY != y)
+		cursorTimer = 100;
+	oldX = x;
+	oldY = y;
+	
+	if (cursorTimer == 0)
+		return;
+
+	cursorTimer--;
+
+	unsigned short pix = 0;
+	for (int row = 0; row < 8; row++)
+	{
+		if (y + row >= 480)
+			break;
+		for (int col = 0; col < 8; col++)
+		{
+			pix = cursor[(row * 8) + col];
+			if (x + col >= 640)
+				break;
+			if (pix == 0x0000)
+				continue;
+			RenderPixel(y + row, x + col, pix);
+		}
+	}
+}
+
 void DrawCharacter(int x, int y, int color, char ch)
 {
 	auto glyph = &zsnesFont[(ch - ' ') * 5];
@@ -95,30 +163,6 @@ void DrawString(int x, int y, int color, char* str)
 		x += 6;
 	}
 }
-
-#ifdef WITH_OPENGL
-int GetMouseState(int *x, int *y)
-{
-	int buttons = SDL_GetMouseState(x, y);
-
-	int winWidth, winHeight;
-	SDL_GetWindowSize(sdlWindow, &winWidth, &winHeight);
-	int scrWidth = (winWidth / 640) * 640;
-	int scrHeight = (winHeight / 480) * 480;
-	scrWidth = (int)(scrHeight * 1.33334f);
-	int minx = (winWidth - scrWidth) / 2;
-	int miny = (winHeight - scrHeight) / 2;
-	float scaleX = 640.0f / winWidth;
-	float scaleY = 480.0f / winHeight;
-	*x = (int)(*x * scaleX);
-	*y = (int)(*y * scaleY);
-	*x -= minx;
-	*y -= miny;	
-	return buttons;
-}
-#else
-#define GetMouseState SDL_GetMouseState
-#endif
 
 void SetStatus(char* text)
 {
@@ -263,15 +307,18 @@ void HandleUI()
 	{
 		auto response = uiHandleMenuBar(&(uiMenu)mainMenu, &x);
 		response = uiHandleMenuDrop(pullDowns[0], pullDownLefts[0], pullDownTops[0], &y);
+		cursorTimer = 100;
 	}
 	else if (y < 10)
 	{
 		auto response = uiHandleMenuBar(&(uiMenu)mainMenu, &x);
+		cursorTimer = 100;
 	}
 	else
 	{
 		uiHandleStatusLine(4);
 	}
+	DrawCursor();
 }
 
 int _uiMainMenu(int item, int itemLeft, int itemTop)
