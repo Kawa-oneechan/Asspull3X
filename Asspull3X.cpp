@@ -315,31 +315,33 @@ int _tmain(int argc, _TCHAR* argv[])
 				//TODO: split off the disk image parts
 				nfdchar_t* thePath = NULL;
 				nfdresult_t nfdResult = NFD_OpenDialog("ap3,img", NULL, &thePath);
-				if (nfdResult != NFD_OKAY) break;
-				auto ext = strrchr(thePath, '.') + 1;
-				if (SDL_strncasecmp(ext, "ap3", 3) == 0)
+				if (nfdResult == NFD_OKAY)
 				{
-					strcpy_s(romPath, 256, thePath);
-					SDL_Log("Loading ROM, %s ...", romPath);
-					Slurp(romCartridge, romPath);
-					ini->Set("media", "lastROM", romPath);
-				}
-				else if (SDL_strncasecmp(ext, "img", 3) == 0)
-				{
-					strcpy_s(diskPath, 256, thePath);
-					if (devices[0] != NULL && devices[0]->Read(0) == 0x01)
+					auto ext = strrchr(thePath, '.') + 1;
+					if (SDL_strncasecmp(ext, "ap3", 3) == 0)
 					{
-						auto ret = ((DiskDrive*)devices[0])->Mount(diskPath);
-						if (ret == -1)
-							SDL_Log("Unmount the diskette first, with Ctrl-Shift-U.");
-						else if (ret != 0)
-							SDL_Log("Error %d trying to open disk image.", ret);
-						else
-							ini->Set("media", "lastDisk", diskPath);
+						strcpy_s(romPath, 256, thePath);
+						SDL_Log("Loading ROM, %s ...", romPath);
+						Slurp(romCartridge, romPath);
+						ini->Set("media", "lastROM", romPath);
 					}
+					else if (SDL_strncasecmp(ext, "img", 3) == 0)
+					{
+						strcpy_s(diskPath, 256, thePath);
+						if (devices[0] != NULL && devices[0]->Read(0) == 0x01)
+						{
+							auto ret = ((DiskDrive*)devices[0])->Mount(diskPath);
+							if (ret == -1)
+								SDL_Log("Unmount the diskette first, with Ctrl-Shift-U.");
+							else if (ret != 0)
+								SDL_Log("Error %d trying to open disk image.", ret);
+							else
+								ini->Set("media", "lastDisk", diskPath);
+						}
+					}
+					else
+						SDL_Log("Don't know what to do with %s.", romPath);
 				}
-				else
-					SDL_Log("Don't know what to do with %s.", romPath);
 			}
 			else if (uiCommand == cmdUnloadRom)
 			{
