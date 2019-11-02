@@ -5,7 +5,7 @@ extern "C" {
 
 #define LETITSNOW
 
-#include "zfont.c"
+#include "nokia.c"
 
 char uiStatus[512] = { 0 };
 char uiFPS[32] = { 0 };
@@ -47,9 +47,9 @@ const uiMenu fileMenu =
 {
 	4,
 	{
-		{ "Load ROM", _uiLoadROM },
-		{ "Unload ROM", _uiUnloadROM },
-		{ "Reset", _uiReset },
+		{ "Load ROM\t^L", _uiLoadROM },
+		{ "Unload ROM\t^U", _uiUnloadROM },
+		{ "Reset\t\t^R", _uiReset },
 		{ "Quit", _uiQuit }
 	}
 };
@@ -176,29 +176,51 @@ void DrawCursor()
 
 void DrawCharacter(int x, int y, int color, char ch)
 {
-	auto glyph = &zsnesFont[(ch - ' ') * 5];
-	for (int line = 0; line < 5; line++)
+	auto glyph = &nokiaFont[(ch - ' ') * 8];
+	for (int line = 0; line < 8; line++)
 	{
 		auto num = glyph[line];
 		for (int bit = 0; bit < 8; bit++)
 		{
 			if (num & 1)
 			{
-				RenderPixel(y + line, x + 8 - bit, color);
-				RenderPixel(y + line + 1, x + 8 - bit + 1, 0);
+				RenderPixel(y + line, x + bit, color);
+				RenderPixel(y + line + 1, x + bit + 1, 0);
 			}
 			num >>= 1;
 		}
 	}
 }
 
+#define TABWIDTH 48
+
 void DrawString(int x, int y, int color, char* str)
 {
 	while(*str)
 	{
-		DrawCharacter(x, y, color, *str++);
-		x += 6;
+		if (*str == '\t')
+			x = ((x / TABWIDTH) * TABWIDTH) + TABWIDTH;
+		else
+		{
+			DrawCharacter(x, y, color, *str);
+			x += nokiaFontWidth[(*str - ' ')];
+		}
+		str++;
 	}
+}
+
+int MeasureString(char* str)
+{
+	int width = 0;
+	while(*str)
+	{
+		if (*str == '\t')
+			width = ((width / TABWIDTH) * TABWIDTH) + TABWIDTH;
+		else
+			width += nokiaFontWidth[(*str - ' ')];
+		str++;
+	}
+	return width;
 }
 
 #ifdef LETITSNOW
@@ -270,7 +292,7 @@ int uiHandleMenuDrop(uiMenu* menu, int left, int top, int *openedTop)
 
 	for (int i = 0; i < menu->numItems; i++)
 	{
-		int thisWidth = (strlen(menu->items[i].caption) * 6) + 8;
+		int thisWidth = MeasureString(menu->items[i].caption) + 8; //(strlen(menu->items[i].caption) * 6) + 8;
 		if (thisWidth > width)
 			width = thisWidth;
 	}
@@ -280,7 +302,7 @@ int uiHandleMenuDrop(uiMenu* menu, int left, int top, int *openedTop)
 	int buttons = GetMouseState(&x, &y);
 	for (int i = 0; i < menu->numItems; i++)
 	{
-		if (x >= left && x < left + width && y >= top + (i * 8) && y < top + (i * 8) + 8)
+		if (x >= left && x < left + width && y >= top + (i * 10) && y < top + (i * 10) + 10)
 		{
 			focused = i;
 			break;
@@ -290,11 +312,11 @@ int uiHandleMenuDrop(uiMenu* menu, int left, int top, int *openedTop)
 	for (int col = 0; col < width + 2; col++)
 	{
 		RenderPixel(top - 1, left + col, PULLDOWN_BORDER);
-		RenderPixel(top + (menu->numItems * 8), left + col, PULLDOWN_BORDER);
+		RenderPixel(top + (menu->numItems * 10), left + col, PULLDOWN_BORDER);
 	}
-	for (int i = 0, y = top; i < menu->numItems; i++, y += 8)
+	for (int i = 0, y = top; i < menu->numItems; i++, y += 10)
 	{
-		for (int line = 0; line < 8; line++)
+		for (int line = 0; line < 10; line++)
 		{
 			RenderPixel(y + line, left, PULLDOWN_BORDER);
 			int color = PULLDOWN_FILL;
@@ -308,22 +330,22 @@ int uiHandleMenuDrop(uiMenu* menu, int left, int top, int *openedTop)
 		}
 		DrawString(left + 2, y + 1, PULLDOWN_TEXT, menu->items[i].caption);
 	}
-	for (int y = top; y <= top + (menu->numItems * 8); y++)
+	for (int y = top; y <= top + (menu->numItems * 10); y++)
 	{
 		DarkenPixel(y + 2, left + 2 + width);
 		DarkenPixel(y + 2, left + 3 + width);
 	}
 	for (int col = 0; col < width; col++)
 	{
-		DarkenPixel(top + (menu->numItems * 8) + 1, col + 4);
-		DarkenPixel(top + (menu->numItems * 8) + 2, col + 4);
+		DarkenPixel(top + (menu->numItems * 10) + 1, col + 4);
+		DarkenPixel(top + (menu->numItems * 10) + 2, col + 4);
 	}
 
 	if (buttons == 1 && focused != -1)
 	{
 		currentTopMenu = -1;
 		if (menu->items[focused].onSelect)
-			return menu->items[focused].onSelect(focused, left + width, top + (focused * 8));
+			return menu->items[focused].onSelect(focused, left + width, top + (focused * 10));
 		return focused;
 	}
 	if (buttons == 1 && focused == -1 && y > 10)
@@ -336,7 +358,7 @@ int uiHandleMenuBar(uiMenu* menu, int *openedLeft)
 {
 	int extents[16];
 	for (int i = 0; i < menu->numItems; i++)
-		extents[i] = (strlen(menu->items[i].caption) * 6) + 10;
+		extents[i] = MeasureString(menu->items[i].caption) + 10; //(strlen(menu->items[i].caption) * 6) + 10;
 	for (int i = 1; i < menu->numItems; i++)
 		extents[i] += extents[i - 1];
 	int width = extents[menu->numItems - 1] + 8;
@@ -381,14 +403,14 @@ int uiHandleMenuBar(uiMenu* menu, int *openedLeft)
 		int color = BAR_FILL;
 		if ((i >= focusL && i < focusR) || (i >= otherFocusL && i < otherFocusR))
 			color = BAR_HIGHLIGHT;
-		for (int j = 0; j < 10; j++)
+		for (int j = 0; j < 12; j++)
 		{
 			RenderPixel(j, i, color);
 		}
-		DarkenPixel(10, i);
-		DarkenPixel(11, i);
+		DarkenPixel(12, i);
+		DarkenPixel(13, i);
 	}
-	for (int j = 0; j < 12; j++)
+	for (int j = 0; j < 14; j++)
 	{
 		DarkenPixel(j, width + 0);
 		DarkenPixel(j, width + 1);
@@ -445,7 +467,7 @@ int _uiMainMenu(int item, int itemLeft, int itemTop)
 		pullDownLevel = 1;
 		pullDowns[0] = (uiMenu*)&fileMenu;
 		pullDownLefts[0] = itemLeft + 2;
-		pullDownTops[0] = 10;
+		pullDownTops[0] = 12;
 		break;
 	case 1: //Devices
 		pullDownLevel = 0;

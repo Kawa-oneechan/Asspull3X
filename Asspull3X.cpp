@@ -288,7 +288,11 @@ int _tmain(int argc, _TCHAR* argv[])
 			case SDL_KEYUP:
 				if (ev.key.keysym.mod & KMOD_LCTRL)
 				{
-					if (ev.key.keysym.sym == SDLK_r)
+					if (ev.key.keysym.sym == SDLK_l)
+						uiCommand = cmdLoadRom;
+					else if (ev.key.keysym.sym == SDLK_u)
+						uiCommand = cmdUnloadRom;
+					else if (ev.key.keysym.sym == SDLK_r)
 						uiCommand = cmdReset;
 					else if (ev.key.keysym.sym == SDLK_d)
 						uiCommand = cmdDump;
