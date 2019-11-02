@@ -3,6 +3,8 @@
 
 extern "C" {
 
+#define LETITSNOW
+
 #include "zfont.c"
 
 char uiStatus[512] = { 0 };
@@ -78,10 +80,21 @@ extern unsigned char* pixels;
 	pixels[target + 2] = pixels[target + 2] / 2; \
 }
 
+int justClicked = 0;
+int mouseTimer = 0, lastMouseTimer = 0;
 #ifdef WITH_OPENGL
 int GetMouseState(int *x, int *y)
 {
 	int buttons = SDL_GetMouseState(x, y);
+	if (mouseTimer == lastMouseTimer)
+		return (justClicked == 2) ? 1 : 0;
+	lastMouseTimer = mouseTimer;
+	if (justClicked == 0 && buttons == 1)
+		justClicked = 1;
+	else if (justClicked == 1 && buttons == 0)
+		justClicked = 2;
+	else if (justClicked == 2)
+		justClicked = 0;
 
 	int winWidth, winHeight;
 	SDL_GetWindowSize(sdlWindow, &winWidth, &winHeight);
@@ -96,10 +109,20 @@ int GetMouseState(int *x, int *y)
 	*y = (int)(*y * scaleY);
 	*x -= minx;
 	*y -= miny;	
-	return buttons;
+	return (justClicked == 2) ? 1 : 0;
 }
 #else
-#define GetMouseState SDL_GetMouseState
+int GetMouseState(int *x, int *y)
+{
+	int buttons = SDL_GetMouseState(x, y);
+	if (justClicked == 0 && buttons == 1)
+		justClicked = 1;
+	else if (justClicked == 1 && buttons == 0)
+		justClicked = 2;
+	else if (justClicked == 2)
+		justClicked = 0;
+	return justClicked == 1;
+}
 #endif
 
 static unsigned short cursor[] =
@@ -177,6 +200,53 @@ void DrawString(int x, int y, int color, char* str)
 		x += 6;
 	}
 }
+
+#ifdef LETITSNOW
+#define MAXSNOW 256
+int snowData[MAXSNOW * 2];
+int snowTimer = -1;
+void LetItSnow()
+{
+	if (snowTimer == -1)
+	{
+		//Prepare
+		srand(0xC001FACE);
+		for (int i = 0; i < MAXSNOW; i++)
+		{
+			snowData[(i * 2) + 0] = rand() % 640;
+			snowData[(i * 2) + 1] = rand() % 480;
+		}
+		snowTimer = 1;
+	}
+
+	snowTimer--;
+	if (snowTimer == 0)
+	{
+		snowTimer = 4;
+		for (int i = 0; i < MAXSNOW; i++)
+		{
+			snowData[(i * 2) + 0] += -1 + (rand() % 3);
+			snowData[(i * 2) + 1] += rand() % 2;
+			if (snowData[(i * 2) + 1] >= 480)
+			{
+				snowData[(i * 2) + 0] = rand() % 640;
+				snowData[(i * 2) + 1] = -10;
+			}
+		}
+	}
+
+	for (int i = 0; i < MAXSNOW; i++)
+	{
+		int x = snowData[(i * 2) + 0];
+		int y = snowData[(i * 2) + 1];
+		if (x < 0 || y < 0 || x >= 640 || y >= 480)
+			continue;
+		RenderPixel(y, x, 0x7FFF);
+	}
+}
+#else
+#define LetItSnow()
+#endif
 
 void SetStatus(char* text)
 {
@@ -345,7 +415,10 @@ extern int pauseState;
 void HandleUI()
 {
 	int x = 0, y = 0;
+	mouseTimer++;
 	int buttons = GetMouseState(&x, &y);
+	if (pauseState == 2)
+		LetItSnow();
 	if (pullDownLevel > 0)
 	{
 		auto response = uiHandleMenuBar(&(uiMenu)mainMenu, &x);
