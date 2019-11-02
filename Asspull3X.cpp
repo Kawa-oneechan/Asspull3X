@@ -17,6 +17,10 @@ IniFile* ini;
 
 char biosPath[256], romPath[256], diskPath[256];
 
+int pauseState = 0;
+unsigned char* pauseScreen;
+extern unsigned char* pixels;
+
 //Map SDL scancodes
 static const unsigned char keyMap[] =
 {
@@ -195,6 +199,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	if (InitSound(midiNum) < 0)
 		return 0;
 
+	pauseScreen = (unsigned char*)malloc(640 * 480 * 4);
+
 	SDL_Joystick *controller = NULL;
 	if (SDL_NumJoysticks() > 0)
 	{
@@ -288,6 +294,13 @@ int _tmain(int argc, _TCHAR* argv[])
 						uiCommand = cmdDump;
 					else if (ev.key.keysym.sym == SDLK_s)
 						uiCommand = cmdScreenshot;
+				}
+				else if (ev.key.keysym.sym == SDLK_p)
+				{
+					if (pauseState == 0)
+						pauseState = 1;
+					else if (pauseState == 2)
+						pauseState = 0;
 				}
 				keyScan = 0;
 				break;
@@ -387,24 +400,48 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 
 		//if (interrupts & 0x80 == 0)
+		if (pauseState != 2)
+		{
 			m68k_execute(hBlankEvery);
-		if (line < lines)
-		{
-			HandleHdma(line);
-			RenderLine(line);
+			if (line < lines)
+			{
+				HandleHdma(line);
+				RenderLine(line);
+			}
+			if (line == lines)
+			{
+				if (pauseState == 1) //pausing now!
+				{
+					memcpy(pauseScreen, pixels, 640 * 480 * 4);
+					for (auto i = 0; i < 640 * 480 * 4; i += 4)
+					{
+						pauseScreen[i + 0] /= 2;
+						pauseScreen[i + 1] /= 2;
+						pauseScreen[i + 2] /= 2;
+					}
+					pauseState = 2;
+				}
+				HandleUI();
+				VBlank();
+				frames++;
+				if (pauseState != 2)
+				{
+					if ((interrupts & 0x84) == 0) //if interrupts are enabled and not already in VBlank
+					{
+						interrupts |= 4; //set VBlank signal
+						m68k_set_virq(M68K_IRQ_7, 1);
+					}
+				}
+			}
+			if (pauseState != 2)
+				m68k_execute(hBlankLasts);
 		}
-		if (line == lines)
+		else if (pauseState == 2)
 		{
+			memcpy(pixels, pauseScreen, 640 * 480 * 4);
 			HandleUI();
 			VBlank();
-			frames++;
-			if ((interrupts & 0x84) == 0) //if interrupts are enabled and not already in VBlank
-			{
-				interrupts |= 4; //set VBlank signal
-				m68k_set_virq(M68K_IRQ_7, 1);
-			}
 		}
-		m68k_execute(hBlankLasts);
 		line++;
 		if (line == trueLines)
 		{

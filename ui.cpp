@@ -341,6 +341,7 @@ int uiHandleMenuBar(uiMenu* menu, int *openedLeft)
 	return -2;
 }
 
+extern int pauseState;
 void HandleUI()
 {
 	int x = 0, y = 0;
@@ -351,7 +352,7 @@ void HandleUI()
 		response = uiHandleMenuDrop(pullDowns[0], pullDownLefts[0], pullDownTops[0], &y);
 		cursorTimer = 100;
 	}
-	else if (y < 10)
+	else if (y < 10 || pauseState == 2)
 	{
 		auto response = uiHandleMenuBar(&(uiMenu)mainMenu, &x);
 		cursorTimer = 100;
