@@ -237,19 +237,21 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	SDL_Event ev;
 
-	auto mHz = 8;
-	auto screenFreq = 60;
-	auto pixsPerRow = 640;
-	auto lines = 480;
-	auto trueLines = 525;
-	auto trueWidth = 800;
-	auto Hz = mHz * 1000000;
-	auto vBlankEvery = Hz / screenFreq;
-	auto hBlankEvery = vBlankEvery / lines;
-	auto vBlankLasts = (trueLines) * hBlankEvery;
-	auto hBlankLasts = (trueWidth - pixsPerRow);
+	const auto mHz = 8;
+	const auto screenFreq = 60;
+	const auto pixsPerRow = 640;
+	const auto lines = 480;
+	const auto trueLines = 525;
+	const auto trueWidth = 800;
+	const auto Hz = mHz * 1000000;
+	const auto vBlankEvery = Hz / screenFreq;
+	const auto hBlankEvery = vBlankEvery / lines;
+	const auto vBlankLasts = (trueLines) * hBlankEvery;
+	const auto hBlankLasts = (trueWidth - pixsPerRow);
 
-	auto oldTicks = SDL_GetTicks();
+	auto startTime = 0;
+	auto endTime = 0;
+	auto delta = 0;
 	auto frames = 0;
 	auto tickTock = 0;
 
@@ -397,6 +399,7 @@ int _tmain(int argc, _TCHAR* argv[])
 			uiCommand = uiData = 0;
 		}
 
+		/*
 		auto newTicks = SDL_GetTicks();
 		if (newTicks >= oldTicks + 1000)
 		{
@@ -404,6 +407,7 @@ int _tmain(int argc, _TCHAR* argv[])
 			sprintf_s(uiFPS, 32, "%d", frames);
 			frames = 0;
 		}
+		*/
 
 		//if (interrupts & 0x80 == 0)
 		if (pauseState != 2)
@@ -429,6 +433,21 @@ int _tmain(int argc, _TCHAR* argv[])
 				}
 				HandleUI();
 				VBlank();
+
+				if (!startTime)
+					startTime = SDL_GetTicks();
+				else
+					delta = endTime - startTime;
+
+				auto averageFPS = frames / (SDL_GetTicks() / 1000.0f);
+				if (averageFPS > 2000000)
+					averageFPS = 0;
+				sprintf_s(uiFPS, 32, "%d", (int)averageFPS);
+				if (delta < 20)
+					SDL_Delay(20 - delta);
+				startTime = endTime;
+				endTime = SDL_GetTicks();
+
 				frames++;
 				if (pauseState != 2)
 				{
