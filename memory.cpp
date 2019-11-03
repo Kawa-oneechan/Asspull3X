@@ -118,7 +118,7 @@ unsigned int m68k_read_memory_8(unsigned int address)
 			}
 			break;
 		case 0xE:
-			if (addr >= 0x0050000)
+			if (addr >= 0x0060000)
 				return 0;
 			return ramVideo[addr];
 	}
