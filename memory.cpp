@@ -25,7 +25,7 @@ int hdmaSource[8], hdmaTarget[8], hdmaWidth[8], hdmaStart[8], hdmaCount[8];
 
 void HandleBlitter(unsigned int function);
 unsigned int blitLength;
-int blitAddrA, blitAddrB;
+int blitAddrA, blitAddrB, blitKey;
 
 long ticks = 0;
 
@@ -233,7 +233,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				break;
 				}
 			case 0x110: //Blitter key
-				//blitKey = (byte)value;
+				blitKey = value;
 				break;
 		}
 		return;
@@ -381,9 +381,7 @@ void HandleBlitter(unsigned int function)
 			{
 				auto strideSkip = ((function & 0x10) >> 4) == 1; //1 2 3
 				auto colorKey = ((function & 0x20) >> 5) == 1; //1
-				auto source4 = ((function & 0x40) >> 6) == 1; //1
-				auto width = ((function & 0x60) >> 5); //2
-				auto target4 = ((function & 0x80) >> 7) == 1; //1
+				auto width = ((function & 0x80) >> 6); //2
 				auto sourceStride = ((function >> 8) & 0xFFF); //1 2 3
 				auto targetStride = ((function >> 20) & 0xFFF); //1 2 3
 
@@ -394,9 +392,32 @@ void HandleBlitter(unsigned int function)
 				if (width == 1) write = m68k_write_memory_16;
 				else if (width == 2) write = m68k_write_memory_32;
 
+				int val = 0;
+
 				if (fun == 1) //Blit
 				{
-					//throw new NotImplementedException();
+					while (blitLength > 0)
+					{
+						if (strideSkip)
+						{
+							for (unsigned int i = 0; i < sourceStride && blitLength > 0; i++, blitAddrA += (1 << width), blitAddrB += (1 << width), blitLength--)
+							{
+								val = read(blitAddrA);
+								if (colorKey && val == blitKey) continue;
+								write(blitAddrB, val);
+							}
+							blitAddrB += (int)(targetStride - sourceStride) << width;
+						}
+						else
+						{
+							val = read(blitAddrA);
+							if (colorKey && val == blitKey) continue;
+							write(blitAddrB, val);
+							blitAddrA += (1 << width);
+							blitAddrB += (1 << width);
+							blitLength--;
+						}
+					}
 				}
 				else if (fun == 2) //Clear
 				{
