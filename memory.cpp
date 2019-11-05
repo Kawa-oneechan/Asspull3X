@@ -34,6 +34,45 @@ extern int gfxMode, gfxFade, scrollX[2], scrollY[2], tileShift[2], mapEnabled[2]
 
 extern int line, interrupts;
 
+#define DEVBLOCK	0x8000
+
+//Define memory map
+#define BIOS_SIZE	0x00020000
+#define CART_SIZE	0x00FE0000
+#define WRAM_SIZE	0x00400000
+#define DEVS_SIZE	(DEV_BLOCK * MAXDEVS) //0x0080000
+#define REGS_SIZE	0x000FFFFF
+#define VRAM_SIZE	0x00060000
+#define STAC_SIZE	0x00010000
+
+#define BIOS_ADDR	0x00000000
+#define CART_ADDR	0x00020000
+#define WRAM_ADDR	0x01000000
+#define STAC_ADDR	0x013F0000
+#define DEVS_ADDR	0x02000000
+#define REGS_ADDR	0x0D800000
+#define VRAM_ADDR	0x0E000000
+
+//Sanity checks!
+#if (BIOS_ADDR + BIOS_SIZE) > CART_ADDR
+#error BIOS encroaches on CART space.
+#endif
+#if (CART_ADDR + CART_SIZE) > WRAM_ADDR
+#error CART encroaches on WRAM space.
+#endif
+#if (WRAM_ADDR + WRAM_SIZE) > DEVS_ADDR
+#error WRAM encroaches on DEVS space.
+#endif
+#if (STAC_ADDR + STAC_SIZE) > (WRAM_ADDR + WRAM_SIZE)
+#error STAC breaks out of WRAM space.
+#endif
+#if (DEVS_ADDR + DEVS_SIZE) > REGS_ADDR
+#error DEVS encroaches on REGS space.
+#endif
+#if (REGS_ADDR + REGS_SIZE) > VRAM_ADDR
+#error REGS encroaches on VRAM space.
+#endif
+
 void HandleHdma(int line)
 {
 	for (auto i = 0; i < 8; i++)
@@ -69,22 +108,22 @@ void HandleHdma(int line)
 
 int InitMemory()
 {
-	if ((romBIOS = (unsigned char*)malloc(0x0020000)) == NULL) return -1;
-	SDL_memset(romBIOS, 0, 0x0020000);
-	if ((romCartridge = (unsigned char*)malloc(0x0FF0000)) == NULL) return -1;
-	SDL_memset(romCartridge, 0, 0x0FF0000);
-	if ((ramInternal = (unsigned char*)malloc(0x0400000)) == NULL) return -1;
-	SDL_memset(ramInternal, 0, 0x0400000);
-	if ((ramVideo = (unsigned char*)malloc(0x0060000)) == NULL) return -1;
-	SDL_memset(ramVideo, 0, 0x0060000);
+	if ((romBIOS = (unsigned char*)malloc(BIOS_SIZE)) == NULL) return -1;
+	SDL_memset(romBIOS, 0, BIOS_SIZE);
+	if ((romCartridge = (unsigned char*)malloc(CART_SIZE)) == NULL) return -1;
+	SDL_memset(romCartridge, 0, CART_SIZE);
+	if ((ramInternal = (unsigned char*)malloc(WRAM_SIZE)) == NULL) return -1;
+	SDL_memset(ramInternal, 0, WRAM_SIZE);
+	if ((ramVideo = (unsigned char*)malloc(VRAM_SIZE)) == NULL) return -1;
+	SDL_memset(ramVideo, 0, VRAM_SIZE);
 	return 0;
 }
 
 unsigned int m68k_read_memory_8(unsigned int address)
 {
-	if (address >= 0x0D800000 && address < 0x0E000000)
+	if (address >= REGS_ADDR && address < REGS_ADDR + REGS_SIZE)
 	{
-		auto reg = address & 0x000FFFFF;
+		auto reg = address & REGS_SIZE;
 		switch (reg)
 		{
 		case 4: //Screen Mode
@@ -102,23 +141,23 @@ unsigned int m68k_read_memory_8(unsigned int address)
 	switch (bank)
 	{
 		case 0x0:
-			if (addr < 0x00020000)
+			if (addr < BIOS_SIZE)
 				return romBIOS[addr];
-			return romCartridge[addr - 0x00020000];
+			return romCartridge[addr - CART_ADDR];
 		case 0x1:
-			if (addr >= 0x00400000)
+			if (addr >= WRAM_SIZE)
 				return 0;
 			return ramInternal[addr];
 		case 0x2: //DEV
 			{
-				auto devnum = addr / 0x8000;
+				auto devnum = addr / DEVBLOCK;
 				if (devices[devnum] != NULL)
-					return devices[devnum]->Read(addr % 0x8000);
+					return devices[devnum]->Read(addr % DEVBLOCK);
 				return 0;
 			}
 			break;
 		case 0xE:
-			if (addr >= 0x0060000)
+			if (addr >= VRAM_SIZE)
 				return 0;
 			return ramVideo[addr];
 	}
@@ -127,7 +166,7 @@ unsigned int m68k_read_memory_8(unsigned int address)
 
 unsigned int m68k_read_memory_16(unsigned int address)
 {
-	if (address >= 0x0D800000 && address < 0x0E000000)
+	if (address >= REGS_ADDR && address < REGS_ADDR + REGS_SIZE)
 	{
 		auto reg = address & 0x000FFFFF;
 		switch (reg)
@@ -148,7 +187,7 @@ unsigned int m68k_read_memory_16(unsigned int address)
 
 unsigned int m68k_read_memory_32(unsigned int address)
 {
-	if (address >= 0x0D800000 && address < 0x0E000000)
+	if (address >= REGS_ADDR && address < REGS_ADDR + REGS_SIZE)
 	{
 		auto reg = address & 0x000FFFFF;
 		switch (reg)
@@ -167,7 +206,7 @@ unsigned int m68k_read_memory_32(unsigned int address)
 
 void m68k_write_memory_8(unsigned int address, unsigned int value)
 {
-	if (address >= 0x0D800000 && address < 0x0E000000)
+	if (address >= REGS_ADDR && address < REGS_ADDR + REGS_SIZE)
 	{
 		auto reg = address & 0x000FFFFF;
 		auto u8 = (unsigned char)value;
@@ -244,18 +283,18 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 	{
 		case 0x0: /* BIOS is ROM */ break;
 		case 0x1:
-			if (addr < 0x00400000)
+			if (addr < WRAM_SIZE)
 				ramInternal[addr] = (unsigned char)value;
 			break;
 		case 0x2: //DEV
 			{
-				auto devnum = addr / 0x8000;
+				auto devnum = addr / DEVBLOCK;
 				if (devices[devnum] != NULL)
-					devices[devnum]->Write(addr % 0x8000, value);
+					devices[devnum]->Write(addr % DEVBLOCK, value);
 			}
 			break;
 		case 0xE:
-			if (addr >= 0x0060000)
+			if (addr >= VRAM_SIZE)
 				break;
 			ramVideo[addr] = (unsigned char)value; break;
 		//default: memory[address & 0x0FFFFFFF] = (byte)value; break;
@@ -264,7 +303,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 
 void m68k_write_memory_16(unsigned int address, unsigned int value)
 {
-	if (address >= 0x0D800000 && address < 0x0E000000)
+	if (address >= REGS_ADDR && address < REGS_ADDR + REGS_SIZE)
 	{
 		auto reg = address & 0x000FFFFF;
 		switch (reg)
@@ -286,7 +325,7 @@ void m68k_write_memory_16(unsigned int address, unsigned int value)
 
 void m68k_write_memory_32(unsigned int address, unsigned int value)
 {
-	if (address >= 0x0D800000 && address < 0x0E000000)
+	if (address >= REGS_ADDR && address < REGS_ADDR + REGS_SIZE)
 	{
 		auto reg = address & 0x000FFFFF;
 		switch (reg)

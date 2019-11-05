@@ -13,15 +13,44 @@
 
 #define RENDERPIXELS_DEFINE
 
-#define TEXT	0x00000
-#define BITMAP	0x00000
-#define MAP1	0x00000
-#define MAP2	0x08000
-#define TILESET	0x10000
-#define PALETTE	0x50000
-#define FONT	0x50200
-#define SPRITE1	0x54000
-#define SPRITE2 0x54200
+#define TEXT_SIZE	((80 * 60) * 2)	//640×480 mode has 8x8 character cells, so 80×60 characters.
+#define BITMAP_SIZE	(640 * 480)		//640×480 mode in 256 colors.
+#define MAP_SIZE	(((512 / 8) * (512 / 8)) * 2)	//Each tile is a 16-bit value.
+#define TILES_SIZE	((((8 * 8) / 2) * 512) + (128 << 3))
+#define PAL_SIZE	(256 * 2)	//256 xBGR-1555 colors.
+#define FONT_SIZE	(((8 * 256) * 2) + ((16 * 256) * 2))	//Two 8x8 fonts, two 8x16 fonts.
+#define SPR1_SIZE	(256 * 2)	//256 16-bit entries.
+#define SPR2_SIZE	(256 * 4)	//256 32-bit entries.
+
+#define TEXT_ADDR	0x000000
+#define BMP_ADDR	0x000000
+#define MAP1_ADDR	0x000000
+#define MAP2_ADDR	(MAP1_ADDR + MAP_SIZE)
+#define TILES_ADDR	0x010000
+#define PAL_ADDR	0x050000
+#define FONT_ADDR	0x050200
+#define SPR1_ADDR	0x054000
+#define SPR2_ADDR	0x054200
+
+//Sanity checks!
+#if (FONT_SIZE != 12288)
+#error FONT size is off.
+#endif
+#if (BMP_ADDR + BITMAP_SIZE) > PAL_ADDR
+#error 640×480 Bitmap mode will overwrite the palette.
+#endif
+#if (TILES_ADDR + TILES_SIZE) > PAL_ADDR
+#error TILES encroaches on PAL.
+#endif
+#if (PAL_ADDR + PAL_SIZE) > FONT_ADDR
+#error PAL encroaches on FONT.
+#endif
+#if (FONT_ADDR + FONT_SIZE) > SPR1_ADDR
+#error FONT encroaches on SPR1.
+#endif
+#if (SPRITE1 + SPR1_SIZE) > SPR2_ADDR
+#error SPR1 encroaches on SPR2.
+#endif
 
 extern "C" {
 
@@ -60,7 +89,7 @@ unsigned char* pixels;
 #ifdef RENDERPIXELS_DEFINE
 #define RenderPixel(row, column, color) \
 { \
-	auto snes = (ramVideo[PALETTE + ((color) * 2) + 0] << 8) + ramVideo[PALETTE + ((color) * 2) + 1]; \
+	auto snes = (ramVideo[PAL_ADDR + ((color) * 2) + 0] << 8) + ramVideo[PAL_ADDR + ((color) * 2) + 1]; \
 	auto target = (((row) * 640) + (column)) * 4; \
 	auto r = (snes >> 0) & 0x1F; \
 	auto g = (snes >> 5) & 0x1F; \
@@ -73,7 +102,7 @@ unsigned char* pixels;
 #else
 inline void RenderPixel(int row, int column, int color)
 {
-	auto snes = (ramVideo[PALETTE + ((color) * 2) + 0] << 8) + ramVideo[PALETTE + ((color) * 2) + 1];	
+	auto snes = (ramVideo[PAL_ADDR + ((color) * 2) + 0] << 8) + ramVideo[PAL_ADDR + ((color) * 2) + 1];	
 	auto target = ((row * 640) + column) * 4;
 	auto r = (snes >> 0) & 0x1F;
 	auto g = (snes >> 5) & 0x1F;
@@ -91,16 +120,16 @@ void RenderSprites(int line, int withPriority)
 	auto step = gfx320 ? 4 : 2;
 	for (auto i = 0; i < 256; i++)
 	{
-		auto spriteA = (ramVideo[SPRITE1 + 0 + (i * 2)] << 8) | (ramVideo[SPRITE1 + 1 + (i * 2)] << 0);
+		auto spriteA = (ramVideo[SPR1_ADDR + 0 + (i * 2)] << 8) | (ramVideo[SPR1_ADDR + 1 + (i * 2)] << 0);
 		if (spriteA == 0)
 			continue;
 		if ((spriteA & 0x800) != 0x800)
 			continue;
 		auto spriteB =
-			(ramVideo[SPRITE2 + 0 + (i * 2)] << 24) |
-			(ramVideo[SPRITE2 + 1 + (i * 2)] << 16) |
-			(ramVideo[SPRITE2 + 2 + (i * 2)] << 8) |
-			(ramVideo[SPRITE2 + 3 + (i * 2)] << 0);
+			(ramVideo[SPR2_ADDR + 0 + (i * 2)] << 24) |
+			(ramVideo[SPR2_ADDR + 1 + (i * 2)] << 16) |
+			(ramVideo[SPR2_ADDR + 2 + (i * 2)] << 8) |
+			(ramVideo[SPR2_ADDR + 3 + (i * 2)] << 0);
 		auto prio = (spriteB >> 30) & 3;
 		if (withPriority > -1 && prio != withPriority)
 			continue;
@@ -147,7 +176,7 @@ void RenderSprites(int line, int withPriority)
 		if (hFlip)
 			hPos += (gfx320 ? (effectiveWidth * 2) - 4 : effectiveWidth - 2);
 
-		auto tileBasePic = TILESET + (tile * 32);
+		auto tileBasePic = TILES_ADDR + (tile * 32);
 		for (auto col = 0; col < tileWidth; col++)
 		{
 			auto tilePic = tileBasePic;
@@ -224,10 +253,10 @@ void RenderTextMode(int line)
 	auto width = gfx320 ? 40 : 80;
 	auto height = gfx240 ? 16 : 8;
 	auto bgY = line / height;
-	auto tileIndex = TEXT + (((bgY % width) * width) * 2);
-	auto font = FONT + (gfxTextBold ? 0x800 : 0);
+	auto tileIndex = TEXT_ADDR + (((bgY % width) * width) * 2);
+	auto font = FONT_ADDR + (gfxTextBold ? 0x800 : 0);
 	if (gfx240)
-		font = FONT + 0x1000 + (gfxTextBold ? 0x1000 : 0);
+		font = FONT_ADDR + 0x1000 + (gfxTextBold ? 0x1000 : 0);
 	auto tileY = line % (gfx240 ? 16 : 8); //8;
 	//if (gfxTextHigh)
 	//	tileY = (line2 / 2) % 8;
@@ -260,7 +289,7 @@ void RenderBitmapMode1(int line)
 {
 	auto imgWidth = gfx320 ? 160 : 320; //image is 160 or 320 bytes wide
 	auto sourceLine = gfxTextBold ? (int)(line * 0.835) : line;
-	auto effective = BITMAP + (gfx240 ? sourceLine / 2 : sourceLine);
+	auto effective = BMP_ADDR + (gfx240 ? sourceLine / 2 : sourceLine);
 	auto p = 0;
 	for (auto col = 0; col < 640; col += (gfx320 ? 4 : 2))
 	{
@@ -288,7 +317,7 @@ void RenderBitmapMode2(int line)
 {
 	auto imgWidth = gfx320 ? 320 : 640;
 	auto sourceLine = gfxTextBold ? (int)(line * 0.835) : line;
-	auto effective = BITMAP + (gfx240 ? sourceLine / 2 : sourceLine);
+	auto effective = BMP_ADDR + (gfx240 ? sourceLine / 2 : sourceLine);
 	auto p = 0;
 	for (auto col = 0; col < 640; col++)
 	{
@@ -311,12 +340,12 @@ void RenderTileMode(int line)
 {
 	if (line % 2 == 1) return;
 	auto sourceLine = line / 2;
-	auto charBase = TILESET;
-	auto screenBase = MAP1;
-	auto sizeX = 512;
-	auto sizeY = 256;
-	auto maskX = sizeX - 1;
-	auto maskY = sizeY - 1;
+	const auto charBase = TILES_ADDR;
+	auto screenBase = MAP1_ADDR;
+	const auto sizeX = 512;
+	const auto sizeY = 512;
+	const auto maskX = sizeX - 1;
+	const auto maskY = sizeY - 1;
 
 	for (int layer = -1; layer < 2; layer++)
 	{
@@ -384,6 +413,7 @@ void RenderTileMode(int line)
 			xxx++;
 			if (xxx == 512)
 			{
+				//TODO: check if this is needed for 512 px *tall* maps.
 				//if (sizeX > 512)
 				//	screenSource = screenBase + (0x400 + yShift * 2);
 				//else
@@ -400,7 +430,7 @@ void RenderTileMode(int line)
 		}
 		RenderSprites(line, 1 - layer);
 		RenderSprites(line + 1, 1 - layer);
-		screenBase += 0x8000;
+		screenBase += MAP_SIZE;
 	}
 }
 

@@ -6,32 +6,32 @@ Address space is 28 bits:
       |_______ bank
 
 ## Regions
-| from    | to      | size    | name
-| ------- | ------- | ------- |------
-| 0000000 | 000FFFF | 000FFFF | BIOS
-| 0010000 | 0FFFFFF | 0FF0000 | ROM
-| 1000000 | 1400000 | 0400000 | RAM
-| 2000000 | 2080000 | 0080000 | DEV
-| D800000 |         |         | IO
-| E000000 | EFFFFFF | 0FFFFFF | VRAM
-| FF00000 | FFFFFFF | 00FFFFF | STACK
+| from     | to       | size     | name
+| -------- | -------- | -------- |------
+| 00000000 | 0001FFFF | 00020000 | BIOS
+| 00020000 | 00FFFFFF | 00FE0000 | ROM
+| 01000000 | 01400000 | 00400000 | RAM
+| 013F0000 | 0FFFFFFF | 000FFFFF | STACK
+| 02000000 | 02080000 | 00080000 | DEV
+| 0D800000 |          |          | IO
+| 0E000000 | 0EFFFFFF | 00FFFFFF | VRAM
 
 ## VRAM
-| from  | content
-|-------|---------
-| 00000 | Text/Bitmap/Tilemaps
-| 10000 | Tileset
-| 50000 | Palette
-| 50200 | Font
-| 54000 | Sprite tile/pal
-| 54200 | Sprite position/flip/priority
+| from     | content
+| -------- |---------
+| 0E000000 | Text/Bitmap/Tilemaps
+| 0E010000 | Tileset
+| 0E050000 | Palette
+| 0E050200 | Font
+| 0E054000 | Sprite tile/pal
+| 0E054200 | Sprite position/flip/priority
 
 ### Size considerations
 * text: up to 80×60=4800 16-bit cells: 4800×2 = 9600 => `$02580`
 * bitmap: up to 640×480=307200 8-bit pixels => `$4B000`
-* tilemap: 128×128=16384  16-bit cells: 16384×2 = 32768 => `$08000`
-  * ...times 4 = 32768*4 => `$20000`
-* tileset: 8×8 4bpp cells = 32, times 2048 = 1024 => `$08000`
+* tilemap: 64×64=4096  16-bit cells: 4096×2 = 8192 => `$02000`
+  * ...times 2 = 8192×2 => `$04000`
+* tileset: 8×8 4bpp cells = 32, times 2048 or so = 1024 => `$08000`
 * palette: up to 256 16-bit colors: 256×2 = 512 => `$00200`
 * font: 12288 bytes => `$03000`
 * sprites idea A: up to 256 16-bit entries = 512 => `$00200`
