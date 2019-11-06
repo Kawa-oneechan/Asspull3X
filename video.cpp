@@ -13,8 +13,6 @@
 
 #define RENDERPIXELS_DEFINE
 
-extern "C" {
-
 bool gfx320, gfx240, gfxTextBold;
 int gfxMode, gfxFade, scrollX[2], scrollY[2], tileShift[2], mapEnabled[2];
 
@@ -63,7 +61,7 @@ unsigned char* pixels;
 #else
 inline void RenderPixel(int row, int column, int color)
 {
-	auto snes = (ramVideo[PAL_ADDR + ((color) * 2) + 0] << 8) + ramVideo[PAL_ADDR + ((color) * 2) + 1];	
+	auto snes = (ramVideo[PAL_ADDR + ((color) * 2) + 0] << 8) + ramVideo[PAL_ADDR + ((color) * 2) + 1];
 	auto target = ((row * 640) + column) * 4;
 	auto r = (snes >> 0) & 0x1F;
 	auto g = (snes >> 5) & 0x1F;
@@ -173,7 +171,7 @@ void RenderSprites(int line, int withPriority)
 
 				if (!gfx320)
 				{
-					//if (hPos + j < 0 || hPos + j > 640)	
+					//if (hPos + j < 0 || hPos + j > 640)
 					if (l != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640) RenderPixel(line, hPos + hfJ + 0, l);
 					if (r != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640) RenderPixel(line, hPos + hfJ + 1, r);
 				}
@@ -444,7 +442,7 @@ bool initGLExtensions() {
 	glGetProgramInfoLog = (PFNGLGETPROGRAMINFOLOGPROC)SDL_GL_GetProcAddress("glGetProgramInfoLog");
 	glUseProgram = (PFNGLUSEPROGRAMPROC)SDL_GL_GetProcAddress("glUseProgram");
 
-	return glCreateShader && glShaderSource && glCompileShader && glGetShaderiv && 
+	return glCreateShader && glShaderSource && glCompileShader && glGetShaderiv &&
 		glGetShaderInfoLog && glDeleteShader && glAttachShader && glCreateProgram &&
 		glLinkProgram && glValidateProgram && glGetProgramiv && glGetProgramInfoLog &&
 		glUseProgram;
@@ -730,4 +728,3 @@ void Screenshot()
 	SDL_Log("Snap! %s saved.", snap);
 }
 #endif
-}

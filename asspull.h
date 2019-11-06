@@ -8,10 +8,6 @@
 
 #define WITH_OPENGL
 
-extern "C" {
-
-extern void m68k_reset_irq();
-
 extern unsigned char* romBIOS;
 extern unsigned char* romCartridge;
 extern unsigned char* ramVideo;
@@ -170,5 +166,3 @@ public:
 };
 
 extern Device* devices[MAXDEVS];
-
-}

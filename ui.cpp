@@ -1,8 +1,6 @@
 #include "asspull.h"
 #include "ini.h"
 
-extern "C" {
-
 #define LETITSNOW
 
 #include "nokia.c"
@@ -108,7 +106,7 @@ int GetMouseState(int *x, int *y)
 	*x = (int)(*x * scaleX);
 	*y = (int)(*y * scaleY);
 	*x -= minx;
-	*y -= miny;	
+	*y -= miny;
 	return (justClicked == 2) ? 1 : 0;
 }
 #else
@@ -146,7 +144,7 @@ void DrawCursor()
 		cursorTimer = 100;
 	oldX = x;
 	oldY = y;
-	
+
 	if (cursorTimer == 0)
 		return;
 
@@ -502,6 +500,4 @@ int _uiQuit(int, int, int)
 	pullDownLevel = 0;
 	uiCommand = cmdQuit;
 	return 0;
-}
-
 }

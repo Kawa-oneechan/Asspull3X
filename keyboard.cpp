@@ -1,7 +1,5 @@
 #include "asspull.h"
 
-extern "C" {
-
 #define POLLDELAY 10
 
 static unsigned int lastPollTime = 0;
@@ -134,5 +132,3 @@ static const unsigned char keyMap[] =
 	0x52, //kp0
 	0x53, //kp.
 };
-
-}

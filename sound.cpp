@@ -1,7 +1,5 @@
 #include "asspull.h"
 
-extern "C" {
-
 #if WIN32
 
 #include <Windows.h>
@@ -47,5 +45,3 @@ void SendMidi(unsigned int message)
 }
 
 #endif
-
-}

@@ -1,15 +1,16 @@
 #include "asspull.h"
 
-extern "C" {
-
 extern void SendMidi(unsigned int message);
 
+extern "C"
+{
 unsigned int  m68k_read_memory_8(unsigned int address);
 unsigned int  m68k_read_memory_16(unsigned int address);
 unsigned int  m68k_read_memory_32(unsigned int address);
 void m68k_write_memory_8(unsigned int address, unsigned int value);
 void m68k_write_memory_16(unsigned int address, unsigned int value);
 void m68k_write_memory_32(unsigned int address, unsigned int value);
+}
 
 unsigned char* romBIOS = NULL;
 unsigned char* romCartridge = NULL;
@@ -484,6 +485,4 @@ void HandleBlitter(unsigned int function)
 			}
 			break;
 	}
-}
-
 }

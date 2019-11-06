@@ -1,13 +1,13 @@
 #include "asspull.h"
 
 extern "C" {
-
 #include "musashi\m68k.h"
+}
 #include "nativefiledialog\src\include\nfd.h"
 
 static bool quit = 0;
 int line = 0, interrupts = 0;
-extern INLINE void m68ki_set_sr(unsigned int value);
+extern "C" INLINE void m68ki_set_sr(unsigned int value);
 extern void Screenshot();
 extern int uiCommand, uiData;
 extern char uiFPS[];
@@ -363,6 +363,4 @@ int _tmain(int argc, _TCHAR* argv[])
 	UninitVideo();
 	SDL_Quit();
 	return 0;
-}
-
 }
