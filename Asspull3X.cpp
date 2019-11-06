@@ -148,7 +148,6 @@ int _tmain(int argc, _TCHAR* argv[])
 	auto endTime = 0;
 	auto delta = 0;
 	auto frames = 0;
-	auto tickTock = 0;
 
 	while (!quit)
 	{
@@ -355,9 +354,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		line++;
 		if (line == trueLines)
 		{
-			tickTock ^= 1;
-			if (tickTock == 0)
-				ticks++;
+			ticks++;
 			line = 0;
 		}
 	}
