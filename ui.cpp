@@ -78,23 +78,24 @@ int pullDownTops[4] = { 0 };
 int currentTopMenu = -1;
 
 extern unsigned char* pixels;
-#define RenderPixel(row, column, color) \
-{ \
-	auto target = (((row) * 640) + (column)) * 4; \
-	auto r = (color >> 0) & 0x1F; \
-	auto g = (color >> 5) & 0x1F; \
-	auto b = (color >> 10) & 0x1F; \
-	pixels[target + 0] = (b << 3) + (b >> 2); \
-	pixels[target + 1] = (g << 3) + (g >> 2); \
-	pixels[target + 2] = (r << 3) + (r >> 2); \
+inline void RenderPixel(int row, int column, int color)
+{
+	if (row < 0 || row >= 480 || column < 0 || column >= 640) return;
+	auto target = (((row) * 640) + (column)) * 4;
+	auto r = (color >> 0) & 0x1F;
+	auto g = (color >> 5) & 0x1F;
+	auto b = (color >> 10) & 0x1F;
+	pixels[target + 0] = (b << 3) + (b >> 2);
+	pixels[target + 1] = (g << 3) + (g >> 2);
+	pixels[target + 2] = (r << 3) + (r >> 2);
 }
-
-#define DarkenPixel(row, column) \
-{ \
-	auto target = (((row) * 640) + (column)) * 4; \
-	pixels[target + 0] = pixels[target + 0] / 2; \
-	pixels[target + 1] = pixels[target + 1] / 2; \
-	pixels[target + 2] = pixels[target + 2] / 2; \
+inline void DarkenPixel(int row, int column)
+{
+	if (row < 0 || row >= 480 || column < 0 || column >= 640) return;
+	auto target = (((row) * 640) + (column)) * 4;
+	pixels[target + 0] = pixels[target + 0] / 2;
+	pixels[target + 1] = pixels[target + 1] / 2;
+	pixels[target + 2] = pixels[target + 2] / 2;
 }
 
 int justClicked = 0;
@@ -463,36 +464,52 @@ int uiHandleMenuBar(uiMenu* menu, int *openedLeft)
 	return -2;
 }
 
+int draggingWindowID = -1;
+int dragStartX, dragStartY;
+
 int uiHandleWindow(int *winNum)
 {
-	auto win = windows[*winNum];
-	for (auto col = win.left; col < win.left + win.width; col++)
+	auto win = &windows[*winNum];
+	for (auto col = win->left; col < win->left + win->width; col++)
 	{
-		RenderPixel(win.top, col, PULLDOWN_BORDER);
-		RenderPixel(win.top + win.height - 1, col, PULLDOWN_BORDER);
-		DarkenPixel(win.top + win.height + 0, col + 2);
-		DarkenPixel(win.top + win.height + 1, col + 2);
+		RenderPixel(win->top, col, PULLDOWN_BORDER);
+		RenderPixel(win->top + win->height - 1, col, PULLDOWN_BORDER);
+		DarkenPixel(win->top + win->height + 0, col + 2);
+		DarkenPixel(win->top + win->height + 1, col + 2);
 	}
 	auto color = PULLDOWN_HIGHLIGHT;
-	for (auto row = win.top + 1; row < win.top + win.height - 1; row++)
+	for (auto row = win->top + 1; row < win->top + win->height - 1; row++)
 	{
-		RenderPixel(row, win.left, PULLDOWN_BORDER);
-		if (row == win.top + 12) color = PULLDOWN_BORDER;
-		if (row == win.top + 13) color = PULLDOWN_FILL;
-		for (auto col = win.left + 1; col < win.left + win.width - 1; col++)
+		RenderPixel(row, win->left, PULLDOWN_BORDER);
+		if (row == win->top + 12) color = PULLDOWN_BORDER;
+		if (row == win->top + 13) color = PULLDOWN_FILL;
+		for (auto col = win->left + 1; col < win->left + win->width - 1; col++)
 			RenderPixel(row, col, color);
-		RenderPixel(row, win.left + win.width - 1, PULLDOWN_BORDER);
-		DarkenPixel(row + 1, win.left + win.width + 0);
-		DarkenPixel(row + 1, win.left + win.width + 1);
+		RenderPixel(row, win->left + win->width - 1, PULLDOWN_BORDER);
+		DarkenPixel(row + 1, win->left + win->width + 0);
+		DarkenPixel(row + 1, win->left + win->width + 1);
 	}
-	DrawString(win.top + 3, win.left + 3, PULLDOWN_TEXT, win.caption);
+	DrawString(win->left + 3, win->top + 3, PULLDOWN_TEXT, win->caption);
 	int x = 0, y = 0;
 	GetMouseState(&x, &y);
 	int buttons = SDL_GetMouseState(0, 0); //need actual button state to drag!
-	if (buttons == 1 && x > win.left && y > win.top && x < win.left + win.width && y < win.top + 12)
+	if (buttons == 1 && x > win->left && y > win->top && x < win->left + win->width && y < win->top + 12)
 	{
-		//TODO: drag title
-		return 1;
+		if (draggingWindowID == -1)
+		{
+			draggingWindowID = *winNum;
+			dragStartX = x - win->left;
+			dragStartY = y - win->top;
+		}
+	}
+	else if (buttons == 1 && draggingWindowID == *winNum)
+	{
+		win->left = x - dragStartX;
+		win->top = y - dragStartY;
+	}
+	else if (buttons == 0 && draggingWindowID == *winNum)
+	{
+		draggingWindowID = -1;
 	}
 	return 0;
 }
@@ -538,6 +555,7 @@ void HandleUI()
 		{
 			auto response = windows[i].handler(i);
 		}
+		cursorTimer = 100;
 	}
 
 	if (pullDownLevel > 0)
@@ -962,10 +980,10 @@ const unsigned short aboutPic[50 * 50] =
 int _uiAboutWin(int me)
 {
 	uiHandleWindow(&me);
-	auto win = windows[me];
-	DrawString(win.left + 56, win.top + 16, PULLDOWN_TEXT, "It means I pulled it\noutta my ass.");
-	DrawImage(win.left + 2, win.top + 14, (unsigned short*)aboutPic, 50, 50);
-	if (uiHandleButton(win.left + 68, win.top + 48, 84, "Thanks, dipshit!"))
+	auto win = &windows[me];
+	DrawString(win->left + 56, win->top + 16, PULLDOWN_TEXT, "It means I pulled it\noutta my ass.");
+	DrawImage(win->left + 2, win->top + 14, (unsigned short*)aboutPic, 50, 50);
+	if (uiHandleButton(win->left + 68, win->top + 48, 84, "Thanks, dipshit!"))
 		uiOpenWindows = 0; //CloseWindow(me);
 	return 0;
 }
