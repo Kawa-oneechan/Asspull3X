@@ -13,45 +13,6 @@
 
 #define RENDERPIXELS_DEFINE
 
-#define TEXT_SIZE	((80 * 60) * 2)	//640×480 mode has 8x8 character cells, so 80×60 characters.
-#define BITMAP_SIZE	(640 * 480)		//640×480 mode in 256 colors.
-#define MAP_SIZE	(((512 / 8) * (512 / 8)) * 2)	//Each tile is a 16-bit value.
-#define TILES_SIZE	((((8 * 8) / 2) * 512) + (128 << 3))
-#define PAL_SIZE	(256 * 2)	//256 xBGR-1555 colors.
-#define FONT_SIZE	(((8 * 256) * 2) + ((16 * 256) * 2))	//Two 8x8 fonts, two 8x16 fonts.
-#define SPR1_SIZE	(256 * 2)	//256 16-bit entries.
-#define SPR2_SIZE	(256 * 4)	//256 32-bit entries.
-
-#define TEXT_ADDR	0x000000
-#define BMP_ADDR	0x000000
-#define MAP1_ADDR	0x000000
-#define MAP2_ADDR	(MAP1_ADDR + MAP_SIZE)
-#define TILES_ADDR	0x010000
-#define PAL_ADDR	0x050000
-#define FONT_ADDR	0x050200
-#define SPR1_ADDR	0x054000
-#define SPR2_ADDR	0x054200
-
-//Sanity checks!
-#if (FONT_SIZE != 12288)
-#error FONT size is off.
-#endif
-#if (BMP_ADDR + BITMAP_SIZE) > PAL_ADDR
-#error 640×480 Bitmap mode will overwrite the palette.
-#endif
-#if (TILES_ADDR + TILES_SIZE) > PAL_ADDR
-#error TILES encroaches on PAL.
-#endif
-#if (PAL_ADDR + PAL_SIZE) > FONT_ADDR
-#error PAL encroaches on FONT.
-#endif
-#if (FONT_ADDR + FONT_SIZE) > SPR1_ADDR
-#error FONT encroaches on SPR1.
-#endif
-#if (SPRITE1 + SPR1_SIZE) > SPR2_ADDR
-#error SPR1 encroaches on SPR2.
-#endif
-
 extern "C" {
 
 bool gfx320, gfx240, gfxTextBold;

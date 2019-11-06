@@ -27,51 +27,14 @@ void HandleBlitter(unsigned int function);
 unsigned int blitLength;
 int blitAddrA, blitAddrB, blitKey;
 
+extern unsigned char PollKeyboard(bool force);
+
 long ticks = 0;
 
 extern bool gfx320, gfx240, gfxTextBold;
 extern int gfxMode, gfxFade, scrollX[2], scrollY[2], tileShift[2], mapEnabled[2];
 
 extern int line, interrupts;
-
-#define DEVBLOCK	0x8000
-
-//Define memory map
-#define BIOS_SIZE	0x00020000
-#define CART_SIZE	0x00FE0000
-#define WRAM_SIZE	0x00400000
-#define DEVS_SIZE	(DEV_BLOCK * MAXDEVS) //0x0080000
-#define REGS_SIZE	0x000FFFFF
-#define VRAM_SIZE	0x00060000
-#define STAC_SIZE	0x00010000
-
-#define BIOS_ADDR	0x00000000
-#define CART_ADDR	0x00020000
-#define WRAM_ADDR	0x01000000
-#define STAC_ADDR	0x013F0000
-#define DEVS_ADDR	0x02000000
-#define REGS_ADDR	0x0D800000
-#define VRAM_ADDR	0x0E000000
-
-//Sanity checks!
-#if (BIOS_ADDR + BIOS_SIZE) > CART_ADDR
-#error BIOS encroaches on CART space.
-#endif
-#if (CART_ADDR + CART_SIZE) > WRAM_ADDR
-#error CART encroaches on WRAM space.
-#endif
-#if (WRAM_ADDR + WRAM_SIZE) > DEVS_ADDR
-#error WRAM encroaches on DEVS space.
-#endif
-#if (STAC_ADDR + STAC_SIZE) > (WRAM_ADDR + WRAM_SIZE)
-#error STAC breaks out of WRAM space.
-#endif
-#if (DEVS_ADDR + DEVS_SIZE) > REGS_ADDR
-#error DEVS encroaches on REGS space.
-#endif
-#if (REGS_ADDR + REGS_SIZE) > VRAM_ADDR
-#error REGS encroaches on VRAM space.
-#endif
 
 void HandleHdma(int line)
 {
@@ -174,6 +137,7 @@ unsigned int m68k_read_memory_16(unsigned int address)
 			case 0: //Line
 				return line;
 			case 0x6: //Keyscan
+				keyScan = PollKeyboard(false);
 				return keyScan;
 			case 0xF: //Joypad
 				return joypad;
