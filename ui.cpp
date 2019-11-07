@@ -2,6 +2,7 @@
 #include "ini.h"
 
 #define LETITSNOW
+#define ZSNES
 
 #include "nokia.c"
 
@@ -9,14 +10,52 @@ char uiStatus[512] = { 0 };
 char uiFPS[32] = { 0 };
 int statusTimer = 0;
 
-#define STATUS_TEXT 0x7FFF
-#define BAR_FILL 0x000F
-#define BAR_HIGHLIGHT 0x001F
-#define BAR_TEXT 0x7FFF
-#define PULLDOWN_BORDER 0x0008
-#define PULLDOWN_FILL 0x000F
-#define PULLDOWN_HIGHLIGHT 0x001F
-#define PULLDOWN_TEXT 0x7FFF
+#define FAIZ(r, g, b) (((b) >> 3) << 10) | (((g) >> 3) << 5) | ((r) >> 3)
+
+#ifndef ZSNES
+#define STATUS_TEXT			FAIZ(255, 255, 255)
+#define WINDOW_BORDER		FAIZ(66, 0, 0)
+#define WINDOW_FILL			FAIZ(123, 0, 0)
+#define WINDOW_TEXT			STATUS_TEXT
+#define WINDOW_CAPTION		FAIZ(255, 0, 0)
+#define WINDOW_CAPTEXT		STATUS_TEXT
+#define BUTTON_BORDER		WINDOW_BORDER
+#define BUTTON_FILL			FAIZ(200, 0, 0)
+#define BUTTON_TEXT			WINDOW_TEXT
+#define BUTTON_HIGHLIGHT	WINDOW_CAPTION
+#define BUTTON_HIGHTEXT		BUTTON_TEXT
+#define MENUBAR_FILL		WINDOW_FILL
+#define MENUBAR_TEXT		WINDOW_TEXT
+#define MENUBAR_HIGHLIGHT	WINDOW_CAPTION
+#define MENUBAR_HIGHTEXT	MENUBAR_TEXT
+#define PULLDOWN_BORDER		WINDOW_BORDER
+#define PULLDOWN_FILL		WINDOW_FILL
+#define PULLDOWN_TEXT		WINDOW_TEXT
+#define PULLDOWN_HIGHLIGHT	WINDOW_CAPTION
+#define PULLDOWN_HIGHTEXT	PULLDOWN_TEXT
+#else
+//ZSNES color scheme suggested and provided by elfor
+#define STATUS_TEXT			FAIZ(255, 255, 255)
+#define WINDOW_BORDER		FAIZ(33, 32, 173)
+#define WINDOW_FILL			FAIZ(66, 44, 132)
+#define WINDOW_TEXT			STATUS_TEXT
+#define WINDOW_CAPTION		FAIZ(90, 93, 123)
+#define WINDOW_CAPTEXT		FAIZ(189, 190, 255)
+#define BUTTON_BORDER		WINDOW_BORDER
+#define BUTTON_FILL			FAIZ(107, 105, 140)
+#define BUTTON_TEXT			WINDOW_TEXT
+#define BUTTON_HIGHLIGHT	WINDOW_CAPTEXT
+#define BUTTON_HIGHTEXT		BUTTON_TEXT
+#define MENUBAR_FILL		FAIZ(90, 93, 90)
+#define MENUBAR_TEXT		WINDOW_TEXT
+#define MENUBAR_HIGHLIGHT	FAIZ(165, 0, 62)
+#define MENUBAR_HIGHTEXT	MENUBAR_TEXT
+#define PULLDOWN_BORDER		FAIZ(57, 52, 49)
+#define PULLDOWN_FILL		MENUBAR_FILL
+#define PULLDOWN_TEXT		MENUBAR_TEXT
+#define PULLDOWN_HIGHLIGHT	MENUBAR_HIGHLIGHT
+#define PULLDOWN_HIGHTEXT	MENUBAR_HIGHTEXT
+#endif
 
 typedef struct uiMenuItem
 {
@@ -143,6 +182,7 @@ int GetMouseState(int *x, int *y)
 
 static unsigned short cursor[] =
 {
+#ifndef ZSNES
 	0x739C,0x77BD,0x7FFF,0x7FFF,0x7FFF,0x7FFF,0x2108,0x8000,
 	0x6F7B,0x739C,0x77BD,0x77BD,0x7FFF,0x2108,0x2108,0x8000,
 	0x6739,0x6F7B,0x739C,0x77BD,0x2108,0x2108,0x8000,0x8000,
@@ -151,6 +191,17 @@ static unsigned short cursor[] =
 	0x6739,0x2108,0x2108,0x8000,0x6F7B,0x739C,0x2108,0x8000,
 	0x2108,0x2108,0x8000,0x8000,0x8000,0x2108,0x2108,0x8000,
 	0x8000,0x8000,0x8000,0x0000,0x0000,0x8000,0x8000,0x8000,
+#else
+//ZSNES theme colors
+	0x157F,0x111F,0x0CDF,0x089F,0x047F,0x0000,0x0000,0x0000,
+	0x1DDF,0x19BF,0x0CFF,0x047F,0x8000,0x8000,0x0000,0x0000,
+	0x221F,0x1DFF,0x1DFF,0x08BF,0x8000,0x0000,0x0000,0x0000,
+	0x265F,0x265F,0x223F,0x19BF,0x0CDF,0x8000,0x0000,0x0000,
+	0x2A9F,0x8000,0x8000,0x221F,0x157F,0x0CDF,0x8000,0x0000,
+	0x8000,0x8000,0x0000,0x8000,0x221F,0x157F,0x0CDF,0x8000,
+	0x0000,0x0000,0x0000,0x0000,0x8000,0x221F,0x8000,0x8000,
+	0x0000,0x0000,0x0000,0x0000,0x0000,0x8000,0x8000,0x0000,
+#endif
 };
 
 int oldX, oldY, cursorTimer = 1000;
@@ -456,7 +507,7 @@ int uiHandleMenuDrop(uiMenu* menu, int left, int top, int *openedTop)
 			}
 			RenderPixel(y + line, left + 1 + width, PULLDOWN_BORDER);
 		}
-		DrawString(left + 2, y + 1, PULLDOWN_TEXT, menu->items[i].caption);
+		DrawString(left + 2, y + 1, (i == focused) ? PULLDOWN_HIGHTEXT : PULLDOWN_TEXT, menu->items[i].caption);
 	}
 	for (int y = top; y <= top + (menu->numItems * 10); y++)
 	{
@@ -528,9 +579,9 @@ int uiHandleMenuBar(uiMenu* menu, int *openedLeft)
 
 	for (int i = 0; i < width; i++)
 	{
-		int color = BAR_FILL;
+		int color = MENUBAR_FILL;
 		if ((i >= focusL && i < focusR) || (i >= otherFocusL && i < otherFocusR))
-			color = BAR_HIGHLIGHT;
+			color = MENUBAR_HIGHLIGHT;
 		for (int j = 0; j < 12; j++)
 		{
 			RenderPixel(j, i, color);
@@ -546,7 +597,7 @@ int uiHandleMenuBar(uiMenu* menu, int *openedLeft)
 
 	for (int i = 0, x = 4; i < menu->numItems; i++, x = extents[i - 1] + 4)
 	{
-		DrawString(x, 2, BAR_TEXT, menu->items[i].caption);
+		DrawString(x, 2, (i == focused || i == currentTopMenu) ? MENUBAR_HIGHTEXT : MENUBAR_TEXT, menu->items[i].caption);
 	}
 
 	if (buttons == 1 && focused != -1)
@@ -565,24 +616,24 @@ int uiHandleWindow(uiWindow* win)
 {
 	for (auto col = win->left; col < win->left + win->width; col++)
 	{
-		RenderPixel(win->top, col, PULLDOWN_BORDER);
-		RenderPixel(win->top + win->height - 1, col, PULLDOWN_BORDER);
+		RenderPixel(win->top, col, WINDOW_BORDER);
+		RenderPixel(win->top + win->height - 1, col, WINDOW_BORDER);
 		DarkenPixel(win->top + win->height + 0, col + 2);
 		DarkenPixel(win->top + win->height + 1, col + 2);
 	}
-	auto color = PULLDOWN_HIGHLIGHT;
+	auto color = WINDOW_CAPTION;
 	for (auto row = win->top + 1; row < win->top + win->height - 1; row++)
 	{
-		RenderPixel(row, win->left, PULLDOWN_BORDER);
-		if (row == win->top + 12) color = PULLDOWN_BORDER;
-		if (row == win->top + 13) color = PULLDOWN_FILL;
+		RenderPixel(row, win->left, WINDOW_BORDER);
+		if (row == win->top + 12) color = WINDOW_BORDER;
+		if (row == win->top + 13) color = WINDOW_FILL;
 		for (auto col = win->left + 1; col < win->left + win->width - 1; col++)
 			RenderPixel(row, col, color);
-		RenderPixel(row, win->left + win->width - 1, PULLDOWN_BORDER);
+		RenderPixel(row, win->left + win->width - 1, WINDOW_BORDER);
 		DarkenPixel(row + 1, win->left + win->width + 0);
 		DarkenPixel(row + 1, win->left + win->width + 1);
 	}
-	DrawString(win->left + 3, win->top + 3, PULLDOWN_TEXT, win->caption);
+	DrawString(win->left + 3, win->top + 3, WINDOW_CAPTEXT, win->caption);
 	int x = 0, y = 0;
 	GetMouseState(&x, &y);
 	int buttons = SDL_GetMouseState(0, 0); //need actual button state to drag!
@@ -611,25 +662,29 @@ int uiHandleButton(int left, int top, int width, char* caption)
 {
 	int x = 0, y = 0;
 	int buttons = GetMouseState(&x, &y);
-	auto fill = PULLDOWN_FILL;
+	auto fill = BUTTON_FILL;
+	auto text = BUTTON_TEXT;
 	if (x > left && y > top && x < left + width && y < top + 13)
-		fill = PULLDOWN_HIGHLIGHT;
+	{
+		fill = BUTTON_HIGHLIGHT;
+		text = BUTTON_HIGHTEXT;
+	}
 	else
 		buttons = 0;
 	for (auto col = left + 1; col < left + width - 1; col++)
 	{
-		RenderPixel(top, col, PULLDOWN_BORDER);
-		RenderPixel(top + 13, col, PULLDOWN_BORDER);
+		RenderPixel(top, col, BUTTON_BORDER);
+		RenderPixel(top + 13, col, BUTTON_BORDER);
 	}
 	for (auto row = top + 1; row < top + 13; row++)
 	{
-		RenderPixel(row, left, PULLDOWN_BORDER);
+		RenderPixel(row, left, BUTTON_BORDER);
 		for (auto col = left + 1; col < left + width - 1; col++)
 			RenderPixel(row, col, fill);
-		RenderPixel(row, left + width - 1, PULLDOWN_BORDER);
+		RenderPixel(row, left + width - 1, BUTTON_BORDER);
 	}
 	auto capLeft = left + (width / 2) - (MeasureString(caption) / 2);
-	DrawString(capLeft, top + 3, PULLDOWN_TEXT, caption);
+	DrawString(capLeft, top + 3, text, caption);
 	return buttons;
 }
 
@@ -690,7 +745,7 @@ int _uiMainMenu(int item, int itemLeft, int itemTop)
 	case 1: //Devices
 		pullDownLevel = 0;
 		OpenWindow((uiWindow*)&aboutWindow);
-		OpenWindow(0xDEAD, 80, 200, 128, 128, "test", 0);
+		//OpenWindow(0xDEAD, 80, 200, 128, 128, "test", 0);
 		break;
 	}
 	return 0;
@@ -2030,7 +2085,7 @@ int _uiAboutWin(int me)
 	aboutWindow.left = win->left;
 	aboutWindow.top = win->top;
 	DrawString(win->left + 150, win->top + 16, 0x07FF, "Asspull IIIx");
-	DrawString(win->left + 150, win->top + 28, PULLDOWN_TEXT, "System design\nand emulator\nby Kawa");
+	DrawString(win->left + 150, win->top + 28, WINDOW_TEXT, "System design\nand emulator\nby Kawa");
 	DrawImage(win->left + 1, win->top + 13, (unsigned short*)aboutPic, 144, 64);
 	if (uiHandleButton(win->left + 190, win->top + 61, 34, "Cool"))
 	{
