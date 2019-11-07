@@ -256,9 +256,9 @@ void DrawCursor()
 	}
 }
 
-void DrawCharacter(int x, int y, int color, char ch)
+void DrawCharacter(int x, int y, int color, unsigned char ch)
 {
-	auto glyph = &nokiaFont[(ch - ' ') * 8];
+	auto glyph = &nokiaFont[ch * 8];
 	for (int line = 0; line < 8; line++)
 	{
 		auto num = glyph[line];
@@ -298,7 +298,7 @@ void DrawString(int x, int y, int color, char* str)
 		else
 		{
 			DrawCharacter(x, y, color, *str);
-			x += nokiaFontWidth[(*str - ' ')];
+			x += nokiaFontWidth[*str];
 		}
 		str++;
 	}
@@ -312,7 +312,7 @@ int MeasureString(char* str)
 		if (*str == '\t')
 			width = ((width / TABWIDTH) * TABWIDTH) + TABWIDTH;
 		else
-			width += nokiaFontWidth[(*str - ' ')];
+			width += nokiaFontWidth[*str];
 		str++;
 	}
 	return width;
