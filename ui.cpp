@@ -2,7 +2,8 @@
 #include "ini.h"
 
 #define LETITSNOW
-//#define ZSNES
+#define PROPER_ARROW
+//#define NESTICLE_BLUE
 
 #include "nokia.c"
 
@@ -11,69 +12,52 @@ char uiFPS[32] = { 0 };
 int statusTimer = 0;
 
 #define FAIZ(r, g, b) (((b) >> 3) << 10) | (((g) >> 3) << 5) | ((r) >> 3)
+#define WITH_SHADOW | 0x8000
 
-#ifndef ZSNES
-#define STATUS_TEXT			FAIZ(255, 255, 255)
-#define WINDOW_BORDER_L		FAIZ(66, 0, 0)
+//TODO: inactive window border/caption
+
+#define STATUS_TEXT			FAIZ(255, 255, 255) WITH_SHADOW
+#define WINDOW_BORDER_L		FAIZ(0, 0, 0)
 #define WINDOW_BORDER_T		WINDOW_BORDER_L
 #define WINDOW_BORDER_R		WINDOW_BORDER_L
 #define WINDOW_BORDER_B		WINDOW_BORDER_L
-#define WINDOW_FILL			FAIZ(123, 0, 0)
-#define WINDOW_TEXT			STATUS_TEXT
-#define WINDOW_CAPTION		FAIZ(255, 0, 0)
-#define WINDOW_CAPTEXT		STATUS_TEXT
-#define BUTTON_BORDER_L		WINDOW_BORDER_L
-#define BUTTON_BORDER_T		WINDOW_BORDER_T
-#define BUTTON_BORDER_R		WINDOW_BORDER_R
-#define BUTTON_BORDER_B		WINDOW_BORDER_B
-#define BUTTON_FILL			FAIZ(200, 0, 0)
+#ifndef NESTICLE_BLUE
+#define WINDOW_FILL			FAIZ(170, 0, 0)
+#else
+#define WINDOW_FILL			FAIZ(0, 0, 170)
+#endif
+#define WINDOW_TEXT			FAIZ(255, 255, 255)
+#ifndef NESTICLE_BLUE
+#define WINDOW_CAPTION		FAIZ(255, 0, 4 )
+#else
+#define WINDOW_CAPTION		FAIZ(0, 4, 255)
+#endif
+#define WINDOW_CAPTEXT		FAIZ(255, 255, 255) WITH_SHADOW
+#define WINDOW_CAPLINE		WINDOW_CAPTION
+#define BUTTON_BORDER_L		FAIZ(142, 142, 142)
+#define BUTTON_BORDER_T		BUTTON_BORDER_L
+#define BUTTON_BORDER_R		FAIZ(85, 85, 85)
+#define BUTTON_BORDER_B		BUTTON_BORDER_R
+#define BUTTON_FILL			FAIZ(113, 113, 113)
 #define BUTTON_TEXT			WINDOW_TEXT
-#define BUTTON_HIGHLIGHT	WINDOW_CAPTION
+#define BUTTON_HIGHLIGHT	FAIZ(133, 133, 133)
 #define BUTTON_HIGHTEXT		BUTTON_TEXT
-#define MENUBAR_FILL		WINDOW_FILL
-#define MENUBAR_TEXT		WINDOW_TEXT
-#define MENUBAR_HIGHLIGHT	WINDOW_CAPTION
-#define MENUBAR_HIGHTEXT	MENUBAR_TEXT
+#ifndef NESTICLE_BLUE
+#define MENUBAR_FILL		FAIZ(125, 0, 0)
+#else
+#define MENUBAR_FILL		FAIZ(0, 0, 125)
+#endif
+#define MENUBAR_TEXT		WINDOW_CAPTEXT
+#define MENUBAR_HIGHLIGHT	FAIZ(0, 170, 0)
+#define MENUBAR_HIGHTEXT	FAIZ(85, 255, 85) WITH_SHADOW
 #define PULLDOWN_BORDER_L	WINDOW_BORDER_L
 #define PULLDOWN_BORDER_T	WINDOW_BORDER_T
 #define PULLDOWN_BORDER_R	WINDOW_BORDER_R
 #define PULLDOWN_BORDER_B	WINDOW_BORDER_B
-#define PULLDOWN_FILL		WINDOW_FILL
-#define PULLDOWN_TEXT		WINDOW_TEXT
-#define PULLDOWN_HIGHLIGHT	WINDOW_CAPTION
-#define PULLDOWN_HIGHTEXT	PULLDOWN_TEXT
-#else
-//ZSNES color scheme suggested and provided by elfor
-#define STATUS_TEXT			FAIZ(255, 255, 255)
-#define WINDOW_BORDER_L		FAIZ(79, 50, 174)
-#define WINDOW_BORDER_T		FAIZ(90, 57, 199)
-#define WINDOW_BORDER_R		FAIZ(59, 40, 122)
-#define WINDOW_BORDER_B		FAIZ(49, 34, 96)
-#define WINDOW_FILL			FAIZ(66, 44, 132)
-#define WINDOW_TEXT			STATUS_TEXT
-#define WINDOW_CAPTION		FAIZ(90, 93, 123)
-#define WINDOW_CAPTEXT		FAIZ(189, 190, 255)
-#define BUTTON_BORDER_L		FAIZ(120, 120, 160)
-#define BUTTON_BORDER_T		FAIZ(136, 140, 184)
-#define BUTTON_BORDER_R		FAIZ(80, 84, 112)
-#define BUTTON_BORDER_B		FAIZ(64, 68, 68)
-#define BUTTON_FILL			FAIZ(104, 104, 136)
-#define BUTTON_TEXT			WINDOW_TEXT
-#define BUTTON_HIGHLIGHT	FAIZ(120, 120, 160)
-#define BUTTON_HIGHTEXT		BUTTON_TEXT
-#define MENUBAR_FILL		FAIZ(90, 93, 90)
-#define MENUBAR_TEXT		WINDOW_TEXT
-#define MENUBAR_HIGHLIGHT	FAIZ(165, 0, 62)
-#define MENUBAR_HIGHTEXT	MENUBAR_TEXT
-#define PULLDOWN_BORDER_L	FAIZ(107, 109, 107)
-#define PULLDOWN_BORDER_T	FAIZ(123, 125, 123)
-#define PULLDOWN_BORDER_R	FAIZ(74, 77, 74)
-#define PULLDOWN_BORDER_B	FAIZ(57, 60, 57)
 #define PULLDOWN_FILL		MENUBAR_FILL
 #define PULLDOWN_TEXT		MENUBAR_TEXT
 #define PULLDOWN_HIGHLIGHT	MENUBAR_HIGHLIGHT
 #define PULLDOWN_HIGHTEXT	MENUBAR_HIGHTEXT
-#endif
 
 typedef struct uiMenuItem
 {
@@ -200,7 +184,24 @@ int GetMouseState(int *x, int *y)
 
 static unsigned short cursor[] =
 {
-#ifndef ZSNES
+#ifdef PROPER_ARROW
+	0x0001,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
+	0x0001,0x0001,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
+	0x0001,0x7FFF,0x0001,0x0000,0x0000,0x0000,0x0000,0x0000,
+	0x0001,0x7FFF,0x7FFF,0x0001,0x0000,0x0000,0x0000,0x0000,
+	0x0001,0x7FFF,0x7FFF,0x7FFF,0x0001,0x0000,0x0000,0x0000,
+	0x0001,0x7FFF,0x7FFF,0x7FFF,0x7FFF,0x0001,0x0000,0x0000,
+	0x0001,0x7FFF,0x7FFF,0x7FFF,0x7FFF,0x7FFF,0x0001,0x0000,
+	0x0001,0x7FFF,0x7FFF,0x7FFF,0x7FFF,0x0001,0x8000,0x8000,
+	0x0001,0x7FFF,0x0001,0x7FFF,0x7FFF,0x7FFF,0x0001,0x0000,
+	0x0001,0x0001,0x8000,0x0001,0x7FFF,0x7FFF,0x0001,0x8000,
+	0x0000,0x8000,0x8000,0x8000,0x0001,0x0001,0x8000,0x8000,
+	0x0000,0x0000,0x0000,0x0000,0x8000,0x8000,0x8000,0x0000,
+	0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
+	0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
+	0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
+	0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
+#else
 	0x739C,0x77BD,0x7FFF,0x7FFF,0x7FFF,0x7FFF,0x2108,0x8000,
 	0x6F7B,0x739C,0x77BD,0x77BD,0x7FFF,0x2108,0x2108,0x8000,
 	0x6739,0x6F7B,0x739C,0x77BD,0x2108,0x2108,0x8000,0x8000,
@@ -209,16 +210,14 @@ static unsigned short cursor[] =
 	0x6739,0x2108,0x2108,0x8000,0x6F7B,0x739C,0x2108,0x8000,
 	0x2108,0x2108,0x8000,0x8000,0x8000,0x2108,0x2108,0x8000,
 	0x8000,0x8000,0x8000,0x0000,0x0000,0x8000,0x8000,0x8000,
-#else
-//ZSNES theme colors
-	0x157F,0x111F,0x0CDF,0x089F,0x047F,0x0000,0x0000,0x0000,
-	0x1DDF,0x19BF,0x0CFF,0x047F,0x8000,0x8000,0x0000,0x0000,
-	0x221F,0x1DFF,0x1DFF,0x08BF,0x8000,0x0000,0x0000,0x0000,
-	0x265F,0x265F,0x223F,0x19BF,0x0CDF,0x8000,0x0000,0x0000,
-	0x2A9F,0x8000,0x8000,0x221F,0x157F,0x0CDF,0x8000,0x0000,
-	0x8000,0x8000,0x0000,0x8000,0x221F,0x157F,0x0CDF,0x8000,
-	0x0000,0x0000,0x0000,0x0000,0x8000,0x221F,0x8000,0x8000,
-	0x0000,0x0000,0x0000,0x0000,0x0000,0x8000,0x8000,0x0000,
+	0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
+	0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
+	0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
+	0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
+	0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
+	0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
+	0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
+	0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
 #endif
 };
 
@@ -238,7 +237,7 @@ void DrawCursor()
 	cursorTimer--;
 
 	unsigned short pix = 0;
-	for (int row = 0; row < 8; row++)
+	for (int row = 0; row < 16; row++)
 	{
 		if (y + row >= 480)
 			break;
@@ -269,8 +268,8 @@ void DrawCharacter(int x, int y, int color, char ch)
 		{
 			if (num & 1)
 			{
-				RenderPixel(y + line, x + bit, color);
-				RenderPixel(y + line + 1, x + bit + 1, 0);
+				RenderPixel(y + line, x + bit, color & 0x7FFF);
+				if (color & 0x8000) DarkenPixel(y + line + 1, x + bit + 1);
 			}
 			num >>= 1;
 		}
@@ -643,7 +642,7 @@ int uiHandleWindow(uiWindow* win)
 	for (auto row = win->top + 1; row < win->top + win->height - 1; row++)
 	{
 		RenderPixel(row, win->left, WINDOW_BORDER_L);
-		if (row == win->top + 12) color = WINDOW_FILL; //WINDOW_BORDER_T;
+		if (row == win->top + 12) color = WINDOW_CAPLINE;
 		if (row == win->top + 13) color = WINDOW_FILL;
 		for (auto col = win->left + 1; col < win->left + win->width - 1; col++)
 			RenderPixel(row, col, color);
@@ -689,7 +688,7 @@ int uiHandleButton(int left, int top, int width, char* caption)
 	}
 	else
 		buttons = 0;
-	for (auto col = left + 1; col < left + width - 1; col++)
+	for (auto col = left; col < left + width; col++)
 	{
 		RenderPixel(top, col, BUTTON_BORDER_T);
 		RenderPixel(top + 13, col, BUTTON_BORDER_B);
