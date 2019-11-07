@@ -104,8 +104,6 @@ typedef struct uiWindow
 	int(*handler)(int);
 } uiWindow;
 
-int _uiAboutWin(int);
-
 uiWindow windows[MAXWINDOWS] = { 0 };
 //{ { 0x707, 32, 32, 227, 78, "E Clunibus Tractum", _uiAboutWin } };
 int uiOpenWindows = 0;
@@ -748,6 +746,7 @@ void HandleUI()
 }
 
 extern uiWindow aboutWindow;
+extern uiWindow memoryViewerWindow;
 
 int _uiMainMenu(int item, int itemLeft, int itemTop)
 {
@@ -761,7 +760,8 @@ int _uiMainMenu(int item, int itemLeft, int itemTop)
 		break;
 	case 1: //Devices
 		pullDownLevel = 0;
-		OpenWindow((uiWindow*)&aboutWindow);
+		//OpenWindow((uiWindow*)&aboutWindow);
+		OpenWindow((uiWindow*)&memoryViewerWindow);
 		//OpenWindow(0xDEAD, 80, 200, 128, 128, "test", 0);
 		break;
 	}
@@ -2095,6 +2095,7 @@ const unsigned short aboutPic[144 * 64] =
 	0x1D4F,0x1D4F,0x1D4F,0x1D4F,0x1D4F,0x1D4F,0x1D4F,0x1D4F,
 };
 
+int _uiAboutWin(int);
 uiWindow aboutWindow = { 0x707, 32, 32, 227, 78, "E Clunibus Tractum", _uiAboutWin };
 int _uiAboutWin(int me)
 {
@@ -2111,3 +2112,39 @@ int _uiAboutWin(int me)
 	}
 	return 0;
 }
+
+extern "C" unsigned int m68k_read_memory_8(unsigned int address);
+int _uiMemoryViewer(int);
+uiWindow memoryViewerWindow = { 0x1337, 128, 128, 260, 334, "Memory Viewer", _uiMemoryViewer };
+unsigned int memViewerOffset = CART_ADDR;
+int _uiMemoryViewer(int me)
+{
+	auto win = &windows[me];
+	const char hex[] = "0123456789ABCDEF";
+	char offsetStr[16] = { 0 };
+	unsigned int offset = memViewerOffset;
+	for (int row = 0; row < 32; row++)
+	{
+		sprintf_s(offsetStr, 16, "%08X", offset);
+		DrawString(win->left + 2, win->top + 14 + (row * 10), WINDOW_TEXT, offsetStr);
+		for (int col = 0; col < 8; col++)
+		{
+			auto here = m68k_read_memory_8(offset++);
+			DrawCharacter(win->left + 56 + (col * 16), win->top + 14 + (row * 10), WINDOW_TEXT, *(hex + (here & 0x0F)));
+			DrawCharacter(win->left + 62 + (col * 16), win->top + 14 + (row * 10), WINDOW_TEXT, *(hex + ((here & 0xF0) >> 4)));
+
+			DrawCharacter(win->left + 186 + (col * 7), win->top + 14 + (row * 10), WINDOW_TEXT, here);
+		}
+	}
+	if (uiHandleButton(win->left + 248, win->top + 1, 11, "X")) //TODO: make a dedicated Close button
+	{
+		CloseWindow(0x1337);
+		return -1;
+	}
+	else if (uiHandleButton(win->left +	248, win->top + 13, 11, "U") && memViewerOffset > 0)
+		memViewerOffset -= 0x100;
+	else if(uiHandleButton(win->left +	248, win->top + 319, 11, "D") && memViewerOffset < 0xFFFFFFFF) //check this
+		memViewerOffset += 0x100;
+	return 0;
+}
+
