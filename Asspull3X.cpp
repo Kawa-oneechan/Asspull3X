@@ -172,6 +172,8 @@ int _tmain(int argc, _TCHAR* argv[])
 					joypad = (joypad & ~15) | ev.jhat.value;
 				break;
 			case SDL_KEYDOWN:
+				//Do we still need this? I don't think we do.
+				/*
 				if (ev.key.keysym.scancode < 100)
 				{
 					keyScan = keyMap[ev.key.keysym.scancode];
@@ -180,6 +182,7 @@ int _tmain(int argc, _TCHAR* argv[])
 					if (ev.key.keysym.mod & KMOD_ALT) keyScan |= 0x200;
 					if (ev.key.keysym.mod & KMOD_CTRL) keyScan |= 0x400;
 				}
+				*/
 				break;
 			case SDL_KEYUP:
 				if (ev.key.keysym.mod & KMOD_LCTRL)
@@ -222,8 +225,12 @@ int _tmain(int argc, _TCHAR* argv[])
 					{
 						strcpy_s(romPath, 256, thePath);
 						SDL_Log("Loading ROM, %s ...", romPath);
+						auto gottaReset = (*(uint32_t*)romCartridge == 0x21535341);
+						memset(romCartridge, 0, CART_SIZE);
 						Slurp(romCartridge, romPath);
 						ini->Set("media", "lastROM", romPath);
+						if (gottaReset)
+							m68k_pulse_reset();
 					}
 					else if (SDL_strncasecmp(ext, "img", 3) == 0)
 					{
@@ -249,6 +256,8 @@ int _tmain(int argc, _TCHAR* argv[])
 				memset(romCartridge, 0, CART_SIZE);
 				strcpy_s(romPath, 256, "");
 				ini->Set("media", "lastROM", romPath);
+				gfxFade = 31;
+				SetStatus("Cart pulled.");
 			}
 			else if (uiCommand == cmdEject)
 			{
@@ -257,6 +266,7 @@ int _tmain(int argc, _TCHAR* argv[])
 					((DiskDrive*)devices[0])->Unmount();
 				strcpy_s(diskPath, 256, "");
 				ini->Set("media", "lastDisk", diskPath);
+				SetStatus("Disk ejected.");
 			}
 			else if (uiCommand == cmdReset)
 			{

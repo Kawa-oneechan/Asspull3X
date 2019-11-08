@@ -25,6 +25,17 @@ unsigned char PollKeyboard(bool force)
 	if (mods & KMOD_SHIFT) lastPollResult |= 0x100;
 	if (mods & KMOD_ALT) lastPollResult |= 0x200;
 	if (mods & KMOD_CTRL) lastPollResult |= 0x400;
+	if (lastPollResult & 0x0400)
+	{
+		if ((lastPollResult & 0xFF) == 0x26 ||
+			(lastPollResult & 0xFF) == 0x16 ||
+			(lastPollResult & 0xFF) == 0x26 ||
+			(lastPollResult & 0xFF) == 0x20 ||
+			(lastPollResult & 0xFF) == 0x13 ||
+			(lastPollResult & 0xFF) == 0x19 ||
+			(lastPollResult & 0xFF) == 0x1F)
+			lastPollResult = 0; //eat any special controls
+	}
 	lastPollTime = newPollTime;
 	return lastPollResult;
 }
