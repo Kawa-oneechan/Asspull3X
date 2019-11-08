@@ -76,20 +76,33 @@ int _uiLoadROM(int, int, int);
 int _uiUnloadROM(int, int, int);
 int _uiReset(int, int, int);
 int _uiQuit(int, int, int);
+int _uiScreenshot(int, int, int);
+int _uiDumpRAM(int, int, int);
+int _uiMemoryViewer(int, int, int);
 
 const uiMenu mainMenu =
 {
-	2, { { "File", _uiMainMenu }, { "Device", _uiMainMenu } }
+	3, { { "File", _uiMainMenu }, { "Tools", _uiMainMenu }, { "About", _uiMainMenu } }
 };
 
 const uiMenu fileMenu =
 {
 	4,
 	{
-		{ "Load ROM\t^L", _uiLoadROM },
-		{ "Unload ROM\t^U", _uiUnloadROM },
-		{ "Reset\t\t^R", _uiReset },
+		{ "Load ROM       (^L)", _uiLoadROM },
+		{ "Unload ROM  (^U)", _uiUnloadROM },
+		{ "Reset                 (^R)", _uiReset },
 		{ "Quit", _uiQuit }
+	}
+};
+
+const uiMenu toolsMenu =
+{
+	3,
+	{
+		{ "Screenshot       (^S)", _uiScreenshot },
+		{ "Dump RAM          (^U)", _uiDumpRAM },
+		{ "Memory viewer", _uiMemoryViewer },
 	}
 };
 
@@ -529,10 +542,10 @@ int uiHandleMenuDrop(uiMenu* menu, int left, int top, int *openedTop)
 		DarkenPixel(y + 2, left + 2 + width);
 		DarkenPixel(y + 2, left + 3 + width);
 	}
-	for (int col = 0; col < width; col++)
+	for (int col = left; col < left + width; col++)
 	{
-		DarkenPixel(top + (menu->numItems * 10) + 1, col + 4);
-		DarkenPixel(top + (menu->numItems * 10) + 2, col + 4);
+		DarkenPixel(top + (menu->numItems * 10) + 1, col + 2);
+		DarkenPixel(top + (menu->numItems * 10) + 2, col + 2);
 	}
 
 	if (buttons == 1 && focused != -1)
@@ -758,11 +771,15 @@ int _uiMainMenu(int item, int itemLeft, int itemTop)
 		pullDownLefts[0] = itemLeft + 2;
 		pullDownTops[0] = 12;
 		break;
-	case 1: //Devices
+	case 1: //Tools
+		pullDownLevel = 1;
+		pullDowns[0] = (uiMenu*)&toolsMenu;
+		pullDownLefts[0] = itemLeft + 2;
+		pullDownTops[0] = 12;
+		break;
+	case 2: //About
+		OpenWindow((uiWindow*)&aboutWindow);
 		pullDownLevel = 0;
-		//OpenWindow((uiWindow*)&aboutWindow);
-		OpenWindow((uiWindow*)&memoryViewerWindow);
-		//OpenWindow(0xDEAD, 80, 200, 128, 128, "test", 0);
 		break;
 	}
 	return 0;
@@ -779,7 +796,8 @@ int _uiLoadROM(int, int, int)
 int _uiUnloadROM(int, int, int)
 {
 	pullDownLevel = 0;
-	uiCommand = cmdUnloadRom;
+	//TODO: split the disk stuff into the Device Manager.
+	uiCommand = (SDL_GetModState() & KMOD_SHIFT) ? cmdEject : cmdUnloadRom;
 	return 0;
 }
 int _uiReset(int, int, int)
@@ -793,6 +811,24 @@ int _uiQuit(int, int, int)
 {
 	pullDownLevel = 0;
 	uiCommand = cmdQuit;
+	return 0;
+}
+int _uiScreenshot(int, int, int)
+{
+	pullDownLevel = 0;
+	uiCommand = cmdScreenshot;
+	return 0;
+}
+int _uiDumpRAM(int, int, int)
+{
+	pullDownLevel = 0;
+	uiCommand = cmdDump;
+	return 0;
+}
+int _uiMemoryViewer(int, int, int)
+{
+	OpenWindow((uiWindow*)&memoryViewerWindow);
+	pullDownLevel = 0;
 	return 0;
 }
 

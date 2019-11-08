@@ -50,7 +50,8 @@ enum uiCommands
 	cmdReset,
 	cmdScreenshot,
 	cmdDump,
-	cmdQuit
+	cmdQuit,
+	cmdEject,
 };
 
 #define MAXDEVS 16

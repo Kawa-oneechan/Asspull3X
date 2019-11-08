@@ -187,20 +187,20 @@ int _tmain(int argc, _TCHAR* argv[])
 					if (ev.key.keysym.sym == SDLK_l)
 						uiCommand = cmdLoadRom;
 					else if (ev.key.keysym.sym == SDLK_u)
-						uiCommand = cmdUnloadRom;
+						uiCommand = (ev.key.keysym.mod & KMOD_SHIFT) ? cmdEject : cmdUnloadRom;
 					else if (ev.key.keysym.sym == SDLK_r)
 						uiCommand = cmdReset;
 					else if (ev.key.keysym.sym == SDLK_d)
 						uiCommand = cmdDump;
 					else if (ev.key.keysym.sym == SDLK_s)
 						uiCommand = cmdScreenshot;
-				}
-				else if (ev.key.keysym.sym == SDLK_p)
-				{
-					if (pauseState == 0)
-						pauseState = 1;
-					else if (pauseState == 2)
-						pauseState = 0;
+					else if (ev.key.keysym.sym == SDLK_p)
+					{
+						if (pauseState == 0)
+							pauseState = 1;
+						else if (pauseState == 2)
+							pauseState = 0;
+					}
 				}
 				keyScan = 0;
 				break;
@@ -245,21 +245,18 @@ int _tmain(int argc, _TCHAR* argv[])
 			}
 			else if (uiCommand == cmdUnloadRom)
 			{
-				//TODO: split off the disk image parts
-				if (uiData)
-				{
-					if (devices[0] != NULL && devices[0]->Read(0) == 0x01)
-						((DiskDrive*)devices[0])->Unmount();
-					strcpy_s(diskPath, 256, "");
-					ini->Set("media", "lastDisk", diskPath);
-				}
-				else
-				{
-					SDL_Log("Unloading ROM...");
-					memset(romCartridge, 0, CART_SIZE);
-					strcpy_s(romPath, 256, "");
-					ini->Set("media", "lastROM", romPath);
-				}
+				SDL_Log("Unloading ROM...");
+				memset(romCartridge, 0, CART_SIZE);
+				strcpy_s(romPath, 256, "");
+				ini->Set("media", "lastROM", romPath);
+			}
+			else if (uiCommand == cmdEject)
+			{
+				SDL_Log("Ejecting disk...");
+				if (devices[0] != NULL && devices[0]->Read(0) == 0x01)
+					((DiskDrive*)devices[0])->Unmount();
+				strcpy_s(diskPath, 256, "");
+				ini->Set("media", "lastDisk", diskPath);
 			}
 			else if (uiCommand == cmdReset)
 			{
