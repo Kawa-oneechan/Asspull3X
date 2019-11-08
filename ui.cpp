@@ -23,9 +23,14 @@ int statusTimer = 0;
 #define WINDOW_BORDER_B		WINDOW_BORDER_L
 #ifndef NESTICLE_BLUE
 #define WINDOW_FILL			FAIZ(170, 0, 0)
+#define WINDOW_BORDERFOC_L	FAIZ(128, 0, 0)
 #else
 #define WINDOW_FILL			FAIZ(0, 0, 170)
+#define WINDOW_BORDERFOC_L	FAIZ(0, 0, 128)
 #endif
+#define WINDOW_BORDERFOC_T	WINDOW_BORDERFOC_L
+#define WINDOW_BORDERFOC_R	WINDOW_BORDERFOC_L
+#define WINDOW_BORDERFOC_B	WINDOW_BORDERFOC_L
 #define WINDOW_TEXT			FAIZ(255, 255, 255)
 #ifndef NESTICLE_BLUE
 #define WINDOW_CAPTION		FAIZ(255, 0, 4 )
@@ -33,6 +38,7 @@ int statusTimer = 0;
 #define WINDOW_CAPTION		FAIZ(0, 4, 255)
 #endif
 #define WINDOW_CAPTEXT		FAIZ(255, 255, 255) WITH_SHADOW
+#define WINDOW_CAPTEXTUNF	FAIZ(142, 142, 142) WITH_SHADOW
 #define WINDOW_CAPLINE		WINDOW_CAPTION
 #define BUTTON_BORDER_L		FAIZ(142, 142, 142)
 #define BUTTON_BORDER_T		BUTTON_BORDER_L
@@ -120,6 +126,7 @@ typedef struct uiWindow
 uiWindow windows[MAXWINDOWS] = { 0 };
 //{ { 0x707, 32, 32, 227, 78, "E Clunibus Tractum", _uiAboutWin } };
 int uiOpenWindows = 0;
+int focusedWindowID = 0;
 
 int pullDownLevel = 0;
 uiMenu* pullDowns[4] = { 0 };
@@ -269,7 +276,7 @@ void DrawCursor()
 	}
 }
 
-void DrawCharacter(int x, int y, int color, unsigned char ch)
+void DrawCharacter(int x, int y, int color, unsigned short ch)
 {
 	auto glyph = &nokiaFont[ch * 8];
 	for (int line = 0; line < 8; line++)
@@ -380,9 +387,11 @@ void LetItSnow()
 
 int draggingWindowID = -1;
 int dragStartX, dragStartY;
+int dragLeft, dragTop, dragWidth, dragHeight, dragStartLeft, dragStartTop;
 
 void BringWindowToFront(int token)
 {
+	focusedWindowID = token;
 	if (uiOpenWindows < 2)
 		return;
 	if (windows[uiOpenWindows - 1].token == token)
@@ -433,6 +442,7 @@ void OpenWindow(int token, int left, int top, int width, int height, char* capti
 	newWin->height = height;
 	strcpy_s(newWin->caption, 256, caption);
 	newWin->handler = handler;
+	BringWindowToFront(token);
 }
 
 void OpenWindow(uiWindow* window)
@@ -454,6 +464,7 @@ void OpenWindow(uiWindow* window)
 	newWin->height = window->height;
 	strcpy_s(newWin->caption, 256, window->caption);
 	newWin->handler = window->handler;
+	BringWindowToFront(newWin->token);
 }
 
 int CheckForWindowPops()
@@ -644,24 +655,24 @@ int uiHandleWindow(uiWindow* win)
 {
 	for (auto col = win->left; col < win->left + win->width; col++)
 	{
-		RenderPixel(win->top, col, WINDOW_BORDER_T);
-		RenderPixel(win->top + win->height - 1, col, WINDOW_BORDER_B);
+		RenderPixel(win->top, col, (focusedWindowID == win->token) ? WINDOW_BORDERFOC_T : WINDOW_BORDER_T);
+		RenderPixel(win->top + win->height - 1, col, (focusedWindowID == win->token) ? WINDOW_BORDERFOC_B : WINDOW_BORDER_B);
 		DarkenPixel(win->top + win->height + 0, col + 2);
 		DarkenPixel(win->top + win->height + 1, col + 2);
 	}
 	auto color = WINDOW_CAPTION;
 	for (auto row = win->top + 1; row < win->top + win->height - 1; row++)
 	{
-		RenderPixel(row, win->left, WINDOW_BORDER_L);
+		RenderPixel(row, win->left, (focusedWindowID == win->token) ? WINDOW_BORDERFOC_L : WINDOW_BORDER_L);
 		if (row == win->top + 12) color = WINDOW_CAPLINE;
 		if (row == win->top + 13) color = WINDOW_FILL;
 		for (auto col = win->left + 1; col < win->left + win->width - 1; col++)
 			RenderPixel(row, col, color);
-		RenderPixel(row, win->left + win->width - 1, WINDOW_BORDER_R);
+		RenderPixel(row, win->left + win->width - 1, (focusedWindowID == win->token) ? WINDOW_BORDERFOC_R : WINDOW_BORDER_R);
 		DarkenPixel(row + 1, win->left + win->width + 0);
 		DarkenPixel(row + 1, win->left + win->width + 1);
 	}
-	DrawString(win->left + 3, win->top + 3, WINDOW_CAPTEXT, win->caption);
+	DrawString(win->left + 3, win->top + 3, (focusedWindowID == win->token) ? WINDOW_CAPTEXT : WINDOW_CAPTEXTUNF, win->caption);
 	int x = 0, y = 0;
 	GetMouseState(&x, &y);
 	int buttons = SDL_GetMouseState(0, 0); //need actual button state to drag!
@@ -672,15 +683,21 @@ int uiHandleWindow(uiWindow* win)
 			draggingWindowID = win->token;
 			dragStartX = x - win->left;
 			dragStartY = y - win->top;
+			dragLeft = dragStartLeft =  win->left;
+			dragTop = dragStartTop = win->top;
+			dragWidth = win->width;
+			dragHeight = win->height;
 		}
 	}
 	else if (buttons == 1 && draggingWindowID == win->token)
 	{
-		win->left = x - dragStartX;
-		win->top = y - dragStartY;
+		dragLeft = x - dragStartX;
+		dragTop = y - dragStartY;
 	}
 	else if (buttons == 0 && draggingWindowID == win->token)
 	{
+		win->left = dragLeft;
+		win->top = dragTop;
 		draggingWindowID = -1;
 	}
 	return 0;
@@ -716,6 +733,35 @@ int uiHandleButton(int left, int top, int width, char* caption)
 	return buttons;
 }
 
+int uiHandleIconButton(int left, int top, int icon)
+{
+	int x = 0, y = 0;
+	int buttons = GetMouseState(&x, &y);
+	auto fill = BUTTON_FILL;
+	auto text = BUTTON_TEXT;
+	if (x > left && y > top && x < left + 10 && y < top + 10)
+	{
+		fill = BUTTON_HIGHLIGHT;
+		text = BUTTON_HIGHTEXT;
+	}
+	else
+		buttons = 0;
+	for (auto col = left; col < left + 10; col++)
+	{
+		RenderPixel(top, col, BUTTON_BORDER_T);
+		RenderPixel(top + 9, col, BUTTON_BORDER_B);
+	}
+	for (auto row = top + 1; row < top + 9; row++)
+	{
+		RenderPixel(row, left, BUTTON_BORDER_L);
+		for (auto col = left + 1; col < left + 9; col++)
+			RenderPixel(row, col, fill);
+		RenderPixel(row, left + 9, BUTTON_BORDER_R);
+	}
+	DrawCharacter(left + 1, top + 1, text, 256 + icon);
+	return buttons;
+}
+
 extern int pauseState;
 void HandleUI()
 {
@@ -738,6 +784,20 @@ void HandleUI()
 				break;
 		}
 		cursorTimer = 100;
+	}
+
+	if (draggingWindowID != -1 && (dragStartLeft != dragLeft || dragStartTop != dragTop))
+	{
+		for (int i = dragLeft; i < dragLeft + dragWidth; i += 2)
+		{
+			RenderPixel(dragTop, i, 0x7FFF);
+			RenderPixel(dragTop + dragHeight, i, 0x7FFF);
+		}
+		for (int i = dragTop; i < dragTop + dragHeight; i += 2)
+		{
+			RenderPixel(i, dragLeft, 0x7FFF);
+			RenderPixel(i, dragLeft + dragWidth, 0x7FFF);
+		}
 	}
 
 	if (pullDownLevel > 0)
@@ -2152,7 +2212,8 @@ int _uiAboutWin(int me)
 extern "C" unsigned int m68k_read_memory_8(unsigned int address);
 int _uiMemoryViewer(int);
 uiWindow memoryViewerWindow = { 0x1337, 128, 128, 260, 334, "Memory Viewer", _uiMemoryViewer };
-unsigned int memViewerOffset = CART_ADDR;
+signed long memViewerOffset = CART_ADDR;
+#define MAXVIEWEROFFSET (0x10000000 - 0x100)
 int _uiMemoryViewer(int me)
 {
 	auto win = &windows[me];
@@ -2172,15 +2233,25 @@ int _uiMemoryViewer(int me)
 			DrawCharacter(win->left + 186 + (col * 7), win->top + 14 + (row * 10), WINDOW_TEXT, here);
 		}
 	}
-	if (uiHandleButton(win->left + 248, win->top + 1, 11, "X")) //TODO: make a dedicated Close button
+
+	auto mods = SDL_GetModState();
+	auto bigStep = (mods & KMOD_CTRL) ? 0x01000000 : ((mods & KMOD_SHIFT) ? 0x8000 : 0x1000);
+
+	if (uiHandleIconButton(win->left + 248, win->top + 2, 0))
 	{
 		CloseWindow(0x1337);
 		return -1;
 	}
-	else if (uiHandleButton(win->left +	248, win->top + 13, 11, "U") && memViewerOffset > 0)
+	else if (uiHandleIconButton(win->left +	248, win->top + 24, 4))
 		memViewerOffset -= 0x100;
-	else if(uiHandleButton(win->left +	248, win->top + 319, 11, "D") && memViewerOffset < 0xFFFFFFFF) //check this
+	else if(uiHandleIconButton(win->left +	248, win->top + 312, 5))
 		memViewerOffset += 0x100;
+	else if (uiHandleIconButton(win->left +	248, win->top + 14, 6))
+		memViewerOffset -= bigStep;
+	else if(uiHandleIconButton(win->left +	248, win->top + 322, 7))
+		memViewerOffset += bigStep;
+	if (memViewerOffset < 0) memViewerOffset = 0;
+	else if (memViewerOffset > MAXVIEWEROFFSET) memViewerOffset = MAXVIEWEROFFSET;
 	return 0;
 }
 
