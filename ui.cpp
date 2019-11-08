@@ -68,12 +68,14 @@ int statusTimer = 0;
 typedef struct uiMenuItem
 {
 	char caption[256];
+	char hotKey;
 	int(*onSelect)(int, int, int);
 } uiMenuItem;
 
 typedef struct uiMenu
 {
 	int numItems;
+	int width;
 	uiMenuItem items[16];
 } uiMenu;
 
@@ -88,27 +90,32 @@ int _uiMemoryViewer(int, int, int);
 
 const uiMenu mainMenu =
 {
-	3, { { "File", _uiMainMenu }, { "Tools", _uiMainMenu }, { "About", _uiMainMenu } }
+	3, 0,
+	{
+		{ "File", 0, _uiMainMenu },
+		{ "Tools", 0, _uiMainMenu },
+		{ "About", 0, _uiMainMenu }
+	}
 };
 
 const uiMenu fileMenu =
 {
-	4,
+	4, 76,
 	{
-		{ "Load ROM       (^L)", _uiLoadROM },
-		{ "Unload ROM  (^U)", _uiUnloadROM },
-		{ "Reset                 (^R)", _uiReset },
-		{ "Quit", _uiQuit }
+		{ "Load ROM", 'L', _uiLoadROM },
+		{ "Unload ROM", 'U', _uiUnloadROM },
+		{ "Reset", 'R', _uiReset },
+		{ "Quit", 0, _uiQuit }
 	}
 };
 
 const uiMenu toolsMenu =
 {
-	3,
+	3, 96,
 	{
-		{ "Screenshot       (^S)", _uiScreenshot },
-		{ "Dump RAM          (^U)", _uiDumpRAM },
-		{ "Memory viewer", _uiMemoryViewer },
+		{ "Screenshot", 'S', _uiScreenshot },
+		{ "Dump RAM", 'D', _uiDumpRAM },
+		{ "Memory viewer", 0, _uiMemoryViewer },
 	}
 };
 
@@ -506,28 +513,19 @@ void uiHandleStatusLine(int left)
 
 int uiHandleMenuDrop(uiMenu* menu, int left, int top, int *openedTop)
 {
-	int width = 0;
-
-	for (int i = 0; i < menu->numItems; i++)
-	{
-		int thisWidth = MeasureString(menu->items[i].caption) + 8; //(strlen(menu->items[i].caption) * 6) + 8;
-		if (thisWidth > width)
-			width = thisWidth;
-	}
-
 	int focused = -1;
 	int x = 0, y = 0;
 	int buttons = GetMouseState(&x, &y);
 	for (int i = 0; i < menu->numItems; i++)
 	{
-		if (x >= left && x < left + width && y >= top + (i * 10) && y < top + (i * 10) + 10)
+		if (x >= left && x < left + menu->width && y >= top + (i * 10) && y < top + (i * 10) + 10)
 		{
 			focused = i;
 			break;
 		}
 	}
 
-	for (int col = 0; col < width + 2; col++)
+	for (int col = 0; col < menu->width + 2; col++)
 	{
 		RenderPixel(top - 1, left + col, PULLDOWN_BORDER_T);
 		RenderPixel(top + (menu->numItems * 10), left + col, PULLDOWN_BORDER_B);
@@ -540,20 +538,21 @@ int uiHandleMenuDrop(uiMenu* menu, int left, int top, int *openedTop)
 			int color = PULLDOWN_FILL;
 			if (i == focused)
 				color = PULLDOWN_HIGHLIGHT;
-			for (int col = 0; col < width; col++)
+			for (int col = 0; col < menu->width; col++)
 			{
 				RenderPixel(y + line, left + 1 + col, color);
 			}
-			RenderPixel(y + line, left + 1 + width, PULLDOWN_BORDER_R);
+			RenderPixel(y + line, left + 1 + menu->width, PULLDOWN_BORDER_R);
 		}
 		DrawString(left + 2, y + 1, (i == focused) ? PULLDOWN_HIGHTEXT : PULLDOWN_TEXT, menu->items[i].caption);
+		if (menu->items[i].hotKey) DrawCharacter(left + menu->width - 10, y + 1, (i == focused) ? PULLDOWN_HIGHTEXT : PULLDOWN_TEXT, menu->items[i].hotKey);
 	}
 	for (int y = top; y <= top + (menu->numItems * 10); y++)
 	{
-		DarkenPixel(y + 2, left + 2 + width);
-		DarkenPixel(y + 2, left + 3 + width);
+		DarkenPixel(y + 2, left + 2 + menu->width);
+		DarkenPixel(y + 2, left + 3 + menu->width);
 	}
-	for (int col = left; col < left + width; col++)
+	for (int col = left; col < left + menu->width; col++)
 	{
 		DarkenPixel(top + (menu->numItems * 10) + 1, col + 2);
 		DarkenPixel(top + (menu->numItems * 10) + 2, col + 2);
@@ -563,7 +562,7 @@ int uiHandleMenuDrop(uiMenu* menu, int left, int top, int *openedTop)
 	{
 		currentTopMenu = -1;
 		if (menu->items[focused].onSelect)
-			return menu->items[focused].onSelect(focused, left + width, top + (focused * 10));
+			return menu->items[focused].onSelect(focused, left + menu->width, top + (focused * 10));
 		return focused;
 	}
 	if (buttons == 1 && focused == -1 && y > 10)
