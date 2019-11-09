@@ -125,7 +125,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	m68k_pulse_reset();
 
 	SDL_Log("Asspull IIIx is ready.");
-	SDL_Log("Press Ctrl-L to load a ROM or diskette.");
+	SDL_Log("Press Ctrl-L to load a ROM, Ctrl-Shift-L to load a diskette.");
 	SDL_Log("Press Ctrl-U to unload ROM, Ctrl-Shift-U to unload diskette.");
 	SDL_Log("Press Ctrl-R to reset, Ctrl-Shift-R to unload and reset.");
 	SDL_Log("Press Ctrl-D to dump RAM, Ctrl-S to take a screenshot.");
@@ -171,24 +171,11 @@ int _tmain(int argc, _TCHAR* argv[])
 				if (ev.jhat.which == 0 && ev.jhat.hat == 0)
 					joypad = (joypad & ~15) | ev.jhat.value;
 				break;
-			case SDL_KEYDOWN:
-				//Do we still need this? I don't think we do.
-				/*
-				if (ev.key.keysym.scancode < 100)
-				{
-					keyScan = keyMap[ev.key.keysym.scancode];
-					//SDL_Log("KEY: Map 0x%02X (%d) to 0x%02X", ev.key.keysym.scancode, ev.key.keysym.scancode, keyScan);
-					if (ev.key.keysym.mod & KMOD_SHIFT) keyScan |= 0x100;
-					if (ev.key.keysym.mod & KMOD_ALT) keyScan |= 0x200;
-					if (ev.key.keysym.mod & KMOD_CTRL) keyScan |= 0x400;
-				}
-				*/
-				break;
 			case SDL_KEYUP:
 				if (ev.key.keysym.mod & KMOD_LCTRL)
 				{
 					if (ev.key.keysym.sym == SDLK_l)
-						uiCommand = cmdLoadRom;
+						uiCommand = (ev.key.keysym.mod & KMOD_SHIFT) ? cmdInsertDisk : cmdLoadRom;
 					else if (ev.key.keysym.sym == SDLK_u)
 						uiCommand = (ev.key.keysym.mod & KMOD_SHIFT) ? cmdEjectDisk : cmdUnloadRom;
 					else if (ev.key.keysym.sym == SDLK_r)
