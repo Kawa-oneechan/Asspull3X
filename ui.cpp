@@ -69,53 +69,49 @@ typedef struct uiMenuItem
 {
 	char caption[256];
 	char hotKey;
-	int(*onSelect)(int, int, int);
 } uiMenuItem;
 
 typedef struct uiMenu
 {
 	int numItems;
 	int width;
+	int(*onSelect)(int, int, int);
 	uiMenuItem items[16];
 } uiMenu;
 
 int _uiMainMenu(int, int, int);
-int _uiLoadROM(int, int, int);
-int _uiUnloadROM(int, int, int);
-int _uiReset(int, int, int);
-int _uiQuit(int, int, int);
-int _uiScreenshot(int, int, int);
-int _uiDumpRAM(int, int, int);
-int _uiMemoryViewer(int, int, int);
+int _uiFileMenu(int, int, int);
+int _uiToolsMenu(int, int, int);
 
 const uiMenu mainMenu =
 {
-	3, 0,
+	4, 0, _uiMainMenu,
 	{
-		{ "File", 0, _uiMainMenu },
-		{ "Tools", 0, _uiMainMenu },
-		{ "About", 0, _uiMainMenu }
+		{ "File", 0 },
+		{ "Devices", 0},
+		{ "Tools", 0},
+		{ "About", 0 }
 	}
 };
 
 const uiMenu fileMenu =
 {
-	4, 76,
+	4, 76, _uiFileMenu,
 	{
-		{ "Load ROM", 'L', _uiLoadROM },
-		{ "Unload ROM", 'U', _uiUnloadROM },
-		{ "Reset", 'R', _uiReset },
-		{ "Quit", 0, _uiQuit }
+		{ "Load ROM", 'L' },
+		{ "Unload ROM", 'U' },
+		{ "Reset", 'R' },
+		{ "Quit", 0 }
 	}
 };
 
 const uiMenu toolsMenu =
 {
-	3, 96,
+	3, 96, _uiToolsMenu,
 	{
-		{ "Screenshot", 'S', _uiScreenshot },
-		{ "Dump RAM", 'D', _uiDumpRAM },
-		{ "Memory viewer", 0, _uiMemoryViewer },
+		{ "Screenshot", 'S' },
+		{ "Dump RAM", 'D' },
+		{ "Memory viewer", 0 },
 	}
 };
 
@@ -561,8 +557,8 @@ int uiHandleMenuDrop(uiMenu* menu, int left, int top, int *openedTop)
 	if (buttons == 1 && focused != -1)
 	{
 		currentTopMenu = -1;
-		if (menu->items[focused].onSelect)
-			return menu->items[focused].onSelect(focused, left + menu->width, top + (focused * 10));
+		if (menu->onSelect)
+			return menu->onSelect(focused, left + menu->width, top + (focused * 10));
 		return focused;
 	}
 	if (buttons == 1 && focused == -1 && y > 10)
@@ -642,8 +638,8 @@ int uiHandleMenuBar(uiMenu* menu, int *openedLeft)
 	{
 		currentTopMenu = focused;
 		*openedLeft = focusL;
-		if (menu->items[focused].onSelect)
-			return menu->items[focused].onSelect(focused, focusL, 0);
+		if (menu->onSelect)
+			return menu->onSelect(focused, focusL, 0);
 		return focused;
 	}
 
@@ -820,6 +816,8 @@ void HandleUI()
 extern uiWindow aboutWindow;
 extern uiWindow memoryViewerWindow;
 
+int uiCommand, uiData;
+
 int _uiMainMenu(int item, int itemLeft, int itemTop)
 {
 	switch (item)
@@ -830,13 +828,16 @@ int _uiMainMenu(int item, int itemLeft, int itemTop)
 		pullDownLefts[0] = itemLeft + 2;
 		pullDownTops[0] = 12;
 		break;
-	case 1: //Tools
+	case 1: //Devices
+		//TODO
+		break;
+	case 2: //Tools
 		pullDownLevel = 1;
 		pullDowns[0] = (uiMenu*)&toolsMenu;
 		pullDownLefts[0] = itemLeft + 2;
 		pullDownTops[0] = 12;
 		break;
-	case 2: //About
+	case 3: //About
 		OpenWindow((uiWindow*)&aboutWindow);
 		pullDownLevel = 0;
 		break;
@@ -844,50 +845,46 @@ int _uiMainMenu(int item, int itemLeft, int itemTop)
 	return 0;
 }
 
-int uiCommand, uiData;
+int _uiFileMenu(int item, int itemLeft, int itemTop)
+{
+	pullDownLevel = 0;
+	currentTopMenu = -1;
+	switch (item)
+	{
+	case 0: //Load
+		uiCommand = cmdLoadRom;
+		break;
+	case 1: //Unload
+		//TODO: split the disk stuff into the Device Manager.
+		uiCommand = (SDL_GetModState() & KMOD_SHIFT) ? cmdEject : cmdUnloadRom;
+		break;
+	case 2: //Reset
+		uiCommand = cmdReset;
+		uiData = (SDL_GetModState() & KMOD_CTRL);
+		break;
+	case 3: //Quit
+		uiCommand = cmdQuit;
+		break;
+	}
+	return 0;
+}
 
-int _uiLoadROM(int, int, int)
+int _uiToolsMenu(int item, int itemLeft, int itemTop)
 {
 	pullDownLevel = 0;
-	uiCommand = cmdLoadRom;
-	return 0;
-}
-int _uiUnloadROM(int, int, int)
-{
-	pullDownLevel = 0;
-	//TODO: split the disk stuff into the Device Manager.
-	uiCommand = (SDL_GetModState() & KMOD_SHIFT) ? cmdEject : cmdUnloadRom;
-	return 0;
-}
-int _uiReset(int, int, int)
-{
-	pullDownLevel = 0;
-	uiCommand = cmdReset;
-	uiData = (SDL_GetModState() & KMOD_CTRL);
-	return 0;
-}
-int _uiQuit(int, int, int)
-{
-	pullDownLevel = 0;
-	uiCommand = cmdQuit;
-	return 0;
-}
-int _uiScreenshot(int, int, int)
-{
-	pullDownLevel = 0;
-	uiCommand = cmdScreenshot;
-	return 0;
-}
-int _uiDumpRAM(int, int, int)
-{
-	pullDownLevel = 0;
-	uiCommand = cmdDump;
-	return 0;
-}
-int _uiMemoryViewer(int, int, int)
-{
-	OpenWindow((uiWindow*)&memoryViewerWindow);
-	pullDownLevel = 0;
+	currentTopMenu = -1;
+	switch (item)
+	{
+	case 0: //Screenshot
+		uiCommand = cmdScreenshot;
+		break;
+	case 1: //Dump
+		uiCommand = cmdDump;
+		break;
+	case 2: //Memory Viewer
+		OpenWindow((uiWindow*)&memoryViewerWindow);
+		break;
+	}
 	return 0;
 }
 
