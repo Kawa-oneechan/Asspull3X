@@ -53,6 +53,7 @@ enum uiCommands
 	cmdQuit,
 	cmdInsertDisk,
 	cmdEjectDisk,
+	cmdCreateDisk,
 };
 
 #define MAXDEVS 16

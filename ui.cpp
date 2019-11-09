@@ -1002,7 +1002,7 @@ int _uiDiskDriveMenu(int item, int itemLeft, int itemTop)
 		uiCommand = cmdEjectDisk;
 		break;
 	case 2: //Create
-		//TODO
+		uiCommand = cmdCreateDisk;
 		break;
 	case 3: //Disconnect
 		SetStatus("You can't disconnect the disk drive, actually.");
