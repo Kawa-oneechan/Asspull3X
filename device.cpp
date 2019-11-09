@@ -6,6 +6,7 @@ Device::Device(void) { }
 Device::~Device(void) { }
 unsigned int Device::Read(unsigned int address) { return (unsigned int)-1; }
 void Device::Write(unsigned int address, unsigned int value) { }
+int Device::GetID() { return 0; }
 
 DiskDrive::DiskDrive()
 {
@@ -87,6 +88,8 @@ void DiskDrive::Write(unsigned int address, unsigned int value)
 		data[address - 512] = (unsigned char)value;;
 }
 
+int DiskDrive::GetID() { return 0x0144; }
+
 LinePrinter::LinePrinter() { }
 
 LinePrinter::~LinePrinter() { }
@@ -106,3 +109,5 @@ void LinePrinter::Write(unsigned int address, unsigned int value)
 	if (address == 2)
 		printf("%c", (char)value);
 }
+
+int LinePrinter::GetID() { return 0x4C50; }

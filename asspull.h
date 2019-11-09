@@ -138,6 +138,7 @@ public:
 	~Device(void);
 	virtual unsigned int Read(unsigned int address);
 	virtual void Write(unsigned int address, unsigned int value);
+	virtual int GetID();
 };
 
 class DiskDrive : Device
@@ -155,6 +156,7 @@ public:
 	int Unmount();
 	unsigned int Read(unsigned int address);
 	void Write(unsigned int address, unsigned int value);
+	int GetID();
 };
 
 class LinePrinter : Device
@@ -164,6 +166,7 @@ public:
 	~LinePrinter(void);
 	unsigned int Read(unsigned int address);
 	void Write(unsigned int address, unsigned int value);
+	int GetID();
 };
 
 extern Device* devices[MAXDEVS];

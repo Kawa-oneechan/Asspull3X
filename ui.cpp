@@ -81,6 +81,7 @@ typedef struct uiMenu
 
 int _uiMainMenu(int, int, int);
 int _uiFileMenu(int, int, int);
+int _uiDeviceMenu(int, int, int);
 int _uiToolsMenu(int, int, int);
 
 const uiMenu mainMenu =
@@ -103,6 +104,12 @@ const uiMenu fileMenu =
 		{ "Reset", 'R' },
 		{ "Quit", 0 }
 	}
+};
+
+uiMenu deviceMenu =
+{
+	MAXDEVS, 96, _uiDeviceMenu,
+	{ 0 }, //To be filled in dynamically.
 };
 
 const uiMenu toolsMenu =
@@ -813,6 +820,28 @@ void HandleUI()
 	DrawCursor();
 }
 
+void PopulateDeviceMenu()
+{
+	for (int i = 0; i < MAXDEVS; i++)
+	{
+		deviceMenu.items[i].hotKey = '>';
+		if (devices[i] == 0)
+		{
+			sprintf_s(deviceMenu.items[i].caption, 256, "%d. <None>", i + 1);
+			continue;
+		}
+		switch (devices[i]->GetID())
+		{
+		case 0x0144:
+			sprintf_s(deviceMenu.items[i].caption, 256, "%d. Disk drive", i + 1);
+			break;
+		case 0x4C50:
+			sprintf_s(deviceMenu.items[i].caption, 256, "%d. Line printer", i + 1);
+			break;
+		}
+	}
+}
+
 extern uiWindow aboutWindow;
 extern uiWindow memoryViewerWindow;
 
@@ -820,22 +849,21 @@ int uiCommand, uiData;
 
 int _uiMainMenu(int item, int itemLeft, int itemTop)
 {
+	pullDownLevel = 1;
+	pullDownTops[0] = 12;
+	pullDownLefts[0] = itemLeft + 2;
 	switch (item)
 	{
 	case 0: //File
-		pullDownLevel = 1;
 		pullDowns[0] = (uiMenu*)&fileMenu;
-		pullDownLefts[0] = itemLeft + 2;
-		pullDownTops[0] = 12;
 		break;
 	case 1: //Devices
 		//TODO
+		PopulateDeviceMenu();
+		pullDowns[0] = &deviceMenu;
 		break;
 	case 2: //Tools
-		pullDownLevel = 1;
 		pullDowns[0] = (uiMenu*)&toolsMenu;
-		pullDownLefts[0] = itemLeft + 2;
-		pullDownTops[0] = 12;
 		break;
 	case 3: //About
 		OpenWindow((uiWindow*)&aboutWindow);
@@ -866,6 +894,13 @@ int _uiFileMenu(int item, int itemLeft, int itemTop)
 		uiCommand = cmdQuit;
 		break;
 	}
+	return 0;
+}
+
+int _uiDeviceMenu(int item, int itemLeft, int itemTop)
+{
+	//TODO: show second-level popup menu determined by device ID.
+	pullDownLevel = 0;
 	return 0;
 }
 
