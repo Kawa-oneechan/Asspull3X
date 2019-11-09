@@ -7,4 +7,4 @@ To actually *use* this, ROM files are included and more up-to-date copies can be
 * OpenGL shader thing based on [an example by Augusto Ruiz](https://github.com/AugustoRuiz/sdl2glsl).
 * PAL Composite shader by r57shell.
 * CRT shader by Timothy Lottes.
-* UI font shamelessly ripped from ZSNES, might replace it later.
+* UI font from a Nokia phone, general UI style cribbed from Nesticle/Genecyst by Bloodlust Software.
