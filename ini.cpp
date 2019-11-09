@@ -35,7 +35,7 @@ void IniFile::Set(const char* section, const char* key, char* val)
 				}
 			}
 			//didn't exist yet.
-			thisSect.insert(std::pair<char*, char*>((char*)key, _strdup(val)));
+			tit->second.insert(std::pair<char*, char*>(_strdup(key), _strdup(val)));
 			if (autoSave) Save(filename);
 			return;
 		}

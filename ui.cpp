@@ -82,6 +82,9 @@ typedef struct uiMenu
 int _uiMainMenu(int, int, int);
 int _uiFileMenu(int, int, int);
 int _uiDeviceMenu(int, int, int);
+int _uiAddDeviceMenu(int, int, int);
+int _uiDiskDriveMenu(int, int, int);
+int _uiDefaultDeviceMenu(int, int, int);
 int _uiToolsMenu(int, int, int);
 
 const uiMenu mainMenu =
@@ -110,6 +113,36 @@ uiMenu deviceMenu =
 {
 	MAXDEVS, 96, _uiDeviceMenu,
 	{ 0 }, //To be filled in dynamically.
+};
+
+const uiMenu _addDeviceMenu =
+{
+	3, 76, _uiAddDeviceMenu,
+	{
+		{ "Nothing", 0 },
+		{ "Disk drive", 0 },
+		{ "Line printer", 0 },
+	}
+};
+
+const uiMenu _diskDriveMenu =
+{
+	4, 96, _uiDiskDriveMenu,
+	{
+		{ "Insert disk", 0 },
+		{ "Eject disk", 0 },
+		{ "Create new disk", 0 },
+		{ "Disconnect", 0 },
+	}
+};
+
+
+const uiMenu _defaultDeviceMenu =
+{
+	1, 96, _uiDefaultDeviceMenu,
+	{
+		{ "Disconnect", 0 },
+	}
 };
 
 const uiMenu toolsMenu =
@@ -514,7 +547,7 @@ void uiHandleStatusLine(int left)
 	DrawString(640 - 8 - (strlen(uiFPS) * 5), 2, STATUS_TEXT, uiFPS);
 }
 
-int uiHandleMenuDrop(uiMenu* menu, int left, int top, int *openedTop)
+int uiHandleMenuDrop(uiMenu* menu, int left, int top, int *openedTop, bool isTopLevel)
 {
 	int focused = -1;
 	int x = 0, y = 0;
@@ -568,7 +601,7 @@ int uiHandleMenuDrop(uiMenu* menu, int left, int top, int *openedTop)
 			return menu->onSelect(focused, left + menu->width, top + (focused * 10));
 		return focused;
 	}
-	if (buttons == 1 && focused == -1 && y > 10)
+	if (buttons == 1 && focused == -1 && y > 10 && isTopLevel)
 		pullDownLevel = 0;
 
 	return 0;
@@ -805,7 +838,8 @@ void HandleUI()
 	if (pullDownLevel > 0)
 	{
 		auto response = uiHandleMenuBar(&(uiMenu)mainMenu, &x);
-		response = uiHandleMenuDrop(pullDowns[0], pullDownLefts[0], pullDownTops[0], &y);
+		for (int i = 0; i < pullDownLevel; i++)
+			response = uiHandleMenuDrop(pullDowns[i], pullDownLefts[i], pullDownTops[i], &y, i == pullDownLevel - 1);
 		cursorTimer = 100;
 	}
 	else if (y < 10 || pauseState == 2)
@@ -897,10 +931,106 @@ int _uiFileMenu(int item, int itemLeft, int itemTop)
 	return 0;
 }
 
+int currentDeviceMenu = -1;
+
 int _uiDeviceMenu(int item, int itemLeft, int itemTop)
 {
 	//TODO: show second-level popup menu determined by device ID.
+	pullDownLevel = 2;
+	pullDownTops[1] = itemTop;
+	pullDownLefts[1] = itemLeft;
+	currentDeviceMenu = item;
+	lastMouseTimer = 0;
+	if (devices[item] == 0)
+	{
+		pullDowns[1] = (uiMenu*)&_addDeviceMenu;
+		return 0;
+	}
+	switch (devices[item]->GetID())
+	{
+	case 0x0144:
+		pullDowns[1] = (uiMenu*)&_diskDriveMenu;
+		break;
+	default:
+		pullDowns[1] = (uiMenu*)&_defaultDeviceMenu;
+		break;
+	}	
+	
+	return 0;
+}
+
+extern IniFile* ini;
+int _uiAddDeviceMenu(int item, int itemLeft, int itemTop)
+{
 	pullDownLevel = 0;
+	currentTopMenu = -1;
+	char key[8] = { 0 };
+	SDL_itoa(currentDeviceMenu, key, 10);
+	switch (item)
+	{
+	case 0: //Nothing
+		if (devices[currentDeviceMenu] != 0)
+			delete devices[currentDeviceMenu];
+		devices[currentDeviceMenu] = 0;
+		ini->Set("devices", key, "");
+		break;
+	case 1: //Disk drive
+		if (devices[currentDeviceMenu] == 0 || devices[currentDeviceMenu]->GetID() != 0x0144)
+		{
+			delete devices[currentDeviceMenu];
+			devices[currentDeviceMenu] = (Device*)(new DiskDrive());
+		}
+		ini->Set("devices", key, "diskDrive");
+		break;
+	case 2: //Memory Viewer
+		if (devices[currentDeviceMenu] == 0 || devices[currentDeviceMenu]->GetID() != 0x4C50)
+		{
+			delete devices[currentDeviceMenu];
+			devices[currentDeviceMenu] = (Device*)(new LinePrinter());
+		}
+		ini->Set("devices", key, "linePrinter");
+		break;
+	}
+	return 0;
+}
+int _uiDiskDriveMenu(int item, int itemLeft, int itemTop)
+{
+	pullDownLevel = 0;
+	currentTopMenu = -1;
+	char key[8] = { 0 };
+	SDL_itoa(currentDeviceMenu, key, 10);
+	switch (item)
+	{
+	case 0: //Insert
+		break;
+	case 1: //Eject
+		break;
+	case 2: //Create
+		break;
+	case 3: //Disconnect
+		if (devices[currentDeviceMenu] != 0)
+			delete devices[currentDeviceMenu];
+		devices[currentDeviceMenu] = 0;
+		ini->Set("devices", key, "");
+		break;
+	}
+	return 0;
+}
+int _uiDefaultDeviceMenu(int item, int itemLeft, int itemTop)
+{
+	pullDownLevel = 0;
+	currentTopMenu = -1;
+	char key[8] = { 0 };
+	SDL_itoa(currentDeviceMenu, key, 10);
+	switch (item)
+	{
+	case 0: //Disconnect
+		if (devices[currentDeviceMenu] != 0)
+			delete devices[currentDeviceMenu];
+		devices[currentDeviceMenu] = 0;
+		ini->Set("devices", key, "");
+		break;
+	}
 	return 0;
 }
 
