@@ -24,7 +24,6 @@ void IniFile::Set(const char* section, const char* key, char* val)
 	{
 		if (!_stricmp(tit->first, section))
 		{
-			auto thisSect = (IniList)tit->second;
 			for (auto tat = tit->second.begin(); tat != tit->second.end(); tat++)
 			{
 				if (!_stricmp(tat->first, key))

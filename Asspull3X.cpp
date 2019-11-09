@@ -66,20 +66,20 @@ int _tmain(int argc, _TCHAR* argv[])
 	if (InitVideo() < 0)
 		return 0;
 
-	for (int i = 0; i < MAXDEVS; i++)
+	//Absolutely always load a disk drive as #0
+	devices[0] = (Device*)(new DiskDrive());
+	for (int i = 1; i < MAXDEVS; i++)
 	{
 		char key[8];
 		char dft[24] = "";
-		//Always load a diskdrive and lineprinter as #0 and #1 by default
-		if (i == 0) strcpy_s(dft, 24, "diskDrive");
-		else if (i == 1) strcpy_s(dft, 24, "linePrinter");
+		//Always load a lineprinter as #1 by default
+		if (i == 1) strcpy_s(dft, 24, "linePrinter");
 		SDL_itoa(i, key, 10);
 		thing = ini->Get("devices", key, dft);
 		if (thing[0] == 0) continue;
 		if (!strcmp(thing, "diskDrive"))
 		{
-			SDL_Log("Attached a disk drive as device #%d.", i);
-			devices[i] = (Device*)(new DiskDrive());
+			SDL_Log("Can only have one disk drive, at device #0.");
 		}
 		else if (!strcmp(thing, "linePrinter"))
 		{
@@ -110,7 +110,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		SDL_Log("Loading ROM, %s ...", romPath);
 		Slurp(romCartridge, romPath);
 	}
-	if (diskPath[0] != 0 && devices[0] != NULL && devices[0]->Read(0) == 0x01)
+	if (diskPath[0] != 0)
 	{
 		SDL_Log("Mounting diskette, %s ...", diskPath);
 		auto err = ((DiskDrive*)devices[0])->Mount(diskPath);
@@ -190,7 +190,7 @@ int _tmain(int argc, _TCHAR* argv[])
 					if (ev.key.keysym.sym == SDLK_l)
 						uiCommand = cmdLoadRom;
 					else if (ev.key.keysym.sym == SDLK_u)
-						uiCommand = (ev.key.keysym.mod & KMOD_SHIFT) ? cmdEject : cmdUnloadRom;
+						uiCommand = (ev.key.keysym.mod & KMOD_SHIFT) ? cmdEjectDisk : cmdUnloadRom;
 					else if (ev.key.keysym.sym == SDLK_r)
 						uiCommand = cmdReset;
 					else if (ev.key.keysym.sym == SDLK_d)
@@ -215,9 +215,8 @@ int _tmain(int argc, _TCHAR* argv[])
 		{
 			if (uiCommand == cmdLoadRom)
 			{
-				//TODO: split off the disk image parts
 				nfdchar_t* thePath = NULL;
-				nfdresult_t nfdResult = NFD_OpenDialog("ap3,img", NULL, &thePath);
+				nfdresult_t nfdResult = NFD_OpenDialog("ap3", NULL, &thePath);
 				if (nfdResult == NFD_OKAY)
 				{
 					auto ext = strrchr(thePath, '.') + 1;
@@ -232,19 +231,27 @@ int _tmain(int argc, _TCHAR* argv[])
 						if (gottaReset)
 							m68k_pulse_reset();
 					}
-					else if (SDL_strncasecmp(ext, "img", 3) == 0)
+					else
+						SDL_Log("Don't know what to do with %s.", romPath);
+				}
+			}
+			if (uiCommand == cmdInsertDisk)
+			{
+				nfdchar_t* thePath = NULL;
+				nfdresult_t nfdResult = NFD_OpenDialog("img", NULL, &thePath);
+				if (nfdResult == NFD_OKAY)
+				{
+					auto ext = strrchr(thePath, '.') + 1;
+					if (SDL_strncasecmp(ext, "img", 3) == 0)
 					{
 						strcpy_s(diskPath, 256, thePath);
-						if (devices[0] != NULL && devices[0]->Read(0) == 0x01)
-						{
-							auto ret = ((DiskDrive*)devices[0])->Mount(diskPath);
-							if (ret == -1)
-								SDL_Log("Unmount the diskette first, with Ctrl-Shift-U.");
-							else if (ret != 0)
-								SDL_Log("Error %d trying to open disk image.", ret);
-							else
-								ini->Set("media", "lastDisk", diskPath);
-						}
+						auto ret = ((DiskDrive*)devices[0])->Mount(diskPath);
+						if (ret == -1)
+							SetStatus("Eject the diskette first, with Ctrl-Shift-U.");
+						else if (ret != 0)
+							SDL_Log("Error %d trying to open disk image.", ret);
+						else
+							ini->Set("media", "lastDisk", diskPath);
 					}
 					else
 						SDL_Log("Don't know what to do with %s.", romPath);
@@ -259,11 +266,10 @@ int _tmain(int argc, _TCHAR* argv[])
 				gfxFade = 31;
 				SetStatus("Cart pulled.");
 			}
-			else if (uiCommand == cmdEject)
+			else if (uiCommand == cmdEjectDisk)
 			{
 				SDL_Log("Ejecting disk...");
-				if (devices[0] != NULL && devices[0]->Read(0) == 0x01)
-					((DiskDrive*)devices[0])->Unmount();
+				((DiskDrive*)devices[0])->Unmount();
 				strcpy_s(diskPath, 256, "");
 				ini->Set("media", "lastDisk", diskPath);
 				SetStatus("Disk ejected.");
@@ -274,8 +280,7 @@ int _tmain(int argc, _TCHAR* argv[])
 				{
 					SDL_Log("Unloading ROM...");
 					memset(romCartridge, 0, CART_SIZE);
-					if (devices[0] != NULL && devices[0]->Read(0) == 0x01)
-						((DiskDrive*)devices[0])->Unmount();
+					((DiskDrive*)devices[0])->Unmount();
 					strcpy_s(romPath, 256, "");
 					ini->Set("media", "lastROM", romPath);
 				}

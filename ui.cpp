@@ -917,8 +917,7 @@ int _uiFileMenu(int item, int itemLeft, int itemTop)
 		uiCommand = cmdLoadRom;
 		break;
 	case 1: //Unload
-		//TODO: split the disk stuff into the Device Manager.
-		uiCommand = (SDL_GetModState() & KMOD_SHIFT) ? cmdEject : cmdUnloadRom;
+		uiCommand = cmdUnloadRom;
 		break;
 	case 2: //Reset
 		uiCommand = cmdReset;
@@ -975,12 +974,7 @@ int _uiAddDeviceMenu(int item, int itemLeft, int itemTop)
 		ini->Set("devices", key, "");
 		break;
 	case 1: //Disk drive
-		if (devices[currentDeviceMenu] == 0 || devices[currentDeviceMenu]->GetID() != 0x0144)
-		{
-			delete devices[currentDeviceMenu];
-			devices[currentDeviceMenu] = (Device*)(new DiskDrive());
-		}
-		ini->Set("devices", key, "diskDrive");
+		SetStatus("You can't add any more disk drives, actually.");
 		break;
 	case 2: //Memory Viewer
 		if (devices[currentDeviceMenu] == 0 || devices[currentDeviceMenu]->GetID() != 0x4C50)
@@ -1002,16 +996,16 @@ int _uiDiskDriveMenu(int item, int itemLeft, int itemTop)
 	switch (item)
 	{
 	case 0: //Insert
+		uiCommand = cmdInsertDisk;
 		break;
 	case 1: //Eject
+		uiCommand = cmdEjectDisk;
 		break;
 	case 2: //Create
+		//TODO
 		break;
 	case 3: //Disconnect
-		if (devices[currentDeviceMenu] != 0)
-			delete devices[currentDeviceMenu];
-		devices[currentDeviceMenu] = 0;
-		ini->Set("devices", key, "");
+		SetStatus("You can't disconnect the disk drive, actually.");
 		break;
 	}
 	return 0;
