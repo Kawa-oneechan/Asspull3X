@@ -206,8 +206,6 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				auto asValue = ((value >> 3) & 1) == 1;
 				auto dataWidth = (value >> 4) & 3;
 				auto increaseStep = (dataWidth == 0) ? 1 : (dataWidth == 1) ? 2 : 4;
-				if (dmaTarget == 0xE000000)
-					dmaTarget += 0;
 				if (asValue && dataWidth == 2 && dmaTarget >= 0x1000000 && dmaTarget < 0xA000000)
 				{
 					//Do it quicker!
@@ -380,7 +378,7 @@ void HandleBlitter(unsigned int function)
 	{
 		case 0: return;
 		case 1: //Blit
-		case 2: //Clear
+		case 2: //Set
 		case 3: //Invert
 			{
 				auto strideSkip = ((function & 0x10) >> 4) == 1; //1 2 3
@@ -423,7 +421,7 @@ void HandleBlitter(unsigned int function)
 						}
 					}
 				}
-				else if (fun == 2) //Clear
+				else if (fun == 2) //Set
 				{
 					/*
 					Copies the value of ADDRESS A to B.
