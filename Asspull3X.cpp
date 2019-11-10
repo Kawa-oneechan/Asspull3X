@@ -13,6 +13,8 @@ extern int uiCommand, uiData;
 extern char uiFPS[];
 extern void SetStatus(char*);
 
+extern unsigned int biosSize, romSize;
+
 IniFile* ini;
 
 char biosPath[256], romPath[256], diskPath[256];
@@ -62,16 +64,29 @@ static const unsigned char bespokeVolumeLabel[] =
 	0x00,0x00,0x00,0x00,0x00,0x00,0x78,0xB3,0x69,0x4F
 };
 
-int Slurp(unsigned char* dest, const char* filePath)
+unsigned int RoundUp(unsigned int v)
+{
+	v--;
+	v |= v >> 1;
+	v |= v >> 2;
+	v |= v >> 4;
+	v |= v >> 8;
+	v |= v >> 16;
+	v++;
+	return v;
+}
+
+int Slurp(unsigned char* dest, const char* filePath, unsigned int* size)
 {
 	FILE* file = NULL;
 	int err = fopen_s(&file, filePath, "rb");
 	if (err)
 		return err;
 	fseek(file, 0, SEEK_END);
-	long size = ftell(file);
+	long fs = ftell(file);
+	if (size != 0) *size = (unsigned int)fs;
 	fseek(file, 0, SEEK_SET);
-	fread(dest, 1, size, file);
+	fread(dest, 1, fs, file);
 	fclose(file);
 	return 0;
 }
@@ -145,11 +160,13 @@ int _tmain(int argc, _TCHAR* argv[])
 	}
 
 	SDL_Log("Loading BIOS, %s ...", biosPath);
-	Slurp(romBIOS, biosPath);
+	Slurp(romBIOS, biosPath, &biosSize);
+	biosSize = RoundUp(biosSize);
 	if (romPath[0] != 0)
 	{
 		SDL_Log("Loading ROM, %s ...", romPath);
-		Slurp(romCartridge, romPath);
+		Slurp(romCartridge, romPath, &romSize);
+		romSize = RoundUp(romSize);
 	}
 	if (diskPath[0] != 0)
 	{
@@ -253,7 +270,8 @@ int _tmain(int argc, _TCHAR* argv[])
 						SDL_Log("Loading ROM, %s ...", romPath);
 						auto gottaReset = (*(uint32_t*)romCartridge == 0x21535341);
 						memset(romCartridge, 0, CART_SIZE);
-						Slurp(romCartridge, romPath);
+						Slurp(romCartridge, romPath, &romSize);
+						romSize = RoundUp(romSize);
 						ini->Set("media", "lastROM", romPath);
 						if (gottaReset)
 							m68k_pulse_reset();

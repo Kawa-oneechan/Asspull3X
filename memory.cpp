@@ -17,6 +17,8 @@ unsigned char* romCartridge = NULL;
 unsigned char* ramInternal = NULL;
 unsigned char* ramVideo = NULL;
 
+unsigned int biosSize = 0, romSize = 0;
+
 int keyScan, joypad;
 
 int dmaSource, dmaTarget;
@@ -90,13 +92,15 @@ unsigned int m68k_read_memory_8(unsigned int address)
 		auto reg = address & REGS_SIZE;
 		switch (reg)
 		{
-		case 4: //Screen Mode
+		case 0x04: //Screen Mode
 			return (gfxMode |
 				(gfx240 ? 1 << 5 : 0) |
 				(gfx320 ? 1 << 6 : 0) |
 				(gfxTextBold ? 1 << 7 : 0));
-		case 5: //VBlankMode
+		case 0x05: //VBlankMode
 			return interrupts;
+		case 0x0F: //Joypad
+			return joypad;
 		}
 		return 0;
 	}
@@ -106,12 +110,10 @@ unsigned int m68k_read_memory_8(unsigned int address)
 	{
 		case 0x0:
 			if (addr < BIOS_SIZE)
-				return romBIOS[addr];
-			return romCartridge[addr - CART_ADDR];
+				return romBIOS[addr & (biosSize - 1)];
+			return romCartridge[(addr - CART_ADDR) & (romSize - 1)];
 		case 0x1:
-			if (addr >= WRAM_SIZE)
-				return 0;
-			return ramInternal[addr];
+			return ramInternal[addr & (WRAM_SIZE - 1)];
 		case 0x2: //DEV
 			{
 				auto devnum = addr / DEVBLOCK;
@@ -121,6 +123,7 @@ unsigned int m68k_read_memory_8(unsigned int address)
 			}
 			break;
 		case 0xE:
+			addr &= 0x7FFFF;
 			if (addr >= VRAM_SIZE)
 				return 0;
 			return ramVideo[addr];
@@ -135,13 +138,11 @@ unsigned int m68k_read_memory_16(unsigned int address)
 		auto reg = address & 0x000FFFFF;
 		switch (reg)
 		{
-			case 0: //Line
+			case 0x00: //Line
 				return line;
-			case 0x6: //Keyscan
+			case 0x06: //Keyscan
 				keyScan = PollKeyboard(false);
 				return keyScan;
-			case 0xF: //Joypad
-				return joypad;
 		}
 		return 0;
 	}
@@ -157,7 +158,7 @@ unsigned int m68k_read_memory_32(unsigned int address)
 		auto reg = address & 0x000FFFFF;
 		switch (reg)
 		{
-			case 0x8: //Ticks
+			case 0x08: //Ticks
 				return (int)ticks;
 		}
 		return 0;
@@ -177,19 +178,19 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 		auto u8 = (unsigned char)value;
 		switch (reg)
 		{
-			case 4: //ScreenMode
+			case 0x04: //ScreenMode
 				gfxTextBold = ((u8 >> 7) & 1) == 1;
 				gfx320 = ((u8 >> 6) & 1) == 1;
 				gfx240 = ((u8 >> 5) & 1) == 1;
 				gfxMode = u8 & 0x0F;
 				break;
-			case 5: //VBlankMode
+			case 0x5: //VBlankMode
 				interrupts = value;
 				break;
-			case 0xC: //ScreenFade
+			case 0x0C: //ScreenFade
 				gfxFade = u8;
 				break;
-			case 0xE: //Debug
+			case 0x0E: //Debug
 				printf("%c", (char)value);
 				break;
 			case 0x10:
@@ -247,7 +248,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 		case 0x0: /* BIOS is ROM */ break;
 		case 0x1:
 			if (addr < WRAM_SIZE)
-				ramInternal[addr] = (unsigned char)value;
+				ramInternal[addr & (WRAM_SIZE - 1)] = (unsigned char)value;
 			break;
 		case 0x2: //DEV
 			{
@@ -257,10 +258,10 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 			}
 			break;
 		case 0xE:
+			addr &= 0x7FFFF;
 			if (addr >= VRAM_SIZE)
 				break;
 			ramVideo[addr] = (unsigned char)value; break;
-		//default: memory[address & 0x0FFFFFFF] = (byte)value; break;
 	}
 }
 
