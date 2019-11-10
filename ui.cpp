@@ -2382,8 +2382,8 @@ int _uiMemoryViewer(int me)
 		for (int col = 0; col < 8; col++)
 		{
 			auto here = m68k_read_memory_8(offset++);
-			DrawCharacter(win->left + 56 + (col * 16), win->top + 14 + (row * 10), WINDOW_TEXT, *(hex + (here & 0x0F)));
-			DrawCharacter(win->left + 62 + (col * 16), win->top + 14 + (row * 10), WINDOW_TEXT, *(hex + ((here & 0xF0) >> 4)));
+			DrawCharacter(win->left + 56 + (col * 16), win->top + 14 + (row * 10), WINDOW_TEXT, *(hex + ((here & 0xF0) >> 4)));
+			DrawCharacter(win->left + 62 + (col * 16), win->top + 14 + (row * 10), WINDOW_TEXT, *(hex + (here & 0x0F)));
 
 			DrawCharacter(win->left + 186 + (col * 7), win->top + 14 + (row * 10), WINDOW_TEXT, here);
 		}
