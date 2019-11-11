@@ -102,7 +102,11 @@ int Dump(const char* filePath, unsigned char* source, unsigned long size)
 	return 0;
 }
 
+#ifdef _CONSOLE
 int _tmain(int argc, _TCHAR* argv[])
+#else
+int main(int argc, char*argv[])
+#endif
 {
 #ifdef WITH_OPENGL
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_VIDEO_OPENGL | SDL_INIT_GAMECONTROLLER) < 0)

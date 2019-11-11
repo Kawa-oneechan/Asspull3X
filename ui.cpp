@@ -837,14 +837,14 @@ void HandleUI()
 
 	if (pullDownLevel > 0)
 	{
-		auto response = uiHandleMenuBar(&(uiMenu)mainMenu, &x);
+		auto response = uiHandleMenuBar((uiMenu*)&mainMenu, &x);
 		for (int i = 0; i < pullDownLevel; i++)
 			response = uiHandleMenuDrop(pullDowns[i], pullDownLefts[i], pullDownTops[i], &y, i == pullDownLevel - 1);
 		cursorTimer = 100;
 	}
 	else if (y < 10 || pauseState == 2)
 	{
-		auto response = uiHandleMenuBar(&(uiMenu)mainMenu, &x);
+		auto response = uiHandleMenuBar((uiMenu*)&mainMenu, &x);
 		cursorTimer = 100;
 	}
 	else
@@ -953,8 +953,8 @@ int _uiDeviceMenu(int item, int itemLeft, int itemTop)
 	default:
 		pullDowns[1] = (uiMenu*)&_defaultDeviceMenu;
 		break;
-	}	
-	
+	}
+
 	return 0;
 }
 

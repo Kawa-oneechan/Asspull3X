@@ -40,7 +40,7 @@ unsigned char PollKeyboard(bool force)
 	return lastPollResult;
 }
 
-static const unsigned char keyMap[] =
+const unsigned char keyMap[] =
 {
 	0x00,
 	0x00,

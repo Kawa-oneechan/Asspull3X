@@ -1,2 +1,2 @@
 #include <windows.h>
-IDI_ICON1          ICON           ".\\Asspull3X.ico"
+100 ICON ".\\Asspull3X.ico"
