@@ -14,7 +14,7 @@
 #define RENDERPIXELS_DEFINE
 
 bool gfx320, gfx240, gfxTextBold;
-int gfxMode, gfxFade, scrollX[2], scrollY[2], tileShift[2], mapEnabled[2];
+int gfxMode, gfxFade, scrollX[4], scrollY[4], tileShift[2], mapEnabled[4];
 
 SDL_Window* sdlWindow = NULL;
 #ifdef WITH_OPENGL
@@ -89,7 +89,7 @@ void RenderSprites(int line, int withPriority)
 			(ramVideo[SPR2_ADDR + 1 + (i * 2)] << 16) |
 			(ramVideo[SPR2_ADDR + 2 + (i * 2)] << 8) |
 			(ramVideo[SPR2_ADDR + 3 + (i * 2)] << 0);
-		auto prio = (spriteB >> 30) & 3;
+		auto prio = (spriteB >> 30) & 3; //TODO: extend to highest *three* bits.
 		if (withPriority > -1 && prio != withPriority)
 			continue;
 		auto tile = (spriteA >> 0) & 0x1FF;

@@ -221,16 +221,16 @@ int main(int argc, char*argv[])
 				break;
 
 			case SDL_JOYBUTTONDOWN:
-				if (ev.jbutton.which == 0)
-					joypad |= 16 << ev.jbutton.button;
+				if (ev.jbutton.which < 2)
+					joypad[ev.jbutton.which] |= 16 << ev.jbutton.button;
 				break;
 			case SDL_JOYBUTTONUP:
-				if (ev.jbutton.which == 0)
-					joypad &= ~(16 << ev.jbutton.button);
+				if (ev.jbutton.which < 2)
+					joypad[ev.jbutton.which] &= ~(16 << ev.jbutton.button);
 				break;
 			case SDL_JOYHATMOTION:
-				if (ev.jhat.which == 0 && ev.jhat.hat == 0)
-					joypad = (joypad & ~15) | ev.jhat.value;
+				if (ev.jhat.which < 2 && ev.jhat.hat == 0)
+					joypad[ev.jbutton.which] = (joypad[ev.jbutton.which] & ~15) | ev.jhat.value;
 				break;
 			case SDL_KEYUP:
 				if (ev.key.keysym.mod & KMOD_LCTRL)

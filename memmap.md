@@ -1,6 +1,8 @@
 # Asspull IIIx Memory Map
+*Insert some W3C-like crap here...*
+
 ## Address space
-Address space is 28 bits:
+Address space is effectively 28 bits:
 
     $0FFFFFFF
       |_______ bank
@@ -30,7 +32,7 @@ Address space is 28 bits:
 * text: up to 80×60=4800 16-bit cells: 4800×2 = 9600 => `$02580`
 * bitmap: up to 640×480=307200 8-bit pixels => `$4B000`
 * tilemap: 64×64=4096  16-bit cells: 4096×2 = 8192 => `$02000`
-  * ...times 2 = 8192×2 => `$04000`
+  * ...times 4 = 8192×4 => `$08000`
 * tileset: 8×8 4bpp cells = 32, times 2048 or so = 1024 => `$08000`
 * palette: up to 256 16-bit colors: 256×2 = 512 => `$00200`
 * font: 12288 bytes => `$03000`
@@ -38,8 +40,9 @@ Address space is 28 bits:
 * sprites idea B: up to 256 32-bit entries = 1024 => `$00400`
 
 ## Tilemap cell
-    PPPP vh.T TTTT TTTT
-    |    || |____________ Tile #
+    PPPP vhpT TTTT TTTT
+    |    ||||____________ Tile #
+    |    |||_____________ Priority
     |    ||______________ Horizontal flip
     |    |_______________ Vertical flip
     |____________________ Palette #
@@ -49,7 +52,7 @@ Address space is 28 bits:
     |    |  |____________ Tile #
     |    |_______________ Enabled
     |____________________ Palette #
-    PP.2 vhyx ...V VVVV VVVV ..HH HHHH HHHH
+    PPP2 vhyx ...V VVVV VVVV ..HH HHHH HHHH
     |  | ||||    |             |___________  Horizontal position
     |  | ||||    |_________________________  Vertical position
     |  | ||||______________________________  Double width
@@ -58,26 +61,30 @@ Address space is 28 bits:
     |  | |_________________________________  Vertical flip
     |  |___________________________________  Double width and height
     |______________________________________  Priority
-Alternative:
-
-    PPvh hhww ~~~~
-    | || | |___ Width: 8, 16, 32, 64
-    ¦ ¦¦ |_____ Height: same
 
 ## Draw order
+
 ### Tilemap mode
 1. Backdrop
-2. Sprites with priority 2
-3. Map 1
-4. Sprites with priority 1 
-5. Map 2
-6. Sprites with priority 0
+2. Sprites with priority 4
+3. Map 1 with priority clear
+4. Sprites with priority 3 
+5. Map 1 with priority set
+6. Sprites with priority 2
+7. Map 2 with priority clear
+8. Sprites with priority 1
+9. Map 2 with priority set
+10. Sprites with priority 0
+
 ### Other modes:
-1. Stuff
-2. Sprites with any priority
+11. Stuff
+12. Sprites with any priority
+
+---
 
 ## Device I/O
 Each of the sixteen blocks of `8000` bytes starting from `2000000` may or may not map to a device. The first two bytes of each block identify what kind of device it is. If those bytes are the value `0000` or `FFFF` there is no device.
+
 ### Disk drive
 The disk drive is identified by the value `0144`.  The next `uint16` value selects which sector to read or write (IO register `00030` before) and the next byte controls the device (`00032` before):
 
@@ -89,18 +96,26 @@ The disk drive is identified by the value `0144`.  The next `uint16` value selec
        |_______ Busy state (read only)
 
 From the 512th byte on, another 512 bytes form the disk controller's internal RAM, used to hold a sector's worth of data to read or write. That leaves plenty room for expansion.
+
 ### Line printer
 Identified by the value `4C50`, writing to the next byte pipes directly to the printer. Reading it returns `00` or an error value, to be determined. *This might make a nice alternative to `REG_DEBUGOUT`...*
 
+---
+
 ## Register map
+
 ### 00000 Line
 The current line being drawn as a `uint16`.
-### 00004 ScreenMode
+### 00003 ScreenMode
     B32. ..MM
     |||    |___ Mode
     |||________ 240px tall instead of 480px
     ||_________ 320px wide instead of 640px
     |__________ Bold in text mode, 200 or 400px in bitmap mode
+### 00004	ScreenFade
+    W..A AAAA
+    |  |_______ Amount
+    |__________ To white
 ### 00005	Interrupts
     X... .VH.
     |     ||___ HBlank triggered
@@ -108,33 +123,30 @@ The current line being drawn as a `uint16`.
     |__________ Disable interrupts
 Used by the BIOS dispatcher to determine what to call. Applications can set the disable bit to prevent them from firing.
 ### 00006	KeyIn
-    .CAS KKKK
-     ||| |_____ Keycode
-     |||_______ Shift
-     ||________ Alt
-     |_________ Control
+    ..... .CAS KKKK KKKK
+           ||| |_____ Keycode
+           |||_______ Shift
+           ||________ Alt
+           |_________ Control
 ### 00008	TickCount
 The amount of ticks since the system was turned on as a `uint32`.
-### 0000C	ScreenFade
-    W..A AAAA
-    |  |_______ Amount
-    |__________ To white
-### 0000E	DebugOut
-Pipe characters to `STDOUT`.
-### 0000F	Joypad
+### 0000C	Joypad1
     YXBA RLDU
-### 00010 TilemapSet1
-    E... TTTT
-    ||   | |___ Tile shift for layer 1
-    ||   |_____ Tile shift for layer 2
-    ||_________ Layer 1 enabled
-    |__________ Layer 2 enabled
-Tile shift adds 128 << T to the tile # when rendering, so a shift value of 3 means a whole separate set of 1024 tiles.
-### 00012	TilemapScrollH1
-### 00014	TilemapScrollH2
-### 00016	TilemapScrollV1
-### 00018	TilemapScrollV2
-The tile map controls are a work in progress.
+### 0000D	Joypad2
+### 0000E	DebugOut
+Pipe characters to `STDOUT`. 
+### 0000F	TilemapSet
+    EEEE TTTT
+    |||| | |___ Tile shift for layers 1 and 3
+    |||| |_____ Tile shift for layer 2 and 4
+    ||||_______ Layer 1 enabled
+    |||________ Layer 2 enabled
+    ||_________ Layer 3 enabled
+    |__________ Layer 4 enabled
+Tile shift adds `128 << T` to the tile # when rendering, so a shift value of 3 means a whole separate set of 1024 tiles.
+### 00010	TilemapScrollH1
+### 00012	TilemapScrollV1
+Scroll values for the tile map as `int16`. This repeats for each of the four layers up to `001E TilemapScrollV4`. *The tile map controls are a work in progress.*
 ### 00020	DMASource
 Either a pointer or a value.
 ### 00024	DMATarget
@@ -173,8 +185,8 @@ A pointer. Again repeated until `000DC HDMADest8`.
 | 00108    | Destination | Pointer                                   |
 | 0010C    | Length      | Value                                     |
 | 00110    | Key         | Value                                     |
-### Functions
-#### 0001 - Blit
+
+### 0001	Blit
     2222 2222 2222 1111 1111 1111 44KS 0001
     |              |              ||||_______ Enable strideskip
     |              |              |||________ Enable colorkey
@@ -191,7 +203,7 @@ A pointer. Again repeated until `000DC HDMADest8`.
 	* If `4-bit target` is set, behavior is undefined.
 	* If `4-bit target` not set, nothing special is done.
 
-#### 0010 - Clear
+### 0010	Clear
     2222 2222 2222 1111 1111 1111 .WWS 0010
     |_________ Source width
 * Copies the value of `source` to `dest`.
@@ -200,9 +212,9 @@ A pointer. Again repeated until `000DC HDMADest8`.
 * If `width` is set to 2, sets `dest` to the full word.
 * If `width` is set to 3, behavior is undefined.
 
-#### 0011 Invert
+### 0011	Invert
     2222 2222 2222 1111 1111 1111 ...S 0011
 Inverts the byte values at B, simple as that.
 
-#### 0100 UnRLE
+### 0100	UnRLE
 Performs a simple RLE decompression from `source` to `dest`. `length` is the *compressed* size.

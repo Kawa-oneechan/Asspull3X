@@ -19,7 +19,7 @@ unsigned char* ramVideo = NULL;
 
 unsigned int biosSize = 0, romSize = 0;
 
-int keyScan, joypad;
+int keyScan, joypad[2];
 
 int dmaSource, dmaTarget;
 unsigned int dmaLength;
@@ -92,15 +92,24 @@ unsigned int m68k_read_memory_8(unsigned int address)
 		auto reg = address & REGS_SIZE;
 		switch (reg)
 		{
-		case 0x04: //Screen Mode
-			return (gfxMode |
-				(gfx240 ? 1 << 5 : 0) |
-				(gfx320 ? 1 << 6 : 0) |
-				(gfxTextBold ? 1 << 7 : 0));
-		case 0x05: //VBlankMode
-			return interrupts;
-		case 0x0F: //Joypad
-			return joypad;
+			case 0x03: //Screen Mode
+				return (gfxMode |
+					(gfx240 ? 1 << 5 : 0) |
+					(gfx320 ? 1 << 6 : 0) |
+					(gfxTextBold ? 1 << 7 : 0));
+			case 0x04: //ScreenFade
+				return gfxFade;
+			case 0x05: //Interrupts
+				return interrupts;
+			case 0x0C: //Joypad
+			case 0x0D:
+				return joypad[reg - 0x0C];
+			case 0x0F: //TilemapSet
+				return (tileShift[1] |
+					(tileShift[0] << 2) |
+					(mapEnabled[1] << 6) |
+					(mapEnabled[0] << 7));
+				//TODO: add mapEnabled[2] and [3].
 		}
 		return 0;
 	}
@@ -143,6 +152,18 @@ unsigned int m68k_read_memory_16(unsigned int address)
 			case 0x06: //Keyscan
 				keyScan = PollKeyboard(false);
 				return keyScan;
+			case 0x10: //Horizontal scroll
+			case 0x14:
+			case 0x18:
+			case 0x1C:
+				return scrollX[(reg - 0x10) / 2];
+				break;
+			case 0x12: //Vertical scroll
+			case 0x16:
+			case 0x1A:
+			case 0x1E:
+				return scrollY[(reg - 0x12) / 2];
+				break;
 		}
 		return 0;
 	}
@@ -160,6 +181,13 @@ unsigned int m68k_read_memory_32(unsigned int address)
 		{
 			case 0x08: //Ticks
 				return (int)ticks;
+			case 0x20: //DMA Source
+				return dmaSource;
+			case 0x24: //DMA Target
+				return dmaTarget;
+			case 0x28: //DMA Length
+				return dmaLength;
+			//TODO: HDMA. Fun!
 		}
 		return 0;
 	}
@@ -178,22 +206,22 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 		auto u8 = (unsigned char)value;
 		switch (reg)
 		{
-			case 0x04: //ScreenMode
+			case 0x03: //ScreenMode
 				gfxTextBold = ((u8 >> 7) & 1) == 1;
 				gfx320 = ((u8 >> 6) & 1) == 1;
 				gfx240 = ((u8 >> 5) & 1) == 1;
 				gfxMode = u8 & 0x0F;
 				break;
+			case 0x04: //ScreenFade
+				gfxFade = u8;
+				break;
 			case 0x5: //VBlankMode
 				interrupts = value;
-				break;
-			case 0x0C: //ScreenFade
-				gfxFade = u8;
 				break;
 			case 0x0E: //Debug
 				printf("%c", (char)value);
 				break;
-			case 0x10:
+			case 0x0F: //TilemapSet
 				mapEnabled[0] = (value & 0x80);
 				mapEnabled[1] = (value & 0x40);
 				tileShift[0] = (value >> 2) & 3;
@@ -272,13 +300,17 @@ void m68k_write_memory_16(unsigned int address, unsigned int value)
 		auto reg = address & 0x000FFFFF;
 		switch (reg)
 		{
-			case 0x12: //Horizontal scroll
+			case 0x10: //Horizontal scroll
 			case 0x14:
-				scrollX[(reg - 0x12) / 2] = value & 511;
-				break;
-			case 0x16: //Vertical scroll
 			case 0x18:
-				scrollY[(reg - 0x16) / 2] = value & 511;
+			case 0x1C:
+				scrollX[(reg - 0x10) / 2] = value & 511;
+				break;
+			case 0x12: //Vertical scroll
+			case 0x16:
+			case 0x1A:
+			case 0x1E:
+				scrollY[(reg - 0x12) / 2] = value & 511;
 				break;
 		}
 		return;

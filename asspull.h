@@ -18,7 +18,7 @@ extern SDL_Window* sdlWindow;
 extern SDL_Surface* sdlSurface;
 #endif
 
-extern int keyScan, joypad;
+extern int keyScan, joypad[2];
 
 extern int gfxFade;
 extern long ticks;
@@ -70,7 +70,7 @@ enum uiCommands
 
 #define TEXT_SIZE	((80 * 60) * 2)	//640×480 mode has 8x8 character cells, so 80×60 characters.
 #define BITMAP_SIZE	(640 * 480)		//640×480 mode in 256 colors.
-#define MAP_SIZE	(((512 / 8) * (512 / 8)) * 2)	//Each tile is a 16-bit value.
+#define MAP_SIZE	(((512 / 8) * (512 / 8)) * 4)	//Each tile is a 16-bit value.
 #define TILES_SIZE	((((8 * 8) / 2) * 512) + (128 << 3))
 #define PAL_SIZE	(256 * 2)	//256 xBGR-1555 colors.
 #define FONT_SIZE	(((8 * 256) * 2) + ((16 * 256) * 2))	//Two 8x8 fonts, two 8x16 fonts.
@@ -89,6 +89,8 @@ enum uiCommands
 #define BMP_ADDR	0x000000
 #define MAP1_ADDR	0x000000
 #define MAP2_ADDR	(MAP1_ADDR + MAP_SIZE)
+#define MAP3_ADDR	(MAP2_ADDR + MAP_SIZE)
+#define MAP4_ADDR	(MAP3_ADDR + MAP_SIZE)
 #define TILES_ADDR	0x010000
 #define PAL_ADDR	0x050000
 #define FONT_ADDR	0x050200
@@ -116,6 +118,9 @@ enum uiCommands
 #endif
 #if (FONT_SIZE != 12288)
 #error FONT size is off.
+#endif
+#if (MAP4_ADDR + MAP_SIZE) > TILES_ADDR
+#error MAP4 encroaches on TILES.
 #endif
 #if (BMP_ADDR + BITMAP_SIZE) > PAL_ADDR
 #error 640×480 Bitmap mode will overwrite the palette.

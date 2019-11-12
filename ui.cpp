@@ -178,7 +178,7 @@ int pullDownTops[4] = { 0 };
 int currentTopMenu = -1;
 
 extern unsigned char* pixels;
-inline void RenderPixel(int row, int column, int color)
+inline void RenderRawPixel(int row, int column, int color)
 {
 	if (row < 0 || row >= 480 || column < 0 || column >= 640) return;
 	auto target = (((row) * 640) + (column)) * 4;
@@ -314,7 +314,7 @@ void DrawCursor()
 				DarkenPixel(y + row, x + col);
 				continue;
 			}
-			RenderPixel(y + row, x + col, pix);
+			RenderRawPixel(y + row, x + col, pix);
 		}
 	}
 }
@@ -329,7 +329,7 @@ void DrawCharacter(int x, int y, int color, unsigned short ch)
 		{
 			if (num & 1)
 			{
-				RenderPixel(y + line, x + bit, color & 0x7FFF);
+				RenderRawPixel(y + line, x + bit, color & 0x7FFF);
 				if (color & 0x8000) DarkenPixel(y + line + 1, x + bit + 1);
 			}
 			num >>= 1;
@@ -341,7 +341,7 @@ void DrawImage(int x, int y, unsigned short* pixmap, int width, int height)
 {
 	for (int row = 0; row < height; row++)
 		for (int col = 0; col < width; col++)
-			RenderPixel(y + row, x + col, pixmap[(row * width) + col]);
+			RenderRawPixel(y + row, x + col, pixmap[(row * width) + col]);
 }
 
 #define TABWIDTH 48
@@ -421,7 +421,7 @@ void LetItSnow()
 		int y = snowData[(i * 2) + 1];
 		if (x < 0 || y < 0 || x >= 640 || y >= 480)
 			continue;
-		RenderPixel(y, x, 0x7FFF);
+		RenderRawPixel(y, x, 0x7FFF);
 	}
 }
 #else
@@ -563,22 +563,22 @@ int uiHandleMenuDrop(uiMenu* menu, int left, int top, int *openedTop, bool isTop
 
 	for (int col = 0; col < menu->width + 2; col++)
 	{
-		RenderPixel(top - 1, left + col, PULLDOWN_BORDER_T);
-		RenderPixel(top + (menu->numItems * 10), left + col, PULLDOWN_BORDER_B);
+		RenderRawPixel(top - 1, left + col, PULLDOWN_BORDER_T);
+		RenderRawPixel(top + (menu->numItems * 10), left + col, PULLDOWN_BORDER_B);
 	}
 	for (int i = 0, y = top; i < menu->numItems; i++, y += 10)
 	{
 		for (int line = 0; line < 10; line++)
 		{
-			RenderPixel(y + line, left, PULLDOWN_BORDER_L);
+			RenderRawPixel(y + line, left, PULLDOWN_BORDER_L);
 			int color = PULLDOWN_FILL;
 			if (i == focused)
 				color = PULLDOWN_HIGHLIGHT;
 			for (int col = 0; col < menu->width; col++)
 			{
-				RenderPixel(y + line, left + 1 + col, color);
+				RenderRawPixel(y + line, left + 1 + col, color);
 			}
-			RenderPixel(y + line, left + 1 + menu->width, PULLDOWN_BORDER_R);
+			RenderRawPixel(y + line, left + 1 + menu->width, PULLDOWN_BORDER_R);
 		}
 		DrawString(left + 2, y + 1, (i == focused) ? PULLDOWN_HIGHTEXT : PULLDOWN_TEXT, menu->items[i].caption);
 		if (menu->items[i].hotKey) DrawCharacter(left + menu->width - 10, y + 1, (i == focused) ? PULLDOWN_HIGHTEXT : PULLDOWN_TEXT, menu->items[i].hotKey);
@@ -658,7 +658,7 @@ int uiHandleMenuBar(uiMenu* menu, int *openedLeft)
 			color = MENUBAR_HIGHLIGHT;
 		for (int j = 0; j < 12; j++)
 		{
-			RenderPixel(j, i, color);
+			RenderRawPixel(j, i, color);
 		}
 		DarkenPixel(12, i);
 		DarkenPixel(13, i);
@@ -690,20 +690,20 @@ int uiHandleWindow(uiWindow* win)
 {
 	for (auto col = win->left; col < win->left + win->width; col++)
 	{
-		RenderPixel(win->top, col, (focusedWindowID == win->token) ? WINDOW_BORDERFOC_T : WINDOW_BORDER_T);
-		RenderPixel(win->top + win->height - 1, col, (focusedWindowID == win->token) ? WINDOW_BORDERFOC_B : WINDOW_BORDER_B);
+		RenderRawPixel(win->top, col, (focusedWindowID == win->token) ? WINDOW_BORDERFOC_T : WINDOW_BORDER_T);
+		RenderRawPixel(win->top + win->height - 1, col, (focusedWindowID == win->token) ? WINDOW_BORDERFOC_B : WINDOW_BORDER_B);
 		DarkenPixel(win->top + win->height + 0, col + 2);
 		DarkenPixel(win->top + win->height + 1, col + 2);
 	}
 	auto color = WINDOW_CAPTION;
 	for (auto row = win->top + 1; row < win->top + win->height - 1; row++)
 	{
-		RenderPixel(row, win->left, (focusedWindowID == win->token) ? WINDOW_BORDERFOC_L : WINDOW_BORDER_L);
+		RenderRawPixel(row, win->left, (focusedWindowID == win->token) ? WINDOW_BORDERFOC_L : WINDOW_BORDER_L);
 		if (row == win->top + 12) color = WINDOW_CAPLINE;
 		if (row == win->top + 13) color = WINDOW_FILL;
 		for (auto col = win->left + 1; col < win->left + win->width - 1; col++)
-			RenderPixel(row, col, color);
-		RenderPixel(row, win->left + win->width - 1, (focusedWindowID == win->token) ? WINDOW_BORDERFOC_R : WINDOW_BORDER_R);
+			RenderRawPixel(row, col, color);
+		RenderRawPixel(row, win->left + win->width - 1, (focusedWindowID == win->token) ? WINDOW_BORDERFOC_R : WINDOW_BORDER_R);
 		DarkenPixel(row + 1, win->left + win->width + 0);
 		DarkenPixel(row + 1, win->left + win->width + 1);
 	}
@@ -753,15 +753,15 @@ int uiHandleButton(int left, int top, int width, char* caption)
 		buttons = 0;
 	for (auto col = left; col < left + width; col++)
 	{
-		RenderPixel(top, col, BUTTON_BORDER_T);
-		RenderPixel(top + 13, col, BUTTON_BORDER_B);
+		RenderRawPixel(top, col, BUTTON_BORDER_T);
+		RenderRawPixel(top + 13, col, BUTTON_BORDER_B);
 	}
 	for (auto row = top + 1; row < top + 13; row++)
 	{
-		RenderPixel(row, left, BUTTON_BORDER_L);
+		RenderRawPixel(row, left, BUTTON_BORDER_L);
 		for (auto col = left + 1; col < left + width - 1; col++)
-			RenderPixel(row, col, fill);
-		RenderPixel(row, left + width - 1, BUTTON_BORDER_R);
+			RenderRawPixel(row, col, fill);
+		RenderRawPixel(row, left + width - 1, BUTTON_BORDER_R);
 	}
 	auto capLeft = left + (width / 2) - (MeasureString(caption) / 2);
 	DrawString(capLeft, top + 3, text, caption);
@@ -783,15 +783,15 @@ int uiHandleIconButton(int left, int top, int icon)
 		buttons = 0;
 	for (auto col = left; col < left + 10; col++)
 	{
-		RenderPixel(top, col, BUTTON_BORDER_T);
-		RenderPixel(top + 9, col, BUTTON_BORDER_B);
+		RenderRawPixel(top, col, BUTTON_BORDER_T);
+		RenderRawPixel(top + 9, col, BUTTON_BORDER_B);
 	}
 	for (auto row = top + 1; row < top + 9; row++)
 	{
-		RenderPixel(row, left, BUTTON_BORDER_L);
+		RenderRawPixel(row, left, BUTTON_BORDER_L);
 		for (auto col = left + 1; col < left + 9; col++)
-			RenderPixel(row, col, fill);
-		RenderPixel(row, left + 9, BUTTON_BORDER_R);
+			RenderRawPixel(row, col, fill);
+		RenderRawPixel(row, left + 9, BUTTON_BORDER_R);
 	}
 	DrawCharacter(left + 1, top + 1, text, 256 + icon);
 	return buttons;
@@ -825,13 +825,13 @@ void HandleUI()
 	{
 		for (int i = dragLeft; i < dragLeft + dragWidth; i += 2)
 		{
-			RenderPixel(dragTop, i, 0x7FFF);
-			RenderPixel(dragTop + dragHeight, i, 0x7FFF);
+			RenderRawPixel(dragTop, i, 0x7FFF);
+			RenderRawPixel(dragTop + dragHeight, i, 0x7FFF);
 		}
 		for (int i = dragTop; i < dragTop + dragHeight; i += 2)
 		{
-			RenderPixel(i, dragLeft, 0x7FFF);
-			RenderPixel(i, dragLeft + dragWidth, 0x7FFF);
+			RenderRawPixel(i, dragLeft, 0x7FFF);
+			RenderRawPixel(i, dragLeft + dragWidth, 0x7FFF);
 		}
 	}
 
@@ -2367,7 +2367,7 @@ int _uiAboutWin(int me)
 extern "C" unsigned int m68k_read_memory_8(unsigned int address);
 int _uiMemoryViewer(int);
 uiWindow memoryViewerWindow = { 0x1337, 128, 128, 260, 334, "Memory Viewer", _uiMemoryViewer };
-signed long memViewerOffset = CART_ADDR;
+signed long memViewerOffset = PAL_ADDR;
 #define MAXVIEWEROFFSET (0x10000000 - 0x100)
 int _uiMemoryViewer(int me)
 {
