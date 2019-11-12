@@ -282,7 +282,7 @@ static unsigned short cursor[] =
 #endif
 };
 
-int oldX, oldY, cursorTimer = 1000;
+int oldX, oldY, cursorTimer = 0;
 void DrawCursor()
 {
 	int x, y;

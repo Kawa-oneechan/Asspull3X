@@ -35,7 +35,7 @@ extern unsigned char PollKeyboard(bool force);
 long ticks = 0;
 
 extern bool gfx320, gfx240, gfxTextBold;
-extern int gfxMode, gfxFade, scrollX[2], scrollY[2], tileShift[2], mapEnabled[2];
+extern int gfxMode, gfxFade, scrollX[4], scrollY[4], tileShift[4], mapEnabled[4];
 
 extern int line, interrupts;
 
@@ -222,8 +222,10 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				printf("%c", (char)value);
 				break;
 			case 0x0F: //TilemapSet
-				mapEnabled[0] = (value & 0x80);
-				mapEnabled[1] = (value & 0x40);
+				mapEnabled[0] = (value & 0x10);
+				mapEnabled[1] = (value & 0x20);
+				mapEnabled[2] = (value & 0x40);
+				mapEnabled[3] = (value & 0x80);
 				tileShift[0] = (value >> 2) & 3;
 				tileShift[1] = value & 3;
 				break;
@@ -304,13 +306,13 @@ void m68k_write_memory_16(unsigned int address, unsigned int value)
 			case 0x14:
 			case 0x18:
 			case 0x1C:
-				scrollX[(reg - 0x10) / 2] = value & 511;
+				scrollX[(reg - 0x10) / 4] = value & 511;
 				break;
 			case 0x12: //Vertical scroll
 			case 0x16:
 			case 0x1A:
 			case 0x1E:
-				scrollY[(reg - 0x12) / 2] = value & 511;
+				scrollY[(reg - 0x12) / 4] = value & 511;
 				break;
 		}
 		return;

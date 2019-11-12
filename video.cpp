@@ -89,7 +89,7 @@ void RenderSprites(int line, int withPriority)
 			(ramVideo[SPR2_ADDR + 1 + (i * 2)] << 16) |
 			(ramVideo[SPR2_ADDR + 2 + (i * 2)] << 8) |
 			(ramVideo[SPR2_ADDR + 3 + (i * 2)] << 0);
-		auto prio = (spriteB >> 30) & 3; //TODO: extend to highest *three* bits.
+		auto prio = (spriteB >> 29) & 7;
 		if (withPriority > -1 && prio != withPriority)
 			continue;
 		auto tile = (spriteA >> 0) & 0x1FF;
@@ -306,7 +306,7 @@ void RenderTileMode(int line)
 	const auto maskX = sizeX - 1;
 	const auto maskY = sizeY - 1;
 
-	for (int layer = -1; layer < 2; layer++)
+	for (int layer = -1; layer < 4; layer++)
 	{
 		if (layer == -1)
 		{
@@ -317,15 +317,17 @@ void RenderTileMode(int line)
 				RenderPixel(line + 1, (x * 2) + 0, 0);
 				RenderPixel(line + 1, (x * 2) + 1, 0);
 			}
-			RenderSprites(line, 2);
-			RenderSprites(line + 1, 2);
+			RenderSprites(line, 4);
+			RenderSprites(line + 1, 4);
 			continue;
 		}
 
+		screenBase = MAP1_ADDR + (layer * MAP_SIZE);
+
 		if (!mapEnabled[layer])
 		{
-			RenderSprites(line, 1 - layer);
-			RenderSprites(line + 1, 1 - layer);
+			RenderSprites(line, 3 - layer);
+			RenderSprites(line + 1, 3 - layer);
 			continue;
 		}
 
@@ -335,7 +337,7 @@ void RenderTileMode(int line)
 		auto yShift = ((yyy >> 3) << 6);
 		//yShift = 0;
 		auto screenSource = screenBase + (0x000 * (xxx >> 8) + ((xxx & 511) >> 3) + yShift) * 2;
-		auto shift = 128 << (tileShift[layer] - 1);
+		auto shift = 0; // 128 << (tileShift[layer] - 1);
 
 		for (auto x = 0; x < 320; x++)
 		{
@@ -387,9 +389,8 @@ void RenderTileMode(int line)
 				screenSource = screenBase + (yShift * 2);
 			}
 		}
-		RenderSprites(line, 1 - layer);
-		RenderSprites(line + 1, 1 - layer);
-		screenBase += MAP_SIZE;
+		RenderSprites(line, 3 - layer);
+		RenderSprites(line + 1, 3 - layer);
 	}
 }
 
@@ -602,6 +603,8 @@ void VBlank()
 
 int InitVideo()
 {
+	SDL_Log("FYI, MAP4_ADDR is 0x%08X.", MAP4_ADDR);
+
 	SDL_Log("Creating window...");
 	auto winWidth = SDL_atoi(ini->Get("video", "width", "640"));
 	auto winHeight = SDL_atoi(ini->Get("video", "height", "480"));

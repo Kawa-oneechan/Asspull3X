@@ -67,13 +67,13 @@ Address space is effectively 28 bits:
 ### Tilemap mode
 1. Backdrop
 2. Sprites with priority 4
-3. Map 1 with priority clear
+3. Map 0
 4. Sprites with priority 3 
-5. Map 1 with priority set
+5. Map 1
 6. Sprites with priority 2
-7. Map 2 with priority clear
+7. Map 2
 8. Sprites with priority 1
-9. Map 2 with priority set
+9. Map 3
 10. Sprites with priority 0
 
 ### Other modes:
