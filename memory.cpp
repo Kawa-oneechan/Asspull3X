@@ -506,15 +506,25 @@ void HandleBlitter(unsigned int function)
 			break;
 		case 4: //UnRLE
 			unsigned int i = 0;
-			unsigned char rle = 0;
-			char data = 0;
-			while (i < blitLength)
+			unsigned char data = 0;
+			while (blitLength) //hack
 			{
-				rle = m68k_read_memory_8(blitAddrA++);
-				rle++;
 				data = m68k_read_memory_8(blitAddrA++);
-				for (; rle > 0; rle--, i++)
+				if ((data & 0xC0) == 0xC0)
+				{
+					auto len = data & 0x3F;
+					data = m68k_read_memory_8(blitAddrA++);
+					blitLength--;
+					if (data == 0xC0 && len == 0)
+						break;
+					for (; len > 0; len--)
+						m68k_write_memory_8(blitAddrB++, data);
+				}
+				else
+				{
 					m68k_write_memory_8(blitAddrB++, data);
+				}
+				blitLength--;
 			}
 			break;
 	}
