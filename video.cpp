@@ -14,7 +14,7 @@
 #define RENDERPIXELS_DEFINE
 
 bool gfx320, gfx240, gfxTextBold;
-int gfxMode, gfxFade, scrollX[4], scrollY[4], tileShift[2], mapEnabled[4];
+int gfxMode, gfxFade, scrollX[4], scrollY[4], tileShift[2], mapEnabled[4], mapBlend[4];
 
 SDL_Window* sdlWindow = NULL;
 #ifdef WITH_OPENGL
@@ -72,6 +72,34 @@ inline void RenderPixel(int row, int column, int color)
 	pixels[target + 2] = (r << 3) + (r >> 2);
 }
 #endif
+
+inline void RenderBlended(int row, int column, int color, bool subtractive)
+{
+	auto snes = (ramVideo[PAL_ADDR + ((color) * 2) + 0] << 8) + ramVideo[PAL_ADDR + ((color) * 2) + 1];
+	auto target = ((row * 640) + column) * 4;
+	auto r = (snes >> 0) & 0x1F;
+	auto g = (snes >> 5) & 0x1F;
+	auto b = (snes >> 10) & 0x1F;
+	FADECODE;
+	if (!subtractive)
+	{
+		b = (pixels[target + 0] + ((b << 3) + (b >> 2))) / 2;
+		g = (pixels[target + 1] + ((g << 3) + (g >> 2))) / 2;
+		r = (pixels[target + 2] + ((r << 3) + (r >> 2))) / 2;
+		pixels[target + 0] = (b > 255) ? 255 : b;
+		pixels[target + 1] = (g > 255) ? 255 : g;
+		pixels[target + 2] = (r > 255) ? 255 : r;
+	}
+	else
+	{
+		b = (((b << 3) + (b >> 2)) - pixels[target + 0]) / 2;
+		g = (((g << 3) + (g >> 2)) - pixels[target + 1]) / 2;
+		r = (((r << 3) + (r >> 2)) - pixels[target + 2]) / 2;
+		pixels[target + 0] = (b < 0) ? 0 : b;
+		pixels[target + 1] = (g < 0) ? 0 : g;
+		pixels[target + 2] = (r < 0) ? 0 : r;
+	}
+}
 
 void RenderSprites(int line, int withPriority)
 {
@@ -169,6 +197,7 @@ void RenderSprites(int line, int withPriority)
 					r = lt;
 				}
 
+				//TODO: render blended if called for.
 				if (!gfx320)
 				{
 					//if (hPos + j < 0 || hPos + j > 640)
@@ -362,10 +391,20 @@ void RenderTileMode(int line)
 			if (color)
 			{
 				if (color) color += pal * 16;
-				RenderPixel(line, (x * 2) + 0, color);
-				RenderPixel(line, (x * 2) + 1, color);
-				RenderPixel(line + 1, (x * 2) + 0, color);
-				RenderPixel(line + 1, (x * 2) + 1, color);
+				if (mapBlend[layer])
+				{
+					RenderBlended(line, (x * 2) + 0, color, (mapBlend[layer] & 2) == 2);
+					RenderBlended(line, (x * 2) + 1, color, (mapBlend[layer] & 2) == 2);
+					RenderBlended(line + 1, (x * 2) + 0, color, (mapBlend[layer] & 2) == 2);
+					RenderBlended(line + 1, (x * 2) + 1, color, (mapBlend[layer] & 2) == 2);
+				}
+				else
+				{
+					RenderPixel(line, (x * 2) + 0, color);
+					RenderPixel(line, (x * 2) + 1, color);
+					RenderPixel(line + 1, (x * 2) + 0, color);
+					RenderPixel(line + 1, (x * 2) + 1, color);
+				}
 			}
 
 			if (hFlip) tileX = 7 - tileX;

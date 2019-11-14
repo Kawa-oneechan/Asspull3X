@@ -104,9 +104,15 @@ Identified by the value `4C50`, writing to the next byte pipes directly to the p
 
 ## Register map
 
-### 00000 Line
+### 00000	Line
 The current line being drawn as a `uint16`.
-### 00003 ScreenMode
+### 00002	TilemapBlend
+    SSSS EEEE
+    |    |_____ Enable for these layers
+    |__________ Subtract instead of add
+*Yeah, just... stick in there why don't you. You monster.*
+### 00003	ScreenMode
+### 00003	ScreenMode
     B32. ..MM
     |||    |___ Mode
     |||________ 240px tall instead of 480px
