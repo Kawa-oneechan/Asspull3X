@@ -121,6 +121,7 @@ void RenderSprites(int line, int withPriority)
 		if (withPriority > -1 && prio != withPriority)
 			continue;
 		auto tile = (spriteA >> 0) & 0x1FF;
+		auto blend = (spriteA >> 9) & 3;
 		auto pal = (spriteA >> 12) & 0x0F;
 		short hPos = ((spriteB & 0x7FF) << 21) >> 21;
 		short vPos = ((spriteB & 0x7FF000) << 10) >> 22;
@@ -197,24 +198,47 @@ void RenderSprites(int line, int withPriority)
 					r = lt;
 				}
 
-				//TODO: render blended if called for.
-				if (!gfx320)
+				if (blend == 0)
 				{
-					//if (hPos + j < 0 || hPos + j > 640)
-					if (l != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640) RenderPixel(line, hPos + hfJ + 0, l);
-					if (r != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640) RenderPixel(line, hPos + hfJ + 1, r);
+					if (!gfx320)
+					{
+						if (l != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640) RenderPixel(line, hPos + hfJ + 0, l);
+						if (r != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640) RenderPixel(line, hPos + hfJ + 1, r);
+					}
+					else
+					{
+						if (l != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640)
+						{
+							RenderPixel(line, hPos + hfJ + 0, l);
+							RenderPixel(line, hPos + hfJ + 1, l);
+						}
+						if (r != 0 && hPos + hfJ + 2 >= 0 && hPos + hfJ + 2 < 640)
+						{
+							RenderPixel(line, hPos + hfJ + 2, r);
+							RenderPixel(line, hPos + hfJ + 3, r);
+						}
+					}
 				}
 				else
 				{
-					if (l != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640)
+					bool sub = ((blend & 2) == 2);
+					if (!gfx320)
 					{
-						RenderPixel(line, hPos + hfJ + 0, l);
-						RenderPixel(line, hPos + hfJ + 1, l);
+						if (l != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640) RenderBlended(line, hPos + hfJ + 0, l, sub);
+						if (r != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640) RenderBlended(line, hPos + hfJ + 1, r, sub);
 					}
-					if (r != 0 && hPos + hfJ + 2 >= 0 && hPos + hfJ + 2 < 640)
+					else
 					{
-						RenderPixel(line, hPos + hfJ + 2, r);
-						RenderPixel(line, hPos + hfJ + 3, r);
+						if (l != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640)
+						{
+							RenderBlended(line, hPos + hfJ + 0, l, sub);
+							RenderBlended(line, hPos + hfJ + 1, l, sub);
+						}
+						if (r != 0 && hPos + hfJ + 2 >= 0 && hPos + hfJ + 2 < 640)
+						{
+							RenderBlended(line, hPos + hfJ + 2, r, sub);
+							RenderBlended(line, hPos + hfJ + 3, r, sub);
+						}
 					}
 				}
 			}

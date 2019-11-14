@@ -48,8 +48,9 @@ Address space is effectively 28 bits:
     |____________________ Palette #
 
 ## Sprite
-    PPPP E..T TTTT TTTT
-    |    |  |____________ Tile #
+    PPPPEBBTTTTTTTTT
+    |    || |____________ Tile #
+    |    ||______________ Blend mode (0 off, 1 add, 2 subtract)
     |    |_______________ Enabled
     |____________________ Palette #
     PPP2 vhyx ...V VVVV VVVV ..HH HHHH HHHH
