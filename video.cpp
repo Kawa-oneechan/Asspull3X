@@ -14,7 +14,7 @@
 #define RENDERPIXELS_DEFINE
 
 bool gfx320, gfx240, gfxTextBold;
-int gfxMode, gfxFade, scrollX[4], scrollY[4], tileShift[2], mapEnabled[4];
+int gfxMode, gfxFade, scrollX[4], scrollY[4], tileShift[2], mapEnabled[4], mapBlend[4];
 
 SDL_Window* sdlWindow = NULL;
 #ifdef WITH_OPENGL
@@ -25,53 +25,72 @@ unsigned int programId = 0;
 SDL_Surface* sdlSurface = NULL;
 #endif
 
-unsigned char* pixels;
+unsigned short* pixels;
 
-#define FADECODE \
-	if (gfxFade > 0) \
-	{ \
-		auto f = (gfxFade & 31); \
-		if ((gfxFade & 0x80) == 0x80) \
-		{ \
-			r = ((r + f > 31) ? 31 : r + f); \
-			g = ((g + f > 31) ? 31 : g + f); \
-			b = ((b + f > 31) ? 31 : b + f); \
-		} \
-		else \
-		{ \
-			r = ((r - f < 0) ? 0 : r - f); \
-			g = ((g - f < 0) ? 0 : g - f); \
-			b = ((b - f < 0) ? 0 : b - f); \
-		} \
-	}
+#define GETCOLOR(color) (ramVideo[PAL_ADDR + ((color) * 2) + 0] << 8) + ramVideo[PAL_ADDR + ((color) * 2) + 1]
+
+//by Alcaro
+unsigned short add_rgb(unsigned short rgb, unsigned short add)
+{
+	unsigned short low_bit = ((1<<10) | (1<<5) | (1<<0));
+	add = add * low_bit;
+	unsigned short out_low = rgb ^ add; // this is the correct value in the low bit, others are garbage
+	unsigned short out_add = rgb + add;
+	unsigned short overflowed = (out_add^out_low) & (low_bit<<5); // if low^add is nonzero at positions 5, 10 or 15, it overflowed
+	out_add -= overflowed; // remove overflow from 5/10/15
+	out_add |= (overflowed - (overflowed>>5)); // and saturate the overflowed channels
+	return out_add;
+}
 
 #ifdef RENDERPIXELS_DEFINE
 #define RenderPixel(row, column, color) \
 { \
-	auto snes = (ramVideo[PAL_ADDR + ((color) * 2) + 0] << 8) + ramVideo[PAL_ADDR + ((color) * 2) + 1]; \
-	auto target = (((row) * 640) + (column)) * 4; \
-	auto r = (snes >> 0) & 0x1F; \
-	auto g = (snes >> 5) & 0x1F; \
-	auto b = (snes >> 10) & 0x1F; \
-	FADECODE; \
-	pixels[target + 0] = (b << 3) + (b >> 2); \
-	pixels[target + 1] = (g << 3) + (g >> 2); \
-	pixels[target + 2] = (r << 3) + (r >> 2); \
+	auto newColor = (color); \
+	if (gfxFade != 0) \
+	{ \
+		if (gfxFade == 0xFF) newColor = 0x7FFF; \
+		else if (gfxFade == 0x7F) newColor = 0; \
+		else if (gfxFade & 0x80) \
+			newColor = add_rgb(newColor, gfxFade & 31); \
+		else \
+			newColor = ~add_rgb(~newColor, gfxFade & 31); \
+	} \
+	pixels[((row) * 640) + (column)] = newColor; \
 }
 #else
 inline void RenderPixel(int row, int column, int color)
 {
-	auto snes = (ramVideo[PAL_ADDR + ((color) * 2) + 0] << 8) + ramVideo[PAL_ADDR + ((color) * 2) + 1];
-	auto target = ((row * 640) + column) * 4;
-	auto r = (snes >> 0) & 0x1F;
-	auto g = (snes >> 5) & 0x1F;
-	auto b = (snes >> 10) & 0x1F;
-	FADECODE;
-	pixels[target + 0] = (b << 3) + (b >> 2);
-	pixels[target + 1] = (g << 3) + (g >> 2);
-	pixels[target + 2] = (r << 3) + (r >> 2);
+	if (gfxFade != 0)
+	{
+		if (gfxFade == 0xFF) color = 0x7FFF;
+		else if (gfxFade == 0x7F) color = 0;
+		else if (gfxFade & 0x80)
+			color = add_rgb(color, gfxFade & 31);
+		else
+			color = ~add_rgb(~color, gfxFade & 31);
+	}
+	pixels[((row * 640) + column)] = color;
 }
 #endif
+
+uint16_t Blend(unsigned int x, unsigned int y, bool subtract)
+{
+	if(!subtract)
+	{
+		return (x + y - ((x ^ y) & 0x0421)) >> 1;
+	}
+	else
+	{
+		unsigned int diff = x - y + 0x8420;
+		unsigned int borrow = (diff - ((x ^ y) & 0x8420)) & 0x8420;
+		return (((diff - borrow) & (borrow - (borrow >> 5))) & 0x7bde) >> 1;
+	}
+}
+
+inline uint16_t FetchPixel(int row, int column)
+{
+	return pixels[((row * 640) + column)];
+}
 
 void RenderSprites(int line, int withPriority)
 {
@@ -160,8 +179,8 @@ void RenderSprites(int line, int withPriority)
 					continue;
 				auto l = (twoPix >> 0) & 0x0F;
 				auto r = (twoPix >> 4) & 0x0F;
-				if (l) l += pal * 16;
-				if (r) r += pal * 16;
+				if (l) l = GETCOLOR(l + (pal * 16));
+				if (r) r = GETCOLOR(r + (pal * 16));
 				if (hFlip)
 				{
 					auto lt = l;
@@ -227,17 +246,19 @@ void RenderTextMode(int line)
 		//	continue;
 		auto glyph = font + (chr * (gfx240 ? 16 : 8)); //8);
 		auto scan = ramVideo[glyph + tileY];
+		auto fg = GETCOLOR(att & 0xF);
+		auto bg = GETCOLOR(att >> 4);
 		if (!gfx320)
 		{
 			for (auto bit = 0; bit < 8; bit++)
-				RenderPixel(line, (col * 8) + bit, ((scan >> bit) & 1) == 1 ? (att & 0xF) : (att >> 4));
+				RenderPixel(line, (col * 8) + bit, ((scan >> bit) & 1) == 1 ? fg : bg);
 		}
 		else
 		{
 			for (auto bit = 0; bit < 8; bit++)
 			{
-				RenderPixel(line, (col * 16) + (bit * 2) + 0, ((scan >> bit) & 1) == 1 ? (att & 0xF) : (att >> 4));
-				RenderPixel(line, (col * 16) + (bit * 2) + 1, ((scan >> bit) & 1) == 1 ? (att & 0xF) : (att >> 4));
+				RenderPixel(line, (col * 16) + (bit * 2) + 0, ((scan >> bit) & 1) == 1 ? fg : bg);
+				RenderPixel(line, (col * 16) + (bit * 2) + 1, ((scan >> bit) & 1) == 1 ? fg : bg);
 			}
 		}
 	}
@@ -254,8 +275,8 @@ void RenderBitmapMode1(int line)
 	{
 		auto twoPix = ramVideo[effective * imgWidth + p];
 		p++;
-		auto l = (twoPix >> 4) & 0x0F;
-		auto r = (twoPix >> 0) & 0x0F;
+		auto l = GETCOLOR((twoPix >> 4) & 0x0F);
+		auto r = GETCOLOR((twoPix >> 0) & 0x0F);
 		if (!gfx320)
 		{
 			RenderPixel(line, col + 0, l);
@@ -280,7 +301,7 @@ void RenderBitmapMode2(int line)
 	auto p = 0;
 	for (auto col = 0; col < 640; col++)
 	{
-		auto pixel = ramVideo[effective * imgWidth + p];
+		auto pixel = GETCOLOR(ramVideo[effective * imgWidth + p]);
 		p++;
 		if (!gfx320)
 		{
@@ -310,12 +331,13 @@ void RenderTileMode(int line)
 	{
 		if (layer == -1)
 		{
+			auto color = GETCOLOR(0);
 			for (auto x = 0; x < 320; x++)
 			{
-				RenderPixel(line, (x * 2) + 0, 0);
-				RenderPixel(line, (x * 2) + 1, 0);
-				RenderPixel(line + 1, (x * 2) + 0, 0);
-				RenderPixel(line + 1, (x * 2) + 1, 0);
+				RenderPixel(line, (x * 2) + 0, color);
+				RenderPixel(line, (x * 2) + 1, color);
+				RenderPixel(line + 1, (x * 2) + 0, color);
+				RenderPixel(line + 1, (x * 2) + 1, color);
 			}
 			RenderSprites(line, 4);
 			RenderSprites(line + 1, 4);
@@ -362,10 +384,23 @@ void RenderTileMode(int line)
 			if (color)
 			{
 				if (color) color += pal * 16;
-				RenderPixel(line, (x * 2) + 0, color);
-				RenderPixel(line, (x * 2) + 1, color);
-				RenderPixel(line + 1, (x * 2) + 0, color);
-				RenderPixel(line + 1, (x * 2) + 1, color);
+
+				color = GETCOLOR(color);
+				if (color)
+				{
+					if (mapBlend[layer])
+					{
+						if (layer == 0)
+							color = Blend(color, (ramVideo[PAL_ADDR + 0] << 8) + ramVideo[PAL_ADDR + 1], (mapBlend[layer] & 2) == 2);
+						else
+							color = Blend(color, FetchPixel(line, x * 2), (mapBlend[layer] & 2) == 2);
+					}
+
+					RenderPixel(line, (x * 2) + 0, color);
+					RenderPixel(line, (x * 2) + 1, color);
+					RenderPixel(line + 1, (x * 2) + 0, color);
+					RenderPixel(line + 1, (x * 2) + 1, color);
+				}
 			}
 
 			if (hFlip) tileX = 7 - tileX;
@@ -596,7 +631,7 @@ void presentBackBuffer(SDL_Renderer *renderer, SDL_Window* win, SDL_Texture* bac
 void VBlank()
 {
 	SDL_SetRenderTarget(sdlRenderer, sdlTexture);
-	SDL_UpdateTexture(sdlTexture, NULL, pixels, 640 * 4);
+	SDL_UpdateTexture(sdlTexture, NULL, pixels, 640 * 2);
 	presentBackBuffer(sdlRenderer, sdlWindow, sdlTexture, programId);
 	//SDL_UpdateWindowSurface(sdlWindow);
 }
@@ -625,13 +660,13 @@ int InitVideo()
 	initGLExtensions();
 	programId = compileProgram(ini->Get("video", "shader", "")); //("crt.fragment");
 
-	if ((sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_TARGET, 640, 480)) == NULL)
+	if ((sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_ABGR1555, SDL_TEXTUREACCESS_TARGET, 640, 480)) == NULL)
 	{
 		SDL_Log("Could not create renderer: %s", SDL_GetError());
 		return -2;
 	}
 
-	pixels = (unsigned char*)malloc(640 * 480 * 4);
+	pixels = (unsigned short*)malloc(640 * 480 * 2);
 
 	SDL_ShowCursor(0);
 	return 0;
@@ -706,9 +741,9 @@ int InitVideo()
 		SDL_Log("Could not get surface: %s", SDL_GetError());
 		return -2;
 	}
-	pixels = (unsigned char*)sdlSurface->pixels;
+	pixels = (unsigned short*)sdlSurface->pixels;
 
-	if (sdlSurface->format->format != SDL_PIXELFORMAT_RGB888)
+	if (sdlSurface->format->format != SDL_PIXELFORMAT_ABGR1555)
 		SDL_Log("Surface format is wrong, should be 32-bit XRGB. Output may be fucky.");
 
 	return 0;

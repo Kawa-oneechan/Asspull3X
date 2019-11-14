@@ -177,25 +177,19 @@ int pullDownLefts[4] = { 0 };
 int pullDownTops[4] = { 0 };
 int currentTopMenu = -1;
 
-extern unsigned char* pixels;
+extern unsigned short* pixels;
+extern uint16_t Blend(unsigned int, unsigned int, bool);
+
 inline void RenderRawPixel(int row, int column, int color)
 {
 	if (row < 0 || row >= 480 || column < 0 || column >= 640) return;
-	auto target = (((row) * 640) + (column)) * 4;
-	auto r = (color >> 0) & 0x1F;
-	auto g = (color >> 5) & 0x1F;
-	auto b = (color >> 10) & 0x1F;
-	pixels[target + 0] = (b << 3) + (b >> 2);
-	pixels[target + 1] = (g << 3) + (g >> 2);
-	pixels[target + 2] = (r << 3) + (r >> 2);
+	pixels[((row) * 640) + (column)] = color;
 }
 inline void DarkenPixel(int row, int column)
 {
 	if (row < 0 || row >= 480 || column < 0 || column >= 640) return;
-	auto target = (((row) * 640) + (column)) * 4;
-	pixels[target + 0] = pixels[target + 0] / 2;
-	pixels[target + 1] = pixels[target + 1] / 2;
-	pixels[target + 2] = pixels[target + 2] / 2;
+	auto target = (row * 640) + column;
+	pixels[target] = Blend(pixels[target], 0, true);
 }
 
 int justClicked = 0;

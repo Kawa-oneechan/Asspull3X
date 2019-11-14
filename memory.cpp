@@ -35,7 +35,7 @@ extern unsigned char PollKeyboard(bool force);
 long ticks = 0;
 
 extern bool gfx320, gfx240, gfxTextBold;
-extern int gfxMode, gfxFade, scrollX[4], scrollY[4], tileShift[4], mapEnabled[4];
+extern int gfxMode, gfxFade, scrollX[4], scrollY[4], tileShift[4], mapEnabled[4], mapBlend[4];
 
 extern int line, interrupts;
 
@@ -206,6 +206,12 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 		auto u8 = (unsigned char)value;
 		switch (reg)
 		{
+			case 0x02: //TilemapBlend
+				mapBlend[0] = ((u8 >> 0) & 1) | (((u8 >> 4) & 1) << 1);
+				mapBlend[1] = ((u8 >> 1) & 1) | (((u8 >> 5) & 1) << 1);
+				mapBlend[2] = ((u8 >> 2) & 1) | (((u8 >> 6) & 1) << 1);
+				mapBlend[3] = ((u8 >> 3) & 1) | (((u8 >> 7) & 1) << 1);
+				break;
 			case 0x03: //ScreenMode
 				gfxTextBold = ((u8 >> 7) & 1) == 1;
 				gfx320 = ((u8 >> 6) & 1) == 1;

@@ -48,8 +48,9 @@ Address space is effectively 28 bits:
     |____________________ Palette #
 
 ## Sprite
-    PPPP E..T TTTT TTTT
-    |    |  |____________ Tile #
+    PPPP EBBT TTTT TTTT
+    |    ||||____________ Tile #
+    |    ||______________ Blend mode (0 off, 1 add, 2 subtract)
     |    |_______________ Enabled
     |____________________ Palette #
     PPP2 vhyx ...V VVVV VVVV ..HH HHHH HHHH
@@ -104,9 +105,13 @@ Identified by the value `4C50`, writing to the next byte pipes directly to the p
 
 ## Register map
 
-### 00000 Line
+### 00000	Line
 The current line being drawn as a `uint16`.
-### 00003 ScreenMode
+### 00002	TilemapBlend
+    SSSS EEEE
+    |    |_____ Enable for these layers
+    |__________ Subtract instead of add for these
+### 00003	ScreenMode
     B32. ..MM
     |||    |___ Mode
     |||________ 240px tall instead of 480px

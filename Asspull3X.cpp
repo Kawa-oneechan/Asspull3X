@@ -12,6 +12,7 @@ extern void Screenshot();
 extern int uiCommand, uiData;
 extern char uiFPS[];
 extern void SetStatus(char*);
+extern uint16_t Blend(unsigned int, unsigned int, bool);
 
 extern unsigned int biosSize, romSize;
 
@@ -20,8 +21,8 @@ IniFile* ini;
 char biosPath[256], romPath[256], diskPath[256];
 
 int pauseState = 0;
-unsigned char* pauseScreen;
-extern unsigned char* pixels;
+unsigned short* pauseScreen;
+extern unsigned short* pixels;
 
 static const unsigned char bespokeDiskMBS[] =
 {
@@ -154,7 +155,7 @@ int main(int argc, char*argv[])
 	if (InitSound(midiNum) < 0)
 		return 0;
 
-	pauseScreen = (unsigned char*)malloc(640 * 480 * 4);
+	pauseScreen = (unsigned short*)malloc(640 * 480 * 2);
 
 	SDL_Joystick *controller = NULL;
 	if (SDL_NumJoysticks() > 0)
@@ -388,13 +389,8 @@ int main(int argc, char*argv[])
 			{
 				if (pauseState == 1) //pausing now!
 				{
-					memcpy(pauseScreen, pixels, 640 * 480 * 4);
-					for (auto i = 0; i < 640 * 480 * 4; i += 4)
-					{
-						pauseScreen[i + 0] /= 2;
-						pauseScreen[i + 1] /= 2;
-						pauseScreen[i + 2] /= 2;
-					}
+					for (auto i = 0; i < 640 * 480; i++)
+						pauseScreen[i] = Blend(pixels[i], 0x0000, true);
 					pauseState = 2;
 				}
 				HandleUI();
@@ -429,7 +425,7 @@ int main(int argc, char*argv[])
 		}
 		else if (pauseState == 2)
 		{
-			memcpy(pixels, pauseScreen, 640 * 480 * 4);
+			memcpy(pixels, pauseScreen, 640 * 480 * 2);
 			HandleUI();
 			VBlank();
 		}
