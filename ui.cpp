@@ -147,11 +147,12 @@ const uiMenu _defaultDeviceMenu =
 
 const uiMenu toolsMenu =
 {
-	3, 96, _uiToolsMenu,
+	4, 96, _uiToolsMenu,
 	{
 		{ "Screenshot", 'S' },
 		{ "Dump RAM", 'D' },
 		{ "Memory viewer", 0 },
+		{ "Options", 0 },
 	}
 };
 
@@ -461,6 +462,7 @@ void CloseWindow(int token)
 			for (int j = i + 1; j < MAXWINDOWS; j++)
 				memcpy(&windows[j - 1], &windows[j], sizeof(uiWindow));
 			uiOpenWindows--;
+			BringWindowToFront(windows[uiOpenWindows - 1].token);
 			return;
 		}
     }
@@ -797,6 +799,37 @@ int uiHandleIconButton(int left, int top, int icon)
 	return buttons;
 }
 
+int uiHandleCheckbox(int left, int top, char* caption, bool state)
+{
+	int x = 0, y = 0;
+	int buttons = GetMouseState(&x, &y);
+	auto fill = BUTTON_FILL;
+	auto text = BUTTON_TEXT;
+	if (x > left && y > top && x < left + 14 + MeasureString(caption)  && y < top + 10)
+	{
+		fill = BUTTON_HIGHLIGHT;
+		text = BUTTON_HIGHTEXT;
+	}
+	else
+		buttons = 0;
+	for (auto col = left; col < left + 10; col++)
+	{
+		RenderRawPixel(top, col, BUTTON_BORDER_T);
+		RenderRawPixel(top + 9, col, BUTTON_BORDER_B);
+	}
+	for (auto row = top + 1; row < top + 9; row++)
+	{
+		RenderRawPixel(row, left, BUTTON_BORDER_L);
+		for (auto col = left + 1; col < left + 9; col++)
+			RenderRawPixel(row, col, fill);
+		RenderRawPixel(row, left + 9, BUTTON_BORDER_R);
+	}
+	if (state)
+		DrawCharacter(left + 1, top + 1, text, 256 + 14);
+	DrawString(left + 14, top + 1, WINDOW_TEXT, caption);
+	return buttons;
+}
+
 extern int pauseState;
 void HandleUI()
 {
@@ -876,8 +909,7 @@ void PopulateDeviceMenu()
 	}
 }
 
-extern uiWindow aboutWindow;
-extern uiWindow memoryViewerWindow;
+extern uiWindow aboutWindow, memoryViewerWindow, optionsWindow;
 
 int uiCommand, uiData;
 
@@ -963,6 +995,11 @@ int _uiAddDeviceMenu(int item, int itemLeft, int itemTop)
 {
 	pullDownLevel = 0;
 	currentTopMenu = -1;
+	if (currentDeviceMenu == 0)
+	{
+		SetStatus("You can't replace the primary disk drive.");
+		return 0;
+	}
 	char key[8] = { 0 };
 	SDL_itoa(currentDeviceMenu, key, 10);
 	switch (item)
@@ -974,7 +1011,10 @@ int _uiAddDeviceMenu(int item, int itemLeft, int itemTop)
 		ini->Set("devices", key, "");
 		break;
 	case 1: //Disk drive
-		SetStatus("You can't add any more disk drives, actually.");
+		if (devices[currentDeviceMenu] != 0)
+			delete devices[currentDeviceMenu];
+		devices[currentDeviceMenu] = 0;
+		ini->Set("devices", key, "");
 		break;
 	case 2: //Memory Viewer
 		if (devices[currentDeviceMenu] == 0 || devices[currentDeviceMenu]->GetID() != 0x4C50)
@@ -1005,7 +1045,8 @@ int _uiDiskDriveMenu(int item, int itemLeft, int itemTop)
 		uiCommand = cmdCreateDisk;
 		break;
 	case 3: //Disconnect
-		SetStatus("You can't disconnect the disk drive, actually.");
+		if (currentDeviceMenu == 0)
+			SetStatus("You can't disconnect the primary disk drive, actually.");
 		break;
 	}
 	return 0;
@@ -1042,6 +1083,9 @@ int _uiToolsMenu(int item, int itemLeft, int itemTop)
 		break;
 	case 2: //Memory Viewer
 		OpenWindow((uiWindow*)&memoryViewerWindow);
+		break;
+	case 3: //Options
+		OpenWindow((uiWindow*)&optionsWindow);
 		break;
 	}
 	return 0;
@@ -2410,3 +2454,21 @@ int _uiMemoryViewer(int me)
 	return 0;
 }
 
+extern bool stretch200;
+int _uiOptions(int);
+uiWindow optionsWindow = { 0x6969, 64, 64, 256, 128, "Options", _uiOptions };
+int _uiOptions(int me)
+{
+	auto win = &windows[me];
+	DrawString(win->left + 8, win->top + 40, WINDOW_TEXT, "Work in obvious progress.");
+	if (uiHandleIconButton(win->left + 244, win->top + 2, 0))
+	{
+		CloseWindow(0x6969);
+		return -1;
+	}
+	if (uiHandleCheckbox(win->left + 8, win->top + 20, "Aspect correction", stretch200))
+	{
+		stretch200 = !stretch200;
+		ini->Set("video", "stretch200", stretch200 ? "true" : "false");
+	}
+}
