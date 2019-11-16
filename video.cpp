@@ -13,7 +13,7 @@
 
 #define RENDERPIXELS_DEFINE
 
-bool gfx320, gfx240, gfxTextBold;
+bool gfx320, gfx240, gfxTextBold, stretch200;
 int gfxMode, gfxFade, scrollX[4], scrollY[4], tileShift[2], mapEnabled[4], mapBlend[4];
 
 SDL_Window* sdlWindow = NULL;
@@ -301,6 +301,16 @@ void RenderBitmapMode1(int line)
 {
 	auto imgWidth = gfx320 ? 160 : 320; //image is 160 or 320 bytes wide
 	auto sourceLine = gfxTextBold ? (int)(line * 0.835) : line;
+	if (gfxTextBold && !stretch200)
+	{
+		if (line < 40 || line > 439)
+		{
+			for (auto col = 0; col < 640 * 4; col++)
+				pixels[(line * 640 * 4) + col] = 0;
+			return;
+		}
+		sourceLine = line - 40;
+	}
 	auto effective = BMP_ADDR + (gfx240 ? sourceLine / 2 : sourceLine);
 	auto p = 0;
 	for (auto col = 0; col < 640; col += (gfx320 ? 4 : 2))
@@ -329,6 +339,16 @@ void RenderBitmapMode2(int line)
 {
 	auto imgWidth = gfx320 ? 320 : 640;
 	auto sourceLine = gfxTextBold ? (int)(line * 0.835) : line;
+	if (gfxTextBold && !stretch200)
+	{
+		if (line < 40 || line > 439)
+		{
+			for (auto col = 0; col < 640 * 4; col++)
+				pixels[(line * 640 * 4) + col] = 0;
+			return;
+		}
+		sourceLine = line - 40;
+	}
 	auto effective = BMP_ADDR + (gfx240 ? sourceLine / 2 : sourceLine);
 	auto p = 0;
 	for (auto col = 0; col < 640; col++)
@@ -695,6 +715,9 @@ int InitVideo()
 	}
 
 	pixels = (unsigned char*)malloc(640 * 480 * 4);
+
+	auto thing = ini->Get("video", "stretch200", "false");
+	if (thing[0] == 't' || thing[0] == 'T' || thing[0] == 1) stretch200 = true;
 
 	SDL_ShowCursor(0);
 	return 0;

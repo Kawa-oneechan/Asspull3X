@@ -40,15 +40,14 @@ Address space is effectively 28 bits:
 * sprites idea B: up to 256 32-bit entries = 1024 => `$00400`
 
 ## Tilemap cell
-    PPPP vhpT TTTT TTTT
-    |    ||||____________ Tile #
-    |    |||_____________ Priority
+    PPPP vh.T TTTT TTTT
+    |    || |____________ Tile #
     |    ||______________ Horizontal flip
     |    |_______________ Vertical flip
     |____________________ Palette #
 
 ## Sprite
-    PPPPEBBTTTTTTTTT
+    PPPP EBBT TTTT TTTT
     |    || |____________ Tile #
     |    ||______________ Blend mode (0 off, 1 add, 2 subtract)
     |    |_______________ Enabled
