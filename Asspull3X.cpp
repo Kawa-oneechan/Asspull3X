@@ -22,6 +22,7 @@ char biosPath[256], romPath[256], diskPath[256];
 int pauseState = 0;
 unsigned char* pauseScreen;
 extern unsigned char* pixels;
+bool fpsCap;
 
 static const unsigned char bespokeDiskMBS[] =
 {
@@ -122,6 +123,7 @@ int main(int argc, char*argv[])
 	thing = ini->Get("media", "lastROM", ""); strcpy_s(romPath, 256, thing);
 	thing = ini->Get("media", "lastDisk", ""); strcpy_s(diskPath, 256, thing);
 	thing = ini->Get("media", "midiDevice", ""); auto midiNum = SDL_atoi(thing);
+	thing = ini->Get("video", "fpscap", "true"); if (thing[0] == 't' || thing[0] == 'T' || thing[0] == 1) fpsCap = true;
 
 	if (InitVideo() < 0)
 		return 0;
@@ -409,7 +411,7 @@ int main(int argc, char*argv[])
 				if (averageFPS > 2000000)
 					averageFPS = 0;
 				sprintf_s(uiFPS, 32, "%d", (int)averageFPS);
-				if (delta < 20)
+				if (fpsCap && delta < 20)
 					SDL_Delay(20 - delta);
 				startTime = endTime;
 				endTime = SDL_GetTicks();

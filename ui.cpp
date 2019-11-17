@@ -2411,7 +2411,7 @@ int _uiAboutWin(int me)
 extern "C" unsigned int m68k_read_memory_8(unsigned int address);
 int _uiMemoryViewer(int);
 uiWindow memoryViewerWindow = { 0x1337, 128, 128, 260, 334, "Memory Viewer", _uiMemoryViewer };
-signed long memViewerOffset = PAL_ADDR;
+signed long memViewerOffset = MAP1_ADDR;
 #define MAXVIEWEROFFSET (0x10000000 - 0x100)
 int _uiMemoryViewer(int me)
 {
@@ -2454,21 +2454,27 @@ int _uiMemoryViewer(int me)
 	return 0;
 }
 
-extern bool stretch200;
+extern bool stretch200, fpsCap;
 int _uiOptions(int);
 uiWindow optionsWindow = { 0x6969, 64, 64, 256, 128, "Options", _uiOptions };
 int _uiOptions(int me)
 {
 	auto win = &windows[me];
-	DrawString(win->left + 8, win->top + 40, WINDOW_TEXT, "Work in obvious progress.");
+	DrawString(win->left + 4, win->top + 48, WINDOW_TEXT, "Work in obvious progress.");
 	if (uiHandleIconButton(win->left + 244, win->top + 2, 0))
 	{
 		CloseWindow(0x6969);
 		return -1;
 	}
-	if (uiHandleCheckbox(win->left + 8, win->top + 20, "Aspect correction", stretch200))
+	else if (uiHandleCheckbox(win->left + 4, win->top + 16, "FPS cap", fpsCap))
+	{
+		fpsCap = !fpsCap;
+		ini->Set("video", "fpscap", fpsCap ? "true" : "false");
+	}
+	else if (uiHandleCheckbox(win->left + 4, win->top + 32, "Aspect correction", stretch200))
 	{
 		stretch200 = !stretch200;
 		ini->Set("video", "stretch200", stretch200 ? "true" : "false");
 	}
+	return 0;
 }
