@@ -7,7 +7,6 @@ extern "C" {
 
 static bool quit = 0;
 int line = 0, interrupts = 0;
-extern "C" INLINE void m68ki_set_sr(unsigned int value);
 extern void Screenshot();
 extern int uiCommand, uiData;
 extern char uiFPS[];
@@ -180,7 +179,6 @@ int main(int argc, char*argv[])
 	SDL_Log("Resetting Musashi...");
 	m68k_init();
 	m68k_set_cpu_type(M68K_CPU_TYPE_68020);
-	m68ki_set_sr(0);
 	m68k_pulse_reset();
 
 	SDL_Log("Asspull IIIx is ready.");
@@ -256,7 +254,6 @@ int main(int argc, char*argv[])
 			}
 		}
 
-		//TODO: enumerate the uiCommands.
 		if (uiCommand != cmdNone)
 		{
 			if (uiCommand == cmdLoadRom)
@@ -373,7 +370,6 @@ int main(int argc, char*argv[])
 			uiCommand = uiData = 0;
 		}
 
-		//if (interrupts & 0x80 == 0)
 		if (pauseState != 2)
 		{
 			m68k_execute(hBlankEvery);

@@ -1,10 +1,20 @@
 #include <math.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include "m68kcpu.h"
 
 extern void exit(int);
 
-static void fatalerror(char *format, ...) {
+#if defined(_MSC_VER)
+#  define NORETURN __declspec(noreturn)
+#elif defined(__clang__) || defined(__GNUC__)
+#  define NORETURN __attribute__((noreturn))
+#else
+#  define NORETURN
+#endif
+
+// TODO: Remove this and replace with a non-fatal signaling mechanism
+static NORETURN void fatalerror(char *format, ...) {
       va_list ap;
       va_start(ap,format);
       fprintf(stderr,format,ap);
@@ -21,7 +31,7 @@ static void fatalerror(char *format, ...) {
 #define DOUBLE_EXPONENT					(unsigned long long)(0x7ff0000000000000)
 #define DOUBLE_MANTISSA					(unsigned long long)(0x000fffffffffffff)
 
-INLINE void SET_CONDITION_CODES(fp_reg reg)
+static void SET_CONDITION_CODES(fp_reg reg)
 {
 	REG_FPSR &= ~(FPCC_N|FPCC_Z|FPCC_I|FPCC_NAN);
 
@@ -50,7 +60,7 @@ INLINE void SET_CONDITION_CODES(fp_reg reg)
 	}
 }
 
-INLINE int TEST_CONDITION(int condition)
+static int TEST_CONDITION(int condition)
 {
 	int n = (REG_FPSR & FPCC_N) != 0;
 	int z = (REG_FPSR & FPCC_Z) != 0;

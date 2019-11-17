@@ -30,6 +30,10 @@
 #ifndef M68K__HEADER
 #define M68K__HEADER
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef ARRAY_LENGTH
 #define ARRAY_LENGTH(x)         (sizeof(x) / sizeof(x[0]))
 #endif
@@ -165,28 +169,28 @@ typedef enum
  */
 
 /* Read from anywhere */
-extern unsigned int  m68k_read_memory_8(unsigned int address);
-extern unsigned int  m68k_read_memory_16(unsigned int address);
-extern unsigned int  m68k_read_memory_32(unsigned int address);
+unsigned int  m68k_read_memory_8(unsigned int address);
+unsigned int  m68k_read_memory_16(unsigned int address);
+unsigned int  m68k_read_memory_32(unsigned int address);
 
 /* Read data immediately following the PC */
-extern unsigned int  m68k_read_immediate_16(unsigned int address);
-extern unsigned int  m68k_read_immediate_32(unsigned int address);
+unsigned int  m68k_read_immediate_16(unsigned int address);
+unsigned int  m68k_read_immediate_32(unsigned int address);
 
 /* Read data relative to the PC */
-extern unsigned int  m68k_read_pcrelative_8(unsigned int address);
-extern unsigned int  m68k_read_pcrelative_16(unsigned int address);
-extern unsigned int  m68k_read_pcrelative_32(unsigned int address);
+unsigned int  m68k_read_pcrelative_8(unsigned int address);
+unsigned int  m68k_read_pcrelative_16(unsigned int address);
+unsigned int  m68k_read_pcrelative_32(unsigned int address);
 
 /* Memory access for the disassembler */
-extern unsigned int m68k_read_disassembler_8  (unsigned int address);
-extern unsigned int m68k_read_disassembler_16 (unsigned int address);
-extern unsigned int m68k_read_disassembler_32 (unsigned int address);
+unsigned int m68k_read_disassembler_8  (unsigned int address);
+unsigned int m68k_read_disassembler_16 (unsigned int address);
+unsigned int m68k_read_disassembler_32 (unsigned int address);
 
 /* Write to anywhere */
-extern void m68k_write_memory_8(unsigned int address, unsigned int value);
-extern void m68k_write_memory_16(unsigned int address, unsigned int value);
-extern void m68k_write_memory_32(unsigned int address, unsigned int value);
+void m68k_write_memory_8(unsigned int address, unsigned int value);
+void m68k_write_memory_16(unsigned int address, unsigned int value);
+void m68k_write_memory_32(unsigned int address, unsigned int value);
 
 /* Special call to simulate undocumented 68k behavior when move.l with a
  * predecrement destination mode is executed.
@@ -195,7 +199,7 @@ extern void m68k_write_memory_32(unsigned int address, unsigned int value);
  *
  * Enable this functionality with M68K_SIMULATE_PD_WRITES in m68kconf.h.
  */
-extern void m68k_write_memory_32_pd(unsigned int address, unsigned int value);
+void m68k_write_memory_32_pd(unsigned int address, unsigned int value);
 
 
 
@@ -221,7 +225,7 @@ extern void m68k_write_memory_32_pd(unsigned int address, unsigned int value);
  * services the interrupt.
  * Default behavior: return M68K_INT_ACK_AUTOVECTOR.
  */
-extern void m68k_set_int_ack_callback(int  (*callback)(int int_level));
+void m68k_set_int_ack_callback(int  (*callback)(int int_level));
 
 
 /* Set the callback for a breakpoint acknowledge (68010+).
@@ -230,7 +234,7 @@ extern void m68k_set_int_ack_callback(int  (*callback)(int int_level));
  * BKPT instruction for 68020+, or 0 for 68010.
  * Default behavior: do nothing.
  */
-extern void m68k_set_bkpt_ack_callback(void (*callback)(unsigned int data));
+void m68k_set_bkpt_ack_callback(void (*callback)(unsigned int data));
 
 
 /* Set the callback for the RESET instruction.
@@ -238,7 +242,7 @@ extern void m68k_set_bkpt_ack_callback(void (*callback)(unsigned int data));
  * The CPU calls this callback every time it encounters a RESET instruction.
  * Default behavior: do nothing.
  */
-extern void m68k_set_reset_instr_callback(void  (*callback)(void));
+void m68k_set_reset_instr_callback(void  (*callback)(void));
 
 
 /* Set the callback for informing of a large PC change.
@@ -247,14 +251,14 @@ extern void m68k_set_reset_instr_callback(void  (*callback)(void));
  * by a large value (currently set for changes by longwords).
  * Default behavior: do nothing.
  */
-extern void m68k_set_pc_changed_callback(void  (*callback)(unsigned int new_pc));
+void m68k_set_pc_changed_callback(void  (*callback)(unsigned int new_pc));
 
 /* Set the callback for the TAS instruction.
  * You must enable M68K_TAS_HAS_CALLBACK in m68kconf.h.
  * The CPU calls this callback every time it encounters a TAS instruction.
  * Default behavior: return 1, allow writeback.
  */
-extern void m68k_set_tas_instr_callback(int  (*callback)(void));
+void m68k_set_tas_instr_callback(int  (*callback)(void));
 
 /* Set the callback for illegal instructions.
  * You must enable M68K_ILLG_HAS_CALLBACK in m68kconf.h.
@@ -262,7 +266,7 @@ extern void m68k_set_tas_instr_callback(int  (*callback)(void));
  * which must return 1 if it handles the instruction normally or 0 if it's really an illegal instruction.
  * Default behavior: return 0, exception will occur.
  */
-extern void m68k_set_illg_instr_callback(int  (*callback)(int));
+void m68k_set_illg_instr_callback(int  (*callback)(int));
 
 /* Set the callback for CPU function code changes.
  * You must enable M68K_EMULATE_FC in m68kconf.h.
@@ -271,7 +275,7 @@ extern void m68k_set_illg_instr_callback(int  (*callback)(int));
  * access it is (supervisor/user, program/data and such).
  * Default behavior: do nothing.
  */
-extern void m68k_set_fc_callback(void  (*callback)(unsigned int new_fc));
+void m68k_set_fc_callback(void  (*callback)(unsigned int new_fc));
 
 
 /* Set a callback for the instruction cycle of the CPU.
@@ -280,7 +284,7 @@ extern void m68k_set_fc_callback(void  (*callback)(unsigned int new_fc));
  * instruction cycle.
  * Default behavior: do nothing.
  */
-extern void m68k_set_instr_hook_callback(void  (*callback)(unsigned int pc));
+void m68k_set_instr_hook_callback(void  (*callback)(unsigned int pc));
 
 
 
@@ -292,12 +296,12 @@ extern void m68k_set_instr_hook_callback(void  (*callback)(unsigned int pc));
  * Currently supported types are: M68K_CPU_TYPE_68000, M68K_CPU_TYPE_68010,
  * M68K_CPU_TYPE_EC020, and M68K_CPU_TYPE_68020.
  */
-extern void m68k_set_cpu_type(unsigned int cpu_type);
+void m68k_set_cpu_type(unsigned int cpu_type);
 
 /* Do whatever initialisations the core requires.  Should be called
  * at least once at init time.
  */
-extern void m68k_init(void);
+void m68k_init(void);
 
 /* Pulse the RESET pin on the CPU.
  * You *MUST* reset the CPU at least once to initialize the emulation
@@ -305,74 +309,74 @@ extern void m68k_init(void);
  *       the CPU for the first time, the CPU will be set to
  *       M68K_CPU_TYPE_68000.
  */
-extern void m68k_pulse_reset(void);
+void m68k_pulse_reset(void);
 
 /* execute num_cycles worth of instructions.  returns number of cycles used */
-extern int m68k_execute(int num_cycles);
+int m68k_execute(int num_cycles);
 
 /* These functions let you read/write/modify the number of cycles left to run
  * while m68k_execute() is running.
  * These are useful if the 68k accesses a memory-mapped port on another device
  * that requires immediate processing by another CPU.
  */
-extern int m68k_cycles_run(void);              /* Number of cycles run so far */
-extern int m68k_cycles_remaining(void);        /* Number of cycles left */
-extern void m68k_modify_timeslice(int cycles); /* Modify cycles left */
-extern void m68k_end_timeslice(void);          /* End timeslice now */
+int m68k_cycles_run(void);              /* Number of cycles run so far */
+int m68k_cycles_remaining(void);        /* Number of cycles left */
+void m68k_modify_timeslice(int cycles); /* Modify cycles left */
+void m68k_end_timeslice(void);          /* End timeslice now */
 
 /* Set the IPL0-IPL2 pins on the CPU (IRQ).
  * A transition from < 7 to 7 will cause a non-maskable interrupt (NMI).
  * Setting IRQ to 0 will clear an interrupt request.
  */
-extern void m68k_set_irq(unsigned int int_level);
+void m68k_set_irq(unsigned int int_level);
 
 /* Set the virtual irq lines, where the highest level
  * active line is automatically selected.  If you use this function,
  * do not use m68k_set_irq.
  */
-extern void m68k_set_virq(unsigned int level, unsigned int active);
-extern unsigned int m68k_get_virq(unsigned int level);
+void m68k_set_virq(unsigned int level, unsigned int active);
+unsigned int m68k_get_virq(unsigned int level);
 
 /* Halt the CPU as if you pulsed the HALT pin. */
-extern void m68k_pulse_halt(void);
+void m68k_pulse_halt(void);
 
 
 /* Context switching to allow multiple CPUs */
 
 /* Get the size of the cpu context in bytes */
-extern unsigned int m68k_context_size(void);
+unsigned int m68k_context_size(void);
 
 /* Get a cpu context */
-extern unsigned int m68k_get_context(void* dst);
+unsigned int m68k_get_context(void* dst);
 
 /* set the current cpu context */
-extern void m68k_set_context(void* dst);
+void m68k_set_context(void* dst);
 
 /* Register the CPU state information */
-extern void m68k_state_register(const char *type, int index);
+void m68k_state_register(const char *type, int index);
 
 
 /* Peek at the internals of a CPU context.  This can either be a context
  * retrieved using m68k_get_context() or the currently running context.
  * If context is NULL, the currently running CPU context will be used.
  */
-extern unsigned int m68k_get_reg(void* context, m68k_register_t reg);
+unsigned int m68k_get_reg(void* context, m68k_register_t reg);
 
 /* Poke values into the internals of the currently running CPU context */
-extern void m68k_set_reg(m68k_register_t reg, unsigned int value);
+void m68k_set_reg(m68k_register_t reg, unsigned int value);
 
 /* Check if an instruction is valid for the specified CPU type */
-extern unsigned int m68k_is_valid_instruction(unsigned int instruction, unsigned int cpu_type);
+unsigned int m68k_is_valid_instruction(unsigned int instruction, unsigned int cpu_type);
 
 /* Disassemble 1 instruction using the epecified CPU type at pc.  Stores
  * disassembly in str_buff and returns the size of the instruction in bytes.
  */
-extern unsigned int m68k_disassemble(char* str_buff, unsigned int pc, unsigned int cpu_type);
+unsigned int m68k_disassemble(char* str_buff, unsigned int pc, unsigned int cpu_type);
 
 /* Same as above but accepts raw opcode data directly rather than fetching
  * via the read/write interfaces.
  */
-extern unsigned int m68k_disassemble_raw(char* str_buff, unsigned int pc, const unsigned char* opdata, const unsigned char* argdata, unsigned int cpu_type);
+unsigned int m68k_disassemble_raw(char* str_buff, unsigned int pc, const unsigned char* opdata, const unsigned char* argdata, unsigned int cpu_type);
 
 
 /* ======================================================================== */
@@ -387,5 +391,10 @@ extern unsigned int m68k_disassemble_raw(char* str_buff, unsigned int pc, const 
 /* ======================================================================== */
 /* ============================== END OF FILE ============================= */
 /* ======================================================================== */
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif /* M68K__HEADER */

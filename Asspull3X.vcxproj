@@ -94,6 +94,7 @@
     <ClCompile Include="keyboard.cpp" />
     <ClCompile Include="memory.cpp" />
     <ClCompile Include="musashi\m68kcpu.c" />
+    <ClCompile Include="musashi\m68kfpu.c" />
     <ClCompile Include="musashi\m68kops.c" />
     <ClCompile Include="nativefiledialog\src\nfd_common.c" />
     <ClCompile Include="nativefiledialog\src\nfd_win.cpp" />

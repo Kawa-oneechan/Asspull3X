@@ -270,7 +270,7 @@ static uint dasm_read_imm_16(uint advance)
 		result = (g_rawop[g_cpu_pc + 0 - g_rawbasepc] << 8) |
 		          g_rawop[g_cpu_pc + 1 - g_rawbasepc];
 	else
-		result = m68k_read_disassembler_16(g_cpu_pc & g_address_mask) & 0xff;
+		result = m68k_read_disassembler_16(g_cpu_pc & g_address_mask) & 0xffff;
 	g_cpu_pc += advance;
 	return result;
 }
@@ -284,7 +284,7 @@ static uint dasm_read_imm_32(uint advance)
 		         (g_rawop[g_cpu_pc + 2 - g_rawbasepc] << 8) |
 		          g_rawop[g_cpu_pc + 3 - g_rawbasepc];
 	else
-		result = m68k_read_disassembler_32(g_cpu_pc & g_address_mask) & 0xff;
+		result = m68k_read_disassembler_32(g_cpu_pc & g_address_mask) & 0xffffffff;
 	g_cpu_pc += advance;
 	return result;
 }
@@ -3497,6 +3497,7 @@ char* m68ki_disassemble_quick(unsigned int pc, unsigned int cpu_type)
 unsigned int m68k_disassemble_raw(char* str_buff, unsigned int pc, const unsigned char* opdata, const unsigned char* argdata, unsigned int cpu_type)
 {
 	unsigned int result;
+	(void)argdata;
 
 	g_rawop = opdata;
 	g_rawbasepc = pc;
@@ -3535,6 +3536,7 @@ unsigned int m68k_is_valid_instruction(unsigned int instruction, unsigned int cp
 				return 0;
 			if(g_instruction_table[instruction] == d68010_rtd)
 				return 0;
+			// Fallthrough
 		case M68K_CPU_TYPE_68010:
 			if(g_instruction_table[instruction] == d68020_bcc_32)
 				return 0;
@@ -3656,6 +3658,7 @@ unsigned int m68k_is_valid_instruction(unsigned int instruction, unsigned int cp
 				return 0;
 			if(g_instruction_table[instruction] == d68020_unpk_mm)
 				return 0;
+			// Fallthrough
 		case M68K_CPU_TYPE_68EC020:
 		case M68K_CPU_TYPE_68020:
 		case M68K_CPU_TYPE_68030:
@@ -3675,6 +3678,7 @@ unsigned int m68k_is_valid_instruction(unsigned int instruction, unsigned int cp
 				return 0;
 			if(g_instruction_table[instruction] == d68040_pflush)
 				return 0;
+			// Fallthrough
 		case M68K_CPU_TYPE_68040:
 			if(g_instruction_table[instruction] == d68020_cpbcc_16)
 				return 0;
