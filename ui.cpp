@@ -201,7 +201,7 @@ inline void DarkenPixel(int row, int column)
 
 int justClicked = 0;
 int mouseTimer = 0, lastMouseTimer = 0;
-#ifdef WITH_OPENGL
+
 int GetMouseState(int *x, int *y)
 {
 	int buttons = SDL_GetMouseState(x, y);
@@ -230,19 +230,6 @@ int GetMouseState(int *x, int *y)
 	*y -= miny;
 	return (justClicked == 2) ? 1 : 0;
 }
-#else
-int GetMouseState(int *x, int *y)
-{
-	int buttons = SDL_GetMouseState(x, y);
-	if (justClicked == 0 && buttons == 1)
-		justClicked = 1;
-	else if (justClicked == 1 && buttons == 0)
-		justClicked = 2;
-	else if (justClicked == 2)
-		justClicked = 0;
-	return justClicked == 1;
-}
-#endif
 
 static unsigned short cursor[] =
 {

@@ -109,11 +109,7 @@ int _tmain(int argc, _TCHAR* argv[])
 int main(int argc, char*argv[])
 #endif
 {
-#ifdef WITH_OPENGL
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_VIDEO_OPENGL | SDL_INIT_GAMECONTROLLER) < 0)
-#else
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) < 0)
-#endif
 		return 0;
 
 	ini = new IniFile();

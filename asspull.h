@@ -6,17 +6,12 @@
 #include <SDL.h>
 #include "ini.h"
 
-#define WITH_OPENGL
-
 extern unsigned char* romBIOS;
 extern unsigned char* romCartridge;
 extern unsigned char* ramVideo;
 extern unsigned char* ramInternal;
 
 extern SDL_Window* sdlWindow;
-#ifndef WITH_OPENGL
-extern SDL_Surface* sdlSurface;
-#endif
 
 extern int keyScan, joypad[2];
 

@@ -2,13 +2,11 @@
 
 #include <time.h>
 
-#ifdef WITH_OPENGL
 #include <SDL_opengl.h>
 #include <SDL_opengl_glext.h>
 //undo some irrelevant Windows stuff
 #ifdef TEXT
 #undef TEXT
-#endif
 #endif
 
 #define RENDERPIXELS_DEFINE
@@ -17,13 +15,9 @@ bool gfx320, gfx240, gfxTextBold, stretch200;
 int gfxMode, gfxFade, scrollX[4], scrollY[4], tileShift[2], mapEnabled[4], mapBlend[4];
 
 SDL_Window* sdlWindow = NULL;
-#ifdef WITH_OPENGL
 SDL_Renderer* sdlRenderer = NULL;
 SDL_Texture* sdlTexture = NULL;
 unsigned int programId = 0;
-#else
-SDL_Surface* sdlSurface = NULL;
-#endif
 
 unsigned char* pixels;
 
@@ -488,7 +482,6 @@ void RenderLine(int line)
 	}
 }
 
-#ifdef WITH_OPENGL
 PFNGLCREATESHADERPROC glCreateShader;
 PFNGLSHADERSOURCEPROC glShaderSource;
 PFNGLCOMPILESHADERPROC glCompileShader;
@@ -771,49 +764,3 @@ void Screenshot()
 	free(shot);
 	SDL_Log("Snap! %s saved.", snap);
 }
-#else
-void VBlank()
-{
-	SDL_UpdateWindowSurface(sdlWindow);
-}
-
-int InitVideo()
-{
-	SDL_Log("Creating window...");
-	auto winWidth = SDL_atoi(ini->Get("video", "width", "640"));
-	auto winHeight = SDL_atoi(ini->Get("video", "height", "480"));
-	if ((sdlWindow = SDL_CreateWindow("Asspull IIIx", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, winWidth, winHeight, SDL_WINDOW_SHOWN)) == NULL)
-	{
-		SDL_Log("Could not create window: %s", SDL_GetError());
-		return -1;
-	}
-	if ((sdlSurface = SDL_GetWindowSurface(sdlWindow)) == NULL)
-	{
-		SDL_Log("Could not get surface: %s", SDL_GetError());
-		return -2;
-	}
-	pixels = (unsigned char*)sdlSurface->pixels;
-
-	if (sdlSurface->format->format != SDL_PIXELFORMAT_RGB888)
-		SDL_Log("Surface format is wrong, should be 32-bit XRGB. Output may be fucky.");
-
-	return 0;
-}
-
-int UninitVideo()
-{
-	SDL_FreeSurface(sdlSurface);
-	SDL_DestroyWindow(sdlWindow);
-	return 0;
-}
-
-void Screenshot()
-{
-	char snap[128];
-	__time64_t now;
-	_time64(&now);
-	sprintf_s(snap, 128, "%u.bmp", now);
-	SDL_SaveBMP(sdlSurface, snap);
-	SDL_Log("Snap! %s saved.", snap);
-}
-#endif
