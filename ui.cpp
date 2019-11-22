@@ -3,7 +3,7 @@
 
 #define LETITSNOW
 #define PROPER_ARROW
-//#define NESTICLE_BLUE
+//#define BLUE_BALLS
 
 #include "nokia.c"
 
@@ -21,7 +21,7 @@ int statusTimer = 0;
 #define WINDOW_BORDER_T		WINDOW_BORDER_L
 #define WINDOW_BORDER_R		WINDOW_BORDER_L
 #define WINDOW_BORDER_B		WINDOW_BORDER_L
-#ifndef NESTICLE_BLUE
+#ifndef BLUE_BALLS
 #define WINDOW_FILL			FAIZ(170, 0, 0)
 #define WINDOW_BORDERFOC_L	FAIZ(128, 0, 0)
 #else
@@ -32,7 +32,7 @@ int statusTimer = 0;
 #define WINDOW_BORDERFOC_R	WINDOW_BORDERFOC_L
 #define WINDOW_BORDERFOC_B	WINDOW_BORDERFOC_L
 #define WINDOW_TEXT			FAIZ(255, 255, 255)
-#ifndef NESTICLE_BLUE
+#ifndef BLUE_BALLS
 #define WINDOW_CAPTION		FAIZ(255, 0, 4 )
 #else
 #define WINDOW_CAPTION		FAIZ(0, 4, 255)
@@ -48,7 +48,7 @@ int statusTimer = 0;
 #define BUTTON_TEXT			WINDOW_TEXT
 #define BUTTON_HIGHLIGHT	FAIZ(133, 133, 133)
 #define BUTTON_HIGHTEXT		BUTTON_TEXT
-#ifndef NESTICLE_BLUE
+#ifndef BLUE_BALLS
 #define MENUBAR_FILL		FAIZ(125, 0, 0)
 #else
 #define MENUBAR_FILL		FAIZ(0, 0, 125)
