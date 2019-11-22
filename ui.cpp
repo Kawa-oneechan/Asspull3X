@@ -127,11 +127,10 @@ const uiMenu _addDeviceMenu =
 
 const uiMenu _diskDriveMenu =
 {
-	4, 96, _uiDiskDriveMenu,
+	3, 96, _uiDiskDriveMenu,
 	{
 		{ "Insert disk", 0 },
 		{ "Eject disk", 0 },
-		{ "Create new disk", 0 },
 		{ "Disconnect", 0 },
 	}
 };
@@ -998,12 +997,14 @@ int _uiAddDeviceMenu(int item, int itemLeft, int itemTop)
 		ini->Set("devices", key, "");
 		break;
 	case 1: //Disk drive
-		if (devices[currentDeviceMenu] != 0)
+		if (devices[currentDeviceMenu] == 0 || devices[currentDeviceMenu]->GetID() != 0x0144)
+		{
 			delete devices[currentDeviceMenu];
-		devices[currentDeviceMenu] = 0;
-		ini->Set("devices", key, "");
+			devices[currentDeviceMenu] = (Device*)(new DiskDrive());
+		}
+		ini->Set("devices", key, "diskDrive");
 		break;
-	case 2: //Memory Viewer
+	case 2: //Line printer
 		if (devices[currentDeviceMenu] == 0 || devices[currentDeviceMenu]->GetID() != 0x4C50)
 		{
 			delete devices[currentDeviceMenu];
@@ -1024,16 +1025,24 @@ int _uiDiskDriveMenu(int item, int itemLeft, int itemTop)
 	{
 	case 0: //Insert
 		uiCommand = cmdInsertDisk;
+		uiData = currentDeviceMenu;
 		break;
 	case 1: //Eject
 		uiCommand = cmdEjectDisk;
+		uiData = currentDeviceMenu;
 		break;
-	case 2: //Create
-		uiCommand = cmdCreateDisk;
-		break;
-	case 3: //Disconnect
+	case 2: //Disconnect
 		if (currentDeviceMenu == 0)
-			SetStatus("You can't disconnect the primary disk drive, actually.");
+			SetStatus("You can't disconnect the primary disk drive.");
+		else
+		{
+			char key[8] = { 0 };
+			SDL_itoa(currentDeviceMenu, key, 10);
+			if (devices[currentDeviceMenu] != 0)
+				delete devices[currentDeviceMenu];
+			devices[currentDeviceMenu] = 0;
+			ini->Set("devices", key, "");
+		}
 		break;
 	}
 	return 0;
