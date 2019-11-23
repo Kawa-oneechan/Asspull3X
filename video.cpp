@@ -18,6 +18,7 @@ SDL_Window* sdlWindow = NULL;
 SDL_Renderer* sdlRenderer = NULL;
 SDL_Texture* sdlTexture = NULL;
 unsigned int programId = 0;
+bool customMouse = false;
 
 unsigned char* pixels;
 
@@ -590,6 +591,7 @@ GLuint compileProgram(const char* fragFile)
 	vtxShaderId = compileShader(vertexShader, GL_VERTEX_SHADER);
 
 	auto source = ReadTextFile(fragFile);
+	customMouse = (strstr(source, "{customMouseCursor}") != NULL);
 	fragShaderId = compileShader(source, GL_FRAGMENT_SHADER);
 	free(source);
 
@@ -677,18 +679,22 @@ void VBlank()
 	//SDL_UpdateWindowSurface(sdlWindow);
 }
 
-int InitVideo()
+int InitVideo(bool fullScreen)
 {
-	SDL_Log("FYI, MAP4_ADDR is 0x%08X.", MAP4_ADDR);
-
 	SDL_Log("Creating window...");
 	auto winWidth = SDL_atoi(ini->Get("video", "width", "640"));
 	auto winHeight = SDL_atoi(ini->Get("video", "height", "480"));
-	if ((sdlWindow = SDL_CreateWindow("Asspull IIIx", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, winWidth, winHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE)) == NULL)
+	uint32_t flags = SDL_WINDOW_SHOWN;
+	if (fullScreen)
+		flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+	else
+		flags |= SDL_WINDOW_RESIZABLE;
+	if ((sdlWindow = SDL_CreateWindow("Asspull IIIx", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, winWidth, winHeight, flags)) == NULL)
 	{
 		SDL_Log("Could not create window: %s", SDL_GetError());
 		return -1;
 	}
+
 
 	SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
 
@@ -699,7 +705,7 @@ int InitVideo()
 	}
 
 	initGLExtensions();
-	programId = compileProgram(ini->Get("video", "shader", "")); //("crt.fragment");
+	programId = compileProgram(ini->Get("video", "shader", ""));
 
 	if ((sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_TARGET, 640, 480)) == NULL)
 	{
@@ -712,7 +718,7 @@ int InitVideo()
 	auto thing = ini->Get("video", "stretch200", "false");
 	if (thing[0] == 't' || thing[0] == 'T' || thing[0] == 1) stretch200 = true;
 
-	SDL_ShowCursor(0);
+	SDL_ShowCursor(!customMouse);
 	return 0;
 }
 

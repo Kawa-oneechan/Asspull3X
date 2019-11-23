@@ -2,7 +2,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <tchar.h>
 #include <SDL.h>
 #include "ini.h"
 
@@ -22,7 +21,7 @@ extern FILE* diskFile;
 
 extern void RenderLine(int);
 extern void VBlank();
-extern int InitVideo();
+extern int InitVideo(bool);
 extern int UninitVideo();
 
 extern void HandleHdma(int line);

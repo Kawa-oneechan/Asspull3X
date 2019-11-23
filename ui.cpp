@@ -270,19 +270,30 @@ static unsigned short cursor[] =
 };
 
 int oldX, oldY, cursorTimer = 0;
+extern bool customMouse;
 void DrawCursor()
 {
 	int x, y;
 	GetMouseState(&x, &y);
 	if (oldX != x || oldY != y)
+	{
 		cursorTimer = 100;
+		if (!customMouse)
+			SDL_ShowCursor(1);
+	}
 	oldX = x;
 	oldY = y;
 
 	if (cursorTimer == 0)
+	{
+		if (!customMouse)
+			SDL_ShowCursor(0);
 		return;
+	}
 
 	cursorTimer--;
+	if (!customMouse)
+		return;
 
 	unsigned short pix = 0;
 	for (int row = 0; row < 16; row++)
@@ -2502,7 +2513,7 @@ int _uiDeviceManager(int me)
 	{
 	case 0:
 	case 2:
-		DrawString(win->left + 100, win->top + 16, 0x07FF, (devType == 0) ? "Nothing" : "Line printer");
+		DrawString(win->left + 100, win->top + 16, 0x07FF, (devType == 0) ? "Nothingness" : "Line printer");
 		DrawString(win->left + 172, win->top + 32, WINDOW_TEXT, "A swirling void\nhowls before you."); //joke by Screwtape
 		break;
 	case 1:

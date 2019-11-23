@@ -61,7 +61,8 @@ int Dump(const char* filePath, unsigned char* source, unsigned long size)
 	return 0;
 }
 
-#ifdef _CONSOLE
+#if WIN32 && _CONSOLE
+#include <tchar.h>
 int _tmain(int argc, _TCHAR* argv[])
 #else
 int main(int argc, char*argv[])
@@ -77,8 +78,18 @@ int main(int argc, char*argv[])
 	thing = ini->Get("media", "lastROM", ""); strcpy_s(romPath, 256, thing);
 	thing = ini->Get("media", "midiDevice", ""); auto midiNum = SDL_atoi(thing);
 	thing = ini->Get("video", "fpscap", "true"); if (thing[0] == 't' || thing[0] == 'T' || thing[0] == 1) fpsCap = true;
+	bool fullScreen = false;
+	thing = ini->Get("video", "fullScreen", "false"); if (thing[0] == 't' || thing[0] == 'T' || thing[0] == 1) fullScreen = true;
+	for (int i = 1; i < argc; i++)
+	{
+		if (argv[i][0] == '-')
+		{
+			if (argv[i][1] == 'f')
+				fullScreen = true;
+		}
+	}
 
-	if (InitVideo() < 0)
+	if (InitVideo(fullScreen) < 0)
 		return 0;
 
 	//Absolutely always load a disk drive as #0
