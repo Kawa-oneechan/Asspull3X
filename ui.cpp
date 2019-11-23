@@ -895,7 +895,7 @@ void PopulateDeviceMenu()
 	}
 }
 
-extern uiWindow aboutWindow, memoryViewerWindow, optionsWindow;
+extern uiWindow aboutWindow, memoryViewerWindow, deviceManagerWindow, optionsWindow;
 
 int uiCommand, uiData;
 
@@ -911,8 +911,10 @@ int _uiMainMenu(int item, int itemLeft, int itemTop)
 		break;
 	case 1: //Devices
 		//TODO
-		PopulateDeviceMenu();
-		pullDowns[0] = &deviceMenu;
+		//PopulateDeviceMenu();
+		//pullDowns[0] = &deviceMenu;
+		OpenWindow((uiWindow*)&deviceManagerWindow);
+		pullDownLevel = 0;
 		break;
 	case 2: //Tools
 		pullDowns[0] = (uiMenu*)&toolsMenu;
@@ -2412,6 +2414,8 @@ signed long memViewerOffset = MAP1_ADDR;
 int _uiMemoryViewer(int me)
 {
 	auto win = &windows[me];
+	memoryViewerWindow.left = win->left;
+	memoryViewerWindow.top = win->top;
 	const char hex[] = "0123456789ABCDEF";
 	char offsetStr[16] = { 0 };
 	unsigned int offset = memViewerOffset;
@@ -2450,12 +2454,98 @@ int _uiMemoryViewer(int me)
 	return 0;
 }
 
+int _uiDeviceManager(int);
+uiWindow deviceManagerWindow = { 0xBADCAB7E, 64, 128, 320, 110, "Devices", _uiDeviceManager };
+#define MAXENTRYLENGTH 32
+void UpdateDevManList(char* list)
+{
+	char* entry = list;
+	for (int i = 0; i < MAXDEVS; i++)
+	{
+		if (devices[i] == 0)
+		{
+			sprintf_s(entry, MAXENTRYLENGTH, "%d. Nothing", i + 1);
+			continue;
+		}
+		switch (devices[i]->GetID())
+		{
+		case 0x0144:
+			sprintf_s(entry, MAXENTRYLENGTH, "%d. Disk drive", i + 1);
+			break;
+		case 0x4C50:
+			sprintf_s(entry, MAXENTRYLENGTH, "%d. Line printer", i + 1);
+			break;
+		}
+		entry += MAXENTRYLENGTH;
+	}
+}
+int _uiDeviceManager(int me)
+{
+	auto win = &windows[me];
+	deviceManagerWindow.left = win->left;
+	deviceManagerWindow.top = win->top;
+	char devList[MAXDEVS * MAXENTRYLENGTH] = { 0 };
+	UpdateDevManList((char*)devList);
+	static int lastDevice = -1;
+	int cdi = 0; //uiHandleListBox(win->left + 2, win->top + 14, 95, 94, devList, MAXDEVS, MAXENTRYLENGTH, lastDevice);
+	lastDevice = cdi;
+	int devType = 0;
+	if (devices[cdi] != 0)
+	{
+		switch (devices[cdi]->GetID())
+		{
+			case 0x0144: devType = 1; break;
+			case 0x4C50: devType = 2; break;
+		}
+	}
+	switch (devType)
+	{
+	case 0:
+	case 2:
+		DrawString(win->left + 100, win->top + 16, 0x07FF, (devType == 0) ? "Nothing" : "Line printer");
+		DrawString(win->left + 172, win->top + 32, WINDOW_TEXT, "A swirling void\nhowls before you."); //joke by Screwtape
+		break;
+	case 1:
+		DrawString(win->left + 100, win->top + 16, 0x07FF, "Disk drive");
+		char key[8] = { 0 };
+		SDL_itoa(cdi, key, 10);
+		auto thing = ini->Get("devices/diskDrive", key, "");
+		//DrawFrame(win->left + 172, win->top + 30, 142, 11, 0x0000);
+		if (thing[0] != 0)
+		{
+			auto lastSlash = strrchr(thing, '\\');
+			if (lastSlash != NULL)
+				thing = lastSlash + 1;
+			DrawString(win->left + 175, win->top + 32, WINDOW_TEXT, thing);
+		}
+		if (uiHandleButton(win->left + 232, win->top + 44, 39, "Insert"))
+		{
+			uiCommand = cmdInsertDisk;
+			uiData = cdi;
+		}
+		else if (uiHandleButton(win->left + 274, win->top + 44, 39, "Eject"))
+		{
+			uiCommand = cmdEjectDisk;
+			uiData = cdi;
+		}
+		break;
+	}
+	if (uiHandleButton(win->left + 278, win->top + 93, 39, "Okay"))
+	{
+		CloseWindow(0xBADCAB7E);
+		return -1;
+	}
+	return 0;
+}
+
 extern bool stretch200, fpsCap;
 int _uiOptions(int);
 uiWindow optionsWindow = { 0x6969, 64, 64, 256, 128, "Options", _uiOptions };
 int _uiOptions(int me)
 {
 	auto win = &windows[me];
+	optionsWindow.left = win->left;
+	optionsWindow.top = win->top;
 	DrawString(win->left + 4, win->top + 48, WINDOW_TEXT, "Work in obvious progress.");
 	if (uiHandleIconButton(win->left + 244, win->top + 2, 0))
 	{

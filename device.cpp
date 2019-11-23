@@ -90,6 +90,8 @@ void DiskDrive::Write(unsigned int address, unsigned int value)
 
 int DiskDrive::GetID() { return 0x0144; }
 
+bool DiskDrive::IsMounted() { return file != NULL; }
+
 LinePrinter::LinePrinter() { }
 
 LinePrinter::~LinePrinter() { }

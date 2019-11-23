@@ -241,23 +241,28 @@ int main(int argc, char*argv[])
 			}
 			else if (uiCommand == cmdInsertDisk)
 			{
-				nfdchar_t* thePath = NULL;
-				nfdresult_t nfdResult = NFD_OpenDialog("img", NULL, &thePath);
-				if (nfdResult == NFD_OKAY)
+				if (((DiskDrive*)devices[uiData])->IsMounted())
+					SetStatus("Eject the diskette first.");
+				else
 				{
-					auto ext = strrchr(thePath, '.') + 1;
-					if (SDL_strncasecmp(ext, "img", 3) == 0)
+					nfdchar_t* thePath = NULL;
+					nfdresult_t nfdResult = NFD_OpenDialog("img", NULL, &thePath);
+					if (nfdResult == NFD_OKAY)
 					{
-						auto ret = ((DiskDrive*)devices[uiData])->Mount(thePath);
-						if (ret == -1)
-							SetStatus("Eject the diskette first, with Ctrl-Shift-U.");
-						else if (ret != 0)
-							SDL_Log("Error %d trying to open disk image.", ret);
+						auto ext = strrchr(thePath, '.') + 1;
+						if (SDL_strncasecmp(ext, "img", 3) == 0)
+						{
+							auto ret = ((DiskDrive*)devices[uiData])->Mount(thePath);
+							if (ret == -1)
+								SetStatus("Eject the diskette first, with Ctrl-Shift-U.");
+							else if (ret != 0)
+								SDL_Log("Error %d trying to open disk image.", ret);
+							else
+								ini->Set("devices/diskDrive", "0", thePath);
+						}
 						else
-							ini->Set("devices/diskDrive", "0", thePath);
+							SDL_Log("Don't know what to do with %s.", romPath);
 					}
-					else
-						SDL_Log("Don't know what to do with %s.", romPath);
 				}
 			}
 			else if (uiCommand == cmdUnloadRom)
@@ -271,9 +276,12 @@ int main(int argc, char*argv[])
 			}
 			else if (uiCommand == cmdEjectDisk)
 			{
-				((DiskDrive*)devices[uiData])->Unmount();
-				ini->Set("devices/diskDrive", "0", "");
-				SetStatus("Disk ejected.");
+				if (((DiskDrive*)devices[uiData])->IsMounted())
+				{
+					((DiskDrive*)devices[uiData])->Unmount();
+					ini->Set("devices/diskDrive", "0", "");
+					SetStatus("Disk ejected.");
+				}
 			}
 			else if (uiCommand == cmdReset)
 			{

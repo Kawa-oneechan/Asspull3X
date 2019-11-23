@@ -159,6 +159,7 @@ public:
 	unsigned int Read(unsigned int address);
 	void Write(unsigned int address, unsigned int value);
 	int GetID();
+	bool IsMounted();
 };
 
 class LinePrinter : Device
