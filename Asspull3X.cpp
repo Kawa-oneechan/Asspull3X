@@ -1,9 +1,19 @@
 #include "asspull.h"
 
-extern "C" {
-#include "musashi\m68k.h"
+#if !WIN32
+int fopen_s(FILE **f, const char *name, const char *mode)
+{
+	int ret = 0;
+	*f = fopen(name, mode);
+	if (!*f) ret = errno;
+	return ret;
 }
-#include "nativefiledialog\src\include\nfd.h"
+#endif
+
+extern "C" {
+#include "musashi/m68k.h"
+}
+#include "nativefiledialog/src/include/nfd.h"
 
 static bool quit = 0;
 int line = 0, interrupts = 0;
@@ -65,7 +75,7 @@ int Dump(const char* filePath, unsigned char* source, unsigned long size)
 #include <tchar.h>
 int _tmain(int argc, _TCHAR* argv[])
 #else
-int main(int argc, char*argv[])
+int main(int argc, char* argv[])
 #endif
 {
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_VIDEO_OPENGL | SDL_INIT_GAMECONTROLLER) < 0)

@@ -2,7 +2,18 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#if WIN32
 #include <SDL.h>
+#else
+#include <SDL2/SDL.h>
+//Kawa is very much a VS kinda guy.
+extern int fopen_s(FILE **f, const char *name, const char *mode);
+#define iswspace isspace
+#define strcpy_s(D,M,S) strcpy(D,S)
+#define sprintf_s(D,M,S,...) sprintf(D,S,__VA_ARGS__)
+#define _stricmp(A,B) strcasecmp(A,B)
+#define _strdup(S) strdup(S)
+#endif
 #include "ini.h"
 
 extern unsigned char* romBIOS;

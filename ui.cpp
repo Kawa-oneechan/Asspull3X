@@ -2466,7 +2466,7 @@ int _uiMemoryViewer(int me)
 }
 
 int _uiDeviceManager(int);
-uiWindow deviceManagerWindow = { 0xBADCAB7E, 64, 128, 320, 110, "Devices", _uiDeviceManager };
+uiWindow deviceManagerWindow = { 0xCAB7E, 64, 128, 320, 110, "Devices", _uiDeviceManager };
 #define MAXENTRYLENGTH 32
 void UpdateDevManList(char* list)
 {
@@ -2513,7 +2513,7 @@ int _uiDeviceManager(int me)
 	{
 	case 0:
 	case 2:
-		DrawString(win->left + 100, win->top + 16, 0x07FF, (devType == 0) ? "Nothingness" : "Line printer");
+		DrawString(win->left + 100, win->top + 16, 0x07FF, (char*)((devType == 0) ? "Nothingness" : "Line printer"));
 		DrawString(win->left + 172, win->top + 32, WINDOW_TEXT, "A swirling void\nhowls before you."); //joke by Screwtape
 		break;
 	case 1:
@@ -2543,7 +2543,7 @@ int _uiDeviceManager(int me)
 	}
 	if (uiHandleButton(win->left + 278, win->top + 93, 39, "Okay"))
 	{
-		CloseWindow(0xBADCAB7E);
+		CloseWindow(0xCAB7E);
 		return -1;
 	}
 	return 0;
@@ -2566,12 +2566,12 @@ int _uiOptions(int me)
 	else if (uiHandleCheckbox(win->left + 4, win->top + 16, "FPS cap", fpsCap))
 	{
 		fpsCap = !fpsCap;
-		ini->Set("video", "fpscap", fpsCap ? "true" : "false");
+		ini->Set("video", "fpscap", (char*)(fpsCap ? "true" : "false"));
 	}
 	else if (uiHandleCheckbox(win->left + 4, win->top + 32, "Aspect correction", stretch200))
 	{
 		stretch200 = !stretch200;
-		ini->Set("video", "stretch200", stretch200 ? "true" : "false");
+		ini->Set("video", "stretch200", (char*)(stretch200 ? "true" : "false"));
 	}
 	return 0;
 }

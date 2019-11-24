@@ -2,11 +2,16 @@
 
 #include <time.h>
 
+#if WIN32
 #include <SDL_opengl.h>
 #include <SDL_opengl_glext.h>
 //undo some irrelevant Windows stuff
 #ifdef TEXT
 #undef TEXT
+#endif
+#else
+#include <SDL2/SDL_opengl.h>
+#include <SDL2/SDL_opengl_glext.h>
 #endif
 
 #define RENDERPIXELS_DEFINE
@@ -732,6 +737,7 @@ int UninitVideo()
 
 void Screenshot()
 {
+#ifdef WIN32
 	char snap[128];
 	__time64_t now;
 	_time64(&now);
@@ -769,4 +775,7 @@ void Screenshot()
 
 	free(shot);
 	SDL_Log("Snap! %s saved.", snap);
+#else
+	SDL_Log("Not on this platform just yet.");
+#endif
 }

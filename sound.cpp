@@ -30,7 +30,7 @@ void SendMidi(unsigned int message)
 #else
 
 #pragma message("No MIDI support for non-Windows targets yet!")
-int InitSound()
+int InitSound(int device)
 {
 	return 0;
 }
