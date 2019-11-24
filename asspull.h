@@ -6,6 +6,8 @@
 #include <SDL.h>
 #else
 #include <SDL2/SDL.h>
+#endif
+#if CLANG
 //Kawa is very much a VS kinda guy.
 extern int fopen_s(FILE **f, const char *name, const char *mode);
 #define iswspace isspace

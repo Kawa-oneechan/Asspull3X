@@ -1,6 +1,6 @@
 #include "asspull.h"
 
-#if !WIN32
+#if CLANG
 int fopen_s(FILE **f, const char *name, const char *mode)
 {
 	int ret = 0;
