@@ -100,6 +100,7 @@ public:
 	{
 		child->absLeft = absLeft + child->left + marginLeft;
 		child->absTop = absTop + child->top + marginTop;
+		child->parent = this;
 		children.push_back(std::unique_ptr<Control>(child));
 	}
 	void Propagate()
@@ -126,7 +127,7 @@ public:
 		if (draggingWindow != NULL)
 			return false;
 		int x = 0, y = 0;
-		int buttons = GetMouseState(0, 0);
+		int buttons = GetMouseState(&x, &y);
 		if (x > absLeft && y > absTop && x < absLeft + width && y < absTop + height && buttons)
 			return true;
 		return false;
@@ -372,10 +373,170 @@ public:
 	}
 };
 
-extern int pauseState;
-int mouseTimer = 0;
+class MenuItem : public Control
+{
+public:
+	char hotkey;
+	void(*onClick)(void);
+	MenuItem(const char* caption, char hotkey, void(*click)(void))
+	{
+		this->text = caption;
+		this->width = MeasureString(caption);
+		this->hotkey = hotkey;
+		this->height = 13;
+		this->onClick = click;
+		this->enabled = true;
+	}
+	void Draw()
+	{
+		DrawString(absLeft + 4, absTop + 2, 0x788, text.c_str());
+		if (hotkey)
+			DrawCharacter(absLeft + width - 8, absTop + 2, 0x788, hotkey);
+	}
+};
 
-bool testFlag = false;
+void* currentMenu = NULL;
+int currentMenuTop, currentMenuLeft, currentMenuWidth, currentMenuHeight;
+
+class Menu : public Control
+{
+private:
+	bool sizedTheChildren;
+public:
+	Menu(const char* caption)
+	{
+		this->text = caption;
+		this->width = MeasureString(caption) + 10;
+		this->height = 13;
+		this->absTop = 0;
+		this->enabled = true;
+		this->sizedTheChildren = false;
+	}
+	void Draw()
+	{
+		int fillColor = (WasInside() || currentMenu == this ) ? MENUBAR_HIGHLIGHT : MENUBAR_FILL;
+		int textColor = (WasInside() || currentMenu == this ) ? MENUBAR_HIGHTEXT : MENUBAR_TEXT;
+		for (int i = absLeft; i < absLeft + width; i++)
+		{
+			for (int j = 0; j < 12; j++)
+			{
+				RenderRawPixel(j, i, fillColor);
+			}
+			DarkenPixel(12, i + 2);
+			DarkenPixel(13, i + 2);
+		}
+		for (int j = 2; j < 12; j++)
+		{
+			DarkenPixel(j, absLeft + width + 0);
+			DarkenPixel(j, absLeft + width + 1);
+		}
+		DrawString(absLeft + 4, 2, textColor, text.c_str());
+
+		if (currentMenu == this)
+		{
+			currentMenuLeft = absLeft + 2;
+			currentMenuTop = absTop + height + 2;
+
+			int t = currentMenuTop;
+			for (auto child = children.begin(); child != children.end(); child++)
+			{
+				(*child)->absLeft = currentMenuLeft;
+				(*child)->absTop = t;
+				(*child)->Draw();
+				t += (*child)->height;
+			}
+			
+			currentMenuHeight = t - currentMenuTop;
+
+			if (!sizedTheChildren)
+			{
+				int w = 1;
+				bool hotkeys = false;
+				for (auto child = children.begin(); child != children.end(); child++)
+				{
+					if ((*child)->width > w)
+						w = (*child)->width;
+					auto mc = (MenuItem*)child->get();
+					if (mc->hotkey)
+						hotkeys = true;
+				}
+				if (hotkeys)
+					w += 24;
+				for (auto child = children.begin(); child != children.end(); child++)
+				{
+					(*child)->width = w;
+				}
+				sizedTheChildren = true;
+			}
+
+			currentMenuWidth = children.begin()->get()->width;
+		}
+	}
+	void Handle()
+	{
+		if (WasClicked())
+		{
+			if (children.empty())
+				currentMenu = NULL;
+			else
+				currentMenu = this;
+		}
+
+		if (currentMenu == this)
+		{
+			for (auto child = children.begin(); child != children.end(); child++)
+				(*child)->Handle();
+		}
+	}
+};
+
+class MenuBar : public Control
+{
+public:
+	void Draw()
+	{
+		int w = 0;
+		for (auto child = children.begin(); child != children.end(); child++)
+		{
+			(*child)->absLeft = w;
+			(*child)->absTop = 0;
+			(*child)->Draw();
+			w += (*child)->width;
+		}
+	}
+	void Handle()
+	{
+		for (auto child = children.begin(); child != children.end(); child++)
+			(*child)->Handle();
+	}
+};
+
+extern int pauseState;
+int mouseTimer = 0, cursorTimer = 0;
+MenuBar* menuBar = NULL;
+
+void InitializeUI()
+{
+	menuBar = new MenuBar();
+
+	auto fileMenu = new Menu("File");
+	fileMenu->AddChild(new MenuItem("Load ROM", 'L', 0));
+	fileMenu->AddChild(new MenuItem("Unload ROM", 'U', 0));
+	fileMenu->AddChild(new MenuItem("Reset ROM", 'R', 0));
+	fileMenu->AddChild(new MenuItem("Quit", 0, 0));
+	menuBar->AddChild(fileMenu);
+	menuBar->AddChild(new Menu("Devices"));
+	menuBar->AddChild(new Menu("Tools"));
+	menuBar->AddChild(new Menu("About"));
+
+	auto win = new Window("Testing window", 32, 32, 256, 128);
+	auto button = new Button("Test", 8, 8, 48, NULL);
+	win->AddChild(button);
+	button = new Button("Disabled", 8, 24, 65, NULL);
+	button->enabled = false;
+	win->AddChild(button);
+	topLevelControls.push_back(std::unique_ptr<Control>(win));
+}
 
 void HandleUI()
 {
@@ -385,6 +546,9 @@ void HandleUI()
 	if (pauseState == 2)
 		LetItSnow();
 
+	if (topLevelControls.empty())
+		InitializeUI();
+
 	if (!topLevelControls.empty())
 	{
 		for (auto child = topLevelControls.begin(); child != topLevelControls.end(); child++)
@@ -393,18 +557,6 @@ void HandleUI()
 		auto topItem = topLevelControls.end() - 1;
 		if ((*topItem)->deleteMe)
 			topLevelControls.pop_back();
-	}
-
-	if (!testFlag)
-	{
-		testFlag = true;
-		auto win = new Window("Testing window", 32, 32, 256, 128);
-		auto button = new Button("Test", 8, 8, 48, NULL);
-		win->AddChild(button);
-		button = new Button("Disabled", 8, 24, 65, NULL);
-		button->enabled = false;
-		win->AddChild(button);
-		topLevelControls.push_back(std::unique_ptr<Control>(win));
 	}
 
 	if (draggingWindow != NULL && (dragStartLeft != dragLeft || dragStartTop != dragTop))
@@ -421,32 +573,23 @@ void HandleUI()
 		}
 	}
 
+	if (currentMenu != NULL && buttons)
+	{
+		if (x < currentMenuLeft || y < currentMenuTop || x > currentMenuLeft + currentMenuWidth || y > currentMenuTop + currentMenuHeight)
+			currentMenu = NULL;
+	}
+
+	if (y < 10 || currentMenu != NULL || pauseState == 2)
+	{
+		menuBar->Draw();
+		menuBar->Handle();
+		cursorTimer = 100;
+	}
+
 	DrawCursor();
 }
 
 /*
-typedef struct uiMenuItem
-{
-	char caption[256];
-	char hotKey;
-} uiMenuItem;
-
-typedef struct uiMenu
-{
-	int numItems;
-	int width;
-	int(*onSelect)(int, int, int);
-	uiMenuItem items[16];
-} uiMenu;
-
-int _uiMainMenu(int, int, int);
-int _uiFileMenu(int, int, int);
-int _uiDeviceMenu(int, int, int);
-int _uiAddDeviceMenu(int, int, int);
-int _uiDiskDriveMenu(int, int, int);
-int _uiDefaultDeviceMenu(int, int, int);
-int _uiToolsMenu(int, int, int);
-
 const uiMenu mainMenu =
 {
 	4, 0, _uiMainMenu,
@@ -630,7 +773,7 @@ static unsigned short cursor[] =
 #endif
 };
 
-int oldX, oldY, cursorTimer = 0;
+int oldX, oldY;
 extern bool customMouse;
 void DrawCursor()
 {
