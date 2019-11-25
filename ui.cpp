@@ -1,5 +1,6 @@
 #include "asspull.h"
 #include "ini.h"
+#include <vector>
 
 #define LETITSNOW
 #define PROPER_ARROW
@@ -65,6 +66,263 @@ int statusTimer = 0;
 #define PULLDOWN_HIGHLIGHT	MENUBAR_HIGHLIGHT
 #define PULLDOWN_HIGHTEXT	MENUBAR_HIGHTEXT
 
+inline void RenderRawPixel(int row, int column, int color);
+inline void DarkenPixel(int row, int column);
+int GetMouseState(int *x, int *y);
+void DrawCursor();
+void DrawCharacter(int x, int y, int color, unsigned short ch);
+void DrawString(int x, int y, int color, const char* str);
+int MeasureString(const char* str);
+void DrawImage(int x, int y, unsigned short* pixmap, int width, int height);
+void LetItSnow();
+
+int uiCommand, uiData;
+void* draggingWindow = NULL;
+void* focusedWindow = NULL;
+int dragStartX, dragStartY;
+int dragLeft, dragTop, dragWidth, dragHeight, dragStartLeft, dragStartTop;
+
+class Control
+{
+private:
+	std::vector<std::unique_ptr<Control>> children;
+public:
+	int left, top, width, height;
+	int absLeft, absTop;
+	bool enabled;
+	std::string text;
+	Control* parent;
+	virtual void Draw() {}
+	virtual void Handle() {}
+	void AddChild(Control* child)
+	{
+		child->absLeft = absLeft + child->left;
+		child->absTop = absTop + child->top;
+		children.push_back(std::unique_ptr<Control>(child));
+	}
+	void Propagate()
+	{
+		for (auto child = children.begin(); child != children.end(); child++)
+		{
+			(*child)->absLeft = absLeft + (*child)->left;
+			(*child)->absTop = absTop + (*child)->top;
+			(*child)->Propagate();
+		}
+	}
+	bool WasInside()
+	{
+		if (draggingWindow != NULL)
+			return false;
+		int x = 0, y = 0;
+		GetMouseState(&x, &y);
+		if (x > absLeft && y > absTop && x < absLeft + width && y < absTop + height)
+			return true;
+		return false;
+	}
+	bool WasClicked()
+	{
+		if (draggingWindow != NULL)
+			return false;
+		int x = 0, y = 0;
+		int buttons = GetMouseState(0, 0);
+		if (x > absLeft && y > absTop && x < absLeft + width && y < absTop + height && buttons)
+			return true;
+		return false;
+	}
+};
+
+class Label : public Control
+{
+public:
+	int color;
+	void Draw()
+	{
+		DrawString(absLeft, absTop, color, text.c_str());
+	}
+};
+
+class Window : public Control
+{
+private:
+	std::vector<std::unique_ptr<Control>> children;
+public:
+	Window(const char* caption, int left, int top, int width, int height)
+	{
+		text = caption;
+		this->left = this->absLeft = left;
+		this->top = this->absTop = top;
+		this->width = width;
+		this->height = height;
+	}
+	void AddChild(Control* child)
+	{
+		child->absLeft = absLeft + child->left;
+		child->absTop = absTop + child->top + 13;
+		children.push_back(std::unique_ptr<Control>(child));
+	}
+	void Propagate()
+	{
+		for (auto child = children.begin(); child != children.end(); child++)
+		{
+			(*child)->absLeft = absLeft + (*child)->left;
+			(*child)->absTop = absTop + (*child)->top + 13;
+			(*child)->Propagate();
+		}
+	}
+	void Draw()
+	{
+		for (auto col = left; col < left + width; col++)
+		{
+			RenderRawPixel(top, col, (focusedWindow == this) ? WINDOW_BORDERFOC_T : WINDOW_BORDER_T);
+			RenderRawPixel(top + height - 1, col, (focusedWindow == this) ? WINDOW_BORDERFOC_B : WINDOW_BORDER_B);
+			DarkenPixel(top + height + 0, col + 2);
+			DarkenPixel(top + height + 1, col + 2);
+		}
+		auto color = WINDOW_CAPTION;
+		for (auto row = top + 1; row < top + height - 1; row++)
+		{
+			RenderRawPixel(row, left, (focusedWindow == this) ? WINDOW_BORDERFOC_L : WINDOW_BORDER_L);
+			if (row == top + 12) color = WINDOW_CAPLINE;
+			if (row == top + 13) color = WINDOW_FILL;
+			for (auto col = left + 1; col < left + width - 1; col++)
+				RenderRawPixel(row, col, color);
+			RenderRawPixel(row, left + width - 1, (focusedWindow == this) ? WINDOW_BORDERFOC_R : WINDOW_BORDER_R);
+			DarkenPixel(row + 1, left + width + 0);
+			DarkenPixel(row + 1, left + width + 1);
+		}
+		DrawString(left + 3, top + 3, (focusedWindow == this) ? WINDOW_CAPTEXT : WINDOW_CAPTEXTUNF, text.c_str());
+
+		for (auto child = children.begin(); child != children.end(); child++)
+			(*child)->Draw();
+
+		int x = 0, y = 0;
+		GetMouseState(&x, &y);
+		int buttons = SDL_GetMouseState(0, 0); //need actual button state to drag!
+		if (buttons == 1 && x > absLeft && y > absTop && x < absLeft + width && y < absTop + 12)
+		{
+			if (draggingWindow == NULL)
+			{
+				draggingWindow = this;
+				dragStartX = x - absLeft;
+				dragStartY = y - absTop;
+				dragLeft = dragStartLeft =  absLeft;
+				dragTop = dragStartTop = absTop;
+				dragWidth = width;
+				dragHeight = height;
+			}
+		}
+		else if (buttons == 1 && draggingWindow == this)
+		{
+			dragLeft = x - dragStartX;
+			dragTop = y - dragStartY;
+		}
+		else if (buttons == 0 && draggingWindow == this)
+		{
+			left = absLeft = dragLeft;
+			top = absTop = dragTop;
+			draggingWindow = NULL;
+			Propagate();
+		}
+		return;
+	}
+};
+
+class Button : public Control
+{
+public:
+	void(*onClick)(void);
+
+	Button(const char* caption, int left, int top, int width, void(*click)(void))
+	{
+		this->text = caption;
+		this->left = this->absLeft = left;
+		this->top = this->absTop = top;
+		this->width = width;
+		this->height = 13;
+		this->onClick = click;
+		this->enabled = true;
+	}
+
+	void Draw()
+	{
+		auto fillColor = BUTTON_FILL;
+		auto textColor = (enabled ? BUTTON_TEXT : BUTTON_BORDER_B);
+		height = 13;
+		if (WasInside() && enabled)
+		{
+			fillColor = BUTTON_HIGHLIGHT;
+			textColor = BUTTON_HIGHTEXT;
+		}
+		for (auto col = absLeft; col < absLeft + width; col++)
+		{
+			RenderRawPixel(absTop, col, BUTTON_BORDER_T);
+			RenderRawPixel(absTop + height, col, BUTTON_BORDER_B);
+		}
+		for (auto row = absTop + 1; row < absTop + 13; row++)
+		{
+			RenderRawPixel(row, absLeft, BUTTON_BORDER_L);
+			for (auto col = absLeft + 1; col < absLeft + width - 1; col++)
+				RenderRawPixel(row, col, fillColor);
+			RenderRawPixel(row, absLeft + width - 1, BUTTON_BORDER_R);
+		}
+		auto capLeft = absLeft + (width / 2) - (MeasureString(text.c_str()) / 2);
+		DrawString(capLeft, absTop + 3, textColor, text.c_str());
+	}
+
+	void Handle()
+	{
+		if (WasClicked() && onClick != NULL)
+			onClick();
+	}
+};
+
+extern int pauseState;
+int mouseTimer = 0;
+std::vector<std::unique_ptr<Control>> topLevelControls;
+
+bool testFlag = false;
+
+void HandleUI()
+{
+	int x = 0, y = 0;
+	mouseTimer++;
+	int buttons = GetMouseState(&x, &y);
+	if (pauseState == 2)
+		LetItSnow();
+
+	for (auto child = topLevelControls.begin(); child != topLevelControls.end(); child++)
+		(*child)->Draw();
+
+	if (!testFlag)
+	{
+		testFlag = true;
+		auto win = new Window("Testing window", 32, 32, 256, 128);
+		auto button = new Button("Test", 8, 8, 48, NULL);
+		win->AddChild(button);
+		button = new Button("Disabled", 8, 24, 65, NULL);
+		button->enabled = false;
+		win->AddChild(button);
+		topLevelControls.push_back(std::unique_ptr<Control>(win));
+	}
+
+	if (draggingWindow != NULL && (dragStartLeft != dragLeft || dragStartTop != dragTop))
+	{
+		for (int i = dragLeft; i < dragLeft + dragWidth; i += 2)
+		{
+			RenderRawPixel(dragTop, i, 0x7FFF);
+			RenderRawPixel(dragTop + dragHeight, i, 0x7FFF);
+		}
+		for (int i = dragTop; i < dragTop + dragHeight; i += 2)
+		{
+			RenderRawPixel(i, dragLeft, 0x7FFF);
+			RenderRawPixel(i, dragLeft + dragWidth, 0x7FFF);
+		}
+	}
+
+	DrawCursor();
+}
+
+/*
 typedef struct uiMenuItem
 {
 	char caption[256];
@@ -176,6 +434,7 @@ uiMenu* pullDowns[4] = { 0 };
 int pullDownLefts[4] = { 0 };
 int pullDownTops[4] = { 0 };
 int currentTopMenu = -1;
+*/
 
 extern unsigned char* pixels;
 inline void RenderRawPixel(int row, int column, int color)
@@ -199,7 +458,7 @@ inline void DarkenPixel(int row, int column)
 }
 
 int justClicked = 0;
-int mouseTimer = 0, lastMouseTimer = 0;
+int lastMouseTimer = 0;
 
 int GetMouseState(int *x, int *y)
 {
@@ -344,7 +603,7 @@ void DrawImage(int x, int y, unsigned short* pixmap, int width, int height)
 
 #define TABWIDTH 48
 
-void DrawString(int x, int y, int color, char* str)
+void DrawString(int x, int y, int color, const char* str)
 {
 	int sx = x;
 	while(*str)
@@ -365,7 +624,7 @@ void DrawString(int x, int y, int color, char* str)
 	}
 }
 
-int MeasureString(char* str)
+int MeasureString(const char* str)
 {
 	int width = 0;
 	while(*str)
@@ -426,10 +685,7 @@ void LetItSnow()
 #define LetItSnow()
 #endif
 
-int draggingWindowID = -1;
-int dragStartX, dragStartY;
-int dragLeft, dragTop, dragWidth, dragHeight, dragStartLeft, dragStartTop;
-
+/*
 void BringWindowToFront(int token)
 {
 	focusedWindowID = token;
@@ -529,6 +785,7 @@ int CheckForWindowPops()
 	}
 	return 0;
 }
+*/
 
 void SetStatus(char* text)
 {
@@ -536,6 +793,7 @@ void SetStatus(char* text)
 	statusTimer = 100;
 }
 
+/*
 void uiHandleStatusLine(int left)
 {
 	if (statusTimer)
@@ -685,88 +943,6 @@ int uiHandleMenuBar(uiMenu* menu, int *openedLeft)
 	return -2;
 }
 
-int uiHandleWindow(uiWindow* win)
-{
-	for (auto col = win->left; col < win->left + win->width; col++)
-	{
-		RenderRawPixel(win->top, col, (focusedWindowID == win->token) ? WINDOW_BORDERFOC_T : WINDOW_BORDER_T);
-		RenderRawPixel(win->top + win->height - 1, col, (focusedWindowID == win->token) ? WINDOW_BORDERFOC_B : WINDOW_BORDER_B);
-		DarkenPixel(win->top + win->height + 0, col + 2);
-		DarkenPixel(win->top + win->height + 1, col + 2);
-	}
-	auto color = WINDOW_CAPTION;
-	for (auto row = win->top + 1; row < win->top + win->height - 1; row++)
-	{
-		RenderRawPixel(row, win->left, (focusedWindowID == win->token) ? WINDOW_BORDERFOC_L : WINDOW_BORDER_L);
-		if (row == win->top + 12) color = WINDOW_CAPLINE;
-		if (row == win->top + 13) color = WINDOW_FILL;
-		for (auto col = win->left + 1; col < win->left + win->width - 1; col++)
-			RenderRawPixel(row, col, color);
-		RenderRawPixel(row, win->left + win->width - 1, (focusedWindowID == win->token) ? WINDOW_BORDERFOC_R : WINDOW_BORDER_R);
-		DarkenPixel(row + 1, win->left + win->width + 0);
-		DarkenPixel(row + 1, win->left + win->width + 1);
-	}
-	DrawString(win->left + 3, win->top + 3, (focusedWindowID == win->token) ? WINDOW_CAPTEXT : WINDOW_CAPTEXTUNF, win->caption);
-	int x = 0, y = 0;
-	GetMouseState(&x, &y);
-	int buttons = SDL_GetMouseState(0, 0); //need actual button state to drag!
-	if (buttons == 1 && x > win->left && y > win->top && x < win->left + win->width && y < win->top + 12)
-	{
-		if (draggingWindowID == -1)
-		{
-			draggingWindowID = win->token;
-			dragStartX = x - win->left;
-			dragStartY = y - win->top;
-			dragLeft = dragStartLeft =  win->left;
-			dragTop = dragStartTop = win->top;
-			dragWidth = win->width;
-			dragHeight = win->height;
-		}
-	}
-	else if (buttons == 1 && draggingWindowID == win->token)
-	{
-		dragLeft = x - dragStartX;
-		dragTop = y - dragStartY;
-	}
-	else if (buttons == 0 && draggingWindowID == win->token)
-	{
-		win->left = dragLeft;
-		win->top = dragTop;
-		draggingWindowID = -1;
-	}
-	return 0;
-}
-
-int uiHandleButton(int left, int top, int width, char* caption)
-{
-	int x = 0, y = 0;
-	int buttons = GetMouseState(&x, &y);
-	auto fill = BUTTON_FILL;
-	auto text = BUTTON_TEXT;
-	if (x > left && y > top && x < left + width && y < top + 13)
-	{
-		fill = BUTTON_HIGHLIGHT;
-		text = BUTTON_HIGHTEXT;
-	}
-	else
-		buttons = 0;
-	for (auto col = left; col < left + width; col++)
-	{
-		RenderRawPixel(top, col, BUTTON_BORDER_T);
-		RenderRawPixel(top + 13, col, BUTTON_BORDER_B);
-	}
-	for (auto row = top + 1; row < top + 13; row++)
-	{
-		RenderRawPixel(row, left, BUTTON_BORDER_L);
-		for (auto col = left + 1; col < left + width - 1; col++)
-			RenderRawPixel(row, col, fill);
-		RenderRawPixel(row, left + width - 1, BUTTON_BORDER_R);
-	}
-	auto capLeft = left + (width / 2) - (MeasureString(caption) / 2);
-	DrawString(capLeft, top + 3, text, caption);
-	return buttons;
-}
-
 int uiHandleIconButton(int left, int top, int icon)
 {
 	int x = 0, y = 0;
@@ -884,28 +1060,6 @@ void HandleUI()
 	DrawCursor();
 }
 
-void PopulateDeviceMenu()
-{
-	for (int i = 0; i < MAXDEVS; i++)
-	{
-		deviceMenu.items[i].hotKey = '>';
-		if (devices[i] == 0)
-		{
-			sprintf_s(deviceMenu.items[i].caption, 256, "%d. <None>", i + 1);
-			continue;
-		}
-		switch (devices[i]->GetID())
-		{
-		case 0x0144:
-			sprintf_s(deviceMenu.items[i].caption, 256, "%d. Disk drive", i + 1);
-			break;
-		case 0x4C50:
-			sprintf_s(deviceMenu.items[i].caption, 256, "%d. Line printer", i + 1);
-			break;
-		}
-	}
-}
-
 extern uiWindow aboutWindow, memoryViewerWindow, deviceManagerWindow, optionsWindow;
 
 int uiCommand, uiData;
@@ -956,123 +1110,6 @@ int _uiFileMenu(int item, int itemLeft, int itemTop)
 		break;
 	case 3: //Quit
 		uiCommand = cmdQuit;
-		break;
-	}
-	return 0;
-}
-
-int currentDeviceMenu = -1;
-
-int _uiDeviceMenu(int item, int itemLeft, int itemTop)
-{
-	//TODO: show second-level popup menu determined by device ID.
-	pullDownLevel = 2;
-	pullDownTops[1] = itemTop;
-	pullDownLefts[1] = itemLeft;
-	currentDeviceMenu = item;
-	lastMouseTimer = 0;
-	if (devices[item] == 0)
-	{
-		pullDowns[1] = (uiMenu*)&_addDeviceMenu;
-		return 0;
-	}
-	switch (devices[item]->GetID())
-	{
-	case 0x0144:
-		pullDowns[1] = (uiMenu*)&_diskDriveMenu;
-		break;
-	default:
-		pullDowns[1] = (uiMenu*)&_defaultDeviceMenu;
-		break;
-	}
-
-	return 0;
-}
-
-extern IniFile* ini;
-int _uiAddDeviceMenu(int item, int itemLeft, int itemTop)
-{
-	pullDownLevel = 0;
-	currentTopMenu = -1;
-	if (currentDeviceMenu == 0)
-	{
-		SetStatus("You can't replace the primary disk drive.");
-		return 0;
-	}
-	char key[8] = { 0 };
-	SDL_itoa(currentDeviceMenu, key, 10);
-	switch (item)
-	{
-	case 0: //Nothing
-		if (devices[currentDeviceMenu] != 0)
-			delete devices[currentDeviceMenu];
-		devices[currentDeviceMenu] = 0;
-		ini->Set("devices", key, "");
-		break;
-	case 1: //Disk drive
-		if (devices[currentDeviceMenu] == 0 || devices[currentDeviceMenu]->GetID() != 0x0144)
-		{
-			delete devices[currentDeviceMenu];
-			devices[currentDeviceMenu] = (Device*)(new DiskDrive());
-		}
-		ini->Set("devices", key, "diskDrive");
-		break;
-	case 2: //Line printer
-		if (devices[currentDeviceMenu] == 0 || devices[currentDeviceMenu]->GetID() != 0x4C50)
-		{
-			delete devices[currentDeviceMenu];
-			devices[currentDeviceMenu] = (Device*)(new LinePrinter());
-		}
-		ini->Set("devices", key, "linePrinter");
-		break;
-	}
-	return 0;
-}
-int _uiDiskDriveMenu(int item, int itemLeft, int itemTop)
-{
-	pullDownLevel = 0;
-	currentTopMenu = -1;
-	char key[8] = { 0 };
-	SDL_itoa(currentDeviceMenu, key, 10);
-	switch (item)
-	{
-	case 0: //Insert
-		uiCommand = cmdInsertDisk;
-		uiData = currentDeviceMenu;
-		break;
-	case 1: //Eject
-		uiCommand = cmdEjectDisk;
-		uiData = currentDeviceMenu;
-		break;
-	case 2: //Disconnect
-		if (currentDeviceMenu == 0)
-			SetStatus("You can't disconnect the primary disk drive.");
-		else
-		{
-			char key[8] = { 0 };
-			SDL_itoa(currentDeviceMenu, key, 10);
-			if (devices[currentDeviceMenu] != 0)
-				delete devices[currentDeviceMenu];
-			devices[currentDeviceMenu] = 0;
-			ini->Set("devices", key, "");
-		}
-		break;
-	}
-	return 0;
-}
-int _uiDefaultDeviceMenu(int item, int itemLeft, int itemTop)
-{
-	pullDownLevel = 0;
-	currentTopMenu = -1;
-	char key[8] = { 0 };
-	SDL_itoa(currentDeviceMenu, key, 10);
-	switch (item)
-	{
-	case 0: //Disconnect
-		if (devices[currentDeviceMenu] != 0)
-			delete devices[currentDeviceMenu];
-		devices[currentDeviceMenu] = 0;
-		ini->Set("devices", key, "");
 		break;
 	}
 	return 0;
@@ -2575,3 +2612,4 @@ int _uiOptions(int me)
 	}
 	return 0;
 }
+*/
