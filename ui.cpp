@@ -84,28 +84,30 @@ int dragLeft, dragTop, dragWidth, dragHeight, dragStartLeft, dragStartTop;
 
 class Control
 {
-private:
+protected:
+	Control* parent;
 	std::vector<std::unique_ptr<Control>> children;
 public:
 	int left, top, width, height;
 	int absLeft, absTop;
-	bool enabled;
+	int marginLeft, marginTop;
+	bool enabled, visible;
 	std::string text;
-	Control* parent;
+	bool deleteMe;
 	virtual void Draw() {}
 	virtual void Handle() {}
 	void AddChild(Control* child)
 	{
-		child->absLeft = absLeft + child->left;
-		child->absTop = absTop + child->top;
+		child->absLeft = absLeft + child->left + marginLeft;
+		child->absTop = absTop + child->top + marginTop;
 		children.push_back(std::unique_ptr<Control>(child));
 	}
 	void Propagate()
 	{
 		for (auto child = children.begin(); child != children.end(); child++)
 		{
-			(*child)->absLeft = absLeft + (*child)->left;
-			(*child)->absTop = absTop + (*child)->top;
+			(*child)->absLeft = absLeft + (*child)->left + marginLeft;
+			(*child)->absTop = absTop + (*child)->top + marginTop;
 			(*child)->Propagate();
 		}
 	}
@@ -131,12 +133,15 @@ public:
 	}
 };
 
+std::vector<std::unique_ptr<Control>> topLevelControls;
+
 class Label : public Control
 {
 public:
 	int color;
 	void Draw()
 	{
+		if (!visible) return;
 		DrawString(absLeft, absTop, color, text.c_str());
 	}
 };
@@ -144,33 +149,73 @@ public:
 class Window : public Control
 {
 private:
-	std::vector<std::unique_ptr<Control>> children;
+	bool WasInsideCloseBox()
+	{
+		if (draggingWindow != NULL)
+			return false;
+		auto closeButtonLeft = absLeft + width - 12;
+		auto closeButtonTop = absTop + 2;
+		int x = 0, y = 0;
+		GetMouseState(&x, &y);
+		if (x > closeButtonLeft && y > closeButtonTop && x < closeButtonLeft + 10 && y < closeButtonTop + 10)
+			return true;
+		return false;
+	}
+	bool WasCloseBoxClicked()
+	{
+		if (draggingWindow != NULL)
+			return false;
+		auto closeButtonLeft = absLeft + width - 12;
+		auto closeButtonTop = absTop + 2;
+		int x = 0, y = 0;
+		int buttons = GetMouseState(0, 0);
+		if (WasInsideCloseBox() && buttons)
+			return true;
+		return false;
+	}
+	void DrawCloseBox()
+	{
+		auto fillColor = BUTTON_FILL;
+		auto textColor = (enabled ? BUTTON_TEXT : BUTTON_BORDER_B);
+		auto closeButtonLeft = absLeft + width - 12;
+		auto closeButtonTop = absTop + 2;
+		if (WasInsideCloseBox())
+		{
+			fillColor = BUTTON_HIGHLIGHT;
+			textColor = BUTTON_HIGHTEXT;
+		}
+		for (auto col = closeButtonLeft; col < closeButtonLeft + 10; col++)
+		{
+			RenderRawPixel(closeButtonTop, col, BUTTON_BORDER_T);
+			RenderRawPixel(closeButtonTop + 9, col, BUTTON_BORDER_B);
+		}
+		for (auto row = closeButtonTop + 1; row < closeButtonTop + 9; row++)
+		{
+			RenderRawPixel(row, closeButtonLeft, BUTTON_BORDER_L);
+			for (auto col = closeButtonLeft + 1; col < closeButtonLeft + 9; col++)
+				RenderRawPixel(row, col, fillColor);
+			RenderRawPixel(row, closeButtonLeft + 9, BUTTON_BORDER_R);
+		}
+		DrawCharacter(closeButtonLeft + 1, closeButtonTop + 1, textColor, 256 + 0);
+	}
 public:
 	Window(const char* caption, int left, int top, int width, int height)
 	{
-		text = caption;
+		this->text = caption;
 		this->left = this->absLeft = left;
 		this->top = this->absTop = top;
 		this->width = width;
 		this->height = height;
-	}
-	void AddChild(Control* child)
-	{
-		child->absLeft = absLeft + child->left;
-		child->absTop = absTop + child->top + 13;
-		children.push_back(std::unique_ptr<Control>(child));
-	}
-	void Propagate()
-	{
-		for (auto child = children.begin(); child != children.end(); child++)
-		{
-			(*child)->absLeft = absLeft + (*child)->left;
-			(*child)->absTop = absTop + (*child)->top + 13;
-			(*child)->Propagate();
-		}
+		this->marginLeft = 0;
+		this->marginTop = 13;
+		this->deleteMe = false;
+		this->enabled = true;
+		this->visible = true;
 	}
 	void Draw()
 	{
+		if (!visible) return;
+
 		for (auto col = left; col < left + width; col++)
 		{
 			RenderRawPixel(top, col, (focusedWindow == this) ? WINDOW_BORDERFOC_T : WINDOW_BORDER_T);
@@ -192,13 +237,20 @@ public:
 		}
 		DrawString(left + 3, top + 3, (focusedWindow == this) ? WINDOW_CAPTEXT : WINDOW_CAPTEXTUNF, text.c_str());
 
+		DrawCloseBox();
+		if (WasCloseBoxClicked())
+		{
+			deleteMe = true;
+			return;
+		}
+
 		for (auto child = children.begin(); child != children.end(); child++)
 			(*child)->Draw();
 
 		int x = 0, y = 0;
 		GetMouseState(&x, &y);
 		int buttons = SDL_GetMouseState(0, 0); //need actual button state to drag!
-		if (buttons == 1 && x > absLeft && y > absTop && x < absLeft + width && y < absTop + 12)
+		if (buttons == 1 && x > absLeft && y > absTop && x < absLeft + width && y < absTop + 12 && !WasInsideCloseBox())
 		{
 			if (draggingWindow == NULL)
 			{
@@ -231,7 +283,6 @@ class Button : public Control
 {
 public:
 	void(*onClick)(void);
-
 	Button(const char* caption, int left, int top, int width, void(*click)(void))
 	{
 		this->text = caption;
@@ -242,7 +293,6 @@ public:
 		this->onClick = click;
 		this->enabled = true;
 	}
-
 	void Draw()
 	{
 		auto fillColor = BUTTON_FILL;
@@ -268,7 +318,53 @@ public:
 		auto capLeft = absLeft + (width / 2) - (MeasureString(text.c_str()) / 2);
 		DrawString(capLeft, absTop + 3, textColor, text.c_str());
 	}
+	void Handle()
+	{
+		if (WasClicked() && onClick != NULL)
+			onClick();
+	}
+};
 
+class IconButton : public Control
+{
+public:
+	int icon;
+	void(*onClick)(void);
+	IconButton(int icon, int left, int top, void(*click)(void))
+	{
+		this->icon = icon;
+		this->left = this->absLeft = left;
+		this->top = this->absTop = top;
+		this->width = 10;
+		this->height = 10;
+		this->onClick = click;
+		this->enabled = true;
+	}
+	void Draw()
+	{
+		auto fillColor = BUTTON_FILL;
+		auto textColor = (enabled ? BUTTON_TEXT : BUTTON_BORDER_B);
+		width = 10;
+		height = 10;
+		if (WasInside() && enabled)
+		{
+			fillColor = BUTTON_HIGHLIGHT;
+			textColor = BUTTON_HIGHTEXT;
+		}
+		for (auto col = absLeft; col < absLeft + width; col++)
+		{
+			RenderRawPixel(absTop, col, BUTTON_BORDER_T);
+			RenderRawPixel(absTop + height, col, BUTTON_BORDER_B);
+		}
+		for (auto row = absTop + 1; row < absTop + 13; row++)
+		{
+			RenderRawPixel(row, absLeft, BUTTON_BORDER_L);
+			for (auto col = absLeft + 1; col < absLeft + width - 1; col++)
+				RenderRawPixel(row, col, fillColor);
+			RenderRawPixel(row, absLeft + width - 1, BUTTON_BORDER_R);
+		}
+		DrawCharacter(absLeft + 1, absTop + 1, textColor, 256 + icon);
+	}
 	void Handle()
 	{
 		if (WasClicked() && onClick != NULL)
@@ -278,7 +374,6 @@ public:
 
 extern int pauseState;
 int mouseTimer = 0;
-std::vector<std::unique_ptr<Control>> topLevelControls;
 
 bool testFlag = false;
 
@@ -290,8 +385,15 @@ void HandleUI()
 	if (pauseState == 2)
 		LetItSnow();
 
-	for (auto child = topLevelControls.begin(); child != topLevelControls.end(); child++)
-		(*child)->Draw();
+	if (!topLevelControls.empty())
+	{
+		for (auto child = topLevelControls.begin(); child != topLevelControls.end(); child++)
+			(*child)->Draw();
+
+		auto topItem = topLevelControls.end() - 1;
+		if ((*topItem)->deleteMe)
+			topLevelControls.pop_back();
+	}
 
 	if (!testFlag)
 	{
