@@ -116,6 +116,8 @@ public:
 	{
 		if (draggingWindow != NULL)
 			return false;
+		if (parent != 0 && parent != focusedWindow)
+			return false;
 		int x = 0, y = 0;
 		GetMouseState(&x, &y);
 		if (x > absLeft && y > absTop && x < absLeft + width && y < absTop + height)
@@ -125,6 +127,8 @@ public:
 	bool WasClicked()
 	{
 		if (draggingWindow != NULL)
+			return false;
+		if (parent != 0 && parent != focusedWindow)
 			return false;
 		int x = 0, y = 0;
 		int buttons = GetMouseState(&x, &y);
@@ -212,6 +216,7 @@ public:
 		this->deleteMe = false;
 		this->enabled = true;
 		this->visible = true;
+		this->parent = 0;
 	}
 	void Draw()
 	{
@@ -505,7 +510,7 @@ public:
 				(*child)->Draw();
 				t += (*child)->height;
 			}
-			
+
 			currentMenuHeight = t - currentMenuTop;
 
 			if (!sizedTheChildren)
@@ -601,16 +606,56 @@ void InitializeUI()
 	toolsMenu->AddChild(new MenuItem("Dump RAM", 'D', cmdDump));
 	toolsMenu->AddChild(new MenuItem("Memory viewer", 0, 0));
 	menuBar->AddChild(toolsMenu);
-	
+
 	menuBar->AddChild(new Menu("About"));
 
-	auto win = new Window("Testing window", 32, 32, 256, 128);
+	auto win = new Window("Testing window", 32, 32, 128, 64);
 	auto button = new Button("Test", 8, 8, 48, NULL);
 	win->AddChild(button);
 	button = new Button("Disabled", 8, 24, 65, NULL);
 	button->enabled = false;
 	win->AddChild(button);
 	topLevelControls.push_back(std::unique_ptr<Control>(win));
+	topLevelControls.push_back(std::unique_ptr<Control>(new Window("Testing window 2", 180, 32, 128, 64)));
+	focusedWindow = win;
+}
+
+void BringWindowToFront(Control* window)
+{
+	focusedWindow = window;
+	if (topLevelControls.size() < 2)
+		return;
+	for (auto child = topLevelControls.begin(); child != topLevelControls.end(); child++)
+	{
+		if (child->get() == window)
+		{
+			std::iter_swap(child, topLevelControls.end() - 1);
+			break;
+		}
+	}
+}
+
+bool CheckForWindowPops()
+{
+	if (topLevelControls.empty() || draggingWindow != NULL)
+		return false;
+	int x = 0, y = 0;
+	GetMouseState(&x, &y);
+	int buttons = SDL_GetMouseState(0, 0);
+	if (buttons == 0)
+		return 0;
+	for (auto child = topLevelControls.end() - 1; ; child--)
+	{
+		auto win = child->get();
+		if (x > win->absLeft && y > win->absTop && x < win->absLeft + win->width && y < win->absTop + win->height)
+		{
+			BringWindowToFront(win);
+			return true;
+		}
+		if (child == topLevelControls.begin())
+			break;
+	}
+	return false;
 }
 
 void HandleUI()
@@ -626,6 +671,8 @@ void HandleUI()
 
 	if (!topLevelControls.empty())
 	{
+		CheckForWindowPops();
+
 		for (auto child = topLevelControls.begin(); child != topLevelControls.end(); child++)
 			(*child)->Draw();
 
@@ -949,26 +996,6 @@ void LetItSnow()
 #endif
 
 /*
-void BringWindowToFront(int token)
-{
-	focusedWindowID = token;
-	if (uiOpenWindows < 2)
-		return;
-	if (windows[uiOpenWindows - 1].token == token)
-		return;
-	for (int i = 0; i < uiOpenWindows - 1; i++)
-	{
-		if (windows[i].token == token && i < uiOpenWindows)
-		{
-			uiWindow swapWin;
-			memcpy(&swapWin, &windows[i], sizeof(uiWindow));
-			for (int j = i + 1; j < MAXWINDOWS; j++)
-				memcpy(&windows[j - 1], &windows[j], sizeof(uiWindow));
-			memcpy(&windows[uiOpenWindows - 1], &swapWin, sizeof(uiWindow));
-		}
-	}
-}
-
 void CloseWindow(int token)
 {
 	for (int i = 0; i < uiOpenWindows; i++)
@@ -1028,26 +1055,7 @@ void OpenWindow(uiWindow* window)
 	BringWindowToFront(newWin->token);
 }
 
-int CheckForWindowPops()
-{
-	if (uiOpenWindows < 2 || draggingWindowID != -1)
-		return 0;
-	int x = 0, y = 0;
-	GetMouseState(&x, &y);
-	int buttons = SDL_GetMouseState(0, 0);
-	if (buttons == 0)
-		return 0;
-	for (int i = uiOpenWindows; i >= 0; --i)
-	{
-		auto win = &windows[i];
-		if (x > win->left && y > win->top && x < win->left + win->width && y < win->top + win->height)
-		{
-			BringWindowToFront(win->token);
-			return 1;
-		}
-	}
-	return 0;
-}
+
 */
 
 void SetStatus(char* text)
