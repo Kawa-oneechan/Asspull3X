@@ -378,20 +378,80 @@ class MenuItem : public Control
 public:
 	char hotkey;
 	void(*onClick)(void);
+	int command;
 	MenuItem(const char* caption, char hotkey, void(*click)(void))
 	{
 		this->text = caption;
-		this->width = MeasureString(caption);
+		this->width = MeasureString(caption) + 10;
 		this->hotkey = hotkey;
-		this->height = 13;
+		this->height = 12;
 		this->onClick = click;
+		this->command = 0;
 		this->enabled = true;
+	}
+	MenuItem(const char* caption, char hotkey, int uiCommand)
+	{
+		this->text = caption;
+		this->width = MeasureString(caption) + 10;
+		this->hotkey = hotkey;
+		this->height = 12;
+		this->onClick = NULL;
+		this->command = uiCommand;
+		this->enabled = true;
+
+		if (caption[0] == '-')
+		{
+			this->enabled = false;
+			this->height = 3;
+		}
 	}
 	void Draw()
 	{
-		DrawString(absLeft + 4, absTop + 2, 0x788, text.c_str());
+		if (this->height == 3) //separator
+		{
+			for (int line = 0; line < 3; line++)
+			{
+				int lineColor = (line == 1) ? PULLDOWN_BORDER_B : PULLDOWN_FILL;
+				RenderRawPixel(absTop + line, absLeft, PULLDOWN_BORDER_L);
+				for (int col = 1; col < width; col++)
+				{
+					RenderRawPixel(absTop + line, absLeft + col, lineColor);
+				}
+				RenderRawPixel(absTop + line, absLeft + width, PULLDOWN_BORDER_R);
+				DarkenPixel(absTop + line + 1, absLeft + width + 1);
+				DarkenPixel(absTop + line + 1, absLeft + width + 2);
+			}
+			return;
+		}
+
+		int fillColor = WasInside() ? PULLDOWN_HIGHLIGHT : PULLDOWN_FILL;
+		int textColor = WasInside() ? PULLDOWN_HIGHTEXT : PULLDOWN_TEXT;
+		for (int line = 0; line < 12; line++)
+		{
+			RenderRawPixel(absTop + line, absLeft, PULLDOWN_BORDER_L);
+			for (int col = 1; col < width; col++)
+			{
+				RenderRawPixel(absTop + line, absLeft + col, fillColor);
+			}
+			RenderRawPixel(absTop + line, absLeft + width, PULLDOWN_BORDER_R);
+			DarkenPixel(absTop + line + 1, absLeft + width + 1);
+			DarkenPixel(absTop + line + 1, absLeft + width + 2);
+		}
+
+		DrawString(absLeft + 4, absTop + 2, textColor, text.c_str());
 		if (hotkey)
-			DrawCharacter(absLeft + width - 8, absTop + 2, 0x788, hotkey);
+			DrawCharacter(absLeft + width - 8, absTop + 2, textColor, hotkey);
+	}
+	void Handle()
+	{
+		if (height == 3) return;
+		if (WasClicked())
+		{
+			if (onClick != NULL && command == 0)
+				onClick();
+			else if (command)
+				uiCommand = command;
+		}
 	}
 };
 
@@ -470,6 +530,14 @@ public:
 			}
 
 			currentMenuWidth = children.begin()->get()->width;
+
+			for (int col = 0; col <= currentMenuWidth; col++)
+			{
+				RenderRawPixel(currentMenuTop - 1, currentMenuLeft + col, PULLDOWN_BORDER_T);
+				RenderRawPixel(currentMenuTop + currentMenuHeight, currentMenuLeft + col, PULLDOWN_BORDER_B);
+				DarkenPixel(currentMenuTop + currentMenuHeight + 1, currentMenuLeft + col + 2);
+				DarkenPixel(currentMenuTop + currentMenuHeight + 2, currentMenuLeft + col + 2);
+			}
 		}
 	}
 	void Handle()
@@ -520,13 +588,20 @@ void InitializeUI()
 	menuBar = new MenuBar();
 
 	auto fileMenu = new Menu("File");
-	fileMenu->AddChild(new MenuItem("Load ROM", 'L', 0));
-	fileMenu->AddChild(new MenuItem("Unload ROM", 'U', 0));
-	fileMenu->AddChild(new MenuItem("Reset ROM", 'R', 0));
-	fileMenu->AddChild(new MenuItem("Quit", 0, 0));
+	fileMenu->AddChild(new MenuItem("Load ROM", 'L', cmdLoadRom));
+	fileMenu->AddChild(new MenuItem("Unload ROM", 'U', cmdUnloadRom));
+	fileMenu->AddChild(new MenuItem("Reset", 'R', cmdReset));
+	fileMenu->AddChild(new MenuItem("Quit", 0, cmdQuit));
 	menuBar->AddChild(fileMenu);
-	menuBar->AddChild(new Menu("Devices"));
-	menuBar->AddChild(new Menu("Tools"));
+	auto toolsMenu = new Menu("Tools");
+	toolsMenu->AddChild(new MenuItem("Options", 0, 0));
+	toolsMenu->AddChild(new MenuItem("-", 0, 0));
+	toolsMenu->AddChild(new MenuItem("Devices", 0, 0));
+	toolsMenu->AddChild(new MenuItem("Screenshot", 'S', cmdScreenshot));
+	toolsMenu->AddChild(new MenuItem("Dump RAM", 'D', cmdDump));
+	toolsMenu->AddChild(new MenuItem("Memory viewer", 0, 0));
+	menuBar->AddChild(toolsMenu);
+	
 	menuBar->AddChild(new Menu("About"));
 
 	auto win = new Window("Testing window", 32, 32, 256, 128);
@@ -590,63 +665,6 @@ void HandleUI()
 }
 
 /*
-const uiMenu mainMenu =
-{
-	4, 0, _uiMainMenu,
-	{
-		{ "File", 0 },
-		{ "Devices", 0},
-		{ "Tools", 0},
-		{ "About", 0 }
-	}
-};
-
-const uiMenu fileMenu =
-{
-	4, 76, _uiFileMenu,
-	{
-		{ "Load ROM", 'L' },
-		{ "Unload ROM", 'U' },
-		{ "Reset", 'R' },
-		{ "Quit", 0 }
-	}
-};
-
-uiMenu deviceMenu =
-{
-	MAXDEVS, 96, _uiDeviceMenu,
-	{ 0 }, //To be filled in dynamically.
-};
-
-const uiMenu _addDeviceMenu =
-{
-	3, 76, _uiAddDeviceMenu,
-	{
-		{ "Nothing", 0 },
-		{ "Disk drive", 0 },
-		{ "Line printer", 0 },
-	}
-};
-
-const uiMenu _diskDriveMenu =
-{
-	3, 96, _uiDiskDriveMenu,
-	{
-		{ "Insert disk", 0 },
-		{ "Eject disk", 0 },
-		{ "Disconnect", 0 },
-	}
-};
-
-
-const uiMenu _defaultDeviceMenu =
-{
-	1, 96, _uiDefaultDeviceMenu,
-	{
-		{ "Disconnect", 0 },
-	}
-};
-
 const uiMenu toolsMenu =
 {
 	4, 96, _uiToolsMenu,
