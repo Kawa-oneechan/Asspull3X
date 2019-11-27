@@ -21,6 +21,7 @@ extern void Screenshot();
 extern int uiCommand, uiData;
 extern char uiFPS[];
 extern void SetStatus(char*);
+extern void _devUpdateDiskette(int);
 
 extern unsigned int biosSize, romSize;
 
@@ -283,6 +284,7 @@ int main(int argc, char* argv[])
 						}
 						else
 							SDL_Log("Don't know what to do with %s.", romPath);
+						_devUpdateDiskette(uiData);
 					}
 				}
 			}
@@ -302,6 +304,7 @@ int main(int argc, char* argv[])
 					((DiskDrive*)devices[uiData])->Unmount();
 					ini->Set("devices/diskDrive", "0", "");
 					SetStatus("Disk ejected.");
+					_devUpdateDiskette(uiData);
 				}
 			}
 			else if (uiCommand == cmdReset)

@@ -117,6 +117,7 @@ public:
 	}
 	bool WasInside()
 	{
+		if (!visible) return false;
 		if (draggingWindow != NULL)
 			return false;
 		if (parent != 0 && (parent != focusedWindow && parent->parent != focusedWindow))
@@ -129,6 +130,7 @@ public:
 	}
 	bool WasClicked()
 	{
+		if (!visible) return false;
 		if (draggingWindow != NULL)
 			return false;
 		if (parent != 0 && (parent != focusedWindow && parent->parent != focusedWindow))
@@ -265,7 +267,6 @@ public:
 	void Draw()
 	{
 		if (!visible) return;
-
 		for (auto col = left; col < left + width; col++)
 		{
 			RenderRawPixel(top, col, (focusedWindow == this) ? WINDOW_BORDERFOC_T : WINDOW_BORDER_T);
@@ -329,6 +330,7 @@ public:
 	}
 	void Handle()
 	{
+		if (!visible) return;
 		for (auto child = children.begin(); child != children.end(); child++)
 			(*child)->Handle();
 	}
@@ -350,6 +352,7 @@ public:
 	}
 	void Draw()
 	{
+		if (!visible) return;
 		auto fillColor = BUTTON_FILL;
 		auto textColor = (enabled ? BUTTON_TEXT : BUTTON_BORDER_B);
 		height = 13;
@@ -398,6 +401,7 @@ public:
 	}
 	void Draw()
 	{
+		if (!visible) return;
 		auto fillColor = BUTTON_FILL;
 		auto textColor = (enabled ? BUTTON_TEXT : BUTTON_BORDER_B);
 		height = 10;
@@ -446,6 +450,7 @@ public:
 	}
 	void Draw()
 	{
+		if (!visible) return;
 		auto fillColor = BUTTON_FILL;
 		auto textColor = (enabled ? BUTTON_TEXT : BUTTON_BORDER_B);
 		width = 10;
@@ -502,6 +507,7 @@ public:
 	}
 	void Draw()
 	{
+		if (!visible) return;
 		for (int col = 0; col < width; col++)
 		{
 			RenderRawPixel(absTop, absLeft + col, WINDOW_BORDERFOC_B);
@@ -531,6 +537,7 @@ public:
 	}
 	void Handle()
 	{
+		if (!visible) return;
 		if (draggingWindow != NULL)
 			return;
 		if (parent != 0 && (parent != focusedWindow && parent->parent != focusedWindow))
@@ -1286,18 +1293,52 @@ Window* BuildMemoryWindow()
 	return win;
 }
 
+ListBox* devManList;
 Label* devManHeader;
 Label* devManNoOptions;
 Label* devManDiskette;
 Button* devManEject;
 Button* devManInsert;
 
+void _devUpdateDiskette(int devId)
+{
+	if (devId != devManList->selection)
+		return;
+	char key[8] = { 0 };
+	SDL_itoa(devId, key, 10);
+	auto thing = ini->Get("devices/diskDrive", key, "");
+	if (thing[0] != 0)
+	{
+		auto lastSlash = strrchr(thing, '\\');
+		if (lastSlash != NULL)
+			thing = lastSlash + 1;
+		devManDiskette->text = thing;
+		devManInsert->enabled = false;
+		devManEject->enabled = true;
+	}
+	else
+	{
+		devManDiskette->text = "No disk";
+		devManInsert->enabled = true;
+		devManEject->enabled = false;
+	}
+}
+
+void _devDiskette(Control* me)
+{
+	uiData = devManList->selection;
+	if (me == devManInsert)
+		uiCommand = cmdInsertDisk;
+	else if (me == devManEject)
+		uiCommand = cmdEjectDisk;
+}
+
 void _devSelect(Control* me, int selection)
 {
 	devManNoOptions->visible = false;
-	//devManDiskette->visible = false;
-	//devManEject->visible = false;
-	//devManInsert->visible = false;
+	devManDiskette->visible = false;
+	devManEject->visible = false;
+	devManInsert->visible = false;
 	int devType = 0;
 	if (devices[selection] != 0)
 	{
@@ -1316,14 +1357,15 @@ void _devSelect(Control* me, int selection)
 		break;
 	case 1:
 		devManHeader->text = "Disk drive";
-		//devManDiskette->visible = true;
-		//devManEject->visible = true;
-		//devManInsert->visible = true;
+		_devUpdateDiskette(selection);
+		devManDiskette->visible = true;
+		devManEject->visible = true;
+		devManInsert->visible = true;
 		break;
 	}
 }
 
-void UpdateDevManList(ListBox* list)
+void UpdateDevManList()
 {
 	char entry[32] = { 0 };
 	for (int i = 0; i < MAXDEVS; i++)
@@ -1344,89 +1386,30 @@ void UpdateDevManList(ListBox* list)
 				break;
 			}
 		}
-		list->items[i] = entry;
+		devManList->items[i] = entry;
 	}
 }
 
 Window* BuildDeviceWindow()
 {
 	auto win = new Window("Devices", 64, 128, 320, 110);
-	auto deviceList = new ListBox(2, 1, 95, 94, _devSelect);
-	for (int i = 0; i < MAXDEVS; i++)
-		deviceList->items.push_back("...");
-	devManHeader = new Label("...", 100, 2, 0x07FF, 0);
-	devManNoOptions = new Label("A swirling void\nhowls before you.", 172, 20, WINDOW_TEXT, 0);
-	win->AddChild(deviceList);
-	win->AddChild(devManHeader);
-	win->AddChild(devManNoOptions);
-	win->AddChild(new Button("Okay", 278, 81, 39, _closeWindow));
+	win->AddChild(devManList = new ListBox(2, 1, 95, 94, _devSelect));
+	win->AddChild(devManHeader = new Label("...", 100, 2, 0x07FF, 0));
+	win->AddChild(devManNoOptions = new Label("A swirling void\nhowls before you.", 172, 20, WINDOW_TEXT, 0));
+	win->AddChild(devManDiskette = new Label("...", 175, 19, WINDOW_TEXT, 0)); //TODO: replace with something with a border
+	win->AddChild(devManInsert = new Button("Insert", 232, 31, 39, _devDiskette));
+	win->AddChild(devManEject = new Button("Eject", 274, 31, 39, _devDiskette));
+	win->AddChild(new Button("Okay", 278, 80, 39, _closeWindow));
 	win->Propagate();
-	UpdateDevManList(deviceList);
-	_devSelect(deviceList, 0);
+	for (int i = 0; i < MAXDEVS; i++)
+		devManList->items.push_back("..."); 
+	UpdateDevManList();
+	_devSelect(devManList, 0);
 	topLevelControls.push_back(std::unique_ptr<Control>(win));
 	return win;
 }
 
 /*
-int _uiDeviceManager(int me)
-{
-	auto win = &windows[me];
-	deviceManagerWindow.left = win->left;
-	deviceManagerWindow.top = win->top;
-	char devList[MAXDEVS * MAXENTRYLENGTH] = { 0 };
-	UpdateDevManList((char*)devList);
-	static int lastDevice = -1;
-	int cdi = 0; //uiHandleListBox(win->left + 2, win->top + 14, 95, 94, devList, MAXDEVS, MAXENTRYLENGTH, lastDevice);
-	lastDevice = cdi;
-	int devType = 0;
-	if (devices[cdi] != 0)
-	{
-		switch (devices[cdi]->GetID())
-		{
-			case 0x0144: devType = 1; break;
-			case 0x4C50: devType = 2; break;
-		}
-	}
-	switch (devType)
-	{
-	case 0:
-	case 2:
-		DrawString(win->left + 100, win->top + 16, 0x07FF, (char*)((devType == 0) ? "Nothingness" : "Line printer"));
-		DrawString(win->left + 172, win->top + 32, WINDOW_TEXT, "A swirling void\nhowls before you."); //joke by Screwtape
-		break;
-	case 1:
-		DrawString(win->left + 100, win->top + 16, 0x07FF, "Disk drive");
-		char key[8] = { 0 };
-		SDL_itoa(cdi, key, 10);
-		auto thing = ini->Get("devices/diskDrive", key, "");
-		//DrawFrame(win->left + 172, win->top + 30, 142, 11, 0x0000);
-		if (thing[0] != 0)
-		{
-			auto lastSlash = strrchr(thing, '\\');
-			if (lastSlash != NULL)
-				thing = lastSlash + 1;
-			DrawString(win->left + 175, win->top + 32, WINDOW_TEXT, thing);
-		}
-		if (uiHandleButton(win->left + 232, win->top + 44, 39, "Insert"))
-		{
-			uiCommand = cmdInsertDisk;
-			uiData = cdi;
-		}
-		else if (uiHandleButton(win->left + 274, win->top + 44, 39, "Eject"))
-		{
-			uiCommand = cmdEjectDisk;
-			uiData = cdi;
-		}
-		break;
-	}
-	if (uiHandleButton(win->left + 278, win->top + 93, 39, "Okay"))
-	{
-		CloseWindow(0xCAB7E);
-		return -1;
-	}
-	return 0;
-}
-
 extern bool stretch200, fpsCap;
 int _uiOptions(int);
 uiWindow optionsWindow = { 0x6969, 64, 64, 256, 128, "Options", _uiOptions };
