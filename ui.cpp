@@ -793,6 +793,120 @@ public:
 	}
 };
 
+
+class DropDown : public Control
+{
+private:
+	bool sizedTheChildren;
+public:
+	DropDown(int left, int top)
+	{
+		this->width = 10;
+		this->height = 10;
+		this->left = this->absLeft = left;
+		this->top = this->absTop = top;
+		this->enabled = true;
+		this->sizedTheChildren = false;
+	}
+	void AddChild(Control* child)
+	{
+		child->absLeft = absLeft + child->left + marginLeft;
+		child->absTop = absTop + child->top + marginTop;
+		child->parent = this;
+		children.push_back(std::unique_ptr<Control>(child));
+	}
+	void Draw()
+	{
+		if (!visible) return;
+		auto fillColor = BUTTON_FILL;
+		auto textColor = (enabled ? BUTTON_TEXT : BUTTON_BORDER_B);
+		width = 10;
+		height = 10;
+		if (WasInside() && enabled)
+		{
+			fillColor = BUTTON_HIGHLIGHT;
+			textColor = BUTTON_HIGHTEXT;
+		}
+		for (auto col = absLeft; col < absLeft + width; col++)
+		{
+			RenderRawPixel(absTop, col, BUTTON_BORDER_T);
+			RenderRawPixel(absTop + height - 1, col, BUTTON_BORDER_B);
+		}
+		for (auto row = absTop + 1; row < absTop + 9; row++)
+		{
+			RenderRawPixel(row, absLeft, BUTTON_BORDER_L);
+			for (auto col = absLeft + 1; col < absLeft + width - 1; col++)
+				RenderRawPixel(row, col, fillColor);
+			RenderRawPixel(row, absLeft + width - 1, BUTTON_BORDER_R);
+		}
+		DrawCharacter(absLeft + 1, absTop + 1, textColor, 256 + 5);
+
+		if (currentMenu == this)
+		{
+			currentMenuLeft = absLeft + width + 2;
+			currentMenuTop = absTop + 2;
+
+			int t = currentMenuTop;
+			for (auto child = children.begin(); child != children.end(); child++)
+			{
+				(*child)->absLeft = currentMenuLeft;
+				(*child)->absTop = t;
+				(*child)->Draw();
+				t += (*child)->height;
+			}
+
+			currentMenuHeight = t - currentMenuTop;
+
+			if (!sizedTheChildren)
+			{
+				int w = 1;
+				bool hotkeys = false;
+				for (auto child = children.begin(); child != children.end(); child++)
+				{
+					if ((*child)->width > w)
+						w = (*child)->width;
+				}
+				for (auto child = children.begin(); child != children.end(); child++)
+				{
+					(*child)->width = w;
+				}
+				sizedTheChildren = true;
+			}
+
+			currentMenuWidth = children.begin()->get()->width;
+
+			for (int col = 0; col <= currentMenuWidth; col++)
+			{
+				RenderRawPixel(currentMenuTop - 1, currentMenuLeft + col, PULLDOWN_BORDER_T);
+				RenderRawPixel(currentMenuTop + currentMenuHeight, currentMenuLeft + col, PULLDOWN_BORDER_B);
+				DarkenPixel(currentMenuTop + currentMenuHeight + 1, currentMenuLeft + col + 2);
+				DarkenPixel(currentMenuTop + currentMenuHeight + 2, currentMenuLeft + col + 2);
+			}
+		}
+	}
+	void Handle()
+	{
+		if (WasClicked())
+		{
+			if (children.empty())
+				currentMenu = NULL;
+			else
+			{
+				currentMenu = this;
+				currentMenuLeft = absLeft;
+				currentMenuTop = absTop;
+				currentMenuWidth = currentMenuHeight = 1000;
+			}
+		}
+
+		if (currentMenu == this)
+		{
+			for (auto child = children.begin(); child != children.end(); child++)
+				(*child)->Handle();
+		}
+	}
+};
+
 extern int pauseState;
 int mouseTimer = 0, cursorTimer = 0;
 MenuBar* menuBar = NULL;
@@ -1390,16 +1504,67 @@ void UpdateDevManList()
 	}
 }
 
+void _devDrop(Control* me)
+{
+	int selection = devManList->selection;
+	int oldType = 0;
+	if (devices[selection] != 0)
+	{
+		switch (devices[selection]->GetID())
+		{
+			case 0x0144: oldType = 1; break;
+			case 0x4C50: oldType = 2; break;
+		}
+	}
+	int newType = 0;
+	for (int i = 0; i < (signed)me->parent->children.size(); i++)
+	{
+		if (me == me->parent->children[i].get())
+		{
+			newType = i;
+			break;
+		}
+	}
+	if (newType == oldType)
+		return;
+	if (devices[selection] != NULL)
+		delete devices[selection];
+	char key[8] = { 0 };
+	SDL_itoa(selection, key, 10);
+	switch (newType)
+	{
+		case 0:
+			devices[selection] = NULL;
+			ini->Set("devices", key, "");
+			break;
+		case 1:
+			devices[selection] = (Device*)(new DiskDrive());
+			ini->Set("devices", key, "diskDrive");
+			break;
+		case 2:
+			devices[selection] = (Device*)(new LinePrinter());
+			ini->Set("devices", key, "linePrinter");
+			break;
+	}
+	UpdateDevManList();
+	_devSelect(devManList, selection);
+}
+
 Window* BuildDeviceWindow()
 {
-	auto win = new Window("Devices", 64, 128, 320, 110);
+	auto win = new Window("Devices", 64, 128, 250, 110);
 	win->AddChild(devManList = new ListBox(2, 1, 95, 94, _devSelect));
 	win->AddChild(devManHeader = new Label("...", 100, 2, 0x07FF, 0));
-	win->AddChild(devManNoOptions = new Label("A swirling void\nhowls before you.", 172, 20, WINDOW_TEXT, 0));
-	win->AddChild(devManDiskette = new Label("...", 175, 19, WINDOW_TEXT, 0)); //TODO: replace with something with a border
-	win->AddChild(devManInsert = new Button("Insert", 232, 31, 39, _devDiskette));
-	win->AddChild(devManEject = new Button("Eject", 274, 31, 39, _devDiskette));
-	win->AddChild(new Button("Okay", 278, 80, 39, _closeWindow));
+	auto drop = new DropDown(win->width - 12, 2);
+	drop->AddChild(new MenuItem("Nothing", 0, _devDrop));
+	drop->AddChild(new MenuItem("Disk drive", 0, _devDrop));
+	drop->AddChild(new MenuItem("Line printer", 0, _devDrop));
+	win->AddChild(devManNoOptions = new Label("A swirling void\nhowls before you.", 102, 20, WINDOW_TEXT, 0));
+	win->AddChild(devManDiskette = new Label("...", 105, 19, WINDOW_TEXT, 0)); //TODO: replace with something with a border
+	win->AddChild(devManInsert = new Button("Insert", 162, 31, 39, _devDiskette));
+	win->AddChild(devManEject = new Button("Eject", 204, 31, 39, _devDiskette));
+	win->AddChild(new Button("Okay", 208, 80, 39, _closeWindow));
+	win->AddChild(drop);
 	win->Propagate();
 	for (int i = 0; i < MAXDEVS; i++)
 		devManList->items.push_back("..."); 
