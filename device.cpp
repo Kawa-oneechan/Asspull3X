@@ -23,7 +23,7 @@ DiskDrive::~DiskDrive()
 	if (file != NULL) fclose(file);
 }
 
-int DiskDrive::Mount(char* filename)
+int DiskDrive::Mount(const char* filename)
 {
 	if (file != NULL)
 		return -1;

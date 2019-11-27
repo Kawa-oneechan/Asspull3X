@@ -20,7 +20,7 @@ int line = 0, interrupts = 0;
 extern void Screenshot();
 extern int uiCommand, uiData;
 extern char uiFPS[];
-extern void SetStatus(char*);
+extern void SetStatus(const char*);
 extern void _devUpdateDiskette(int);
 
 extern unsigned int biosSize, romSize;
@@ -180,7 +180,7 @@ int main(int argc, char* argv[])
 	const auto Hz = mHz * 1000000;
 	const auto vBlankEvery = Hz / screenFreq;
 	const auto hBlankEvery = vBlankEvery / lines;
-	const auto vBlankLasts = (trueLines) * hBlankEvery;
+	//const auto vBlankLasts = (trueLines) * hBlankEvery;
 	const auto hBlankLasts = (trueWidth - pixsPerRow);
 
 	auto startTime = 0;

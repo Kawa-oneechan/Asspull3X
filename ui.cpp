@@ -203,9 +203,6 @@ private:
 	{
 		if (draggingWindow != NULL)
 			return false;
-		auto closeButtonLeft = absLeft + width - 12;
-		auto closeButtonTop = absTop + 2;
-		int x = 0, y = 0;
 		int buttons = GetMouseState(0, 0);
 		if (WasInsideCloseBox() && buttons)
 			return true;
@@ -1086,6 +1083,9 @@ int GetMouseState(int *x, int *y)
 	else if (justClicked == 2)
 		justClicked = 0;
 
+	if (x == NULL || y == NULL)
+		return (justClicked == 2) ? 1 : 0;
+
 	int winWidth, winHeight;
 	SDL_GetWindowSize(sdlWindow, &winWidth, &winHeight);
 	int scrWidth = (winWidth / 640) * 640;
@@ -1219,19 +1219,20 @@ void DrawImage(int x, int y, unsigned short* pixmap, int width, int height)
 void DrawString(int x, int y, int color, const char* str)
 {
 	int sx = x;
+	const int tabSize = 32;
 	while(*str)
 	{
 		if (*str == '\t')
-			x = ((x / TABWIDTH) * TABWIDTH) + TABWIDTH;
+			x += tabSize - (x % tabSize);
 		else if (*str == '\n')
 		{
 			x = sx;
-			y += 10;
+			y += 9;
 		}
 		else
 		{
 			DrawCharacter(x, y, color, *str);
-			x += nokiaFontWidth[*str];
+			x += nokiaFontWidth[(int)*str];
 		}
 		str++;
 	}
@@ -1245,7 +1246,7 @@ int MeasureString(const char* str)
 		if (*str == '\t')
 			width = ((width / TABWIDTH) * TABWIDTH) + TABWIDTH;
 		else
-			width += nokiaFontWidth[*str];
+			width += nokiaFontWidth[(int)*str];
 		str++;
 	}
 	return width;
@@ -1298,7 +1299,7 @@ void LetItSnow()
 #define LetItSnow()
 #endif
 
-void SetStatus(char* text)
+void SetStatus(const char* text)
 {
 	strcpy_s(uiStatus, 512, text);
 	statusTimer = 100;

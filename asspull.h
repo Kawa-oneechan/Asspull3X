@@ -10,7 +10,6 @@
 #if CLANG
 //Kawa is very much a VS kinda guy.
 extern int fopen_s(FILE **f, const char *name, const char *mode);
-#define iswspace isspace
 #define strcpy_s(D,M,S) strcpy(D,S)
 #define sprintf_s(D,M,S,...) sprintf(D,S,__VA_ARGS__)
 #define _stricmp(A,B) strcasecmp(A,B)
@@ -149,7 +148,7 @@ class Device
 {
 public:
 	Device(void);
-	~Device(void);
+	virtual ~Device(void) = 0;
 	virtual unsigned int Read(unsigned int address);
 	virtual void Write(unsigned int address, unsigned int value);
 	virtual int GetID();
@@ -161,12 +160,12 @@ private:
 	FILE* file;
 	unsigned char* data;
 	unsigned short sector;
-	unsigned int capacity;
+	//unsigned int capacity; //TODO: make use of this.
 	int error;
 public:
 	DiskDrive(void);
 	~DiskDrive(void);
-	int Mount(char* filename);
+	int Mount(const char* filename);
 	int Unmount();
 	unsigned int Read(unsigned int address);
 	void Write(unsigned int address, unsigned int value);
