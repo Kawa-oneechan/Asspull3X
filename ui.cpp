@@ -248,6 +248,15 @@ public:
 		visible = true;
 		BringWindowToFront(this);
 	}
+	void Hide()
+	{
+		visible = false;
+		if (topLevelControls.size() > 1)
+		{
+			auto next = topLevelControls.end() - 2;
+			BringWindowToFront(next->get());
+		}
+	}
 	void Draw()
 	{
 		if (!visible) return;
@@ -276,7 +285,7 @@ public:
 		DrawCloseBox();
 		if (WasCloseBoxClicked())
 		{
-			visible = false;
+			Hide();
 			return;
 		}
 
@@ -366,6 +375,55 @@ public:
 	}
 };
 
+class CheckBox : public Control
+{
+public:
+	bool checked;
+	void(*onClick)(Control* me);
+	CheckBox(const char* caption, int left, int top, int width, bool checked, void(*click)(Control*))
+	{
+		this->text = caption;
+		this->left = this->absLeft = left;
+		this->top = this->absTop = top;
+		this->width = width;
+		this->height = 13;
+		this->onClick = click;
+		this->enabled = true;
+		this->checked = checked;
+	}
+	void Draw()
+	{
+		auto fillColor = BUTTON_FILL;
+		auto textColor = (enabled ? BUTTON_TEXT : BUTTON_BORDER_B);
+		height = 10;
+		if (WasInside() && enabled)
+		{
+			fillColor = BUTTON_HIGHLIGHT;
+			textColor = BUTTON_HIGHTEXT;
+		}
+		for (auto col = absLeft; col < absLeft + width; col++)
+		{
+			RenderRawPixel(absTop, col, BUTTON_BORDER_T);
+			RenderRawPixel(absTop + height, col, BUTTON_BORDER_B);
+		}
+		for (auto row = absTop + 1; row < absTop + 9; row++)
+		{
+			RenderRawPixel(row, absLeft, BUTTON_BORDER_L);
+			for (auto col = absLeft + 1; col < absLeft + width - 1; col++)
+				RenderRawPixel(row, col, fillColor);
+			RenderRawPixel(row, absLeft + width - 1, BUTTON_BORDER_R);
+		}
+		if (checked)
+			DrawCharacter(absLeft + 1, absTop + 1, textColor, 256 + 14);
+		DrawString(absLeft + 14, absTop + 3, textColor, text.c_str());
+	}
+	void Handle()
+	{
+		if (WasClicked() && onClick != NULL)
+			onClick(this);
+	}
+};
+
 class IconButton : public Control
 {
 public:
@@ -395,9 +453,9 @@ public:
 		for (auto col = absLeft; col < absLeft + width; col++)
 		{
 			RenderRawPixel(absTop, col, BUTTON_BORDER_T);
-			RenderRawPixel(absTop + height, col, BUTTON_BORDER_B);
+			RenderRawPixel(absTop + height - 1, col, BUTTON_BORDER_B);
 		}
-		for (auto row = absTop + 1; row < absTop + 13; row++)
+		for (auto row = absTop + 1; row < absTop + 9; row++)
 		{
 			RenderRawPixel(row, absLeft, BUTTON_BORDER_L);
 			for (auto col = absLeft + 1; col < absLeft + width - 1; col++)
@@ -643,9 +701,12 @@ int mouseTimer = 0, cursorTimer = 0;
 MenuBar* menuBar = NULL;
 
 Window* aboutWindow;
+Window* memoryWindow;
 Window* BuildAboutWindow();
+Window* BuildMemoryWindow();
 
 void _showAboutDialog(Control*) { aboutWindow->Show(); }
+void _showMemoryViewer(Control*) { memoryWindow->Show(); }
 
 void InitializeUI()
 {
@@ -671,6 +732,7 @@ void InitializeUI()
 	menuBar->AddChild(helpMenu);
 
 	aboutWindow = BuildAboutWindow();
+	memoryWindow = BuildMemoryWindow();
 	focusedWindow = aboutWindow;
 }
 
@@ -758,6 +820,9 @@ void HandleUI()
 		if (x < currentMenuLeft || y < currentMenuTop || x > currentMenuLeft + currentMenuWidth || y > currentMenuTop + currentMenuHeight)
 			currentMenu = NULL;
 	}
+
+	if (focusedWindow != NULL)
+		cursorTimer = 100;
 
 	if (y < 10 || currentMenu != NULL || pauseState == 2)
 	{
@@ -1018,69 +1083,6 @@ void LetItSnow()
 #define LetItSnow()
 #endif
 
-/*
-void CloseWindow(int token)
-{
-	for (int i = 0; i < uiOpenWindows; i++)
-	{
-		if (windows[i].token == token)
-		{
-			for (int j = i + 1; j < MAXWINDOWS; j++)
-				memcpy(&windows[j - 1], &windows[j], sizeof(uiWindow));
-			uiOpenWindows--;
-			BringWindowToFront(windows[uiOpenWindows - 1].token);
-			return;
-		}
-    }
-}
-
-void OpenWindow(int token, int left, int top, int width, int height, char* caption, int(*handler)(int))
-{
-	for (int i = 0; i < uiOpenWindows; i++)
-	{
-		if (windows[i].token == token)
-		{
-			SDL_Log("Already have a window with token $%X", token);
-			BringWindowToFront(token);
-			return;
-		}
-    }
-	auto newWin = &windows[uiOpenWindows++];
-	newWin->token = token;
-	newWin->left = left;
-	newWin->top = top;
-	newWin->width = width;
-	newWin->height = height;
-	strcpy_s(newWin->caption, 256, caption);
-	newWin->handler = handler;
-	BringWindowToFront(token);
-}
-
-void OpenWindow(uiWindow* window)
-{
-	for (int i = 0; i < uiOpenWindows; i++)
-	{
-		if (windows[i].token == window->token)
-		{
-			SDL_Log("Already have a window with token $%X", window->token);
-			BringWindowToFront(window->token);
-			return;
-		}
-    }
-	auto newWin = &windows[uiOpenWindows++];
-	newWin->token = window->token;
-	newWin->left = window->left;
-	newWin->top = window->top;
-	newWin->width = window->width;
-	newWin->height = window->height;
-	strcpy_s(newWin->caption, 256, window->caption);
-	newWin->handler = window->handler;
-	BringWindowToFront(newWin->token);
-}
-
-
-*/
-
 void SetStatus(char* text)
 {
 	strcpy_s(uiStatus, 512, text);
@@ -1097,345 +1099,12 @@ void uiHandleStatusLine(int left)
 	}
 	DrawString(640 - 8 - (strlen(uiFPS) * 5), 2, STATUS_TEXT, uiFPS);
 }
-
-int uiHandleMenuDrop(uiMenu* menu, int left, int top, int *openedTop, bool isTopLevel)
-{
-	int focused = -1;
-	int x = 0, y = 0;
-	int buttons = GetMouseState(&x, &y);
-	for (int i = 0; i < menu->numItems; i++)
-	{
-		if (x >= left && x < left + menu->width && y >= top + (i * 10) && y < top + (i * 10) + 10)
-		{
-			focused = i;
-			break;
-		}
-	}
-
-	for (int col = 0; col < menu->width + 2; col++)
-	{
-		RenderRawPixel(top - 1, left + col, PULLDOWN_BORDER_T);
-		RenderRawPixel(top + (menu->numItems * 10), left + col, PULLDOWN_BORDER_B);
-	}
-	for (int i = 0, y = top; i < menu->numItems; i++, y += 10)
-	{
-		for (int line = 0; line < 10; line++)
-		{
-			RenderRawPixel(y + line, left, PULLDOWN_BORDER_L);
-			int color = PULLDOWN_FILL;
-			if (i == focused)
-				color = PULLDOWN_HIGHLIGHT;
-			for (int col = 0; col < menu->width; col++)
-			{
-				RenderRawPixel(y + line, left + 1 + col, color);
-			}
-			RenderRawPixel(y + line, left + 1 + menu->width, PULLDOWN_BORDER_R);
-		}
-		DrawString(left + 2, y + 1, (i == focused) ? PULLDOWN_HIGHTEXT : PULLDOWN_TEXT, menu->items[i].caption);
-		if (menu->items[i].hotKey) DrawCharacter(left + menu->width - 10, y + 1, (i == focused) ? PULLDOWN_HIGHTEXT : PULLDOWN_TEXT, menu->items[i].hotKey);
-	}
-	for (int y = top; y <= top + (menu->numItems * 10); y++)
-	{
-		DarkenPixel(y + 2, left + 2 + menu->width);
-		DarkenPixel(y + 2, left + 3 + menu->width);
-	}
-	for (int col = left; col < left + menu->width; col++)
-	{
-		DarkenPixel(top + (menu->numItems * 10) + 1, col + 2);
-		DarkenPixel(top + (menu->numItems * 10) + 2, col + 2);
-	}
-
-	if (buttons == 1 && focused != -1)
-	{
-		currentTopMenu = -1;
-		if (menu->onSelect)
-			return menu->onSelect(focused, left + menu->width, top + (focused * 10));
-		return focused;
-	}
-	if (buttons == 1 && focused == -1 && y > 10 && isTopLevel)
-		pullDownLevel = 0;
-
-	return 0;
-}
-
-int uiHandleMenuBar(uiMenu* menu, int *openedLeft)
-{
-	int extents[16];
-	for (int i = 0; i < menu->numItems; i++)
-		extents[i] = MeasureString(menu->items[i].caption) + 10; //(strlen(menu->items[i].caption) * 6) + 10;
-	for (int i = 1; i < menu->numItems; i++)
-		extents[i] += extents[i - 1];
-	int width = extents[menu->numItems - 1] + 8;
-	int x = 0, y = 0;
-	int buttons = GetMouseState(&x, &y);
-
-	uiHandleStatusLine(width + 8);
-
-	int focused = -1;
-	int focusL = -32, focusR = -32;
-	int otherFocusL = -32, otherFocusR = -32;
-	if (x < extents[0])
-	{
-		focused = 0;
-		focusL = 0;
-		focusR = extents[0];
-	}
-	else if (y < 10)
-	{
-		for (int i = 1; i < menu->numItems; i++)
-		{
-			if (x >= extents[i - 1] && x < extents[i])
-			{
-				focused = i;
-				focusL = extents[i - 1];
-				focusR = extents[i];
-				break;
-			}
-		}
-	}
-	if (currentTopMenu != -1)
-	{
-		if (currentTopMenu == 0)
-			otherFocusL = 0;
-		else
-			otherFocusL = extents[currentTopMenu - 1];
-		otherFocusR = extents[currentTopMenu];
-	}
-
-	for (int i = 0; i < width; i++)
-	{
-		int color = MENUBAR_FILL;
-		if ((i >= focusL && i < focusR) || (i >= otherFocusL && i < otherFocusR))
-			color = MENUBAR_HIGHLIGHT;
-		for (int j = 0; j < 12; j++)
-		{
-			RenderRawPixel(j, i, color);
-		}
-		DarkenPixel(12, i);
-		DarkenPixel(13, i);
-	}
-	for (int j = 0; j < 14; j++)
-	{
-		DarkenPixel(j, width + 0);
-		DarkenPixel(j, width + 1);
-	}
-
-	for (int i = 0, x = 4; i < menu->numItems; i++, x = extents[i - 1] + 4)
-	{
-		DrawString(x, 2, (i == focused || i == currentTopMenu) ? MENUBAR_HIGHTEXT : MENUBAR_TEXT, menu->items[i].caption);
-	}
-
-	if (buttons == 1 && focused != -1)
-	{
-		currentTopMenu = focused;
-		*openedLeft = focusL;
-		if (menu->onSelect)
-			return menu->onSelect(focused, focusL, 0);
-		return focused;
-	}
-
-	return -2;
-}
-
-int uiHandleIconButton(int left, int top, int icon)
-{
-	int x = 0, y = 0;
-	int buttons = GetMouseState(&x, &y);
-	auto fill = BUTTON_FILL;
-	auto text = BUTTON_TEXT;
-	if (x > left && y > top && x < left + 10 && y < top + 10)
-	{
-		fill = BUTTON_HIGHLIGHT;
-		text = BUTTON_HIGHTEXT;
-	}
-	else
-		buttons = 0;
-	for (auto col = left; col < left + 10; col++)
-	{
-		RenderRawPixel(top, col, BUTTON_BORDER_T);
-		RenderRawPixel(top + 9, col, BUTTON_BORDER_B);
-	}
-	for (auto row = top + 1; row < top + 9; row++)
-	{
-		RenderRawPixel(row, left, BUTTON_BORDER_L);
-		for (auto col = left + 1; col < left + 9; col++)
-			RenderRawPixel(row, col, fill);
-		RenderRawPixel(row, left + 9, BUTTON_BORDER_R);
-	}
-	DrawCharacter(left + 1, top + 1, text, 256 + icon);
-	return buttons;
-}
-
-int uiHandleCheckbox(int left, int top, char* caption, bool state)
-{
-	int x = 0, y = 0;
-	int buttons = GetMouseState(&x, &y);
-	auto fill = BUTTON_FILL;
-	auto text = BUTTON_TEXT;
-	if (x > left && y > top && x < left + 14 + MeasureString(caption)  && y < top + 10)
-	{
-		fill = BUTTON_HIGHLIGHT;
-		text = BUTTON_HIGHTEXT;
-	}
-	else
-		buttons = 0;
-	for (auto col = left; col < left + 10; col++)
-	{
-		RenderRawPixel(top, col, BUTTON_BORDER_T);
-		RenderRawPixel(top + 9, col, BUTTON_BORDER_B);
-	}
-	for (auto row = top + 1; row < top + 9; row++)
-	{
-		RenderRawPixel(row, left, BUTTON_BORDER_L);
-		for (auto col = left + 1; col < left + 9; col++)
-			RenderRawPixel(row, col, fill);
-		RenderRawPixel(row, left + 9, BUTTON_BORDER_R);
-	}
-	if (state)
-		DrawCharacter(left + 1, top + 1, text, 256 + 14);
-	DrawString(left + 14, top + 1, WINDOW_TEXT, caption);
-	return buttons;
-}
-
-extern int pauseState;
-void HandleUI()
-{
-	int x = 0, y = 0;
-	mouseTimer++;
-	int buttons = GetMouseState(&x, &y);
-	if (pauseState == 2)
-		LetItSnow();
-
-	if (uiOpenWindows)
-	{
-		CheckForWindowPops();
-		for (int i = 0; i < uiOpenWindows; i++)
-		{
-			uiHandleWindow(&windows[i]);
-			if (windows[i].handler == 0)
-				continue;
-			auto response = windows[i].handler(i);
-			if (response == -1)
-				break;
-		}
-		cursorTimer = 100;
-	}
-
-	if (draggingWindowID != -1 && (dragStartLeft != dragLeft || dragStartTop != dragTop))
-	{
-		for (int i = dragLeft; i < dragLeft + dragWidth; i += 2)
-		{
-			RenderRawPixel(dragTop, i, 0x7FFF);
-			RenderRawPixel(dragTop + dragHeight, i, 0x7FFF);
-		}
-		for (int i = dragTop; i < dragTop + dragHeight; i += 2)
-		{
-			RenderRawPixel(i, dragLeft, 0x7FFF);
-			RenderRawPixel(i, dragLeft + dragWidth, 0x7FFF);
-		}
-	}
-
-	if (pullDownLevel > 0)
-	{
-		auto response = uiHandleMenuBar((uiMenu*)&mainMenu, &x);
-		for (int i = 0; i < pullDownLevel; i++)
-			response = uiHandleMenuDrop(pullDowns[i], pullDownLefts[i], pullDownTops[i], &y, i == pullDownLevel - 1);
-		cursorTimer = 100;
-	}
-	else if (y < 10 || pauseState == 2)
-	{
-		auto response = uiHandleMenuBar((uiMenu*)&mainMenu, &x);
-		cursorTimer = 100;
-	}
-	else
-	{
-		uiHandleStatusLine(4);
-	}
-	DrawCursor();
-}
-
-extern uiWindow aboutWindow, memoryViewerWindow, deviceManagerWindow, optionsWindow;
-
-int uiCommand, uiData;
-
-int _uiMainMenu(int item, int itemLeft, int itemTop)
-{
-	pullDownLevel = 1;
-	pullDownTops[0] = 12;
-	pullDownLefts[0] = itemLeft + 2;
-	switch (item)
-	{
-	case 0: //File
-		pullDowns[0] = (uiMenu*)&fileMenu;
-		break;
-	case 1: //Devices
-		//TODO
-		//PopulateDeviceMenu();
-		//pullDowns[0] = &deviceMenu;
-		OpenWindow((uiWindow*)&deviceManagerWindow);
-		pullDownLevel = 0;
-		break;
-	case 2: //Tools
-		pullDowns[0] = (uiMenu*)&toolsMenu;
-		break;
-	case 3: //About
-		OpenWindow((uiWindow*)&aboutWindow);
-		pullDownLevel = 0;
-		break;
-	}
-	return 0;
-}
-
-int _uiFileMenu(int item, int itemLeft, int itemTop)
-{
-	pullDownLevel = 0;
-	currentTopMenu = -1;
-	switch (item)
-	{
-	case 0: //Load
-		uiCommand = cmdLoadRom;
-		break;
-	case 1: //Unload
-		uiCommand = cmdUnloadRom;
-		break;
-	case 2: //Reset
-		uiCommand = cmdReset;
-		uiData = (SDL_GetModState() & KMOD_CTRL);
-		break;
-	case 3: //Quit
-		uiCommand = cmdQuit;
-		break;
-	}
-	return 0;
-}
-
-int _uiToolsMenu(int item, int itemLeft, int itemTop)
-{
-	pullDownLevel = 0;
-	currentTopMenu = -1;
-	switch (item)
-	{
-	case 0: //Screenshot
-		uiCommand = cmdScreenshot;
-		break;
-	case 1: //Dump
-		uiCommand = cmdDump;
-		break;
-	case 2: //Memory Viewer
-		OpenWindow((uiWindow*)&memoryViewerWindow);
-		break;
-	case 3: //Options
-		OpenWindow((uiWindow*)&optionsWindow);
-		break;
-	}
-	return 0;
-}
 */
 
 #include "aboutpic.c"
 void _aboutWindowClose(Control* me)
 {
-	me->parent->visible = false;
+	((Window*)me->parent)->Hide();
 }
 Window* BuildAboutWindow()
 {
@@ -1448,73 +1117,79 @@ Window* BuildAboutWindow()
 	return win;
 }
 
-/*
-int _uiAboutWin(int);
-uiWindow aboutWindow = { 0x707, 32, 32, 227, 78, "E Clunibus Tractum", _uiAboutWin };
-int _uiAboutWin(int me)
-{
-	auto win = &windows[me];
-	aboutWindow.left = win->left;
-	aboutWindow.top = win->top;
-	DrawString(win->left + 150, win->top + 16, 0x07FF, "Asspull IIIx");
-	DrawString(win->left + 150, win->top + 28, WINDOW_TEXT, "System design\nand emulator\nby Kawa");
-	DrawImage(win->left + 1, win->top + 13, (unsigned short*)aboutPic, 144, 64);
-	if (uiHandleButton(win->left + 190, win->top + 61, 34, "Cool"))
-	{
-		CloseWindow(0x0707);
-		return -1;
-	}
-	return 0;
-}
-
 extern "C" unsigned int m68k_read_memory_8(unsigned int address);
-int _uiMemoryViewer(int);
-uiWindow memoryViewerWindow = { 0x1337, 128, 128, 260, 334, "Memory Viewer", _uiMemoryViewer };
 signed long memViewerOffset = MAP1_ADDR;
 #define MAXVIEWEROFFSET (0x10000000 - 0x100)
-int _uiMemoryViewer(int me)
-{
-	auto win = &windows[me];
-	memoryViewerWindow.left = win->left;
-	memoryViewerWindow.top = win->top;
-	const char hex[] = "0123456789ABCDEF";
-	char offsetStr[16] = { 0 };
-	unsigned int offset = memViewerOffset;
-	for (int row = 0; row < 32; row++)
-	{
-		sprintf_s(offsetStr, 16, "%08X", offset);
-		DrawString(win->left + 2, win->top + 14 + (row * 10), WINDOW_TEXT, offsetStr);
-		for (int col = 0; col < 8; col++)
-		{
-			auto here = m68k_read_memory_8(offset++);
-			DrawCharacter(win->left + 56 + (col * 16), win->top + 14 + (row * 10), WINDOW_TEXT, *(hex + ((here & 0xF0) >> 4)));
-			DrawCharacter(win->left + 62 + (col * 16), win->top + 14 + (row * 10), WINDOW_TEXT, *(hex + (here & 0x0F)));
 
-			DrawCharacter(win->left + 186 + (col * 7), win->top + 14 + (row * 10), WINDOW_TEXT, here);
+class MemoryViewer : public Control
+{
+public:
+	MemoryViewer(int left, int top)
+	{
+		this->left = this->absLeft = left;
+		this->top = this->absTop = top;
+	}
+	void Draw()
+	{
+		if (!visible) return;
+		const char hex[] = "0123456789ABCDEF";
+		char offsetStr[16] = { 0 };
+		unsigned int offset = memViewerOffset;
+		for (int row = 0; row < 32; row++)
+		{
+			sprintf_s(offsetStr, 16, "%08X", offset);
+			DrawString(absLeft, absTop + (row * 9), WINDOW_TEXT, offsetStr);
+			for (int col = 0; col < 8; col++)
+			{
+				auto here = m68k_read_memory_8(offset++);
+				DrawCharacter(absLeft + 54 + (col * 16), absTop + (row * 9), WINDOW_TEXT, *(hex + ((here & 0xF0) >> 4)));
+				DrawCharacter(absLeft + 60 + (col * 16), absTop + (row * 9), WINDOW_TEXT, *(hex + (here & 0x0F)));
+				DrawCharacter(absLeft + 184 + (col * 8), absTop + (row * 9), WINDOW_TEXT, here);
+			}
 		}
 	}
+};
 
+void _memViewerScroller(Control *me)
+{
 	auto mods = SDL_GetModState();
 	auto bigStep = (mods & KMOD_CTRL) ? 0x01000000 : ((mods & KMOD_SHIFT) ? 0x8000 : 0x1000);
-
-	if (uiHandleIconButton(win->left + 248, win->top + 2, 0))
+	auto what = ((IconButton*)me)->icon;
+	switch (what)
 	{
-		CloseWindow(0x1337);
-		return -1;
-	}
-	else if (uiHandleIconButton(win->left +	248, win->top + 24, 4))
+	case 4:
 		memViewerOffset -= 0x100;
-	else if(uiHandleIconButton(win->left +	248, win->top + 312, 5))
+		break;
+	case 5:
 		memViewerOffset += 0x100;
-	else if (uiHandleIconButton(win->left +	248, win->top + 14, 6))
+		break;
+	case 6:
 		memViewerOffset -= bigStep;
-	else if(uiHandleIconButton(win->left +	248, win->top + 322, 7))
+		break;
+	case 7:
 		memViewerOffset += bigStep;
-	if (memViewerOffset < 0) memViewerOffset = 0;
-	else if (memViewerOffset > MAXVIEWEROFFSET) memViewerOffset = MAXVIEWEROFFSET;
-	return 0;
+		break;
+	}
+	if (memViewerOffset < 0)
+		memViewerOffset = 0;
+	else if (memViewerOffset > MAXVIEWEROFFSET)
+		memViewerOffset = MAXVIEWEROFFSET;
 }
 
+Window* BuildMemoryWindow()
+{
+	auto win = new Window("Memory Viewer", 128, 128, 265, 324);
+	win->AddChild(new MemoryViewer(3, 2));
+	win->AddChild(new IconButton(6, 252, 2, _memViewerScroller));
+	win->AddChild(new IconButton(4, 252, 12, _memViewerScroller));
+	win->AddChild(new IconButton(5, 252, 270, _memViewerScroller));
+	win->AddChild(new IconButton(7, 252, 280, _memViewerScroller));
+	win->AddChild(new Label("(TODO: add a text field and dropdown hereabouts)", 12, 294, WINDOW_TEXT, 0));
+	topLevelControls.push_back(std::unique_ptr<Control>(win));
+	return win;
+}
+
+/*
 int _uiDeviceManager(int);
 uiWindow deviceManagerWindow = { 0xCAB7E, 64, 128, 320, 110, "Devices", _uiDeviceManager };
 #define MAXENTRYLENGTH 32
