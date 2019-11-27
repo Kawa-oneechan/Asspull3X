@@ -65,6 +65,11 @@ int statusTimer = 0;
 #define PULLDOWN_TEXT		MENUBAR_TEXT
 #define PULLDOWN_HIGHLIGHT	MENUBAR_HIGHLIGHT
 #define PULLDOWN_HIGHTEXT	MENUBAR_HIGHTEXT
+#define LISTBOX_FILL		FAIZ(0, 0, 0)
+#define LISTBOX_TEXT		WINDOW_TEXT
+#define LISTBOX_HIGHLIGHT	MENUBAR_HIGHLIGHT
+#define LISTBOX_HIGHTEXT	(MENUBAR_HIGHTEXT) & ~0x8000
+#define LISTBOX_TRACK		BUTTON_BORDER_R
 
 inline void RenderRawPixel(int row, int column, int color);
 inline void DarkenPixel(int row, int column);
@@ -114,7 +119,7 @@ public:
 	{
 		if (draggingWindow != NULL)
 			return false;
-		if (parent != 0 && parent != focusedWindow)
+		if (parent != 0 && (parent != focusedWindow && parent->parent != focusedWindow))
 			return false;
 		int x = 0, y = 0;
 		GetMouseState(&x, &y);
@@ -126,7 +131,7 @@ public:
 	{
 		if (draggingWindow != NULL)
 			return false;
-		if (parent != 0 && parent != focusedWindow)
+		if (parent != 0 && (parent != focusedWindow && parent->parent != focusedWindow))
 			return false;
 		int x = 0, y = 0;
 		int buttons = GetMouseState(&x, &y);
@@ -471,6 +476,91 @@ public:
 	}
 };
 
+void doListButton(Control* me);
+class ListBox : public Control
+{
+public:
+	int selection;
+	int scroll;
+	int visible;
+	std::vector<std::string> items;
+	void(*onChange)(Control*, int);
+	ListBox(int left, int top, int width, int height, void(*change)(Control*, int))
+	{
+		this->left = this->absLeft = left;
+		this->top = this->absTop = top;
+		this->width = width;
+		this->height = height;
+		this->onChange = change;
+		this->enabled = true;
+		this->selection = 0;
+		this->scroll = 0;
+		this->visible = (height - 2) / 9;
+		this->marginLeft = this->marginTop = 0;
+		this->AddChild(new IconButton(4, width - 11, 1, doListButton));
+		this->AddChild(new IconButton(5, width - 11, (visible * 9) - 9, doListButton));
+	}
+	void Draw()
+	{
+		for (int col = 0; col < width; col++)
+		{
+			RenderRawPixel(absTop, absLeft + col, WINDOW_BORDERFOC_B);
+			RenderRawPixel(absTop + 1 + (visible * 9), absLeft + col, WINDOW_BORDERFOC_T);
+		}
+		for (int i = 0; i < visible && (i + scroll) < (signed)items.size(); i++)
+		{
+			int fillColor = (i + scroll == selection) ? LISTBOX_HIGHLIGHT : LISTBOX_FILL;
+			int textColor = (i + scroll == selection) ? LISTBOX_HIGHTEXT : LISTBOX_TEXT;
+			for (int row = 0; row < 9; row++)
+			{
+				RenderRawPixel(absTop + 1 + row + (i * 9), absLeft, WINDOW_BORDERFOC_R);
+				for (int col = 1; col < width - 11; col++)
+				{
+					RenderRawPixel(absTop + 1 + row + (i * 9), absLeft + col, fillColor);
+				}
+				for (int col = width - 11; col < width - 1; col++)
+				{
+					RenderRawPixel(absTop + 1 + row + (i * 9), absLeft + col, LISTBOX_TRACK);
+				}
+				RenderRawPixel(absTop + 1 + row + (i * 9), absLeft + width - 1, WINDOW_BORDERFOC_L);
+			}
+			DrawString(absLeft + 3, absTop + 2 + (i * 9), textColor, items[i + scroll].c_str());
+		}
+		for (auto child = children.begin(); child != children.end(); child++)
+			(*child)->Draw();
+	}
+	void Handle()
+	{
+		if (draggingWindow != NULL)
+			return;
+		if (parent != 0 && (parent != focusedWindow && parent->parent != focusedWindow))
+			return;
+		int x = 0, y = 0;
+		int buttons = GetMouseState(&x, &y);
+		if (x > absLeft && y > absTop && x < absLeft + width - 10 && y < absTop + height && buttons)
+		{
+			y -= absTop;
+			y /= 9;
+			selection = y + scroll;
+			if (onChange)
+				onChange(this, selection);
+			return;
+		}
+
+		for (auto child = children.begin(); child != children.end(); child++)
+			(*child)->Handle();
+	}
+};
+void doListButton(Control* me)
+{
+	auto what = ((IconButton*)me)->icon;
+	auto who = (ListBox*)me->parent;
+	if (what == 4 && who->scroll > 0)
+		who->scroll--;
+	else if (what == 5 && who->scroll < (signed)who->items.size() - who->visible)
+		who->scroll++;
+}
+
 void* currentMenu = NULL;
 int currentMenuTop, currentMenuLeft, currentMenuWidth, currentMenuHeight;
 
@@ -702,11 +792,14 @@ MenuBar* menuBar = NULL;
 
 Window* aboutWindow;
 Window* memoryWindow;
+Window* deviceWindow;
 Window* BuildAboutWindow();
 Window* BuildMemoryWindow();
+Window* BuildDeviceWindow();
 
 void _showAboutDialog(Control*) { aboutWindow->Show(); }
 void _showMemoryViewer(Control*) { memoryWindow->Show(); }
+void _showDevices(Control*) { deviceWindow->Show(); }
 
 void InitializeUI()
 {
@@ -721,10 +814,10 @@ void InitializeUI()
 	auto toolsMenu = new Menu("Tools");
 	toolsMenu->AddChild(new MenuItem("Options", 0, 0));
 	toolsMenu->AddChild(new MenuItem("-", 0, 0));
-	toolsMenu->AddChild(new MenuItem("Devices", 0, 0));
+	toolsMenu->AddChild(new MenuItem("Devices", 0, _showDevices));
 	toolsMenu->AddChild(new MenuItem("Screenshot", 'S', cmdScreenshot));
 	toolsMenu->AddChild(new MenuItem("Dump RAM", 'D', cmdDump));
-	toolsMenu->AddChild(new MenuItem("Memory viewer", 0, 0));
+	toolsMenu->AddChild(new MenuItem("Memory viewer", 0, _showMemoryViewer));
 	menuBar->AddChild(toolsMenu);
 
 	auto helpMenu = new Menu("Help");
@@ -733,6 +826,7 @@ void InitializeUI()
 
 	aboutWindow = BuildAboutWindow();
 	memoryWindow = BuildMemoryWindow();
+	deviceWindow = BuildDeviceWindow();
 	focusedWindow = aboutWindow;
 }
 
@@ -1101,19 +1195,21 @@ void uiHandleStatusLine(int left)
 }
 */
 
-#include "aboutpic.c"
-void _aboutWindowClose(Control* me)
+void _closeWindow(Control* me)
 {
 	((Window*)me->parent)->Hide();
 }
+
+#include "aboutpic.c"
 Window* BuildAboutWindow()
 {
 	auto win = new Window("E Clunibus Tractum", 32, 32, 227, 78);
 	win->AddChild(new Image(aboutPic, 1, 0, 144, 64));
 	win->AddChild(new Label("Asspull IIIx", 150, 4, 0x07FF, 0));
 	win->AddChild(new Label("System design\nand emulator\nby Kawa", 150, 15, WINDOW_TEXT, 0));
-	win->AddChild(new Button("Cool", 190, 48, 34, _aboutWindowClose));
+	win->AddChild(new Button("Cool", 190, 48, 34, _closeWindow));
 	topLevelControls.push_back(std::unique_ptr<Control>(win));
+	win->visible = false;
 	return win;
 }
 
@@ -1186,35 +1282,92 @@ Window* BuildMemoryWindow()
 	win->AddChild(new IconButton(7, 252, 280, _memViewerScroller));
 	win->AddChild(new Label("(TODO: add a text field and dropdown hereabouts)", 12, 294, WINDOW_TEXT, 0));
 	topLevelControls.push_back(std::unique_ptr<Control>(win));
+	win->visible = false;
 	return win;
 }
 
-/*
-int _uiDeviceManager(int);
-uiWindow deviceManagerWindow = { 0xCAB7E, 64, 128, 320, 110, "Devices", _uiDeviceManager };
-#define MAXENTRYLENGTH 32
-void UpdateDevManList(char* list)
+Label* devManHeader;
+Label* devManNoOptions;
+Label* devManDiskette;
+Button* devManEject;
+Button* devManInsert;
+
+void _devSelect(Control* me, int selection)
 {
-	char* entry = list;
+	devManNoOptions->visible = false;
+	//devManDiskette->visible = false;
+	//devManEject->visible = false;
+	//devManInsert->visible = false;
+	int devType = 0;
+	if (devices[selection] != 0)
+	{
+		switch (devices[selection]->GetID())
+		{
+			case 0x0144: devType = 1; break;
+			case 0x4C50: devType = 2; break;
+		}
+	}
+	switch (devType)
+	{
+	case 0:
+	case 2:
+		devManHeader->text = ((devType == 0) ? "Nothingness" : "Line printer");
+		devManNoOptions->visible = true;
+		break;
+	case 1:
+		devManHeader->text = "Disk drive";
+		//devManDiskette->visible = true;
+		//devManEject->visible = true;
+		//devManInsert->visible = true;
+		break;
+	}
+}
+
+void UpdateDevManList(ListBox* list)
+{
+	char entry[32] = { 0 };
 	for (int i = 0; i < MAXDEVS; i++)
 	{
 		if (devices[i] == 0)
 		{
-			sprintf_s(entry, MAXENTRYLENGTH, "%d. Nothing", i + 1);
-			continue;
+			sprintf_s(entry, 32, "%d. Nothing", i + 1);
 		}
-		switch (devices[i]->GetID())
+		else
 		{
-		case 0x0144:
-			sprintf_s(entry, MAXENTRYLENGTH, "%d. Disk drive", i + 1);
-			break;
-		case 0x4C50:
-			sprintf_s(entry, MAXENTRYLENGTH, "%d. Line printer", i + 1);
-			break;
+			switch (devices[i]->GetID())
+			{
+			case 0x0144:
+				sprintf_s(entry, 32, "%d. Disk drive", i + 1);
+				break;
+			case 0x4C50:
+				sprintf_s(entry, 32, "%d. Line printer", i + 1);
+				break;
+			}
 		}
-		entry += MAXENTRYLENGTH;
+		list->items[i] = entry;
 	}
 }
+
+Window* BuildDeviceWindow()
+{
+	auto win = new Window("Devices", 64, 128, 320, 110);
+	auto deviceList = new ListBox(2, 1, 95, 94, _devSelect);
+	for (int i = 0; i < MAXDEVS; i++)
+		deviceList->items.push_back("...");
+	devManHeader = new Label("...", 100, 2, 0x07FF, 0);
+	devManNoOptions = new Label("A swirling void\nhowls before you.", 172, 20, WINDOW_TEXT, 0);
+	win->AddChild(deviceList);
+	win->AddChild(devManHeader);
+	win->AddChild(devManNoOptions);
+	win->AddChild(new Button("Okay", 278, 81, 39, _closeWindow));
+	win->Propagate();
+	UpdateDevManList(deviceList);
+	_devSelect(deviceList, 0);
+	topLevelControls.push_back(std::unique_ptr<Control>(win));
+	return win;
+}
+
+/*
 int _uiDeviceManager(int me)
 {
 	auto win = &windows[me];
