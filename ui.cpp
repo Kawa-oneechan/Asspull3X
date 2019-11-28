@@ -11,6 +11,7 @@
 char uiStatus[512] = { 0 };
 char uiFPS[32] = { 0 };
 int statusTimer = 0;
+int uiKey = 0; //for textboxes
 
 #define FAIZ(r, g, b) (((b) >> 3) << 10) | (((g) >> 3) << 5) | ((r) >> 3)
 #define WITH_SHADOW | 0x8000

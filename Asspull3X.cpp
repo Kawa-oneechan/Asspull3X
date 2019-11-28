@@ -18,7 +18,7 @@ extern "C" {
 static bool quit = 0;
 int line = 0, interrupts = 0;
 extern void Screenshot();
-extern int uiCommand, uiData;
+extern int uiCommand, uiData, uiKey;
 extern char uiFPS[];
 extern void SetStatus(const char*);
 extern void _devUpdateDiskette(int);
@@ -190,6 +190,7 @@ int main(int argc, char* argv[])
 
 	while (!quit)
 	{
+		uiKey = 0;
 		while (SDL_PollEvent(&ev) != 0)
 		{
 			switch (ev.type)
@@ -211,6 +212,10 @@ int main(int argc, char* argv[])
 					joypad[ev.jbutton.which] = (joypad[ev.jbutton.which] & ~15) | ev.jhat.value;
 				break;
 			case SDL_KEYUP:
+				uiKey = keyMap[ev.key.keysym.scancode];
+				if (ev.key.keysym.mod & KMOD_SHIFT) uiKey |= 0x100;
+				if (ev.key.keysym.mod & KMOD_ALT) uiKey |= 0x200;
+				if (ev.key.keysym.mod & KMOD_CTRL) uiKey |= 0x400;
 				if (ev.key.keysym.mod & KMOD_LCTRL)
 				{
 					if (ev.key.keysym.sym == SDLK_l)
