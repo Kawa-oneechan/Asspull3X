@@ -15,8 +15,6 @@ int statusTimer = 0;
 #define FAIZ(r, g, b) (((b) >> 3) << 10) | (((g) >> 3) << 5) | ((r) >> 3)
 #define WITH_SHADOW | 0x8000
 
-//TODO: inactive window border/caption
-
 #define STATUS_TEXT			FAIZ(255, 255, 255) WITH_SHADOW
 #define WINDOW_BORDER_L		FAIZ(0, 0, 0)
 #define WINDOW_BORDER_T		WINDOW_BORDER_L
@@ -257,8 +255,16 @@ public:
 		visible = false;
 		if (topLevelControls.size() > 1)
 		{
-			auto next = topLevelControls.end() - 2;
-			BringWindowToFront(next->get());
+			auto next = topLevelControls.end() - 1;
+			while (next != topLevelControls.begin())
+			{
+				if (next->get()->visible)
+				{
+					BringWindowToFront(next->get());
+					break;
+				}
+				next--;
+			}
 		}
 	}
 	void Draw()
@@ -1203,17 +1209,18 @@ void DrawString(int x, int y, int color, const char* str)
 	const int tabSize = 32;
 	while(*str)
 	{
-		if (*str == '\t')
+		unsigned char c = *str;
+		if (c == '\t')
 			x += tabSize - (x % tabSize);
-		else if (*str == '\n')
+		else if (c == '\n')
 		{
 			x = sx;
 			y += 9;
 		}
 		else
 		{
-			DrawCharacter(x, y, color, *str);
-			x += nokiaFontWidth[(int)*str];
+			DrawCharacter(x, y, color, c);
+			x += nokiaFontWidth[c];
 		}
 		str++;
 	}
@@ -1286,18 +1293,6 @@ void SetStatus(const char* text)
 	statusTimer = 100;
 }
 
-/*
-void uiHandleStatusLine(int left)
-{
-	if (statusTimer)
-	{
-		DrawString(left, 2, STATUS_TEXT, uiStatus);
-		statusTimer--;
-	}
-	DrawString(640 - 8 - (strlen(uiFPS) * 5), 2, STATUS_TEXT, uiFPS);
-}
-*/
-
 void _closeWindow(Control* me)
 {
 	((Window*)me->parent)->Hide();
@@ -1308,7 +1303,7 @@ Window* BuildAboutWindow()
 {
 	auto win = new Window("E Clunibus Tractum", 8, 24, 227, 78);
 	win->AddChild(new Image(aboutPic, 1, 0, 144, 64));
-	win->AddChild(new Label("Asspull IIIx", 150, 4, 0x07FF, 0));
+	win->AddChild(new Label("Asspull \x96\x2A", 150, 4, 0x07FF, 0));
 	win->AddChild(new Label("System design\nand emulator\nby Kawa", 150, 15, WINDOW_TEXT, 0));
 	win->AddChild(new Button("Cool", 190, 48, 34, _closeWindow));
 	topLevelControls.push_back(std::unique_ptr<Control>(win));
@@ -1543,7 +1538,7 @@ Window* BuildDeviceWindow()
 	drop->AddChild(new MenuItem("Disk drive", 0, _devDrop));
 	drop->AddChild(new MenuItem("Line printer", 0, _devDrop));
 	win->AddChild(devManNoOptions = new Label("A swirling void\nhowls before you.", 102, 20, WINDOW_TEXT, 0));
-	win->AddChild(devManDiskette = new Label("...", 105, 19, WINDOW_TEXT, 0)); //TODO: replace with something with a border
+	win->AddChild(devManDiskette = new Label("...", 105, 19, WINDOW_TEXT, 0)); //TODO: replace with something with a border, preferably a textbox.
 	win->AddChild(devManInsert = new Button("Insert", 162, 31, 39, _devDiskette));
 	win->AddChild(devManEject = new Button("Eject", 204, 31, 39, _devDiskette));
 	win->AddChild(new Button("Okay", 208, 80, 39, _closeWindow));
