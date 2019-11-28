@@ -47,7 +47,7 @@ int statusTimer = 0;
 #define BUTTON_BORDER_B		BUTTON_BORDER_R
 #define BUTTON_FILL			FAIZ(113, 113, 113)
 #define BUTTON_TEXT			WINDOW_TEXT
-#define BUTTON_HIGHLIGHT	FAIZ(133, 133, 133)
+#define BUTTON_HIGHLIGHT	BUTTON_BORDER_L
 #define BUTTON_HIGHTEXT		BUTTON_TEXT
 #ifndef BLUE_BALLS
 #define MENUBAR_FILL		FAIZ(125, 0, 0)
@@ -295,6 +295,9 @@ public:
 		for (auto child = children.begin(); child != children.end(); child++)
 			(*child)->Draw();
 
+		if (focusedWindow != this)
+			return;
+
 		int x = 0, y = 0;
 		GetMouseState(&x, &y);
 		int buttons = SDL_GetMouseState(0, 0); //need actual button state to drag!
@@ -385,12 +388,12 @@ class CheckBox : public Control
 public:
 	bool checked;
 	void(*onClick)(Control* me);
-	CheckBox(const char* caption, int left, int top, int width, bool checked, void(*click)(Control*))
+	CheckBox(const char* caption, int left, int top, bool checked, void(*click)(Control*))
 	{
 		this->text = caption;
 		this->left = this->absLeft = left;
 		this->top = this->absTop = top;
-		this->width = width;
+		this->width = MeasureString(caption) + 16;
 		this->height = 13;
 		this->onClick = click;
 		this->enabled = true;
@@ -407,21 +410,21 @@ public:
 			fillColor = BUTTON_HIGHLIGHT;
 			textColor = BUTTON_HIGHTEXT;
 		}
-		for (auto col = absLeft; col < absLeft + width; col++)
+		for (auto col = absLeft; col < absLeft + 10; col++)
 		{
 			RenderRawPixel(absTop, col, BUTTON_BORDER_T);
-			RenderRawPixel(absTop + height, col, BUTTON_BORDER_B);
+			RenderRawPixel(absTop + 9, col, BUTTON_BORDER_B);
 		}
 		for (auto row = absTop + 1; row < absTop + 9; row++)
 		{
 			RenderRawPixel(row, absLeft, BUTTON_BORDER_L);
-			for (auto col = absLeft + 1; col < absLeft + width - 1; col++)
+			for (auto col = absLeft + 1; col < absLeft + 9; col++)
 				RenderRawPixel(row, col, fillColor);
-			RenderRawPixel(row, absLeft + width - 1, BUTTON_BORDER_R);
+			RenderRawPixel(row, absLeft + 9, BUTTON_BORDER_R);
 		}
 		if (checked)
 			DrawCharacter(absLeft + 1, absTop + 1, textColor, 256 + 14);
-		DrawString(absLeft + 14, absTop + 3, textColor, text.c_str());
+		DrawString(absLeft + 14, absTop + 1, textColor, text.c_str());
 	}
 	void Handle()
 	{
@@ -457,7 +460,7 @@ public:
 			fillColor = BUTTON_HIGHLIGHT;
 			textColor = BUTTON_HIGHTEXT;
 		}
-		for (auto col = absLeft; col < absLeft + width; col++)
+		for (auto col = absLeft; col < absLeft + 9; col++)
 		{
 			RenderRawPixel(absTop, col, BUTTON_BORDER_T);
 			RenderRawPixel(absTop + height - 1, col, BUTTON_BORDER_B);
@@ -672,6 +675,53 @@ public:
 		child->parent = 0;
 		children.push_back(std::unique_ptr<Control>(child));
 	}
+	void DrawPopup()
+	{
+		currentMenuLeft = absLeft;
+		currentMenuTop = absTop + height;
+
+		int t = currentMenuTop;
+		for (auto child = children.begin(); child != children.end(); child++)
+		{
+			(*child)->absLeft = currentMenuLeft;
+			(*child)->absTop = t;
+			(*child)->Draw();
+			t += (*child)->height;
+		}
+
+		currentMenuHeight = t - currentMenuTop;
+
+		if (!sizedTheChildren)
+		{
+			int w = 1;
+			bool hotkeys = false;
+			for (auto child = children.begin(); child != children.end(); child++)
+			{
+				if ((*child)->width > w)
+					w = (*child)->width;
+				auto mc = (MenuItem*)child->get();
+				if (mc->hotkey)
+					hotkeys = true;
+			}
+			if (hotkeys)
+				w += 24;
+			for (auto child = children.begin(); child != children.end(); child++)
+			{
+				(*child)->width = w;
+			}
+			sizedTheChildren = true;
+		}
+
+		currentMenuWidth = children.begin()->get()->width;
+
+		for (int col = 0; col <= currentMenuWidth; col++)
+		{
+			RenderRawPixel(currentMenuTop - 1, currentMenuLeft + col, PULLDOWN_BORDER_T);
+			RenderRawPixel(currentMenuTop + currentMenuHeight, currentMenuLeft + col, PULLDOWN_BORDER_B);
+			DarkenPixel(currentMenuTop + currentMenuHeight + 1, currentMenuLeft + col + 2);
+			DarkenPixel(currentMenuTop + currentMenuHeight + 2, currentMenuLeft + col + 2);
+		}
+	}
 	void Draw()
 	{
 		int fillColor = (WasInside() || currentMenu == this ) ? MENUBAR_HIGHLIGHT : MENUBAR_FILL;
@@ -691,54 +741,11 @@ public:
 			DarkenPixel(j, absLeft + width + 1);
 		}
 		DrawString(absLeft + 4, 2, textColor, text.c_str());
-
-		if (currentMenu == this)
-		{
-			currentMenuLeft = absLeft + 2;
-			currentMenuTop = absTop + height + 2;
-
-			int t = currentMenuTop;
-			for (auto child = children.begin(); child != children.end(); child++)
-			{
-				(*child)->absLeft = currentMenuLeft;
-				(*child)->absTop = t;
-				(*child)->Draw();
-				t += (*child)->height;
-			}
-
-			currentMenuHeight = t - currentMenuTop;
-
-			if (!sizedTheChildren)
-			{
-				int w = 1;
-				bool hotkeys = false;
-				for (auto child = children.begin(); child != children.end(); child++)
-				{
-					if ((*child)->width > w)
-						w = (*child)->width;
-					auto mc = (MenuItem*)child->get();
-					if (mc->hotkey)
-						hotkeys = true;
-				}
-				if (hotkeys)
-					w += 24;
-				for (auto child = children.begin(); child != children.end(); child++)
-				{
-					(*child)->width = w;
-				}
-				sizedTheChildren = true;
-			}
-
-			currentMenuWidth = children.begin()->get()->width;
-
-			for (int col = 0; col <= currentMenuWidth; col++)
-			{
-				RenderRawPixel(currentMenuTop - 1, currentMenuLeft + col, PULLDOWN_BORDER_T);
-				RenderRawPixel(currentMenuTop + currentMenuHeight, currentMenuLeft + col, PULLDOWN_BORDER_B);
-				DarkenPixel(currentMenuTop + currentMenuHeight + 1, currentMenuLeft + col + 2);
-				DarkenPixel(currentMenuTop + currentMenuHeight + 2, currentMenuLeft + col + 2);
-			}
-		}
+	}
+	void HandlePopup()
+	{
+		for (auto child = children.begin(); child != children.end(); child++)
+			(*child)->Handle();
 	}
 	void Handle()
 	{
@@ -747,13 +754,12 @@ public:
 			if (children.empty())
 				currentMenu = NULL;
 			else
+			{
 				currentMenu = this;
-		}
-
-		if (currentMenu == this)
-		{
-			for (auto child = children.begin(); child != children.end(); child++)
-				(*child)->Handle();
+				currentMenuLeft = absLeft;
+				currentMenuTop = absTop;
+				currentMenuWidth = currentMenuHeight = 1000;
+			}
 		}
 	}
 };
@@ -782,6 +788,7 @@ public:
 			(*child)->Draw();
 			w += (*child)->width;
 		}
+		width = w;
 	}
 	void Handle()
 	{
@@ -837,49 +844,6 @@ public:
 			RenderRawPixel(row, absLeft + width - 1, BUTTON_BORDER_R);
 		}
 		DrawCharacter(absLeft + 1, absTop + 1, textColor, 256 + 5);
-
-		if (currentMenu == this)
-		{
-			currentMenuLeft = absLeft + width + 2;
-			currentMenuTop = absTop + 2;
-
-			int t = currentMenuTop;
-			for (auto child = children.begin(); child != children.end(); child++)
-			{
-				(*child)->absLeft = currentMenuLeft;
-				(*child)->absTop = t;
-				(*child)->Draw();
-				t += (*child)->height;
-			}
-
-			currentMenuHeight = t - currentMenuTop;
-
-			if (!sizedTheChildren)
-			{
-				int w = 1;
-				bool hotkeys = false;
-				for (auto child = children.begin(); child != children.end(); child++)
-				{
-					if ((*child)->width > w)
-						w = (*child)->width;
-				}
-				for (auto child = children.begin(); child != children.end(); child++)
-				{
-					(*child)->width = w;
-				}
-				sizedTheChildren = true;
-			}
-
-			currentMenuWidth = children.begin()->get()->width;
-
-			for (int col = 0; col <= currentMenuWidth; col++)
-			{
-				RenderRawPixel(currentMenuTop - 1, currentMenuLeft + col, PULLDOWN_BORDER_T);
-				RenderRawPixel(currentMenuTop + currentMenuHeight, currentMenuLeft + col, PULLDOWN_BORDER_B);
-				DarkenPixel(currentMenuTop + currentMenuHeight + 1, currentMenuLeft + col + 2);
-				DarkenPixel(currentMenuTop + currentMenuHeight + 2, currentMenuLeft + col + 2);
-			}
-		}
 	}
 	void Handle()
 	{
@@ -895,12 +859,6 @@ public:
 				currentMenuWidth = currentMenuHeight = 1000;
 			}
 		}
-
-		if (currentMenu == this)
-		{
-			for (auto child = children.begin(); child != children.end(); child++)
-				(*child)->Handle();
-		}
 	}
 };
 
@@ -911,13 +869,16 @@ MenuBar* menuBar = NULL;
 Window* aboutWindow;
 Window* memoryWindow;
 Window* deviceWindow;
+Window* optionsWindow;
 Window* BuildAboutWindow();
 Window* BuildMemoryWindow();
 Window* BuildDeviceWindow();
+Window* BuildOptionsWindow();
 
 void _showAboutDialog(Control*) { aboutWindow->Show(); }
 void _showMemoryViewer(Control*) { memoryWindow->Show(); }
 void _showDevices(Control*) { deviceWindow->Show(); }
+void _showOptions(Control*) { optionsWindow->Show(); }
 
 void InitializeUI()
 {
@@ -930,7 +891,7 @@ void InitializeUI()
 	fileMenu->AddChild(new MenuItem("Quit", 0, cmdQuit));
 	menuBar->AddChild(fileMenu);
 	auto toolsMenu = new Menu("Tools");
-	toolsMenu->AddChild(new MenuItem("Options", 0, 0));
+	toolsMenu->AddChild(new MenuItem("Options", 0, _showOptions));
 	toolsMenu->AddChild(new MenuItem("-", 0, 0));
 	toolsMenu->AddChild(new MenuItem("Devices", 0, _showDevices));
 	toolsMenu->AddChild(new MenuItem("Screenshot", 'S', cmdScreenshot));
@@ -945,7 +906,7 @@ void InitializeUI()
 	aboutWindow = BuildAboutWindow();
 	memoryWindow = BuildMemoryWindow();
 	deviceWindow = BuildDeviceWindow();
-	focusedWindow = aboutWindow;
+	optionsWindow = BuildOptionsWindow();
 }
 
 void BringWindowToFront(Control* window)
@@ -975,7 +936,7 @@ bool CheckForWindowPops()
 	for (auto child = topLevelControls.end() - 1; ; child--)
 	{
 		auto win = child->get();
-		if (x > win->absLeft && y > win->absTop && x < win->absLeft + win->width && y < win->absTop + win->height)
+		if (win->visible && x > win->absLeft && y > win->absTop && x < win->absLeft + win->width && y < win->absTop + win->height)
 		{
 			BringWindowToFront(win);
 			return true;
@@ -987,6 +948,16 @@ bool CheckForWindowPops()
 }
 
 bool initialized = false;
+
+void HandleStatusLine(int left)
+{
+	if (statusTimer)
+	{
+		DrawString(left, 2, STATUS_TEXT, uiStatus);
+		statusTimer--;
+	}
+	DrawString(640 - 8 - (strlen(uiFPS) * 5), 2, STATUS_TEXT, uiFPS);
+}
 
 void HandleUI()
 {	
@@ -1027,21 +998,31 @@ void HandleUI()
 		}
 	}
 
-	if (currentMenu != NULL && buttons)
-	{
-		if (x < currentMenuLeft || y < currentMenuTop || x > currentMenuLeft + currentMenuWidth || y > currentMenuTop + currentMenuHeight)
-			currentMenu = NULL;
-	}
-
-	if (focusedWindow != NULL)
-		cursorTimer = 100;
+	int statusLeft = 4;
 
 	if (y < 10 || currentMenu != NULL || pauseState == 2)
 	{
 		menuBar->Draw();
 		menuBar->Handle();
+		statusLeft = menuBar->width + 4;
 		cursorTimer = 100;
 	}
+
+	if (currentMenu != NULL)
+	{
+		if (buttons && (x < currentMenuLeft || y < currentMenuTop || x > currentMenuLeft + currentMenuWidth || y > currentMenuTop + currentMenuHeight))
+			currentMenu = NULL;
+		else
+		{
+			((Menu*)currentMenu)->DrawPopup();
+			((Menu*)currentMenu)->HandlePopup();
+		}
+	}
+
+	if (focusedWindow != NULL)
+		cursorTimer = 100;
+
+	HandleStatusLine(statusLeft);
 
 	DrawCursor();
 }
@@ -1555,8 +1536,9 @@ Window* BuildDeviceWindow()
 {
 	auto win = new Window("Devices", 64, 128, 250, 110);
 	win->AddChild(devManList = new ListBox(2, 1, 95, 94, _devSelect));
-	win->AddChild(devManHeader = new Label("...", 100, 2, 0x07FF, 0));
-	auto drop = new DropDown(win->width - 12, 2);
+	auto drop = new DropDown(100, 2);
+	win->AddChild(drop);
+	win->AddChild(devManHeader = new Label("...", 114, 3, 0x07FF, 0));
 	drop->AddChild(new MenuItem("Nothing", 0, _devDrop));
 	drop->AddChild(new MenuItem("Disk drive", 0, _devDrop));
 	drop->AddChild(new MenuItem("Line printer", 0, _devDrop));
@@ -1565,41 +1547,42 @@ Window* BuildDeviceWindow()
 	win->AddChild(devManInsert = new Button("Insert", 162, 31, 39, _devDiskette));
 	win->AddChild(devManEject = new Button("Eject", 204, 31, 39, _devDiskette));
 	win->AddChild(new Button("Okay", 208, 80, 39, _closeWindow));
-	win->AddChild(drop);
 	win->Propagate();
 	for (int i = 0; i < MAXDEVS; i++)
 		devManList->items.push_back("..."); 
 	UpdateDevManList();
 	_devSelect(devManList, 0);
 	topLevelControls.push_back(std::unique_ptr<Control>(win));
+	//win->visible = false;
 	return win;
 }
 
-/*
 extern bool stretch200, fpsCap;
-int _uiOptions(int);
-uiWindow optionsWindow = { 0x6969, 64, 64, 256, 128, "Options", _uiOptions };
-int _uiOptions(int me)
+CheckBox* optionsFPS;
+CheckBox* options200;
+
+void _optionsCheck(Control* me)
 {
-	auto win = &windows[me];
-	optionsWindow.left = win->left;
-	optionsWindow.top = win->top;
-	DrawString(win->left + 4, win->top + 48, WINDOW_TEXT, "Work in obvious progress.");
-	if (uiHandleIconButton(win->left + 244, win->top + 2, 0))
+	if (me == optionsFPS)
 	{
-		CloseWindow(0x6969);
-		return -1;
-	}
-	else if (uiHandleCheckbox(win->left + 4, win->top + 16, "FPS cap", fpsCap))
-	{
-		fpsCap = !fpsCap;
+		fpsCap = optionsFPS->checked = !optionsFPS->checked;
 		ini->Set("video", "fpscap", (char*)(fpsCap ? "true" : "false"));
 	}
-	else if (uiHandleCheckbox(win->left + 4, win->top + 32, "Aspect correction", stretch200))
+	else if (me == options200)
 	{
-		stretch200 = !stretch200;
+		stretch200 = options200->checked = !options200->checked;
 		ini->Set("video", "stretch200", (char*)(stretch200 ? "true" : "false"));
 	}
-	return 0;
 }
-*/
+
+Window* BuildOptionsWindow()
+{
+	auto win = new Window("Options", 64, 64, 170, 90);
+	win->AddChild(optionsFPS = new CheckBox("FPS cap", 4, 4, fpsCap, _optionsCheck));
+	win->AddChild(options200 = new CheckBox("Aspect correction", 4, 18, stretch200, _optionsCheck));
+	win->AddChild(new Label("(Work in obvious progress.)", 4, 36, WINDOW_TEXT, 0));
+	win->AddChild(new Button("Okay", 126, 58, 39, _closeWindow));
+	topLevelControls.push_back(std::unique_ptr<Control>(win));
+	win->visible = false;
+	return win;
+}
