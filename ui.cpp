@@ -460,7 +460,7 @@ public:
 			fillColor = BUTTON_HIGHLIGHT;
 			textColor = BUTTON_HIGHTEXT;
 		}
-		for (auto col = absLeft; col < absLeft + 9; col++)
+		for (auto col = absLeft; col < absLeft + 10; col++)
 		{
 			RenderRawPixel(absTop, col, BUTTON_BORDER_T);
 			RenderRawPixel(absTop + height - 1, col, BUTTON_BORDER_B);
@@ -960,7 +960,7 @@ void HandleStatusLine(int left)
 }
 
 void HandleUI()
-{	
+{
 	int x = 0, y = 0;
 	mouseTimer++;
 	int buttons = GetMouseState(&x, &y);
@@ -1306,7 +1306,7 @@ void _closeWindow(Control* me)
 #include "aboutpic.c"
 Window* BuildAboutWindow()
 {
-	auto win = new Window("E Clunibus Tractum", 32, 32, 227, 78);
+	auto win = new Window("E Clunibus Tractum", 8, 24, 227, 78);
 	win->AddChild(new Image(aboutPic, 1, 0, 144, 64));
 	win->AddChild(new Label("Asspull IIIx", 150, 4, 0x07FF, 0));
 	win->AddChild(new Label("System design\nand emulator\nby Kawa", 150, 15, WINDOW_TEXT, 0));
@@ -1377,7 +1377,7 @@ void _memViewerScroller(Control *me)
 
 Window* BuildMemoryWindow()
 {
-	auto win = new Window("Memory Viewer", 128, 128, 265, 324);
+	auto win = new Window("Memory Viewer", 368, 24, 265, 324);
 	win->AddChild(new MemoryViewer(3, 2));
 	win->AddChild(new IconButton(6, 252, 2, _memViewerScroller));
 	win->AddChild(new IconButton(4, 252, 12, _memViewerScroller));
@@ -1534,7 +1534,7 @@ void _devDrop(Control* me)
 
 Window* BuildDeviceWindow()
 {
-	auto win = new Window("Devices", 64, 128, 250, 110);
+	auto win = new Window("Devices", 8, 112, 250, 110);
 	win->AddChild(devManList = new ListBox(2, 1, 95, 94, _devSelect));
 	auto drop = new DropDown(100, 2);
 	win->AddChild(drop);
@@ -1549,11 +1549,11 @@ Window* BuildDeviceWindow()
 	win->AddChild(new Button("Okay", 208, 80, 39, _closeWindow));
 	win->Propagate();
 	for (int i = 0; i < MAXDEVS; i++)
-		devManList->items.push_back("..."); 
+		devManList->items.push_back("...");
 	UpdateDevManList();
 	_devSelect(devManList, 0);
 	topLevelControls.push_back(std::unique_ptr<Control>(win));
-	//win->visible = false;
+	win->visible = false;
 	return win;
 }
 
@@ -1577,7 +1577,7 @@ void _optionsCheck(Control* me)
 
 Window* BuildOptionsWindow()
 {
-	auto win = new Window("Options", 64, 64, 170, 90);
+	auto win = new Window("Options", 8, 232, 170, 90);
 	win->AddChild(optionsFPS = new CheckBox("FPS cap", 4, 4, fpsCap, _optionsCheck));
 	win->AddChild(options200 = new CheckBox("Aspect correction", 4, 18, stretch200, _optionsCheck));
 	win->AddChild(new Label("(Work in obvious progress.)", 4, 36, WINDOW_TEXT, 0));
