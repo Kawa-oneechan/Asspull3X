@@ -83,6 +83,7 @@ void LetItSnow();
 int uiCommand, uiData;
 void* draggingWindow = NULL;
 void* focusedWindow = NULL;
+void* focusedTextBox = NULL;
 int dragStartX, dragStartY;
 int dragLeft, dragTop, dragWidth, dragHeight, dragStartLeft, dragStartTop;
 
@@ -804,7 +805,6 @@ public:
 	}
 };
 
-
 class DropDown : public Control
 {
 private:
@@ -869,6 +869,112 @@ public:
 	}
 };
 
+class TextBox : public Control
+{
+public:
+	int cursor;
+	TextBox(const char* caption, int left, int top, int width)
+	{
+		this->text = caption;
+		this->cursor = this->text.size();
+		this->left = this->absLeft = left;
+		this->top = this->absTop = top;
+		this->enabled = true;
+		this->width = (width == 0) ? MeasureString(caption) : width;
+		this->height = 12;
+	}
+	void Draw()
+	{
+		if (!visible) return;
+		DrawString(absLeft, absTop, LISTBOX_HIGHTEXT, text.c_str());
+		if (focusedTextBox != this)
+			return;
+		auto caretHelper = std::string(text);
+		caretHelper += "   ";
+		caretHelper[cursor] = 0;
+		auto size = MeasureString(caretHelper.c_str());
+		DrawCharacter(absLeft + size, absTop + 1, LISTBOX_HIGHTEXT, '_');
+	}
+	void Handle()
+	{
+		if (WasClicked())
+			focusedTextBox = this;
+		auto key = uiKey & 0xFF;
+		auto mods = uiKey >> 8;
+		if (key > 0)
+		{
+			SDL_Log("textbox: key is 0x%02X, mods is 0x%02X.", key, mods);
+			if (key == 0xCB)
+			{
+				if (cursor > 0)
+					cursor--;
+			}
+			else if (key == 0xCD)
+			{
+				if (cursor < text.length())
+					cursor++;
+			}
+			else if (key == 0x0E)
+			{
+				if (cursor > 0)
+				{
+					cursor--;
+					if (text.length() > 0)
+						text.erase(cursor, 1);
+				}
+			}
+			else
+			{
+				static const char sctoasc[] = {
+				//Unshifted
+				//  0    1    2    3    4    5    6    7    8    9    a    b    c    d    e    f
+					0,   0,   '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b','\t',// 0x00
+					'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',0,   'a', 's', // 0x10
+					'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'','`', 0,   '\\','z', 'x', 'c', 'v', // 0x20
+					'b', 'n', 'm', ',', '.', '/', 0,   '*', 0,   ' ', 0,   0,   0,   0,   0,   0,   // 0x30
+					0,   0,   0,   0,   0,   0,   0,   '7', '8', '9', '-', '4', '5', '6', '+', '1', // 0x40
+					'2', '3', '0', '.', 0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0x50
+					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0x60
+					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0x70
+					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0x80
+					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   '\n',0,   0,   0,   // 0x90
+					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xa0
+					0,   0,   0,   0,   0,   '/', 0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xb0
+					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xc0
+					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xd0
+					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xe0
+					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xf0
+				//Shifted
+				//  0    1    2    3    4    5    6    7    8    9    a    b    c    d    e    f
+					0,   0,   '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '\b','\t',// 0x00
+					'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', '\n',0,   'A', 'S', // 0x10
+					'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '\"','~', 0,   '|', 'Z', 'X', 'C', 'V', // 0x20
+					'B', 'N', 'M', '<', '>', '?', 0,   '*', 0,   ' ', 0,   0,   0,   0,   0,   0,   // 0x30
+					0,   0,   0,   0,   0,   0,   0,   '7', '8', '9', '-', '4', '5', '6', '+', '1', // 0x40
+					'2', '3', '0', '.', 0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0x50
+					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0x60
+					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0x70
+					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0x80
+					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   '\n',0,   0,   0,   // 0x90
+					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xa0
+					0,   0,   0,   0,   0,   '/', 0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xb0
+					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xc0
+					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xd0
+					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xe0
+					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xf0
+				};
+				if (mods & 1)
+					key += 0x100;
+				if (sctoasc[key] == 0)
+					return;
+				char stuff[2] = { sctoasc[key], 0 };
+				text.insert(cursor, stuff);
+				cursor++;
+			}
+		}
+	}
+};
+
 extern int pauseState;
 int mouseTimer = 0, cursorTimer = 0;
 MenuBar* menuBar = NULL;
@@ -918,6 +1024,8 @@ void InitializeUI()
 
 void BringWindowToFront(Control* window)
 {
+	if (focusedWindow != window)
+		focusedTextBox = NULL;
 	focusedWindow = window;
 	if (topLevelControls.size() < 2)
 		return;
@@ -991,6 +1099,8 @@ void HandleUI()
 		}
 	}
 
+	uiKey = 0;
+
 	if (draggingWindow != NULL && (dragStartLeft != dragLeft || dragStartTop != dragTop))
 	{
 		for (int i = dragLeft; i < dragLeft + dragWidth; i += 2)
@@ -1025,6 +1135,9 @@ void HandleUI()
 			((Menu*)currentMenu)->HandlePopup();
 		}
 	}
+
+	if (buttons && focusedTextBox != NULL && !((Control*)focusedTextBox)->WasInside())
+		focusedTextBox = NULL;
 
 	if (focusedWindow != NULL)
 		cursorTimer = 100;
@@ -1388,7 +1501,7 @@ Window* BuildMemoryWindow()
 ListBox* devManList;
 Label* devManHeader;
 Label* devManNoOptions;
-Label* devManDiskette;
+TextBox* devManDiskette;
 Button* devManEject;
 Button* devManInsert;
 
@@ -1539,7 +1652,7 @@ Window* BuildDeviceWindow()
 	drop->AddChild(new MenuItem("Disk drive", 0, _devDrop));
 	drop->AddChild(new MenuItem("Line printer", 0, _devDrop));
 	win->AddChild(devManNoOptions = new Label("A swirling void\nhowls before you.", 102, 20, WINDOW_TEXT, 0));
-	win->AddChild(devManDiskette = new Label("...", 105, 19, WINDOW_TEXT, 0)); //TODO: replace with something with a border, preferably a textbox.
+	win->AddChild(devManDiskette = new TextBox("...", 105, 19, 200));
 	win->AddChild(devManInsert = new Button("Insert", 162, 31, 39, _devDiskette));
 	win->AddChild(devManEject = new Button("Eject", 204, 31, 39, _devDiskette));
 	win->AddChild(new Button("Okay", 208, 80, 39, _closeWindow));
@@ -1549,7 +1662,7 @@ Window* BuildDeviceWindow()
 	UpdateDevManList();
 	_devSelect(devManList, 0);
 	topLevelControls.push_back(std::unique_ptr<Control>(win));
-	win->visible = false;
+	win->visible = true;
 	return win;
 }
 

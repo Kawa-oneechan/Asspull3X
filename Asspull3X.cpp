@@ -190,7 +190,6 @@ int main(int argc, char* argv[])
 
 	while (!quit)
 	{
-		uiKey = 0;
 		while (SDL_PollEvent(&ev) != 0)
 		{
 			switch (ev.type)
