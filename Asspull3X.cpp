@@ -267,7 +267,9 @@ int main(int argc, char* argv[])
 			}
 			else if (uiCommand == cmdInsertDisk)
 			{
-				if (((DiskDrive*)devices[uiData])->IsMounted())
+				if (devices[uiData] == NULL || devices[uiData]->GetID() != 0x0144)
+					SetStatus("No disk drive.");					
+				else if (((DiskDrive*)devices[uiData])->IsMounted())
 					SetStatus("Eject the diskette first.");
 				else
 				{
@@ -303,7 +305,9 @@ int main(int argc, char* argv[])
 			}
 			else if (uiCommand == cmdEjectDisk)
 			{
-				if (((DiskDrive*)devices[uiData])->IsMounted())
+				if (devices[uiData] == NULL || devices[uiData]->GetID() != 0x0144)
+					SetStatus("No disk drive.");
+				else if (((DiskDrive*)devices[uiData])->IsMounted())
 				{
 					((DiskDrive*)devices[uiData])->Unmount();
 					ini->Set("devices/diskDrive", "0", "");

@@ -69,6 +69,9 @@ int uiKey = 0; //for textboxes
 #define LISTBOX_HIGHLIGHT	MENUBAR_HIGHLIGHT
 #define LISTBOX_HIGHTEXT	(MENUBAR_HIGHTEXT) & ~0x8000
 #define LISTBOX_TRACK		BUTTON_BORDER_R
+#define TEXTBOX_FILL		LISTBOX_FILL
+#define TEXTBOX_TEXT		WINDOW_TEXT
+#define TEXTBOX_CARET		LISTBOX_HIGHTEXT
 
 inline void RenderRawPixel(int row, int column, int color);
 inline void DarkenPixel(int row, int column);
@@ -881,29 +884,47 @@ public:
 		this->top = this->absTop = top;
 		this->enabled = true;
 		this->width = (width == 0) ? MeasureString(caption) : width;
-		this->height = 12;
+		this->height = 10;
 	}
 	void Draw()
 	{
 		if (!visible) return;
-		DrawString(absLeft, absTop, LISTBOX_HIGHTEXT, text.c_str());
+		for (int col = 0; col < width; col++)
+		{
+			RenderRawPixel(absTop, absLeft + col, WINDOW_BORDERFOC_B);
+			RenderRawPixel(absTop + 1 + (visible * 9), absLeft + col, WINDOW_BORDERFOC_T);
+		}
+		for (int row = 0; row < height - 1; row++)
+		{
+			RenderRawPixel(absTop + 1 + row, absLeft, WINDOW_BORDERFOC_R);
+			for (int col = 1; col < width - 1; col++)
+			{
+				RenderRawPixel(absTop + 1 + row, absLeft + col, TEXTBOX_FILL);
+			}
+			RenderRawPixel(absTop + 1 + row, absLeft + width - 1, WINDOW_BORDERFOC_L);
+		}
+		DrawString(absLeft + 2, absTop + 2, TEXTBOX_TEXT, text.c_str());
 		if (focusedTextBox != this)
 			return;
 		auto caretHelper = std::string(text);
 		caretHelper += "   ";
 		caretHelper[cursor] = 0;
 		auto size = MeasureString(caretHelper.c_str());
-		DrawCharacter(absLeft + size, absTop + 1, LISTBOX_HIGHTEXT, '_');
+		if (SDL_GetTicks() % 1024 < 512)
+			DrawCharacter(absLeft + size + 1, absTop + 2, TEXTBOX_CARET, '|');
 	}
 	void Handle()
 	{
-		if (WasClicked())
+		if (WasClicked() && enabled)
 			focusedTextBox = this;
+		if (focusedTextBox != this)
+			return;
 		auto key = uiKey & 0xFF;
 		auto mods = uiKey >> 8;
-		if (key > 0)
+		if (mods & 6)
+			return;
+		if (key > 0 && key < 0xFF)
 		{
-			SDL_Log("textbox: key is 0x%02X, mods is 0x%02X.", key, mods);
 			if (key == 0xCB)
 			{
 				if (cursor > 0)
@@ -911,7 +932,7 @@ public:
 			}
 			else if (key == 0xCD)
 			{
-				if (cursor < text.length())
+				if (cursor < (signed)text.length())
 					cursor++;
 			}
 			else if (key == 0x0E)
@@ -925,6 +946,7 @@ public:
 			}
 			else
 			{
+				//Consider using actual SDL keys without extra processing?
 				static const char sctoasc[] = {
 				//Unshifted
 				//  0    1    2    3    4    5    6    7    8    9    a    b    c    d    e    f
@@ -1527,6 +1549,7 @@ void _devUpdateDiskette(int devId)
 		devManInsert->enabled = true;
 		devManEject->enabled = false;
 	}
+	devManDiskette->cursor = 0;
 }
 
 void _devDiskette(Control* me)
@@ -1643,7 +1666,7 @@ void _devDrop(Control* me)
 
 Window* BuildDeviceWindow()
 {
-	auto win = new Window("Devices", 8, 112, 250, 110);
+	auto win = new Window("Devices", 8, 112, 250, 108);
 	win->AddChild(devManList = new ListBox(2, 1, 95, 94, _devSelect));
 	auto drop = new DropDown(100, 2);
 	win->AddChild(drop);
@@ -1652,17 +1675,18 @@ Window* BuildDeviceWindow()
 	drop->AddChild(new MenuItem("Disk drive", 0, _devDrop));
 	drop->AddChild(new MenuItem("Line printer", 0, _devDrop));
 	win->AddChild(devManNoOptions = new Label("A swirling void\nhowls before you.", 102, 20, WINDOW_TEXT, 0));
-	win->AddChild(devManDiskette = new TextBox("...", 105, 19, 200));
-	win->AddChild(devManInsert = new Button("Insert", 162, 31, 39, _devDiskette));
-	win->AddChild(devManEject = new Button("Eject", 204, 31, 39, _devDiskette));
-	win->AddChild(new Button("Okay", 208, 80, 39, _closeWindow));
+	win->AddChild(devManDiskette = new TextBox("...", 100, 16, 146));
+	devManDiskette->enabled = false;
+	win->AddChild(devManInsert = new Button("Insert", 163, 30, 40, _devDiskette));
+	win->AddChild(devManEject = new Button("Eject", 206, 30, 40, _devDiskette));
+	win->AddChild(new Button("Okay", 206, 77, 40, _closeWindow));
 	win->Propagate();
 	for (int i = 0; i < MAXDEVS; i++)
 		devManList->items.push_back("...");
 	UpdateDevManList();
 	_devSelect(devManList, 0);
 	topLevelControls.push_back(std::unique_ptr<Control>(win));
-	win->visible = true;
+	win->visible = false;
 	return win;
 }
 
