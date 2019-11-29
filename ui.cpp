@@ -1439,7 +1439,7 @@ Window* BuildAboutWindow()
 {
 	auto win = new Window("E Clunibus Tractum", 8, 24, 227, 78);
 	win->AddChild(new Image(aboutPic, 1, 0, 144, 64));
-	win->AddChild(new Label("Asspull \x96\x2A", 150, 4, 0x07FF, 0));
+	win->AddChild(new Label("Asspull \x96\xD7", 150, 4, 0x07FF, 0));
 	win->AddChild(new Label("System design\nand emulator\nby Kawa", 150, 15, WINDOW_TEXT, 0));
 	win->AddChild(new Button("Cool", 190, 48, 34, _closeWindow));
 	topLevelControls.push_back(std::unique_ptr<Control>(win));
