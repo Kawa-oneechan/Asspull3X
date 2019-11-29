@@ -1193,14 +1193,18 @@ inline void DarkenPixel(int row, int column)
 }
 
 int justClicked = 0;
-int lastMouseTimer = 0;
+int lastMouseTimer = 0, lastX = 0, lastY = 0;
 
 int GetMouseState(int *x, int *y)
 {
+	if (mouseTimer == lastMouseTimer)
+	{
+		if (x != NULL) *x = lastX;
+		if (y != NULL) *y = lastY;
+		return (justClicked == 2) ? 1 : 0;
+	}
 	int buttons = SDL_GetMouseState(x, y);
 
-	if (mouseTimer == lastMouseTimer)
-		return (justClicked == 2) ? 1 : 0;
 	lastMouseTimer = mouseTimer;
 	if (justClicked == 0 && buttons == 1)
 		justClicked = 1;
@@ -1212,26 +1216,20 @@ int GetMouseState(int *x, int *y)
 	if (x == NULL || y == NULL)
 		return (justClicked == 2) ? 1 : 0;
 
-	//Added to test cursor position scaling
 	int uX = *x, uY = *y;
+	int nX = *x, nY = *y;
 
-	//TODO: this is off, and its partner in VIDEO.CPP is wrong too.
 	int winWidth, winHeight;
 	SDL_GetWindowSize(sdlWindow, &winWidth, &winHeight);
-	int scrWidth = (winWidth / 640) * 640;
 	int scrHeight = (winHeight / 480) * 480;
-	scrWidth = (int)(scrHeight * 1.33334f);
-	int minx = (winWidth - scrWidth) / 2;
-	int miny = (winHeight - scrHeight) / 2;
-	*x = (int)(*x * (640.0f / winWidth));
-	*y = (int)(*y * (480.0f / winHeight));
-	*x -= minx;
-	*y -= miny;
+	int scrWidth = (int)(scrHeight * 1.33334f);
+	nX = (int)(nX * (640.0f / winWidth));
+	nY = (int)(nY * (480.0f / winHeight));
 
-	//Added to test cursor position scaling
-	char fuckery[128];
-	sprintf_s(fuckery, 128, "%d by %d -> %d by %d, %d by %d", uX, uY, *x, *y, scrWidth, scrHeight);
-	SDL_SetWindowTitle(sdlWindow, fuckery);
+	*x = nX;
+	*y = nY;
+	lastX = nX;
+	lastY = nY;
 
 	return (justClicked == 2) ? 1 : 0;
 }
@@ -1284,22 +1282,20 @@ void DrawCursor()
 	if (oldX != x || oldY != y)
 	{
 		cursorTimer = 100;
-		//if (!customMouse)
-		//	SDL_ShowCursor(1);
-		//Disabled to test cursor position scaling
+		if (!customMouse)
+			SDL_ShowCursor(1);
 	}
 	oldX = x;
 	oldY = y;
 
 	if (cursorTimer == 0)
 	{
-		//if (!customMouse)
-		//	SDL_ShowCursor(0);
-		//Disabled to test cursor position scaling
+		if (!customMouse)
+			SDL_ShowCursor(0);
 		return;
 	}
 
-	//cursorTimer--; //Disabled to test cursor position scaling
+	cursorTimer--;
 	if (!customMouse)
 		return;
 

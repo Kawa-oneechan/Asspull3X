@@ -23,7 +23,7 @@ SDL_Window* sdlWindow = NULL;
 SDL_Renderer* sdlRenderer = NULL;
 SDL_Texture* sdlTexture = NULL;
 unsigned int programId = 0;
-bool customMouse = true; //Forced on to test cursor position scaling
+bool customMouse = false, alwaysCustomMouse = false;
 
 unsigned char* pixels;
 
@@ -596,7 +596,8 @@ GLuint compileProgram(const char* fragFile)
 	vtxShaderId = compileShader(vertexShader, GL_VERTEX_SHADER);
 
 	auto source = ReadTextFile(fragFile);
-	customMouse = (strstr(source, "{customMouseCursor}") != NULL);
+	if (!alwaysCustomMouse)
+		customMouse = (strstr(source, "{customMouseCursor}") != NULL);
 	fragShaderId = compileShader(source, GL_FRAGMENT_SHADER);
 	free(source);
 
@@ -625,6 +626,7 @@ GLuint compileProgram(const char* fragFile)
 	return programId;
 }
 
+int lastWidth, lastHeight;
 void presentBackBuffer(SDL_Renderer *renderer, SDL_Window* win, SDL_Texture* backBuffer, GLuint programId)
 {
 	GLint oldProgramId;
@@ -644,31 +646,40 @@ void presentBackBuffer(SDL_Renderer *renderer, SDL_Window* win, SDL_Texture* bac
 
 	int winWidth, winHeight;
 	SDL_GetWindowSize(sdlWindow, &winWidth, &winHeight);
-	if (winHeight < 480) SDL_SetWindowSize(sdlWindow, winWidth, 480);
-	if (winWidth < 640) SDL_SetWindowSize(sdlWindow, 640, winHeight);
-	int scrWidth = (winWidth / 640) * 640;
-	int scrHeight = (winHeight / 480) * 480;
-	scrWidth = (int)(scrHeight * 1.33334f);
-
-	minx = (winWidth - scrWidth) * 0.5f;
-	miny = (winHeight - scrHeight) * 0.5f;
-	maxx = minx + scrWidth;
-	maxy = miny + scrHeight;
-
-	minu = 0.0f;
-	maxu = 1.0f;
-	minv = 0.0f;
-	maxv = 1.0f;
+	if (winWidth < 640)
+	{
+		winWidth = 640;
+		lastWidth = -1;
+	}
+	if (winHeight < 480)
+	{
+		winHeight = 480;
+		lastHeight = -1;
+	}
+	int scrWidth = ((winWidth + 320) / 640) * 640;
+	int scrHeight = ((winHeight + 240) / 480) * 480;
+	if (scrWidth != lastWidth)
+	{
+		lastWidth = scrWidth;
+		scrHeight = (int)(scrWidth / 1.33334f);
+		SDL_SetWindowSize(sdlWindow, scrWidth, scrHeight);
+	}
+	else if (scrHeight != lastHeight)
+	{
+		lastHeight = scrHeight;
+		scrWidth = (int)(scrHeight * 1.33334f);
+		SDL_SetWindowSize(sdlWindow, scrWidth, scrHeight);
+	}
 
 	glBegin(GL_TRIANGLE_STRIP);
-		glTexCoord2f(minu, minv);
-		glVertex2f(minx, miny);
-		glTexCoord2f(maxu, minv);
-		glVertex2f(maxx, miny);
-		glTexCoord2f(minu, maxv);
-		glVertex2f(minx, maxy);
-		glTexCoord2f(maxu, maxv);
-		glVertex2f(maxx, maxy);
+		glTexCoord2f(0.0f, 0.0f);
+		glVertex2f(0, 0);
+		glTexCoord2f(1.0f, 0.0f);
+		glVertex2f(scrWidth, 0);
+		glTexCoord2f(0.0f, 1.0f);
+		glVertex2f(0, scrHeight);
+		glTexCoord2f(1.0f, 1.0f);
+		glVertex2f(scrWidth, scrHeight);
 	glEnd();
 	SDL_GL_SwapWindow(win);
 
@@ -709,6 +720,11 @@ int InitVideo(bool fullScreen)
 		return -2;
 	}
 
+	auto thing = ini->Get("video", "stretch200", "false");
+	if (thing[0] == 't' || thing[0] == 'T' || thing[0] == 1) stretch200 = true;
+	thing = ini->Get("video", "alwaysCustomMouse", "false");
+	if (thing[0] == 't' || thing[0] == 'T' || thing[0] == 1) alwaysCustomMouse = customMouse = true;
+
 	initGLExtensions();
 	programId = compileProgram(ini->Get("video", "shader", ""));
 
@@ -720,11 +736,7 @@ int InitVideo(bool fullScreen)
 
 	pixels = (unsigned char*)malloc(640 * 480 * 4);
 
-	auto thing = ini->Get("video", "stretch200", "false");
-	if (thing[0] == 't' || thing[0] == 'T' || thing[0] == 1) stretch200 = true;
-
-	//Disabled to test cursor position scaling
-	//SDL_ShowCursor(!customMouse);
+	SDL_ShowCursor(!customMouse);
 	return 0;
 }
 
