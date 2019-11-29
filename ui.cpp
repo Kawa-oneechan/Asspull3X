@@ -77,7 +77,9 @@ inline void RenderRawPixel(int row, int column, int color);
 inline void DarkenPixel(int row, int column);
 int GetMouseState(int *x, int *y);
 void DrawCursor();
+void DrawCharacter(int x, int y, int color, unsigned short ch, int cr, int cb);
 void DrawCharacter(int x, int y, int color, unsigned short ch);
+void DrawString(int x, int y, int color, const char* str, int cr, int cb);
 void DrawString(int x, int y, int color, const char* str);
 int MeasureString(const char* str);
 void DrawImage(int x, int y, unsigned short* pixmap, int width, int height);
@@ -541,7 +543,7 @@ public:
 				}
 				RenderRawPixel(absTop + 1 + row + (i * 9), absLeft + width - 1, WINDOW_BORDERFOC_L);
 			}
-			DrawString(absLeft + 3, absTop + 2 + (i * 9), textColor, items[i + scroll].c_str());
+			DrawString(absLeft + 3, absTop + 2 + (i * 9), textColor, items[i + scroll].c_str(), absLeft + width - 11, 480);
 		}
 		for (auto child = children.begin(); child != children.end(); child++)
 			(*child)->Draw();
@@ -903,7 +905,7 @@ public:
 			}
 			RenderRawPixel(absTop + 1 + row, absLeft + width - 1, WINDOW_BORDERFOC_L);
 		}
-		DrawString(absLeft + 2, absTop + 2, TEXTBOX_TEXT, text.c_str());
+		DrawString(absLeft + 2, absTop + 2, TEXTBOX_TEXT, text.c_str(), absLeft + width - 1, absTop + 10);
 		if (focusedTextBox != this)
 			return;
 		auto caretHelper = std::string(text);
@@ -1139,7 +1141,7 @@ void HandleUI()
 
 	int statusLeft = 4;
 
-	if (y < 10 || currentMenu != NULL || pauseState == 2)
+	if (y <= 10 || currentMenu != NULL || pauseState == 2)
 	{
 		menuBar->Draw();
 		menuBar->Handle();
@@ -1196,6 +1198,7 @@ int lastMouseTimer = 0;
 int GetMouseState(int *x, int *y)
 {
 	int buttons = SDL_GetMouseState(x, y);
+
 	if (mouseTimer == lastMouseTimer)
 		return (justClicked == 2) ? 1 : 0;
 	lastMouseTimer = mouseTimer;
@@ -1209,6 +1212,10 @@ int GetMouseState(int *x, int *y)
 	if (x == NULL || y == NULL)
 		return (justClicked == 2) ? 1 : 0;
 
+	//Added to test cursor position scaling
+	int uX = *x, uY = *y;
+
+	//TODO: this is off, and its partner in VIDEO.CPP is wrong too.
 	int winWidth, winHeight;
 	SDL_GetWindowSize(sdlWindow, &winWidth, &winHeight);
 	int scrWidth = (winWidth / 640) * 640;
@@ -1216,12 +1223,16 @@ int GetMouseState(int *x, int *y)
 	scrWidth = (int)(scrHeight * 1.33334f);
 	int minx = (winWidth - scrWidth) / 2;
 	int miny = (winHeight - scrHeight) / 2;
-	float scaleX = 640.0f / winWidth;
-	float scaleY = 480.0f / winHeight;
-	*x = (int)(*x * scaleX);
-	*y = (int)(*y * scaleY);
+	*x = (int)(*x * (640.0f / winWidth));
+	*y = (int)(*y * (480.0f / winHeight));
 	*x -= minx;
 	*y -= miny;
+
+	//Added to test cursor position scaling
+	char fuckery[128];
+	sprintf_s(fuckery, 128, "%d by %d -> %d by %d, %d by %d", uX, uY, *x, *y, scrWidth, scrHeight);
+	SDL_SetWindowTitle(sdlWindow, fuckery);
+
 	return (justClicked == 2) ? 1 : 0;
 }
 
@@ -1273,20 +1284,22 @@ void DrawCursor()
 	if (oldX != x || oldY != y)
 	{
 		cursorTimer = 100;
-		if (!customMouse)
-			SDL_ShowCursor(1);
+		//if (!customMouse)
+		//	SDL_ShowCursor(1);
+		//Disabled to test cursor position scaling
 	}
 	oldX = x;
 	oldY = y;
 
 	if (cursorTimer == 0)
 	{
-		if (!customMouse)
-			SDL_ShowCursor(0);
+		//if (!customMouse)
+		//	SDL_ShowCursor(0);
+		//Disabled to test cursor position scaling
 		return;
 	}
 
-	cursorTimer--;
+	//cursorTimer--; //Disabled to test cursor position scaling
 	if (!customMouse)
 		return;
 
@@ -1312,14 +1325,18 @@ void DrawCursor()
 	}
 }
 
-void DrawCharacter(int x, int y, int color, unsigned short ch)
+void DrawCharacter(int x, int y, int color, unsigned short ch, int cr, int cb)
 {
 	auto glyph = &nokiaFont[ch * 8];
 	for (int line = 0; line < 8; line++)
 	{
+		if (y + line >= cb)
+			break;
 		auto num = glyph[line];
 		for (int bit = 0; bit < 8; bit++)
 		{
+			if (x + bit >= cr)
+				break;
 			if (num & 1)
 			{
 				RenderRawPixel(y + line, x + bit, color & 0x7FFF);
@@ -1328,6 +1345,11 @@ void DrawCharacter(int x, int y, int color, unsigned short ch)
 			num >>= 1;
 		}
 	}
+}
+
+void DrawCharacter(int x, int y, int color, unsigned short ch)
+{
+	DrawCharacter(x, y, color, ch, 640, 480);
 }
 
 void DrawImage(int x, int y, unsigned short* pixmap, int width, int height)
@@ -1339,7 +1361,7 @@ void DrawImage(int x, int y, unsigned short* pixmap, int width, int height)
 
 #define TABWIDTH 48
 
-void DrawString(int x, int y, int color, const char* str)
+void DrawString(int x, int y, int color, const char* str, int cr, int cb)
 {
 	int sx = x;
 	const int tabSize = 32;
@@ -1355,11 +1377,17 @@ void DrawString(int x, int y, int color, const char* str)
 		}
 		else
 		{
-			DrawCharacter(x, y, color, c);
+			if (x < cr && y < cb)
+				DrawCharacter(x, y, color, c, cr, cb);
 			x += nokiaFontWidth[c];
 		}
 		str++;
 	}
+}
+
+void DrawString(int x, int y, int color, const char* str)
+{
+	DrawString(x, y, color, str, 640, 480);
 }
 
 int MeasureString(const char* str)
@@ -1437,11 +1465,21 @@ void _closeWindow(Control* me)
 #include "aboutpic.c"
 Window* BuildAboutWindow()
 {
-	auto win = new Window("E Clunibus Tractum", 8, 24, 227, 78);
+	auto win = new Window("E Clunibus Tractum", 8, 24, 320, 78);
 	win->AddChild(new Image(aboutPic, 1, 0, 144, 64));
 	win->AddChild(new Label("Asspull \x96\xD7", 150, 4, 0x07FF, 0));
-	win->AddChild(new Label("System design\nand emulator\nby Kawa", 150, 15, WINDOW_TEXT, 0));
-	win->AddChild(new Button("Cool", 190, 48, 34, _closeWindow));
+	win->AddChild(new Label("System design and emulator\nby Kawa", 150, 15, WINDOW_TEXT, 0));
+	win->AddChild(new Label(
+#ifdef _MSC_VER
+		"MSVC, "
+#else
+#ifdef CLANG
+		"Clang, "
+#endif
+#endif
+	__DATE__
+	, 150, win->height - 28, WINDOW_TEXT, 0));
+	win->AddChild(new Button("Cool", win->width - 64 - 4, win->height - 31, 64, _closeWindow));
 	topLevelControls.push_back(std::unique_ptr<Control>(win));
 	win->visible = false;
 	return win;
@@ -1676,7 +1714,7 @@ Window* BuildDeviceWindow()
 	drop->AddChild(new MenuItem("Line printer", 0, _devDrop));
 	win->AddChild(devManNoOptions = new Label("A swirling void\nhowls before you.", 102, 20, WINDOW_TEXT, 0));
 	win->AddChild(devManDiskette = new TextBox("...", 100, 16, 146));
-	devManDiskette->enabled = false;
+	//devManDiskette->enabled = false;
 	win->AddChild(devManInsert = new Button("Insert", 163, 30, 40, _devDiskette));
 	win->AddChild(devManEject = new Button("Eject", 206, 30, 40, _devDiskette));
 	win->AddChild(new Button("Okay", 206, 77, 40, _closeWindow));
@@ -1686,7 +1724,7 @@ Window* BuildDeviceWindow()
 	UpdateDevManList();
 	_devSelect(devManList, 0);
 	topLevelControls.push_back(std::unique_ptr<Control>(win));
-	win->visible = false;
+	win->visible = true;
 	return win;
 }
 

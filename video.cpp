@@ -23,7 +23,7 @@ SDL_Window* sdlWindow = NULL;
 SDL_Renderer* sdlRenderer = NULL;
 SDL_Texture* sdlTexture = NULL;
 unsigned int programId = 0;
-bool customMouse = false;
+bool customMouse = true; //Forced on to test cursor position scaling
 
 unsigned char* pixels;
 
@@ -723,7 +723,8 @@ int InitVideo(bool fullScreen)
 	auto thing = ini->Get("video", "stretch200", "false");
 	if (thing[0] == 't' || thing[0] == 'T' || thing[0] == 1) stretch200 = true;
 
-	SDL_ShowCursor(!customMouse);
+	//Disabled to test cursor position scaling
+	//SDL_ShowCursor(!customMouse);
 	return 0;
 }
 
