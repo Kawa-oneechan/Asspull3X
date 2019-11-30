@@ -511,7 +511,6 @@ void HandleBlitter(unsigned int function)
 			}
 			break;
 		case 4: //UnRLE
-			unsigned int i = 0;
 			unsigned char data = 0;
 			while (blitLength) //hack
 			{

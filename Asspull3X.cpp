@@ -18,9 +18,10 @@ extern "C" {
 static bool quit = 0;
 int line = 0, interrupts = 0;
 extern void Screenshot();
-extern int uiCommand, uiData;
+extern int uiCommand, uiData, uiKey;
 extern char uiFPS[];
-extern void SetStatus(char*);
+extern void SetStatus(const char*);
+extern void _devUpdateDiskette(int);
 
 extern unsigned int biosSize, romSize;
 
@@ -179,7 +180,7 @@ int main(int argc, char* argv[])
 	const auto Hz = mHz * 1000000;
 	const auto vBlankEvery = Hz / screenFreq;
 	const auto hBlankEvery = vBlankEvery / lines;
-	const auto vBlankLasts = (trueLines) * hBlankEvery;
+	//const auto vBlankLasts = (trueLines) * hBlankEvery;
 	const auto hBlankLasts = (trueWidth - pixsPerRow);
 
 	auto startTime = 0;
@@ -210,6 +211,10 @@ int main(int argc, char* argv[])
 					joypad[ev.jbutton.which] = (joypad[ev.jbutton.which] & ~15) | ev.jhat.value;
 				break;
 			case SDL_KEYUP:
+				uiKey = keyMap[ev.key.keysym.scancode];
+				if (ev.key.keysym.mod & KMOD_SHIFT) uiKey |= 0x100;
+				if (ev.key.keysym.mod & KMOD_ALT) uiKey |= 0x200;
+				if (ev.key.keysym.mod & KMOD_CTRL) uiKey |= 0x400;
 				if (ev.key.keysym.mod & KMOD_LCTRL)
 				{
 					if (ev.key.keysym.sym == SDLK_l)
@@ -262,7 +267,9 @@ int main(int argc, char* argv[])
 			}
 			else if (uiCommand == cmdInsertDisk)
 			{
-				if (((DiskDrive*)devices[uiData])->IsMounted())
+				if (devices[uiData] == NULL || devices[uiData]->GetID() != 0x0144)
+					SetStatus("No disk drive.");					
+				else if (((DiskDrive*)devices[uiData])->IsMounted())
 					SetStatus("Eject the diskette first.");
 				else
 				{
@@ -283,6 +290,7 @@ int main(int argc, char* argv[])
 						}
 						else
 							SDL_Log("Don't know what to do with %s.", romPath);
+						_devUpdateDiskette(uiData);
 					}
 				}
 			}
@@ -297,11 +305,14 @@ int main(int argc, char* argv[])
 			}
 			else if (uiCommand == cmdEjectDisk)
 			{
-				if (((DiskDrive*)devices[uiData])->IsMounted())
+				if (devices[uiData] == NULL || devices[uiData]->GetID() != 0x0144)
+					SetStatus("No disk drive.");
+				else if (((DiskDrive*)devices[uiData])->IsMounted())
 				{
 					((DiskDrive*)devices[uiData])->Unmount();
 					ini->Set("devices/diskDrive", "0", "");
 					SetStatus("Disk ejected.");
+					_devUpdateDiskette(uiData);
 				}
 			}
 			else if (uiCommand == cmdReset)

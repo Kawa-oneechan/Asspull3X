@@ -2,7 +2,7 @@
 #include <map>
 #include <vector>
 
-char* IniFile::Get(const char* section, const char* key, char* dft)
+char const* IniFile::Get(const char* section, const char* key, char const* dft)
 {
 	for (auto tit = sections.begin(); tit != sections.end(); tit++)
 	{
@@ -18,7 +18,7 @@ char* IniFile::Get(const char* section, const char* key, char* dft)
 	return dft;
 }
 
-void IniFile::Set(const char* section, const char* key, char* val)
+void IniFile::Set(const char* section, const char* key, char const* val)
 {
 	for (auto tit = sections.begin(); tit != sections.end(); tit++)
 	{
@@ -69,6 +69,11 @@ void IniFile::Save()
 	Save(this->filename);
 }
 
+bool isspace(char isIt)
+{
+	return (isIt == ' ' || isIt == '\n' || isIt == '\r' || isIt == '\t');
+}
+
 void IniFile::Load(const char* filename)
 {
 	FILE* fd;
@@ -85,7 +90,7 @@ void IniFile::Load(const char* filename)
 	while(!feof(fd))
 	{
 		char c = fgetc(fd);
-		if (c == 'ÿ')
+		if (c == -1)
 			break;
 		if (c == '[')
 		{
@@ -103,7 +108,7 @@ void IniFile::Load(const char* filename)
 		}
 		else if (c == ';')
 			while (fgetc(fd) != '\n');
-		else if (iswspace(c))
+		else if (isspace(c))
 			continue;
 		else
 		{
@@ -115,7 +120,7 @@ void IniFile::Load(const char* filename)
 				c = fgetc(fd);
 				if (c == '=')
 					break;
-				if (iswspace(c))
+				if (isspace(c))
 					continue;
 				*b++ = c;
 			}
@@ -132,7 +137,7 @@ void IniFile::Load(const char* filename)
 					while (!feof(fd) && fgetc(fd) != '\n');
 					break;
 				}
-				//if (iswspace(c))
+				//if (isspace(c))
 				//	continue;
 				*b++ = c;
 			}
