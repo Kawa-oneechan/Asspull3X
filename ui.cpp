@@ -12,6 +12,7 @@ char uiStatus[512] = { 0 };
 char uiFPS[32] = { 0 };
 int statusTimer = 0;
 int uiKey = 0; //for textboxes
+extern int winWidth, winHeight, scrWidth, scrHeight;
 
 #define FAIZ(r, g, b) (((b) >> 3) << 10) | (((g) >> 3) << 5) | ((r) >> 3)
 #define WITH_SHADOW | 0x8000
@@ -1219,10 +1220,6 @@ int GetMouseState(int *x, int *y)
 	int uX = *x, uY = *y;
 	int nX = *x, nY = *y;
 
-	int winWidth, winHeight;
-	SDL_GetWindowSize(sdlWindow, &winWidth, &winHeight);
-	int scrHeight = (winHeight / 480) * 480;
-	int scrWidth = (int)(scrHeight * 1.33334f);
 	nX = (int)(nX * (640.0f / winWidth));
 	nY = (int)(nY * (480.0f / winHeight));
 
@@ -1720,7 +1717,7 @@ Window* BuildDeviceWindow()
 	UpdateDevManList();
 	_devSelect(devManList, 0);
 	topLevelControls.push_back(std::unique_ptr<Control>(win));
-	win->visible = true;
+	win->visible = false;
 	return win;
 }
 

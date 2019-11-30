@@ -25,6 +25,8 @@ SDL_Texture* sdlTexture = NULL;
 unsigned int programId = 0;
 bool customMouse = false, alwaysCustomMouse = false;
 
+int winWidth = 640, winHeight = 480, scrWidth = 640, scrHeight = 480;
+
 unsigned char* pixels;
 
 #define FADECODE \
@@ -641,10 +643,6 @@ void presentBackBuffer(SDL_Renderer *renderer, SDL_Window* win, SDL_Texture* bac
 		glUseProgram(programId);
 	}
 
-	GLfloat minx, miny, maxx, maxy;
-	GLfloat minu, maxu, minv, maxv;
-
-	int winWidth, winHeight;
 	SDL_GetWindowSize(sdlWindow, &winWidth, &winHeight);
 	if (winWidth < 640)
 	{
@@ -675,11 +673,11 @@ void presentBackBuffer(SDL_Renderer *renderer, SDL_Window* win, SDL_Texture* bac
 		glTexCoord2f(0.0f, 0.0f);
 		glVertex2f(0, 0);
 		glTexCoord2f(1.0f, 0.0f);
-		glVertex2f(scrWidth, 0);
+		glVertex2f((GLfloat)scrWidth, 0);
 		glTexCoord2f(0.0f, 1.0f);
-		glVertex2f(0, scrHeight);
+		glVertex2f(0, (GLfloat)scrHeight);
 		glTexCoord2f(1.0f, 1.0f);
-		glVertex2f(scrWidth, scrHeight);
+		glVertex2f((GLfloat)scrWidth, (GLfloat)scrHeight);
 	glEnd();
 	SDL_GL_SwapWindow(win);
 
