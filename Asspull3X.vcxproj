@@ -90,6 +90,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="device.cpp" />
+    <ClCompile Include="extras.cpp" />
     <ClCompile Include="ini.cpp" />
     <ClCompile Include="keyboard.cpp" />
     <ClCompile Include="memory.cpp" />

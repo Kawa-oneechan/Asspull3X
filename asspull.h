@@ -11,6 +11,11 @@
 #endif
 #include "ini.h"
 
+template<typename T> T Lerp(T a, T b, float f);
+unsigned int RoundUp(unsigned int v);
+int Slurp(unsigned char* dest, const char* filePath, unsigned int* size);
+int Dump(const char* filePath, unsigned char* source, unsigned long size);
+
 extern unsigned char* romBIOS;
 extern unsigned char* romCartridge;
 extern unsigned char* ramVideo;
