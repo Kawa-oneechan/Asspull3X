@@ -11,7 +11,7 @@
 #endif
 #include "ini.h"
 
-template<typename T> T Lerp(T a, T b, float f);
+int Lerp(int a, int b, float f);
 unsigned int RoundUp(unsigned int v);
 int Slurp(unsigned char* dest, const char* filePath, unsigned int* size);
 int Dump(const char* filePath, unsigned char* source, unsigned long size);

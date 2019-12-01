@@ -1,8 +1,8 @@
 #include "asspull.h"
 
-template<typename T> T Lerp(T a, T b, float f)
+int Lerp(int a, int b, float f)
 {
-	return (T)((b - a) * f + a);
+	return (int)((b - a) * f + a);
 }
 
 unsigned int RoundUp(unsigned int v)

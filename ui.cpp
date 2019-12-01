@@ -70,7 +70,7 @@ extern int winWidth, winHeight, scrWidth, scrHeight, scale, offsetX, offsetY;
 #define LISTBOX_TEXT		WINDOW_TEXT
 #define LISTBOX_HIGHLIGHT	MENUBAR_HIGHLIGHT
 #define LISTBOX_HIGHTEXT	(MENUBAR_HIGHTEXT) & ~0x8000
-#define LISTBOX_TRACK		BUTTON_BORDER_R
+#define LISTBOX_TRACK		FAIZ(65, 65, 65)
 #define TEXTBOX_FILL		LISTBOX_FILL
 #define TEXTBOX_TEXT		WINDOW_TEXT
 #define TEXTBOX_CARET		LISTBOX_HIGHTEXT
@@ -503,6 +503,7 @@ public:
 	int selection;
 	int scroll;
 	int visible;
+	int thumb;
 	std::vector<std::string> items;
 	void(*onChange)(Control*, int);
 	ListBox(int left, int top, int width, int height, void(*change)(Control*, int))
@@ -515,6 +516,7 @@ public:
 		this->enabled = true;
 		this->selection = 0;
 		this->scroll = 0;
+		this->thumb = 1;
 		this->visible = (height - 2) / 9;
 		this->marginLeft = this->marginTop = 0;
 		this->AddChild(new IconButton(4, width - 11, 1, doListButton));
@@ -547,6 +549,16 @@ public:
 			}
 			DrawString(absLeft + 3, absTop + 2 + (i * 9), textColor, items[i + scroll].c_str(), absLeft + width - 11, 480);
 		}
+
+		//draw thumb
+		for (int row = 0; row < 10; row++)
+		{
+			for (int col = 1; col < 9; col++)
+			{
+				RenderRawPixel(absTop + 11 + thumb + row, absLeft + width - 11 + col, BUTTON_HIGHLIGHT);
+			}
+		}
+
 		for (auto child = children.begin(); child != children.end(); child++)
 			(*child)->Draw();
 	}
@@ -581,6 +593,8 @@ void doListButton(Control* me)
 		who->scroll--;
 	else if (what == 5 && who->scroll < (signed)who->items.size() - who->visible)
 		who->scroll++;
+
+	who->thumb = Lerp(1, who->height - 35, (float)((float)who->scroll / (who->items.size() - who->visible)));
 }
 
 void* currentMenu = NULL;
