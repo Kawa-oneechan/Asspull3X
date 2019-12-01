@@ -23,7 +23,7 @@ SDL_Texture* sdlTexture = NULL;
 unsigned int programId = 0;
 bool customMouse = false, alwaysCustomMouse = false;
 
-int winWidth = 640, winHeight = 480, scrWidth = 640, scrHeight = 480;
+int winWidth = 640, winHeight = 480, scrWidth = 640, scrHeight = 480, scale = 1, offsetX = 0, offsetY = 0;
 
 unsigned char* pixels;
 
@@ -624,7 +624,6 @@ GLuint compileProgram(const char* fragFile)
 	return programId;
 }
 
-int lastWidth, lastHeight;
 void presentBackBuffer(SDL_Renderer *renderer, SDL_Window* win, SDL_Texture* backBuffer, GLuint programId)
 {
 	GLint oldProgramId;
@@ -643,37 +642,35 @@ void presentBackBuffer(SDL_Renderer *renderer, SDL_Window* win, SDL_Texture* bac
 	if (winWidth < 640)
 	{
 		winWidth = 640;
-		lastWidth = -1;
+		SDL_SetWindowSize(sdlWindow, 640, winHeight);
 	}
 	if (winHeight < 480)
 	{
 		winHeight = 480;
-		lastHeight = -1;
+		SDL_SetWindowSize(sdlWindow, winWidth, 480);
 	}
-	int scrWidth = ((winWidth + 320) / 640) * 640;
-	int scrHeight = ((winHeight + 240) / 480) * 480;
-	if (scrWidth != lastWidth)
-	{
-		lastWidth = scrWidth;
-		scrHeight = (int)(scrWidth / 1.33334f);
-		SDL_SetWindowSize(sdlWindow, scrWidth, scrHeight);
-	}
-	else if (scrHeight != lastHeight)
-	{
-		lastHeight = scrHeight;
-		scrWidth = (int)(scrHeight * 1.33334f);
-		SDL_SetWindowSize(sdlWindow, scrWidth, scrHeight);
-	}
+	auto maxScaleX = std::floorf(winWidth / 640.0f);
+	auto maxScaleY = std::floorf(winHeight / 480.0f);
+	scale = (int)std::min(maxScaleX, maxScaleY);
+	scrWidth = 640 * scale;
+	scrHeight = 480 * scale;
+	offsetX = (int)std::floorf((winWidth - scrWidth) * 0.5f);
+	offsetY = (int)std::floorf((winHeight - scrHeight) * 0.5f);
+
+	GLfloat minx = (GLfloat)offsetX;
+	GLfloat miny = (GLfloat)offsetY;
+	GLfloat maxx = minx + scrWidth;
+	GLfloat maxy = miny + scrHeight;
 
 	glBegin(GL_TRIANGLE_STRIP);
 		glTexCoord2f(0.0f, 0.0f);
-		glVertex2f(0, 0);
+		glVertex2f(minx, miny);
 		glTexCoord2f(1.0f, 0.0f);
-		glVertex2f((GLfloat)scrWidth, 0);
+		glVertex2f(maxx, miny);
 		glTexCoord2f(0.0f, 1.0f);
-		glVertex2f(0, (GLfloat)scrHeight);
+		glVertex2f(minx, maxy);
 		glTexCoord2f(1.0f, 1.0f);
-		glVertex2f((GLfloat)scrWidth, (GLfloat)scrHeight);
+		glVertex2f(maxx, maxy);
 	glEnd();
 	SDL_GL_SwapWindow(win);
 

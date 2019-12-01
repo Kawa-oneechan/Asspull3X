@@ -13,7 +13,7 @@ char uiStatus[512] = { 0 };
 char uiFPS[32] = { 0 };
 int statusTimer = 0;
 int uiKey = 0; //for textboxes
-extern int winWidth, winHeight, scrWidth, scrHeight;
+extern int winWidth, winHeight, scrWidth, scrHeight, scale, offsetX, offsetY;
 
 #define FAIZ(r, g, b) (((b) >> 3) << 10) | (((g) >> 3) << 5) | ((r) >> 3)
 #define WITH_SHADOW | 0x8000
@@ -1194,6 +1194,7 @@ inline void DarkenPixel(int row, int column)
 	pixels[target + 2] = pixels[target + 2] / 2;
 }
 
+extern bool customMouse;
 int justClicked = 0;
 int lastMouseTimer = 0, lastX = 0, lastY = 0;
 
@@ -1221,8 +1222,11 @@ int GetMouseState(int *x, int *y)
 	int uX = *x, uY = *y;
 	int nX = *x, nY = *y;
 
-	nX = (int)(nX * (640.0f / winWidth));
-	nY = (int)(nY * (480.0f / winHeight));
+	nX = (nX - offsetX) / scale;
+	nY = (nY - offsetY) / scale;
+
+	if (customMouse)
+		SDL_ShowCursor((nX < 0 || nY < 0 || nX > 640 || nY > 480));
 
 	*x = nX;
 	*y = nY;
@@ -1272,7 +1276,6 @@ static unsigned short cursor[] =
 };
 
 int oldX, oldY;
-extern bool customMouse;
 void DrawCursor()
 {
 	int x, y;
