@@ -894,15 +894,19 @@ class TextBox : public Control
 {
 public:
 	int cursor;
+	int maxLength;
+	void(*onEnter)(Control*);
 	TextBox(const char* caption, int left, int top, int width)
 	{
 		this->text = caption;
-		this->cursor = this->text.size();
+		this->cursor = 0;
 		this->left = this->absLeft = left;
 		this->top = this->absTop = top;
 		this->enabled = true;
 		this->width = (width == 0) ? MeasureString(caption) : width;
 		this->height = 10;
+		this->onEnter = NULL;
+		this->maxLength = 0;
 	}
 	void Draw()
 	{
@@ -943,17 +947,29 @@ public:
 			return;
 		if (key > 0 && key < 0xFF)
 		{
-			if (key == 0xCB)
+			if (key == 0x1C) //Enter
+			{
+				if (onEnter) onEnter(this);
+			}
+			else if (key == 0xC9) //PgUp
+			{
+				cursor = 0;
+			}
+			else if (key == 0xD1) //PgDown
+			{
+				cursor = text.length();
+			}
+			else if (key == 0xCB) //Left
 			{
 				if (cursor > 0)
 					cursor--;
 			}
-			else if (key == 0xCD)
+			else if (key == 0xCD) //Right
 			{
 				if (cursor < (signed)text.length())
 					cursor++;
 			}
-			else if (key == 0x0E)
+			else if (key == 0x0E) //Backspace
 			{
 				if (cursor > 0)
 				{
@@ -962,8 +978,15 @@ public:
 						text.erase(cursor, 1);
 				}
 			}
+			else if (key == 0xD3) //Delete
+			{
+				if (text.length() > 0)
+					text.erase(cursor, 1);
+			}
 			else
 			{
+				if (maxLength && text.length() == maxLength)
+					return;
 				//Consider using actual SDL keys without extra processing?
 				static const char sctoasc[] = {
 				//Unshifted
@@ -1497,7 +1520,8 @@ Window* BuildAboutWindow()
 }
 
 extern "C" unsigned int m68k_read_memory_8(unsigned int address);
-signed long memViewerOffset = MAP1_ADDR;
+signed long memViewerOffset;
+TextBox* memViewerTextBox;
 #define MAXVIEWEROFFSET (0x10000000 - 0x100)
 
 class MemoryViewer : public Control
@@ -1555,6 +1579,32 @@ void _memViewerScroller(Control *me)
 		memViewerOffset = MAXVIEWEROFFSET;
 }
 
+void _memViewerText(Control* me)
+{
+	memViewerOffset = strtol(memViewerTextBox->text.c_str(), NULL, 16);
+	char asText[64] = { 0 };
+	sprintf(asText, "%08X", memViewerOffset);
+	memViewerTextBox->text = asText;
+}
+
+void _memViewerDrop(Control* me)
+{
+	int selection = 0;
+	for (int i = 0; i < (signed)me->parent->children.size(); i++)
+	{
+		if (me == me->parent->children[i].get())
+		{
+			selection = i;
+			break;
+		}
+	}
+	const unsigned long areas[] = { BIOS_ADDR, CART_ADDR, WRAM_ADDR, DEVS_ADDR, REGS_ADDR, VRAM_ADDR };
+	memViewerOffset = areas[selection];
+	char asText[64] = { 0 };
+	sprintf(asText, "%08X", memViewerOffset);
+	memViewerTextBox->text = asText;
+}
+
 Window* BuildMemoryWindow()
 {
 	auto win = new Window("Memory Viewer", 368, 24, 265, 324);
@@ -1563,9 +1613,17 @@ Window* BuildMemoryWindow()
 	win->AddChild(new IconButton(4, 252, 12, _memViewerScroller));
 	win->AddChild(new IconButton(5, 252, 270, _memViewerScroller));
 	win->AddChild(new IconButton(7, 252, 280, _memViewerScroller));
-	win->AddChild(new Label("(TODO: add a text field and dropdown hereabouts)", 12, 294, WINDOW_TEXT, 0));
+	win->AddChild(memViewerTextBox = new TextBox("...", 4, 294, 64));
+	memViewerTextBox->onEnter = _memViewerText;
+	memViewerTextBox->maxLength = 8;
+	auto drop = new DropDown(72, 294);
+	win->AddChild(drop);
+	const char* const areas[] = { "BIOS", "Cart", "WRAM", "Devices", "Registers", "VRAM" };
+	for (int i = 0; i < 6; i++)
+		drop->AddChild(new MenuItem(areas[i], 0, _memViewerDrop));
+	_memViewerDrop((drop->children.end() - 1)->get()); //that or begin really :shrug:
 	topLevelControls.push_back(std::unique_ptr<Control>(win));
-	win->visible = false;
+	win->visible = true;
 	return win;
 }
 
@@ -1720,9 +1778,9 @@ Window* BuildDeviceWindow()
 	auto drop = new DropDown(100, 2);
 	win->AddChild(drop);
 	win->AddChild(devManHeader = new Label("...", 114, 3, 0x07FF, 0));
-	drop->AddChild(new MenuItem("Nothing", 0, _devDrop));
-	drop->AddChild(new MenuItem("Disk drive", 0, _devDrop));
-	drop->AddChild(new MenuItem("Line printer", 0, _devDrop));
+	const char* const areas[] = { "Nothing", "Disk drive", "Line printer" };
+	for (int i = 0; i < 3; i++)
+		drop->AddChild(new MenuItem(areas[i], 0, _devDrop));
 	win->AddChild(devManNoOptions = new Label("A swirling void\nhowls before you.", 102, 20, WINDOW_TEXT, 0));
 	win->AddChild(devManDiskette = new TextBox("...", 100, 16, 146));
 	devManDiskette->enabled = false;
