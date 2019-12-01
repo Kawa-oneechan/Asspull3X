@@ -1,6 +1,7 @@
 #include "asspull.h"
 #include "ini.h"
 #include <vector>
+#include <memory>
 
 #define LETITSNOW
 #define PROPER_ARROW

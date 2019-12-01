@@ -93,11 +93,13 @@ int main(int argc, char* argv[])
 
 	pauseScreen = (unsigned char*)malloc(640 * 480 * 4);
 
-	SDL_Joystick *controller = NULL;
+	SDL_Joystick *controller[2] = { NULL , NULL };
 	if (SDL_NumJoysticks() > 0)
 	{
 		SDL_Log("Trying to hook up joystick...");
-		controller = SDL_JoystickOpen(0);
+		controller[0] = SDL_JoystickOpen(0);
+		if (SDL_NumJoysticks() > 1)
+			controller[1] = SDL_JoystickOpen(1);
 	}
 
 	SDL_Log("Loading BIOS, %s ...", biosPath);

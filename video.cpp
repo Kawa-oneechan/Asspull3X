@@ -1,7 +1,5 @@
 #include "asspull.h"
-
 #include <time.h>
-
 #if WIN32
 #include <SDL_opengl.h>
 #include <SDL_opengl_glext.h>
@@ -750,7 +748,7 @@ void Screenshot()
 	char snap[128];
 	__time64_t now;
 	_time64(&now);
-	sprintf(snap, "%u.bmp", now);
+	sprintf(snap, "%llu.bmp", now);
 
 	int winWidth, winHeight;
 	SDL_GetWindowSize(sdlWindow, &winWidth, &winHeight);
