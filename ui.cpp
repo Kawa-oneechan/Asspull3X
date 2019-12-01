@@ -1446,7 +1446,7 @@ void LetItSnow()
 
 void SetStatus(const char* text)
 {
-	strcpy_s(uiStatus, 512, text);
+	strcpy(uiStatus, text);
 	statusTimer = 100;
 }
 
@@ -1498,7 +1498,7 @@ public:
 		unsigned int offset = memViewerOffset;
 		for (int row = 0; row < 32; row++)
 		{
-			sprintf_s(offsetStr, 16, "%08X", offset);
+			sprintf(offsetStr, "%08X", offset);
 			DrawString(absLeft, absTop + (row * 9), WINDOW_TEXT, offsetStr);
 			for (int col = 0; col < 8; col++)
 			{
@@ -1631,17 +1631,17 @@ void UpdateDevManList()
 	{
 		if (devices[i] == 0)
 		{
-			sprintf_s(entry, 32, "%d. Nothing", i + 1);
+			sprintf(entry, "%d. Nothing", i + 1);
 		}
 		else
 		{
 			switch (devices[i]->GetID())
 			{
 			case 0x0144:
-				sprintf_s(entry, 32, "%d. Disk drive", i + 1);
+				sprintf(entry, "%d. Disk drive", i + 1);
 				break;
 			case 0x4C50:
-				sprintf_s(entry, 32, "%d. Line printer", i + 1);
+				sprintf(entry, "%d. Line printer", i + 1);
 				break;
 			}
 		}
@@ -1707,7 +1707,7 @@ Window* BuildDeviceWindow()
 	drop->AddChild(new MenuItem("Line printer", 0, _devDrop));
 	win->AddChild(devManNoOptions = new Label("A swirling void\nhowls before you.", 102, 20, WINDOW_TEXT, 0));
 	win->AddChild(devManDiskette = new TextBox("...", 100, 16, 146));
-	//devManDiskette->enabled = false;
+	devManDiskette->enabled = false;
 	win->AddChild(devManInsert = new Button("Insert", 163, 30, 40, _devDiskette));
 	win->AddChild(devManEject = new Button("Eject", 206, 30, 40, _devDiskette));
 	win->AddChild(new Button("Okay", 206, 77, 40, _closeWindow));

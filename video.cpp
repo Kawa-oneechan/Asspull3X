@@ -571,10 +571,8 @@ GLuint compileShader(const char* source, GLuint shaderType)
 
 char* ReadTextFile(const char* filePath)
 {
-	FILE* file = NULL;
-	int err = fopen_s(&file, filePath, "rb");
-	if (err)
-		return NULL;
+	FILE* file = fopen(filePath, "rb");
+	if (!file) return NULL;
 	fseek(file, 0, SEEK_END);
 	long size = ftell(file);
 	fseek(file, 0, SEEK_SET);
@@ -752,7 +750,7 @@ void Screenshot()
 	char snap[128];
 	__time64_t now;
 	_time64(&now);
-	sprintf_s(snap, 128, "%u.bmp", now);
+	sprintf(snap, "%u.bmp", now);
 
 	int winWidth, winHeight;
 	SDL_GetWindowSize(sdlWindow, &winWidth, &winHeight);
@@ -766,8 +764,8 @@ void Screenshot()
 	char* shot = (char*)malloc(4 * scrWidth * scrHeight);
 	glReadPixels(left, top, scrWidth, scrHeight, GL_BGR, GL_UNSIGNED_BYTE, shot);
 
-	FILE* f = NULL;
-	fopen_s(&f, snap, "wb");
+	FILE* f = fopen(snap, "wb");
+	if (!f) return;
 	short s = 0x4D42; fwrite(&s, 2, 1, f);
 	long l = size + 54; fwrite(&l, 4, 1, f);
 	s = 0; fwrite(&s, 2, 2, f);

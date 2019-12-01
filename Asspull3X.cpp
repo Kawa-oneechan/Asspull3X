@@ -1,15 +1,5 @@
 #include "asspull.h"
 
-#if CLANG
-int fopen_s(FILE **f, const char *name, const char *mode)
-{
-	int ret = 0;
-	*f = fopen(name, mode);
-	if (!*f) ret = errno;
-	return ret;
-}
-#endif
-
 extern "C" {
 #include "musashi/m68k.h"
 }
@@ -48,10 +38,8 @@ unsigned int RoundUp(unsigned int v)
 
 int Slurp(unsigned char* dest, const char* filePath, unsigned int* size)
 {
-	FILE* file = NULL;
-	int err = fopen_s(&file, filePath, "rb");
-	if (err)
-		return err;
+	FILE* file = fopen(filePath, "rb");
+	if (!file) return errno;
 	fseek(file, 0, SEEK_END);
 	long fs = ftell(file);
 	if (size != 0) *size = (unsigned int)fs;
@@ -63,10 +51,8 @@ int Slurp(unsigned char* dest, const char* filePath, unsigned int* size)
 
 int Dump(const char* filePath, unsigned char* source, unsigned long size)
 {
-	FILE* file = NULL;
-	int err = fopen_s(&file, filePath, "wb");
-	if (err)
-		return err;
+	FILE* file = fopen(filePath, "wb");
+	if (!file) return errno;
 	fwrite(source, size, 1, file);
 	fclose(file);
 	return 0;
@@ -85,8 +71,8 @@ int main(int argc, char* argv[])
 	ini = new IniFile();
 	ini->autoSave = true;
 	ini->Load("settings.ini");
-	auto thing = ini->Get("media", "bios", "roms\\ass-bios.apb"); strcpy_s(biosPath, 256, thing);
-	thing = ini->Get("media", "lastROM", ""); strcpy_s(romPath, 256, thing);
+	auto thing = ini->Get("media", "bios", "roms\\ass-bios.apb"); strcpy(biosPath, thing);
+	thing = ini->Get("media", "lastROM", ""); strcpy(romPath, thing);
 	thing = ini->Get("media", "midiDevice", ""); auto midiNum = SDL_atoi(thing);
 	thing = ini->Get("video", "fpscap", "true"); if (thing[0] == 't' || thing[0] == 'T' || thing[0] == 1) fpsCap = true;
 	bool fullScreen = false;
@@ -109,7 +95,7 @@ int main(int argc, char* argv[])
 		char key[8];
 		char dft[24] = "";
 		//Always load a lineprinter as #1 by default
-		if (i == 1) strcpy_s(dft, 24, "linePrinter");
+		if (i == 1) strcpy(dft, "linePrinter");
 		SDL_itoa(i, key, 10);
 		thing = ini->Get("devices", key, dft);
 		if (i == 0) thing = "diskDrive"; //Enforce a disk drive as #0.
@@ -251,7 +237,7 @@ int main(int argc, char* argv[])
 					auto ext = strrchr(thePath, '.') + 1;
 					if (SDL_strncasecmp(ext, "ap3", 3) == 0)
 					{
-						strcpy_s(romPath, 256, thePath);
+						strcpy(romPath, thePath);
 						SDL_Log("Loading ROM, %s ...", romPath);
 						auto gottaReset = (*(uint32_t*)romCartridge == 0x21535341);
 						memset(romCartridge, 0, CART_SIZE);
@@ -298,7 +284,7 @@ int main(int argc, char* argv[])
 			{
 				SDL_Log("Unloading ROM...");
 				memset(romCartridge, 0, CART_SIZE);
-				strcpy_s(romPath, 256, "");
+				strcpy(romPath, "");
 				ini->Set("media", "lastROM", romPath);
 				gfxFade = 31;
 				SetStatus("Cart pulled.");
@@ -322,7 +308,7 @@ int main(int argc, char* argv[])
 					SDL_Log("Unloading ROM...");
 					memset(romCartridge, 0, CART_SIZE);
 					((DiskDrive*)devices[0])->Unmount();
-					strcpy_s(romPath, 256, "");
+					strcpy(romPath, "");
 					ini->Set("media", "lastROM", romPath);
 				}
 				SDL_Log("Resetting Musashi...");
@@ -378,7 +364,7 @@ int main(int argc, char* argv[])
 				auto averageFPS = frames / (SDL_GetTicks() / 1000.0f);
 				if (averageFPS > 2000000)
 					averageFPS = 0;
-				sprintf_s(uiFPS, 32, "%d", (int)averageFPS);
+				sprintf(uiFPS, "%d", (int)averageFPS);
 				if (fpsCap && delta < 20)
 					SDL_Delay(20 - delta);
 				startTime = endTime;

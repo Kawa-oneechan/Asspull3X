@@ -28,8 +28,8 @@ int DiskDrive::Mount(const char* filename)
 	if (file != NULL)
 		return -1;
 	SDL_Log("Mounting diskette, %s ...", filename);
-	auto err = fopen_s(&file, filename, "rb+");
-	return err;
+	FILE* file = fopen(filename, "rb");
+	return errno;
 }
 
 int DiskDrive::Unmount()

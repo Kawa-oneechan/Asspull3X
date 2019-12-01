@@ -1,4 +1,6 @@
 #pragma once
+#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_NONSTDC_NO_WARNINGS
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -6,14 +8,6 @@
 #include <SDL.h>
 #else
 #include <SDL2/SDL.h>
-#endif
-#if CLANG
-//Kawa is very much a VS kinda guy.
-extern int fopen_s(FILE **f, const char *name, const char *mode);
-#define strcpy_s(D,M,S) strcpy(D,S)
-#define sprintf_s(D,M,S,...) sprintf(D,S,__VA_ARGS__)
-#define _stricmp(A,B) strcasecmp(A,B)
-#define _strdup(S) strdup(S)
 #endif
 #include "ini.h"
 

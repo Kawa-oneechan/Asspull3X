@@ -6,11 +6,11 @@ char const* IniFile::Get(const char* section, const char* key, char const* dft)
 {
 	for (auto tit = sections.begin(); tit != sections.end(); tit++)
 	{
-		if (!_stricmp(tit->first, section))
+		if (!strcmpi(tit->first, section))
 		{
 			for (auto tat = tit->second.begin(); tat != tit->second.end(); tat++)
 			{
-				if (!_stricmp(tat->first, key))
+				if (!strcmpi(tat->first, key))
 					return tat->second;
 			}
 		}
@@ -22,19 +22,19 @@ void IniFile::Set(const char* section, const char* key, char const* val)
 {
 	for (auto tit = sections.begin(); tit != sections.end(); tit++)
 	{
-		if (!_stricmp(tit->first, section))
+		if (!strcmpi(tit->first, section))
 		{
 			for (auto tat = tit->second.begin(); tat != tit->second.end(); tat++)
 			{
-				if (!_stricmp(tat->first, key))
+				if (!strcmpi(tat->first, key))
 				{
-					tat->second = _strdup(val);
+					tat->second = strdup(val);
 					if (autoSave) Save(filename);
 					return;
 				}
 			}
 			//didn't exist yet.
-			tit->second.insert(std::pair<char*, char*>(_strdup(key), _strdup(val)));
+			tit->second.insert(std::pair<char*, char*>(strdup(key), strdup(val)));
 			if (autoSave) Save(filename);
 			return;
 		}
@@ -81,7 +81,7 @@ void IniFile::Load(const char* filename)
 	if (r)
 		return;
 
-	this->filename = _strdup(filename);
+	this->filename = strdup(filename);
 
 	char buffer[255];
 	char* b = buffer;
@@ -104,7 +104,7 @@ void IniFile::Load(const char* filename)
 				*b++ = c;
 			}
 			*b++ = 0;
-			sectName = _strdup(buffer);
+			sectName = strdup(buffer);
 		}
 		else if (c == ';')
 			while (fgetc(fd) != '\n');
@@ -125,7 +125,7 @@ void IniFile::Load(const char* filename)
 				*b++ = c;
 			}
 			*b++ = 0;
-			char* key = _strdup(buffer);
+			char* key = strdup(buffer);
 			char* valStart = b;
 			while (!feof(fd))
 			{
@@ -143,7 +143,7 @@ void IniFile::Load(const char* filename)
 			}
 			*b++ = 0;
 			//we now have our key and value -- add them.
-			thisSect->insert(std::pair<char*, char*>(key, _strdup(valStart)));
+			thisSect->insert(std::pair<char*, char*>(key, strdup(valStart)));
 		}
 	}
 	//add final section if any
