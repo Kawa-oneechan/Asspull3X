@@ -1623,7 +1623,7 @@ Window* BuildMemoryWindow()
 		drop->AddChild(new MenuItem(areas[i], 0, _memViewerDrop));
 	_memViewerDrop((drop->children.end() - 1)->get()); //that or begin really :shrug:
 	topLevelControls.push_back(std::unique_ptr<Control>(win));
-	win->visible = true;
+	win->visible = false;
 	return win;
 }
 
