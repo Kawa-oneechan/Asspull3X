@@ -7,9 +7,8 @@ HMIDIOUT midiDevice = 0;
 
 int InitSound()
 {
-	auto thing = ini->Get("media", "midiDevice", "");
+	auto thing = ini->Get("media", "midiDevice", "0");
 	int devID = (int)strtol(thing, NULL, 10);
-	devID = 69;
 	auto res = midiOutOpen(&midiDevice, devID, NULL, NULL, 0);
 	if (res == MMSYSERR_BADDEVICEID)
 	{
