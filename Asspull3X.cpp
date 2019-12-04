@@ -39,7 +39,6 @@ int main(int argc, char* argv[])
 	ini->Load("settings.ini");
 	auto thing = ini->Get("media", "bios", "roms\\ass-bios.apb"); strcpy(biosPath, thing);
 	thing = ini->Get("media", "lastROM", ""); strcpy(romPath, thing);
-	thing = ini->Get("media", "midiDevice", ""); auto midiNum = SDL_atoi(thing);
 	thing = ini->Get("video", "fpscap", "true"); if (thing[0] == 't' || thing[0] == 'T' || thing[0] == 1) fpsCap = true;
 	bool fullScreen = false;
 	thing = ini->Get("video", "fullScreen", "false"); if (thing[0] == 't' || thing[0] == 'T' || thing[0] == 1) fullScreen = true;
@@ -88,7 +87,7 @@ int main(int argc, char* argv[])
 
 	if (InitMemory() < 0)
 		return 0;
-	if (InitSound(midiNum) < 0)
+	if (InitSound() < 0)
 		return 0;
 
 	pauseScreen = (unsigned char*)malloc(640 * 480 * 4);

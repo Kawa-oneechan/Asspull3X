@@ -1,43 +1,56 @@
 #include "asspull.h"
 
 #if WIN32
-
 #include <Windows.h>
 
-int midiNum = 0;
 HMIDIOUT midiDevice = 0;
 
-int InitSound(int device)
+int InitSound()
 {
-	midiNum = device;
-	midiOutOpen(&midiDevice, midiNum, NULL, NULL, 0);
-	midiOutReset(midiDevice);
+	auto thing = ini->Get("media", "midiDevice", "");
+	int devID = (int)strtol(thing, NULL, 10);
+	devID = 69;
+	auto res = midiOutOpen(&midiDevice, devID, NULL, NULL, 0);
+	if (res == MMSYSERR_BADDEVICEID)
+	{
+		SDL_Log("Could not open MIDI device #%d: bad device ID.", devID);
+		return 1; //Negative would mean to stop loading but who cares?
+	}
+	else if (res == MMSYSERR_BADDEVICEID)
+	{
+		SDL_Log("Could not open MIDI device #%d: device already allocated.", devID);
+		return 2; //If we *do* fail to open a device, we'll just run silent, pffft.
+	}
+	if (midiDevice)
+		midiOutReset(midiDevice);
 	return 0;
 }
 
-int UninitSound()
+void UninitSound()
 {
-	midiOutReset(midiDevice);
-	midiOutClose(midiDevice);
-	return 0;
+	if (midiDevice)
+	{
+		midiOutReset(midiDevice);
+		midiOutClose(midiDevice);
+	}
 }
 
 void SendMidi(unsigned int message)
 {
-	midiOutShortMsg(midiDevice, message);
+	if (midiDevice)
+		midiOutShortMsg(midiDevice, message);
 }
 
 #else
 
 #pragma message("No MIDI support for non-Windows targets yet!")
-int InitSound(int device)
+int InitSound()
 {
 	return 0;
 }
 
-int UninitSound()
+void UninitSound()
 {
-	return 0;
 }
 
 void SendMidi(unsigned int message)

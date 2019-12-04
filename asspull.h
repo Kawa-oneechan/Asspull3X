@@ -38,8 +38,8 @@ extern int UninitVideo();
 extern void HandleHdma(int line);
 extern int InitMemory();
 
-extern int InitSound(int device);
-extern int UninitSound();
+extern int InitSound();
+extern void UninitSound();
 
 extern void HandleUI();
 
