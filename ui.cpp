@@ -499,6 +499,8 @@ public:
 void doListButton(Control* me);
 class ListBox : public Control
 {
+private:
+	int doubleTime, doubleItem;
 public:
 	int selection;
 	int scroll;
@@ -506,6 +508,7 @@ public:
 	int thumb;
 	std::vector<std::string> items;
 	void(*onChange)(Control*, int);
+	void(*onDouble)(Control*, int);
 	ListBox(int left, int top, int width, int height, void(*change)(Control*, int))
 	{
 		this->left = this->absLeft = left;
@@ -513,10 +516,12 @@ public:
 		this->width = width;
 		this->height = height;
 		this->onChange = change;
+		this->onDouble = NULL;
 		this->enabled = true;
 		this->selection = 0;
 		this->scroll = 0;
 		this->thumb = 1;
+		this->doubleTime = 0;
 		this->visible = (height - 2) / 9;
 		this->marginLeft = this->marginTop = 0;
 		this->AddChild(new IconButton(4, width - 11, 1, doListButton));
@@ -575,9 +580,27 @@ public:
 		{
 			y -= absTop;
 			y /= 9;
+			if (y + scroll >= (signed)items.size())
+				return;
+
 			selection = y + scroll;
+				
 			if (onChange)
 				onChange(this, selection);
+			if (onDouble && selection == doubleItem)
+			{
+				auto now = SDL_GetTicks();
+				auto diff = (unsigned)now - doubleTime;
+				if (diff < 750)
+				{
+					doubleTime = 0;
+					onDouble(this, selection);
+				}
+				else
+					doubleTime = now;
+			}
+			else
+				doubleItem = selection;
 			return;
 		}
 
@@ -1046,15 +1069,18 @@ Window* aboutWindow;
 Window* memoryWindow;
 Window* deviceWindow;
 Window* optionsWindow;
+Window* fileSelectWindow;
 Window* BuildAboutWindow();
 Window* BuildMemoryWindow();
 Window* BuildDeviceWindow();
 Window* BuildOptionsWindow();
+Window* BuildFileSelectWindow();
 
 void _showAboutDialog(Control*) { aboutWindow->Show(); }
 void _showMemoryViewer(Control*) { memoryWindow->Show(); }
 void _showDevices(Control*) { deviceWindow->Show(); }
 void _showOptions(Control*) { optionsWindow->Show(); }
+void _showFileSelect(Control*) { fileSelectWindow->Show(); }
 
 void InitializeUI()
 {
@@ -1083,6 +1109,7 @@ void InitializeUI()
 	memoryWindow = BuildMemoryWindow();
 	deviceWindow = BuildDeviceWindow();
 	optionsWindow = BuildOptionsWindow();
+	fileSelectWindow = BuildFileSelectWindow();
 }
 
 void BringWindowToFront(Control* window)
@@ -1154,6 +1181,8 @@ void HandleUI()
 	if (!topLevelControls.empty())
 	{
 		CheckForWindowPops();
+		if (fileSelectWindow->visible)
+			BringWindowToFront(fileSelectWindow);
 
 		for (auto child = topLevelControls.begin(); child != topLevelControls.end(); child++)
 		{
@@ -1824,5 +1853,64 @@ Window* BuildOptionsWindow()
 	win->AddChild(new Button("Okay", 126, 58, 39, _closeWindow));
 	topLevelControls.push_back(std::unique_ptr<Control>(win));
 	win->visible = false;
+	return win;
+}
+
+#include <direct.h>
+#include <io.h>
+
+ListBox* fileList;
+
+void UpdateFileList()
+{
+	fileList->items.clear();
+	fileList->selection = -1;
+	fileList->scroll = 0;
+	_finddata_t ff;
+	auto fh = _findfirst("*", &ff);
+	do
+	{
+		if (!strcmp(ff.name, "."))
+			continue;
+		if (ff.attrib & _A_SUBDIR)
+			fileList->items.push_back(ff.name);
+	} while (_findnext(fh, &ff) == 0);
+	_findclose(fh);
+	fh = _findfirst("*.ap3", &ff);
+	if (fh != -1)
+	{
+		do
+		{
+			fileList->items.push_back(ff.name);
+		} while (_findnext(fh, &ff) == 0);
+	}
+	_findclose(fh);
+}
+
+void _fileList(Control* me, int selection)
+{
+	auto filename = ((ListBox*)me)->items[selection].c_str();
+	//not the best way but FUCK IT!
+	_finddata_t ff;
+	auto fh = _findfirst(filename, &ff);
+	auto attrib = ff.attrib;
+	_findclose(fh);
+	SDL_Log("double-clicked on \"%s\", a %s.", filename, (attrib & _A_SUBDIR) ? "directory" : "file");
+	if (attrib & _A_SUBDIR)
+	{
+		_chdir(filename);
+		UpdateFileList();
+	}
+}
+
+Window* BuildFileSelectWindow()
+{
+	auto win = new Window("Open", 8, 8, 256, 400);
+	win->AddChild(fileList = new ListBox(4, 3, 240, 380, 0));
+	fileList->onDouble = _fileList;
+	win->Propagate();
+	UpdateFileList();
+	topLevelControls.push_back(std::unique_ptr<Control>(win));
+	win->visible = true;
 	return win;
 }
