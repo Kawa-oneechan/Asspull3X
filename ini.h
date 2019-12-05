@@ -7,6 +7,7 @@ class IniFile
 
 private:
 	char* filename;
+	char* cwd;
 
 public:
 	std::map<char*, IniList> sections;

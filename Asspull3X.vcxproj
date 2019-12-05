@@ -86,7 +86,6 @@
     <ClInclude Include="ini.h" />
     <ClInclude Include="musashi\m68k.h" />
     <ClInclude Include="musashi\m68kconf.h" />
-    <ClInclude Include="nativefiledialog\src\include\nfd.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="device.cpp" />
@@ -97,8 +96,6 @@
     <ClCompile Include="musashi\m68kcpu.c" />
     <ClCompile Include="musashi\m68kfpu.c" />
     <ClCompile Include="musashi\m68kops.c" />
-    <ClCompile Include="nativefiledialog\src\nfd_common.c" />
-    <ClCompile Include="nativefiledialog\src\nfd_win.cpp" />
     <ClCompile Include="Asspull3X.cpp" />
     <ClCompile Include="sound.cpp" />
     <ClCompile Include="ui.cpp" />

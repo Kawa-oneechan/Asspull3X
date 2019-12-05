@@ -88,6 +88,7 @@ void DrawImage(int x, int y, unsigned short* pixmap, int width, int height);
 void LetItSnow();
 
 int uiCommand, uiData;
+char uiString[512];
 void* draggingWindow = NULL;
 void* focusedWindow = NULL;
 void* focusedTextBox = NULL;
@@ -138,6 +139,7 @@ public:
 	bool WasClicked()
 	{
 		if (!visible) return false;
+		if (!enabled) return false;
 		if (draggingWindow != NULL)
 			return false;
 		if (parent != 0 && (parent != focusedWindow && parent->parent != focusedWindow))
@@ -504,7 +506,7 @@ private:
 public:
 	int selection;
 	int scroll;
-	int visible;
+	int numSeen;
 	int thumb;
 	std::vector<std::string> items;
 	void(*onChange)(Control*, int);
@@ -522,10 +524,10 @@ public:
 		this->scroll = 0;
 		this->thumb = 1;
 		this->doubleTime = 0;
-		this->visible = (height - 2) / 9;
+		this->numSeen = (height - 2) / 9;
 		this->marginLeft = this->marginTop = 0;
 		this->AddChild(new IconButton(4, width - 11, 1, doListButton));
-		this->AddChild(new IconButton(5, width - 11, (visible * 9) - 9, doListButton));
+		this->AddChild(new IconButton(5, width - 11, (numSeen * 9) - 9, doListButton));
 	}
 	void Draw()
 	{
@@ -533,9 +535,10 @@ public:
 		for (int col = 0; col < width; col++)
 		{
 			RenderRawPixel(absTop, absLeft + col, WINDOW_BORDERFOC_B);
-			RenderRawPixel(absTop + 1 + (visible * 9), absLeft + col, WINDOW_BORDERFOC_T);
+			RenderRawPixel(absTop + 1 + (numSeen * 9), absLeft + col, WINDOW_BORDERFOC_T);
 		}
-		for (int i = 0; i < visible && (i + scroll) < (signed)items.size(); i++)
+		int j = 0;
+		for (int i = 0; i < numSeen && (i + scroll) < (signed)items.size(); i++, j += 9)
 		{
 			int fillColor = (i + scroll == selection) ? LISTBOX_HIGHLIGHT : LISTBOX_FILL;
 			int textColor = (i + scroll == selection) ? LISTBOX_HIGHTEXT : LISTBOX_TEXT;
@@ -554,13 +557,29 @@ public:
 			}
 			DrawString(absLeft + 3, absTop + 2 + (i * 9), textColor, items[i + scroll].c_str(), absLeft + width - 11, 480);
 		}
+		for (int i = j; i < (numSeen * 9); i++)
+		{
+			RenderRawPixel(absTop + 1 + i, absLeft, WINDOW_BORDERFOC_R);
+			for (int col = 1; col < width - 11; col++)
+			{
+				RenderRawPixel(absTop + 1 + i, absLeft + col, LISTBOX_FILL);
+			}
+			for (int col = width - 11; col < width - 1; col++)
+			{
+				RenderRawPixel(absTop + 1 + i, absLeft + col, LISTBOX_TRACK);
+			}
+			RenderRawPixel(absTop + 1 + i, absLeft + width - 1, WINDOW_BORDERFOC_L);
+		}
 
 		//draw thumb
-		for (int row = 0; row < 10; row++)
+		if (items.size() > numSeen)
 		{
-			for (int col = 1; col < 9; col++)
+			for (int row = 0; row < 10; row++)
 			{
-				RenderRawPixel(absTop + 11 + thumb + row, absLeft + width - 11 + col, BUTTON_HIGHLIGHT);
+				for (int col = 1; col < 9; col++)
+				{
+					RenderRawPixel(absTop + 11 + thumb + row, absLeft + width - 11 + col, BUTTON_HIGHLIGHT);
+				}
 			}
 		}
 
@@ -614,10 +633,10 @@ void doListButton(Control* me)
 	auto who = (ListBox*)me->parent;
 	if (what == 4 && who->scroll > 0)
 		who->scroll--;
-	else if (what == 5 && who->scroll < (signed)who->items.size() - who->visible)
+	else if (what == 5 && who->scroll < (signed)who->items.size() - who->numSeen)
 		who->scroll++;
 
-	who->thumb = Lerp(1, who->height - 35, (float)((float)who->scroll / (who->items.size() - who->visible)));
+	who->thumb = Lerp(1, who->height - 35, (float)((float)who->scroll / (who->items.size() - who->numSeen)));
 }
 
 void* currentMenu = NULL;
@@ -1525,6 +1544,20 @@ void _closeWindow(Control* me)
 	((Window*)me->parent)->Hide();
 }
 
+int fileSelectCommand, fileSelectData;
+const char* fileSelectPattern;
+void UpdateFileList();
+void ShowOpenFileDialog(int command, int data, const char* pattern)
+{
+	if (fileSelectWindow->visible)
+		return;
+	fileSelectCommand = command;
+	fileSelectData = data;
+	fileSelectPattern = pattern;
+	UpdateFileList();
+	fileSelectWindow->Show();
+}
+
 #include "aboutpic.c"
 Window* BuildAboutWindow()
 {
@@ -1876,7 +1909,7 @@ void UpdateFileList()
 			fileList->items.push_back(ff.name);
 	} while (_findnext(fh, &ff) == 0);
 	_findclose(fh);
-	fh = _findfirst("*.ap3", &ff);
+	fh = _findfirst(fileSelectPattern, &ff);
 	if (fh != -1)
 	{
 		do
@@ -1901,16 +1934,25 @@ void _fileList(Control* me, int selection)
 		_chdir(filename);
 		UpdateFileList();
 	}
+	else
+	{
+		_getcwd(uiString, FILENAME_MAX);
+		if (uiString[strlen(uiString)-1] != '\\')
+			strcat(uiString, "\\");
+		strcat(uiString, filename);
+		uiCommand = fileSelectCommand;
+		uiData = fileSelectData;
+		fileSelectWindow->Hide();
+	}
 }
 
 Window* BuildFileSelectWindow()
 {
-	auto win = new Window("Open", 8, 8, 256, 400);
-	win->AddChild(fileList = new ListBox(4, 3, 240, 380, 0));
+	auto win = new Window("Open", 8, 8, 128, 256);
+	win->AddChild(fileList = new ListBox(4, 3, 120, 240, 0));
 	fileList->onDouble = _fileList;
 	win->Propagate();
-	UpdateFileList();
 	topLevelControls.push_back(std::unique_ptr<Control>(win));
-	win->visible = true;
+	win->visible = false;
 	return win;
 }

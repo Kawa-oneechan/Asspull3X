@@ -1,4 +1,5 @@
 #include "asspull.h"
+#include <direct.h>
 #include <map>
 #include <vector>
 
@@ -47,9 +48,10 @@ void IniFile::Set(const char* section, const char* key, char const* val)
 
 void IniFile::Save(const char* filename)
 {
-	FILE* fd;
-	auto r = fopen_s(&fd, filename, "w");
-	if (r)
+	_chdir(this->cwd);
+
+	FILE* fd = fopen(filename, "w");
+	if (!fd)
 		return;
 
 	for (auto tit = sections.begin(); tit != sections.end(); tit++)
@@ -76,12 +78,13 @@ bool isspace(char isIt)
 
 void IniFile::Load(const char* filename)
 {
-	FILE* fd;
-	auto r = fopen_s(&fd, filename, "r");
-	if (r)
+	FILE* fd = fopen(filename, "r");
+	if (!fd)
 		return;
 
 	this->filename = strdup(filename);
+	this->cwd = (char*)malloc(FILENAME_MAX);
+	_getcwd(this->cwd, FILENAME_MAX);
 
 	char buffer[255];
 	char* b = buffer;

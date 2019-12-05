@@ -3,15 +3,16 @@
 extern "C" {
 #include "musashi/m68k.h"
 }
-#include "nativefiledialog/src/include/nfd.h"
 
 static bool quit = 0;
 int line = 0, interrupts = 0;
 extern void Screenshot();
 extern int uiCommand, uiData, uiKey;
+extern char uiString[512];
 extern char uiFPS[];
 extern void SetStatus(const char*);
 extern void _devUpdateDiskette(int);
+extern void ShowOpenFileDialog(int, int, const char*);
 
 extern unsigned int biosSize, romSize;
 
@@ -197,25 +198,19 @@ int main(int argc, char* argv[])
 		{
 			if (uiCommand == cmdLoadRom)
 			{
-				nfdchar_t* thePath = NULL;
-				nfdresult_t nfdResult = NFD_OpenDialog("ap3", NULL, &thePath);
-				if (nfdResult == NFD_OKAY)
+				if (uiString[0] == 0)
+					ShowOpenFileDialog(cmdLoadRom, 0, "*.ap3");
+				else
 				{
-					auto ext = strrchr(thePath, '.') + 1;
-					if (SDL_strncasecmp(ext, "ap3", 3) == 0)
-					{
-						strcpy(romPath, thePath);
-						SDL_Log("Loading ROM, %s ...", romPath);
-						auto gottaReset = (*(uint32_t*)romCartridge == 0x21535341);
-						memset(romCartridge, 0, CART_SIZE);
-						Slurp(romCartridge, romPath, &romSize);
-						romSize = RoundUp(romSize);
-						ini->Set("media", "lastROM", romPath);
-						if (gottaReset)
-							m68k_pulse_reset();
-					}
-					else
-						SDL_Log("Don't know what to do with %s.", romPath);
+					strcpy(romPath, uiString);
+					SDL_Log("Loading ROM, %s ...", romPath);
+					auto gottaReset = (*(uint32_t*)romCartridge == 0x21535341);
+					memset(romCartridge, 0, CART_SIZE);
+					Slurp(romCartridge, romPath, &romSize);
+					romSize = RoundUp(romSize);
+					ini->Set("media", "lastROM", romPath);
+					if (gottaReset)
+						m68k_pulse_reset();
 				}
 			}
 			else if (uiCommand == cmdInsertDisk)
@@ -226,23 +221,17 @@ int main(int argc, char* argv[])
 					SetStatus("Eject the diskette first.");
 				else
 				{
-					nfdchar_t* thePath = NULL;
-					nfdresult_t nfdResult = NFD_OpenDialog("img", NULL, &thePath);
-					if (nfdResult == NFD_OKAY)
+					if (uiString[0] == 0)
+						ShowOpenFileDialog(cmdInsertDisk, uiData, "*.img");
+					else
 					{
-						auto ext = strrchr(thePath, '.') + 1;
-						if (SDL_strncasecmp(ext, "img", 3) == 0)
-						{
-							auto ret = ((DiskDrive*)devices[uiData])->Mount(thePath);
-							if (ret == -1)
-								SetStatus("Eject the diskette first, with Ctrl-Shift-U.");
-							else if (ret != 0)
-								SDL_Log("Error %d trying to open disk image.", ret);
-							else
-								ini->Set("devices/diskDrive", "0", thePath);
-						}
+						auto ret = ((DiskDrive*)devices[uiData])->Mount(uiString);
+						if (ret == -1)
+							SetStatus("Eject the diskette first, with Ctrl-Shift-U.");
+						else if (ret != 0)
+							SDL_Log("Error %d trying to open disk image.", ret);
 						else
-							SDL_Log("Don't know what to do with %s.", romPath);
+							ini->Set("devices/diskDrive", "0", uiString);
 						_devUpdateDiskette(uiData);
 					}
 				}
@@ -265,8 +254,8 @@ int main(int argc, char* argv[])
 					((DiskDrive*)devices[uiData])->Unmount();
 					ini->Set("devices/diskDrive", "0", "");
 					SetStatus("Disk ejected.");
-					_devUpdateDiskette(uiData);
 				}
+				_devUpdateDiskette(uiData);
 			}
 			else if (uiCommand == cmdReset)
 			{
@@ -297,6 +286,7 @@ int main(int argc, char* argv[])
 				Screenshot();
 			}
 			uiCommand = uiData = 0;
+			uiString[0] = 0;
 		}
 
 		if (pauseState != 2)
