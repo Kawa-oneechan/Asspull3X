@@ -1,4 +1,9 @@
 //{customMouseCursor}
+//^- You put this in, the Asspull3X emulator will draw its
+//   own mouse cursor instead of using the OS'. That way,
+//   the warping effect of this shader, which also affects
+//   the UI, will *also* also affect the cursor image and
+//   let you aim where you need to.
 
 varying vec4 v_color;
 varying vec2 v_texCoord;
@@ -18,7 +23,7 @@ float hardPix=-3.0;
 //Display warp.
 //0.0 = none
 //1.0/8.0 = extreme
-vec2 warp = vec2(1.0/32.0, 1.0/24.0); 
+vec2 warp = vec2(1.0/32.0, 1.0/24.0);
 
 //Amount of shadow mask.
 float maskDark=0.5;
@@ -124,7 +129,7 @@ vec3 Tri(vec2 pos)
 //Distortion of scanlines, and end of screen alpha.
 vec2 Warp(vec2 pos)
 {
-	pos = pos * 2.0 - 1.0;    
+	pos = pos * 2.0 - 1.0;
 	pos *= vec2(1.0 + (pos.y * pos.y) * warp.x, 1.0 + (pos.x * pos.x) * warp.y);
 	return pos * 0.5 + 0.5;
 }
