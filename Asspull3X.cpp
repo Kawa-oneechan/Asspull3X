@@ -18,8 +18,6 @@ extern unsigned int biosSize, romSize;
 
 IniFile* ini;
 
-char biosPath[256], romPath[256];
-
 int pauseState = 0;
 unsigned char* pauseScreen;
 extern unsigned char* pixels;
@@ -38,9 +36,7 @@ int main(int argc, char* argv[])
 	ini = new IniFile();
 	ini->autoSave = true;
 	ini->Load("settings.ini");
-	auto thing = ini->Get("media", "bios", "roms\\ass-bios.apb"); strcpy(biosPath, thing);
-	thing = ini->Get("media", "lastROM", ""); strcpy(romPath, thing);
-	thing = ini->Get("video", "fpscap", "true"); if (thing[0] == 't' || thing[0] == 'T' || thing[0] == 1) fpsCap = true;
+	auto thing = ini->Get("video", "fpscap", "true"); if (thing[0] == 't' || thing[0] == 'T' || thing[0] == 1) fpsCap = true;
 	bool fullScreen = false;
 	thing = ini->Get("video", "fullScreen", "false"); if (thing[0] == 't' || thing[0] == 'T' || thing[0] == 1) fullScreen = true;
 	for (int i = 1; i < argc; i++)
@@ -102,13 +98,15 @@ int main(int argc, char* argv[])
 			controller[1] = SDL_JoystickOpen(1);
 	}
 
-	SDL_Log("Loading BIOS, %s ...", biosPath);
-	Slurp(romBIOS, biosPath, &biosSize);
+	thing = ini->Get("media", "bios", "roms\\ass-bios.apb");
+	SDL_Log("Loading BIOS, %s ...", thing);
+	Slurp(romBIOS, thing, &biosSize);
 	biosSize = RoundUp(biosSize);
-	if (romPath[0] != 0)
+	thing = ini->Get("media", "lastROM", "");
+	if (thing[0] != 0)
 	{
-		SDL_Log("Loading ROM, %s ...", romPath);
-		Slurp(romCartridge, romPath, &romSize);
+		SDL_Log("Loading ROM, %s ...", thing);
+		Slurp(romCartridge, thing, &romSize);
 		romSize = RoundUp(romSize);
 	}
 
@@ -202,13 +200,12 @@ int main(int argc, char* argv[])
 					ShowOpenFileDialog(cmdLoadRom, 0, "*.ap3");
 				else
 				{
-					strcpy(romPath, uiString);
-					SDL_Log("Loading ROM, %s ...", romPath);
+					SDL_Log("Loading ROM, %s ...", uiString);
 					auto gottaReset = (*(uint32_t*)romCartridge == 0x21535341);
 					memset(romCartridge, 0, CART_SIZE);
-					Slurp(romCartridge, romPath, &romSize);
+					Slurp(romCartridge, uiString, &romSize);
 					romSize = RoundUp(romSize);
-					ini->Set("media", "lastROM", romPath);
+					ini->Set("media", "lastROM", uiString);
 					if (gottaReset)
 						m68k_pulse_reset();
 				}
@@ -240,8 +237,7 @@ int main(int argc, char* argv[])
 			{
 				SDL_Log("Unloading ROM...");
 				memset(romCartridge, 0, CART_SIZE);
-				strcpy(romPath, "");
-				ini->Set("media", "lastROM", romPath);
+				ini->Set("media", "lastROM", "");
 				gfxFade = 31;
 				SetStatus("Cart pulled.");
 			}
@@ -264,8 +260,7 @@ int main(int argc, char* argv[])
 					SDL_Log("Unloading ROM...");
 					memset(romCartridge, 0, CART_SIZE);
 					((DiskDrive*)devices[0])->Unmount();
-					strcpy(romPath, "");
-					ini->Set("media", "lastROM", romPath);
+					ini->Set("media", "lastROM", "");
 				}
 				SDL_Log("Resetting Musashi...");
 				SetStatus("System reset.");
