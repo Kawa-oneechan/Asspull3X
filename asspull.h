@@ -164,7 +164,7 @@ private:
 public:
 	DiskDrive(void);
 	~DiskDrive(void);
-	int Mount(const char* filename);
+	int Mount(std::string filename);
 	int Unmount();
 	unsigned int Read(unsigned int address);
 	void Write(unsigned int address, unsigned int value);

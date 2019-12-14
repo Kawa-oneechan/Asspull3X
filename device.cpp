@@ -23,12 +23,12 @@ DiskDrive::~DiskDrive()
 	if (file != NULL) fclose(file);
 }
 
-int DiskDrive::Mount(const char* filename)
+int DiskDrive::Mount(std::string filename)
 {
 	if (file != NULL)
 		return -1;
-	SDL_Log("Mounting diskette, %s ...", filename);
-	file = fopen(filename, "rb");
+	SDL_Log("Mounting diskette, %s ...", filename.c_str());
+	file = fopen(filename.c_str(), "rb");
 	if (file == 0)
 		return errno;
 	return 0;

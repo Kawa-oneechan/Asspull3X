@@ -1,7 +1,10 @@
 #include "asspull.h"
 #include "ini.h"
+#include <string.h>
 #include <vector>
 #include <memory>
+#include <direct.h>
+#include <io.h>
 
 #define LETITSNOW
 #define PROPER_ARROW
@@ -1548,6 +1551,16 @@ void ShowOpenFileDialog(int command, int data, const char* pattern)
 {
 	if (fileSelectWindow->visible)
 		return;
+
+	auto thing = ini->Get("media", "lastROM", "");
+	if (thing[0] != 0)
+	{
+		auto lastSlash = (char*)strrchr(thing, '\\');
+		if (lastSlash)
+			*(lastSlash + 1) = 0;
+		_chdir(thing);
+	}
+
 	fileSelectCommand = command;
 	fileSelectData = data;
 	fileSelectPattern = pattern;
@@ -1885,9 +1898,6 @@ Window* BuildOptionsWindow()
 	win->visible = false;
 	return win;
 }
-
-#include <direct.h>
-#include <io.h>
 
 ListBox* fileList;
 
