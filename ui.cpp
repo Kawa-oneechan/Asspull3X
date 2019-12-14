@@ -1461,9 +1461,10 @@ void DrawString(int x, int y, int color, std::string str, int cr, int cb)
 		}
 		else
 		{
+			unsigned char chr = (unsigned char)*c;
 			if (x < cr && y < cb)
-				DrawCharacter(x, y, color, *c, cr, cb);
-			x += nokiaFontWidth[*c];
+				DrawCharacter(x, y, color, chr, cr, cb);
+			x += nokiaFontWidth[chr];
 		}
 	}
 }
