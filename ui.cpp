@@ -81,9 +81,9 @@ int GetMouseState(int *x, int *y);
 void DrawCursor();
 void DrawCharacter(int x, int y, int color, unsigned short ch, int cr, int cb);
 void DrawCharacter(int x, int y, int color, unsigned short ch);
-void DrawString(int x, int y, int color, const char* str, int cr, int cb);
-void DrawString(int x, int y, int color, const char* str);
-int MeasureString(const char* str);
+void DrawString(int x, int y, int color, std::string str, int cr, int cb);
+void DrawString(int x, int y, int color, std::string str);
+int MeasureString(std::string str);
 void DrawImage(int x, int y, unsigned short* pixmap, int width, int height);
 void LetItSnow();
 
@@ -170,7 +170,7 @@ public:
 	void Draw()
 	{
 		if (!visible) return;
-		DrawString(absLeft, absTop, color, text.c_str());
+		DrawString(absLeft, absTop, color, text);
 	}
 };
 
@@ -300,7 +300,7 @@ public:
 			DarkenPixel(row + 1, left + width + 0);
 			DarkenPixel(row + 1, left + width + 1);
 		}
-		DrawString(left + 3, top + 3, (focusedWindow == this) ? WINDOW_CAPTEXT : WINDOW_CAPTEXTUNF, text.c_str());
+		DrawString(left + 3, top + 3, (focusedWindow == this) ? WINDOW_CAPTEXT : WINDOW_CAPTEXTUNF, text);
 
 		DrawCloseBox();
 		if (WasCloseBoxClicked())
@@ -390,8 +390,8 @@ public:
 				RenderRawPixel(row, col, fillColor);
 			RenderRawPixel(row, absLeft + width - 1, BUTTON_BORDER_R);
 		}
-		auto capLeft = absLeft + (width / 2) - (MeasureString(text.c_str()) / 2);
-		DrawString(capLeft, absTop + 3, textColor, text.c_str());
+		auto capLeft = absLeft + (width / 2) - (MeasureString(text) / 2);
+		DrawString(capLeft, absTop + 3, textColor, text);
 	}
 	void Handle()
 	{
@@ -441,7 +441,7 @@ public:
 		}
 		if (checked)
 			DrawCharacter(absLeft + 1, absTop + 1, textColor, 256 + 14);
-		DrawString(absLeft + 14, absTop + 1, textColor, text.c_str());
+		DrawString(absLeft + 14, absTop + 1, textColor, text);
 	}
 	void Handle()
 	{
@@ -555,7 +555,7 @@ public:
 				}
 				RenderRawPixel(absTop + 1 + row + (i * 9), absLeft + width - 1, WINDOW_BORDERFOC_L);
 			}
-			DrawString(absLeft + 3, absTop + 2 + (i * 9), textColor, items[i + scroll].c_str(), absLeft + width - 11, 480);
+			DrawString(absLeft + 3, absTop + 2 + (i * 9), textColor, items[i + scroll], absLeft + width - 11, 480);
 		}
 		for (int i = j; i < (numSeen * 9); i++)
 		{
@@ -572,7 +572,7 @@ public:
 		}
 
 		//draw thumb
-		if (items.size() > numSeen)
+		if ((signed)items.size() > numSeen)
 		{
 			for (int row = 0; row < 10; row++)
 			{
@@ -707,7 +707,7 @@ public:
 			DarkenPixel(absTop + line + 1, absLeft + width + 2);
 		}
 
-		DrawString(absLeft + 4, absTop + 2, textColor, text.c_str());
+		DrawString(absLeft + 4, absTop + 2, textColor, text);
 		if (hotkey)
 			DrawCharacter(absLeft + width - 8, absTop + 2, textColor, hotkey);
 	}
@@ -811,7 +811,7 @@ public:
 			DarkenPixel(j, absLeft + width + 0);
 			DarkenPixel(j, absLeft + width + 1);
 		}
-		DrawString(absLeft + 4, 2, textColor, text.c_str());
+		DrawString(absLeft + 4, 2, textColor, text);
 	}
 	void HandlePopup()
 	{
@@ -967,13 +967,13 @@ public:
 			}
 			RenderRawPixel(absTop + 1 + row, absLeft + width - 1, WINDOW_BORDERFOC_L);
 		}
-		DrawString(absLeft + 2, absTop + 2, TEXTBOX_TEXT, text.c_str(), absLeft + width - 1, absTop + 10);
+		DrawString(absLeft + 2, absTop + 2, TEXTBOX_TEXT, text, absLeft + width - 1, absTop + 10);
 		if (focusedTextBox != this)
 			return;
 		auto caretHelper = std::string(text);
 		caretHelper += "   ";
 		caretHelper[cursor] = 0;
-		auto size = MeasureString(caretHelper.c_str());
+		auto size = MeasureString(caretHelper);
 		if (SDL_GetTicks() % 1024 < 512)
 			DrawCharacter(absLeft + size + 1, absTop + 2, TEXTBOX_CARET, '|');
 	}
@@ -1443,16 +1443,15 @@ void DrawImage(int x, int y, unsigned short* pixmap, int width, int height)
 
 #define TABWIDTH 48
 
-void DrawString(int x, int y, int color, const char* str, int cr, int cb)
+void DrawString(int x, int y, int color, std::string str, int cr, int cb)
 {
 	int sx = x;
 	const int tabSize = 32;
-	while(*str)
+	for (auto c = str.begin(); c != str.end(); c++)
 	{
-		unsigned char c = *str;
-		if (c == '\t')
+		if (*c == '\t')
 			x += tabSize - (x % tabSize);
-		else if (c == '\n')
+		else if (*c == '\n')
 		{
 			x = sx;
 			y += 9;
@@ -1460,28 +1459,26 @@ void DrawString(int x, int y, int color, const char* str, int cr, int cb)
 		else
 		{
 			if (x < cr && y < cb)
-				DrawCharacter(x, y, color, c, cr, cb);
-			x += nokiaFontWidth[c];
+				DrawCharacter(x, y, color, *c, cr, cb);
+			x += nokiaFontWidth[*c];
 		}
-		str++;
 	}
 }
 
-void DrawString(int x, int y, int color, const char* str)
+void DrawString(int x, int y, int color, std::string str)
 {
 	DrawString(x, y, color, str, 640, 480);
 }
 
-int MeasureString(const char* str)
+int MeasureString(std::string str)
 {
 	int width = 0;
-	while(*str)
+	for (auto c = str.begin(); c != str.end(); c++)
 	{
-		if (*str == '\t')
+		if (*c == '\t')
 			width = ((width / TABWIDTH) * TABWIDTH) + TABWIDTH;
 		else
-			width += nokiaFontWidth[(int)*str];
-		str++;
+			width += nokiaFontWidth[*c];
 	}
 	return width;
 }
@@ -1928,7 +1925,6 @@ void _fileList(Control* me, int selection)
 	auto fh = _findfirst(filename, &ff);
 	auto attrib = ff.attrib;
 	_findclose(fh);
-	SDL_Log("double-clicked on \"%s\", a %s.", filename, (attrib & _A_SUBDIR) ? "directory" : "file");
 	if (attrib & _A_SUBDIR)
 	{
 		_chdir(filename);
