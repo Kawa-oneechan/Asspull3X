@@ -1,31 +1,39 @@
 #include "asspull.h"
+#include <vector>
 
 #if WIN32
 #include <Windows.h>
 
-#define AUDIOCHONK 1024
+#define LATENCY 512
 
 HMIDIOUT midiDevice = 0;
 HWAVEOUT soundHandle = 0;
-WAVEHDR waveHeader;
-
-signed char buffer[AUDIOCHONK];
-int audioCursor = 0;
+std::vector<WAVEHDR> headers;
+int frameCount = 0;
+int blockCount = 0;
+int frameIndex = 0;
+int blockIndex = 0;
 
 void BufferAudioSample(signed char sample)
 {
-	buffer[audioCursor] = sample;
-	audioCursor++;
-	if (audioCursor == AUDIOCHONK)
+	auto block = (signed char*)headers[blockIndex].lpData;
+	block[frameIndex] = sample;
+	if(++frameIndex >= frameCount)
 	{
-		audioCursor = 0;
-		waveOutWrite(soundHandle, &waveHeader, sizeof(WAVEHDR));
-	}
+		frameIndex = 0;
+		while(true)
+		{
+			auto result = waveOutWrite(soundHandle, &headers[blockIndex], sizeof(WAVEHDR));
+			if(result != WAVERR_STILLPLAYING)
+				break;
+		}
+		if(++blockIndex >= blockCount)
+			blockIndex = 0;
+    }
 }
 
 void CALLBACK waveOutCallBack(HWAVEOUT hwo, UINT uMsg, DWORD_PTR dwInstance, DWORD_PTR dwParam1, DWORD_PTR dwParam2)
 {
-
 }
 
 int InitSound()
@@ -49,7 +57,7 @@ int InitSound()
 	WAVEFORMATEX format = {};
 	format.wFormatTag = WAVE_FORMAT_PCM;
 	format.nChannels = 1;
-	format.nSamplesPerSec = 11025;
+	format.nSamplesPerSec = 22050;
 	format.nBlockAlign = 1;
 	format.wBitsPerSample = 8;
 	format.nAvgBytesPerSec = format.nSamplesPerSec * format.nBlockAlign;
@@ -60,11 +68,23 @@ int InitSound()
 		SDL_Log("Could not open audio device: error %d", res);
 		return 3;
 	}
-	waveHeader.lpData = (LPSTR)buffer;
-	waveHeader.dwBufferLength = AUDIOCHONK;
-	waveHeader.dwFlags = WHDR_BEGINLOOP | WHDR_ENDLOOP;
-	res = waveOutPrepareHeader(soundHandle, &waveHeader, sizeof(WAVEHDR));
-	waveOutSetVolume(soundHandle, -1);
+
+    frameCount = LATENCY;
+    blockCount = 32;
+    frameIndex = 0;
+    blockIndex = 0;
+
+    headers.resize(blockCount);
+    for(int i = 0; i < blockCount; i++)
+	{
+		auto& header = headers[i];
+		memset((void*)&header, 0, sizeof(WAVEHDR));
+		header.lpData = (LPSTR)LocalAlloc(LMEM_FIXED, frameCount * 1);
+		header.dwBufferLength = frameCount * 1;
+		waveOutPrepareHeader(soundHandle, &header, sizeof(WAVEHDR));
+	}
+
+	waveOutSetVolume(soundHandle, 0x20002000);
 	waveOutRestart(soundHandle);
 
 	return 0;
