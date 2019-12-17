@@ -3,7 +3,7 @@
 #define _CRT_NONSTDC_NO_WARNINGS
 #include <stdint.h>
 #include <stdio.h>
-#include <string.h>
+#include <string>
 #if WIN32
 #include <SDL.h>
 #else

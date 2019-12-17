@@ -1,5 +1,6 @@
 #include "asspull.h"
 #include <time.h>
+#include <math.h>
 #if WIN32
 #include <SDL_opengl.h>
 #include <SDL_opengl_glext.h>
@@ -649,13 +650,13 @@ void presentBackBuffer(SDL_Renderer *renderer, SDL_Window* win, SDL_Texture* bac
 		winHeight = 480;
 		SDL_SetWindowSize(sdlWindow, winWidth, 480);
 	}
-	auto maxScaleX = std::floorf(winWidth / 640.0f);
-	auto maxScaleY = std::floorf(winHeight / 480.0f);
-	scale = (int)std::min(maxScaleX, maxScaleY);
+	auto maxScaleX = floorf(winWidth / 640.0f);
+	auto maxScaleY = floorf(winHeight / 480.0f);
+	scale = (int)__min(maxScaleX, maxScaleY);
 	scrWidth = 640 * scale;
 	scrHeight = 480 * scale;
-	offsetX = (int)std::floorf((winWidth - scrWidth) * 0.5f);
-	offsetY = (int)std::floorf((winHeight - scrHeight) * 0.5f);
+	offsetX = (int)floorf((winWidth - scrWidth) * 0.5f);
+	offsetY = (int)floorf((winHeight - scrHeight) * 0.5f);
 
 	GLfloat minx = (GLfloat)offsetX;
 	GLfloat miny = (GLfloat)offsetY;
