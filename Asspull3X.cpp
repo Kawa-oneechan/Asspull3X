@@ -23,6 +23,9 @@ unsigned char* pauseScreen;
 extern unsigned char* pixels;
 bool fpsCap;
 
+#include "TADA.c"
+int tadaCt = 0;
+
 #if WIN32 && _CONSOLE
 #include <tchar.h>
 int _tmain(int argc, _TCHAR* argv[])
@@ -354,6 +357,13 @@ int main(int argc, char* argv[])
 		{
 			m68k_set_virq(M68K_IRQ_7, 0);
 			ticks++;
+			if (tadaCt < TADA_size)
+			{
+				for (int lol = 0; lol < 1024; lol++)
+					BufferAudioSample(TADA[tadaCt++]);
+			}
+			else
+				BufferAudioSample(0);
 			line = 0;
 		}
 	}
