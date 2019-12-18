@@ -17,7 +17,7 @@ int blockIndex = 0;
 void BufferAudioSample(signed char sample)
 {
 	auto block = (signed char*)headers[blockIndex].lpData;
-	block[frameIndex] = sample;
+	block[frameIndex] = (unsigned char)((int)sample + 128);
 	if(++frameIndex >= frameCount)
 	{
 		frameIndex = 0;
@@ -84,7 +84,7 @@ int InitSound()
 		waveOutPrepareHeader(soundHandle, &header, sizeof(WAVEHDR));
 	}
 
-	waveOutSetVolume(soundHandle, 0x20002000);
+	waveOutSetVolume(soundHandle, 0x80008000);
 	waveOutRestart(soundHandle);
 
 	return 0;
