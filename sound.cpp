@@ -57,7 +57,7 @@ int InitSound()
 	WAVEFORMATEX format = {};
 	format.wFormatTag = WAVE_FORMAT_PCM;
 	format.nChannels = 1;
-	format.nSamplesPerSec = 22050;
+	format.nSamplesPerSec = 11025;
 	format.nBlockAlign = 1;
 	format.wBitsPerSample = 8;
 	format.nAvgBytesPerSec = format.nSamplesPerSec * format.nBlockAlign;

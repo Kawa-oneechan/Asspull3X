@@ -359,11 +359,12 @@ int main(int argc, char* argv[])
 			ticks++;
 			if (tadaCt < TADA_size)
 			{
-				for (int lol = 0; lol < 512; lol++)
+				//any less than 128 a n d i t g e t s i n t e r e s t i n g
+				for (int lol = 0; lol < 128; lol++)
 					BufferAudioSample(TADA[tadaCt++]);
 			}
 			else
-				tadaCt = 0; //BufferAudioSample(0);
+				BufferAudioSample(0);
 			line = 0;
 		}
 	}
