@@ -271,6 +271,9 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				}
 				break;
 				}
+			case 0x44: //Sound out
+				BufferAudioSample((signed char)value);
+				return;
 			case 0x110: //Blitter key
 				blitKey = value;
 				break;

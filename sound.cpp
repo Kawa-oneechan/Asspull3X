@@ -32,10 +32,6 @@ void BufferAudioSample(signed char sample)
     }
 }
 
-void CALLBACK waveOutCallBack(HWAVEOUT hwo, UINT uMsg, DWORD_PTR dwInstance, DWORD_PTR dwParam1, DWORD_PTR dwParam2)
-{
-}
-
 int InitSound()
 {
 	auto thing = ini->Get("media", "midiDevice", "0");
@@ -62,7 +58,7 @@ int InitSound()
 	format.wBitsPerSample = 8;
 	format.nAvgBytesPerSec = format.nSamplesPerSec * format.nBlockAlign;
 	format.cbSize = 0;
-	res = waveOutOpen(&soundHandle, WAVE_MAPPER, &format, (DWORD_PTR)waveOutCallBack, 0, CALLBACK_FUNCTION);
+	res = waveOutOpen(&soundHandle, WAVE_MAPPER, &format, 0, 0, CALLBACK_NULL);
 	if (res != MMSYSERR_NOERROR)
 	{
 		SDL_Log("Could not open audio device: error %d", res);
