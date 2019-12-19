@@ -1,9 +1,37 @@
 #include "asspull.h"
+#include <vector>
 
 #if WIN32
 #include <Windows.h>
 
+#define LATENCY 64
+#define BLOCKCOUNT 8
+
 HMIDIOUT midiDevice = 0;
+HWAVEOUT soundHandle = 0;
+std::vector<WAVEHDR> headers;
+int frameCount = 0;
+int blockCount = 0;
+int frameIndex = 0;
+int blockIndex = 0;
+
+void BufferAudioSample(signed char sample)
+{
+	auto block = (signed char*)headers[blockIndex].lpData;
+	block[frameIndex] = (unsigned char)((int)sample + 128);
+	if(++frameIndex >= frameCount)
+	{
+		frameIndex = 0;
+		while(true)
+		{
+			auto result = waveOutWrite(soundHandle, &headers[blockIndex], sizeof(WAVEHDR));
+			if(result != WAVERR_STILLPLAYING)
+				break;
+		}
+		if(++blockIndex >= blockCount)
+			blockIndex = 0;
+    }
+}
 
 int InitSound()
 {
@@ -22,6 +50,40 @@ int InitSound()
 	}
 	if (midiDevice)
 		midiOutReset(midiDevice);
+
+	WAVEFORMATEX format = {};
+	format.wFormatTag = WAVE_FORMAT_PCM;
+	format.nChannels = 1;
+	format.nSamplesPerSec = 11025;
+	format.nBlockAlign = 1;
+	format.wBitsPerSample = 8;
+	format.nAvgBytesPerSec = format.nSamplesPerSec * format.nBlockAlign;
+	format.cbSize = 0;
+	res = waveOutOpen(&soundHandle, WAVE_MAPPER, &format, 0, 0, CALLBACK_NULL);
+	if (res != MMSYSERR_NOERROR)
+	{
+		SDL_Log("Could not open audio device: error %d", res);
+		return 3;
+	}
+
+    frameCount = LATENCY;
+    blockCount = BLOCKCOUNT;
+    frameIndex = 0;
+    blockIndex = 0;
+
+    headers.resize(blockCount);
+    for(int i = 0; i < blockCount; i++)
+	{
+		auto& header = headers[i];
+		memset((void*)&header, 0, sizeof(WAVEHDR));
+		header.lpData = (LPSTR)LocalAlloc(LMEM_FIXED, frameCount * 1);
+		header.dwBufferLength = frameCount * 1;
+		waveOutPrepareHeader(soundHandle, &header, sizeof(WAVEHDR));
+	}
+
+	waveOutSetVolume(soundHandle, 0x80008000);
+	waveOutRestart(soundHandle);
+
 	return 0;
 }
 

@@ -22,7 +22,6 @@ int pauseState = 0;
 unsigned char* pauseScreen;
 extern unsigned char* pixels;
 bool fpsCap;
-
 #if WIN32 && _CONSOLE
 #include <tchar.h>
 int _tmain(int argc, _TCHAR* argv[])
