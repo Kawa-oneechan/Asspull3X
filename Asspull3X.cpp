@@ -353,16 +353,6 @@ int main(int argc, char* argv[])
 		{
 			m68k_set_virq(M68K_IRQ_7, 0);
 			ticks++;
-			/*
-			if (tadaCt < TADA_size)
-			{
-				//any less than 128 a n d i t g e t s i n t e r e s t i n g
-				for (int lol = 0; lol < 128; lol++)
-					BufferAudioSample(TADA[tadaCt++]);
-			}
-			else
-				BufferAudioSample(0);
-			*/
 			line = 0;
 		}
 	}

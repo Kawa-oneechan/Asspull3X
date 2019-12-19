@@ -4,7 +4,8 @@
 #if WIN32
 #include <Windows.h>
 
-#define LATENCY 512
+#define LATENCY 64
+#define BLOCKCOUNT 8
 
 HMIDIOUT midiDevice = 0;
 HWAVEOUT soundHandle = 0;
@@ -66,7 +67,7 @@ int InitSound()
 	}
 
     frameCount = LATENCY;
-    blockCount = 32;
+    blockCount = BLOCKCOUNT;
     frameIndex = 0;
     blockIndex = 0;
 
