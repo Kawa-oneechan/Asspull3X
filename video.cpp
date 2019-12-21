@@ -17,6 +17,7 @@
 
 bool gfx320, gfx240, gfxTextBold, stretch200;
 int gfxMode, gfxFade, scrollX[4], scrollY[4], tileShift[2], mapEnabled[4], mapBlend[4];
+signed short mode7Matrix[4];
 
 SDL_Window* sdlWindow = NULL;
 SDL_Renderer* sdlRenderer = NULL;
@@ -27,6 +28,33 @@ bool customMouse = false, alwaysCustomMouse = false;
 int winWidth = 640, winHeight = 480, scrWidth = 640, scrHeight = 480, scale = 1, offsetX = 0, offsetY = 0;
 
 unsigned char* pixels;
+
+void ProcessMode7(int* x, int* y)
+{
+	if (mode7Matrix[0] == 0x100 && mode7Matrix[1] == 0 && mode7Matrix[2] == 0 && mode7Matrix[3] == 0x100)
+		return;
+
+	auto A = (float)mode7Matrix[0] / 0x100;
+	auto B = (float)mode7Matrix[1] / 0x100;
+	auto C = (float)mode7Matrix[2] / 0x100;
+	auto D = (float)mode7Matrix[3] / 0x100;
+
+	auto Xi = (float)*x;
+	auto Yi = (float)*y;
+
+	//Full:
+	//auto Xo = (A * (Xp + H - Xo)) + (B * (Yp + V - Yo) + Xo;
+	//auto Yo = (C * (Xp + H - Xo)) + (D * (Yp + V - Yo) + Yo;
+	auto Xo = (B * Yi) + (A * Xi);
+	auto Yo = (C * Xi) + (D * Yi);
+
+	*x = (int)Xo;
+	*y = (int)Yo;
+	
+	//wrap
+	*x %= 320; if (*x < 0) *x += 320;
+	*y %= 240; if (*y < 0) *y += 240;
+}
 
 #define FADECODE \
 	if (gfxFade > 0) \
@@ -350,11 +378,15 @@ void RenderBitmapMode2(int line)
 		}
 		sourceLine = line - 40;
 	}
-	auto effective = BMP_ADDR + (gfx240 ? sourceLine / 2 : sourceLine);
+	if (gfx240)
+		sourceLine /= 2;
 	auto p = 0;
 	for (auto col = 0; col < 640; col++)
 	{
-		auto pixel = ramVideo[effective * imgWidth + p];
+		auto newP = p;
+		auto newSrc=  sourceLine;
+		ProcessMode7(&newP, &newSrc);
+		auto pixel = ramVideo[BMP_ADDR + newSrc * imgWidth + newP];
 		p++;
 		if (!gfx320)
 		{
@@ -729,6 +761,11 @@ int InitVideo(bool fullScreen)
 	pixels = (unsigned char*)malloc(640 * 480 * 4);
 
 	SDL_ShowCursor(!customMouse);
+
+	mode7Matrix[0] = 0x100;
+	mode7Matrix[1] = 0x000;
+	mode7Matrix[2] = 0x000;
+	mode7Matrix[3] = 0x100;
 	return 0;
 }
 
