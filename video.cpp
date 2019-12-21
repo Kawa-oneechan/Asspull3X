@@ -52,8 +52,10 @@ void ProcessMode7(int* x, int* y)
 	*y = (int)Yo;
 	
 	//wrap
-	*x %= 320; if (*x < 0) *x += 320;
-	*y %= 240; if (*y < 0) *y += 240;
+	auto w = gfx320 ? 320 : 640;
+	auto h = gfxTextBold ? (gfx240 ? 200 : 400) : (gfx240 ? 240 : 480);
+	*x %= w; if (*x < 0) *x += w;
+	*y %= h; if (*y < 0) *y += h;
 }
 
 #define FADECODE \
@@ -340,11 +342,15 @@ void RenderBitmapMode1(int line)
 		}
 		sourceLine = line - 40;
 	}
-	auto effective = BMP_ADDR + (gfx240 ? sourceLine / 2 : sourceLine);
+	if (gfx240)
+		sourceLine /= 2;
 	auto p = 0;
 	for (auto col = 0; col < 640; col += (gfx320 ? 4 : 2))
 	{
-		auto twoPix = ramVideo[effective * imgWidth + p];
+		auto x = p;
+		auto y = sourceLine;
+		ProcessMode7(&x, &y);
+		auto twoPix = ramVideo[BMP_ADDR + y * imgWidth + x];
 		p++;
 		auto l = (twoPix >> 4) & 0x0F;
 		auto r = (twoPix >> 0) & 0x0F;
@@ -383,10 +389,10 @@ void RenderBitmapMode2(int line)
 	auto p = 0;
 	for (auto col = 0; col < 640; col++)
 	{
-		auto newP = p;
-		auto newSrc=  sourceLine;
-		ProcessMode7(&newP, &newSrc);
-		auto pixel = ramVideo[BMP_ADDR + newSrc * imgWidth + newP];
+		auto x = p;
+		auto y = sourceLine;
+		ProcessMode7(&x, &y);
+		auto pixel = ramVideo[BMP_ADDR + y * imgWidth + x];
 		p++;
 		if (!gfx320)
 		{
@@ -437,16 +443,22 @@ void RenderTileMode(int line)
 			continue;
 		}
 
-		auto xxx = scrollX[layer] & maskX;
-		auto yyy = (scrollY[layer] + sourceLine) & maskY;
-
-		auto yShift = ((yyy >> 3) << 6);
+		auto txxx = scrollX[layer] & maskX;
+		auto tyyy = (scrollY[layer] + sourceLine) & maskY;
+	
 		//yShift = 0;
-		auto screenSource = screenBase + (0x000 * (xxx >> 8) + ((xxx & 511) >> 3) + yShift) * 2;
 		auto shift = 0; // 128 << (tileShift[layer] - 1);
 
 		for (auto x = 0; x < 320; x++)
 		{
+			//really not sure about this lol
+			auto xxx = txxx;
+			auto yyy = tyyy;
+			ProcessMode7(&xxx, &yyy);
+
+			auto yShift = ((yyy >> 3) << 6);
+			auto screenSource = screenBase + (0x000 * (xxx >> 8) + ((xxx & 511) >> 3) + yShift) * 2;
+
 			//PPPP VH.T TTTT TTTT
 			auto data = (ramVideo[screenSource] << 8) | ramVideo[screenSource+1];
 			auto tile = (data & 0x1FF) + shift;
@@ -487,8 +499,8 @@ void RenderTileMode(int line)
 			if (hFlip) tileX = 7 - tileX;
 			if (tileX == 7) screenSource += 2;
 
-			xxx++;
-			if (xxx == 512)
+			txxx++;
+			if (txxx == 512)
 			{
 				//TODO: check if this is needed for 512 px *tall* maps.
 				//if (sizeX > 512)
@@ -496,12 +508,12 @@ void RenderTileMode(int line)
 				//else
 				//{
 					screenSource = screenBase + (yShift * 2);
-					xxx = 0;
+					txxx = 0;
 				//}
 			}
-			else if (xxx >= sizeX)
+			else if (txxx >= sizeX)
 			{
-				xxx = 0;
+				txxx = 0;
 				screenSource = screenBase + (yShift * 2);
 			}
 		}
