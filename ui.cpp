@@ -1715,7 +1715,7 @@ void _devUpdateDiskette(int devId)
 	char key[8] = { 0 };
 	SDL_itoa(devId, key, 10);
 	const char* thing;
-	if (devices[devId]->GetID() == 0x0144)
+	if (((DiskDrive*)devices[devId])->GetType() == ddDiskette)
 		thing = ini->Get("devices/diskDrive", key, "");
 	else
 		thing = ini->Get("devices/hardDrive", key, "");
@@ -1758,8 +1758,11 @@ void _devSelect(Control* me, int selection)
 	{
 		switch (devices[selection]->GetID())
 		{
-			case 0x0144: devType = 1; break;
-			case 0x4844: devType = 2; break;
+			case 0x0144:
+				devType = 1;
+				if (((DiskDrive*)devices[selection])->GetType() == ddHardDisk)
+					devType = 2;
+				break;;
 			case 0x4C50: devType = 3; break;
 		}
 	}
@@ -1795,10 +1798,10 @@ void UpdateDevManList()
 			switch (devices[i]->GetID())
 			{
 			case 0x0144:
-				sprintf(entry, "%d. Diskette drive", i + 1);
-				break;
-			case 0x4844:
-				sprintf(entry, "%d. Hard drive", i + 1);
+				if (((DiskDrive*)devices[i])->GetType() == ddDiskette)
+					sprintf(entry, "%d. Diskette drive", i + 1);
+				else
+					sprintf(entry, "%d. Hard drive", i + 1);
 				break;
 			case 0x4C50:
 				sprintf(entry, "%d. Line printer", i + 1);
@@ -1817,9 +1820,12 @@ void _devDrop(Control* me)
 	{
 		switch (devices[selection]->GetID())
 		{
-			case 0x0144: oldType = 1; break;
-			case 0x4844: oldType = 2; break;
-			case 0x4C50: oldType = 3; break;
+			case 0x0144:
+				oldType = 1;
+				if (((DiskDrive*)devices[selection])->GetType() == ddHardDisk)
+					oldType = 2;
+				break;
+			case 0x4C50: oldType = 2; break;
 		}
 	}
 	int newType = 0;
@@ -1844,11 +1850,11 @@ void _devDrop(Control* me)
 			ini->Set("devices", key, "");
 			break;
 		case 1:
-			devices[selection] = (Device*)(new DiskDrive());
+			devices[selection] = (Device*)(new DiskDrive(0));
 			ini->Set("devices", key, "diskDrive");
 			break;
 		case 2:
-			devices[selection] = (Device*)(new HardDrive());
+			devices[selection] = (Device*)(new DiskDrive(1));
 			ini->Set("devices", key, "hardDrive");
 			break;
 		case 3:

@@ -161,37 +161,26 @@ private:
 	unsigned char* data;
 	unsigned short sector;
 	unsigned long capacity;
+	unsigned int tracks, heads, sectors;
 	int error;
+	int type;
 public:
-	DiskDrive(void);
+	DiskDrive(int newType);
 	~DiskDrive(void);
 	int Mount(std::string filename);
 	int Unmount();
 	unsigned int Read(unsigned int address);
 	void Write(unsigned int address, unsigned int value);
 	int GetID();
+	int GetType();
 	bool IsMounted();
+};
+enum diskDriveTypes
+{
+	ddDiskette,
+	ddHardDisk,
 };
 
-class HardDrive : Device
-{
-private:
-	FILE* file;
-	unsigned char* data;
-	unsigned short sector;
-	unsigned long capacity;
-	unsigned int tracks, heads, sectors;
-	int error;
-public:
-	HardDrive(void);
-	~HardDrive(void);
-	int Mount(std::string filename);
-	int Unmount();
-	unsigned int Read(unsigned int address);
-	void Write(unsigned int address, unsigned int value);
-	int GetID();
-	bool IsMounted();
-};
 
 class LinePrinter : Device
 {

@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
 		if (!strcmp(thing, "diskDrive"))
 		{
 			SDL_Log("Attached a diskette drive as device #%d.", i);
-			devices[i] = (Device*)(new DiskDrive());
+			devices[i] = (Device*)(new DiskDrive(0));
 			thing = ini->Get("devices/diskDrive", key, "");
 			if (thing[0] != 0)
 			{
@@ -76,11 +76,11 @@ int main(int argc, char* argv[])
 		else if (!strcmp(thing, "hardDrive"))
 		{
 			SDL_Log("Attached a hard disk drive as device #%d.", i);
-			devices[i] = (Device*)(new HardDrive());
+			devices[i] = (Device*)(new DiskDrive(1));
 			thing = ini->Get("devices/hardDrive", key, "");
 			if (thing[0] != 0)
 			{
-				auto err = ((HardDrive*)devices[i])->Mount(thing);
+				auto err = ((DiskDrive*)devices[i])->Mount(thing);
 				if (err)
 					SDL_Log("Error %d trying to open disk image \"%s\" for device #%d.", err, thing, i);
 			}
@@ -223,47 +223,31 @@ int main(int argc, char* argv[])
 			}
 			else if (uiCommand == cmdInsertDisk)
 			{
-				if (devices[uiData] == NULL || (devices[uiData]->GetID() != 0x0144 && devices[uiData]->GetID() != 0x4844))
+				if (devices[uiData] == NULL || devices[uiData]->GetID() != 0x0144)
 					SetStatus("No disk drive.");					
-				else if (devices[uiData]->GetID() == 0x0144 && ((DiskDrive*)devices[uiData])->IsMounted())
-					SetStatus("Eject the diskette first.");
-				else if (devices[uiData]->GetID() == 0x4844 && ((HardDrive*)devices[uiData])->IsMounted())
-					SetStatus("Unmount the drive first.");
+				else if (((DiskDrive*)devices[uiData])->IsMounted())
+					SetStatus("Unmount the medium first.");
 				else
 				{
 					if (uiString[0] == 0)
 					{
-						if (devices[uiData]->GetID() == 0x0144)
-							ShowOpenFileDialog(cmdInsertDisk, uiData, "*.img");
-						else if (devices[uiData]->GetID() == 0x4844)
-							ShowOpenFileDialog(cmdInsertDisk, uiData, "*.vhd");
+						ShowOpenFileDialog(cmdInsertDisk, uiData, (((DiskDrive*)devices[uiData])->GetType() == ddDiskette ? "*.img" : "*.vhd"));
 					}
 					else
 					{
 						char key[16];
 						sprintf(key, "%d", uiData);
-						if (devices[uiData]->GetID() == 0x0144)
+						auto ret = ((DiskDrive*)devices[uiData])->Mount(uiString);
+						if (ret == -1)
+							SetStatus("Eject the diskette first, with Ctrl-Shift-U.");
+						else if (ret != 0)
+							SDL_Log("Error %d trying to open disk image.", ret);
+						else
 						{
-							auto ret = ((DiskDrive*)devices[uiData])->Mount(uiString);
-							if (ret == -1)
-								SetStatus("Eject the diskette first, with Ctrl-Shift-U.");
-							else if (ret != 0)
-								SDL_Log("Error %d trying to open disk image.", ret);
-							else
+							if (((DiskDrive*)devices[uiData])->GetType() == ddDiskette)
 								ini->Set("devices/diskDrive", key, uiString);
-							_devUpdateDiskette(uiData);
-						}
-						else if (devices[uiData]->GetID() == 0x4844)
-						{
-							auto ret = ((HardDrive*)devices[uiData])->Mount(uiString);
-							if (ret == -1)
-								SetStatus("Eject the image first, with Ctrl-Shift-U.");
-							else if (ret != 0)
-								SDL_Log("Error %d trying to open disk image.", ret);
 							else
-							{
 								ini->Set("devices/hardDrive", key, uiString);
-							}
 							_devUpdateDiskette(uiData);
 						}
 					}
@@ -284,7 +268,11 @@ int main(int argc, char* argv[])
 				else if (((DiskDrive*)devices[uiData])->IsMounted())
 				{
 					((DiskDrive*)devices[uiData])->Unmount();
-					ini->Set("devices/diskDrive", "0", "");
+					char key[16]; sprintf(key, "%d", uiData);
+					if (((DiskDrive*)devices[uiData])->GetType() == ddDiskette)
+						ini->Set("devices/diskDrive", key, "");
+					else
+						ini->Set("devices/hardDrive", key, "");
 					SetStatus("Disk ejected.");
 				}
 				_devUpdateDiskette(uiData);
