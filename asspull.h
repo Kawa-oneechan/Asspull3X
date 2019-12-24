@@ -160,7 +160,9 @@ private:
 	FILE* file;
 	unsigned char* data;
 	unsigned short sector;
-	//unsigned int capacity; //TODO: make use of this.
+	unsigned long capacity;
+	unsigned int tracks, heads, sectors;
+	bool isVHD;
 	int error;
 public:
 	DiskDrive(void);
