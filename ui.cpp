@@ -1701,6 +1701,7 @@ Window* BuildMemoryWindow()
 }
 
 ListBox* devManList;
+DropDown* devManDrop;
 Label* devManHeader;
 Label* devManNoOptions;
 TextBox* devManDiskette;
@@ -1713,7 +1714,11 @@ void _devUpdateDiskette(int devId)
 		return;
 	char key[8] = { 0 };
 	SDL_itoa(devId, key, 10);
-	auto thing = ini->Get("devices/diskDrive", key, "");
+	const char* thing;
+	if (devices[devId]->GetID() == 0x0144)
+		thing = ini->Get("devices/diskDrive", key, "");
+	else
+		thing = ini->Get("devices/hardDrive", key, "");
 	if (thing[0] != 0)
 	{
 		auto lastSlash = strrchr(thing, '\\');
@@ -1743,6 +1748,7 @@ void _devDiskette(Control* me)
 
 void _devSelect(Control* me, int selection)
 {
+	devManDrop->enabled = (selection > 0);
 	devManNoOptions->visible = false;
 	devManDiskette->visible = false;
 	devManEject->visible = false;
@@ -1753,18 +1759,20 @@ void _devSelect(Control* me, int selection)
 		switch (devices[selection]->GetID())
 		{
 			case 0x0144: devType = 1; break;
-			case 0x4C50: devType = 2; break;
+			case 0x4844: devType = 2; break;
+			case 0x4C50: devType = 3; break;
 		}
 	}
 	switch (devType)
 	{
 	case 0:
-	case 2:
+	case 3:
 		devManHeader->text = ((devType == 0) ? "Nothingness" : "Line printer");
 		devManNoOptions->visible = true;
 		break;
 	case 1:
-		devManHeader->text = "Disk drive";
+	case 2:
+		devManHeader->text = (devType == 1 ? "Diskette drive" : "Hard drive");
 		_devUpdateDiskette(selection);
 		devManDiskette->visible = true;
 		devManEject->visible = true;
@@ -1787,7 +1795,10 @@ void UpdateDevManList()
 			switch (devices[i]->GetID())
 			{
 			case 0x0144:
-				sprintf(entry, "%d. Disk drive", i + 1);
+				sprintf(entry, "%d. Diskette drive", i + 1);
+				break;
+			case 0x4844:
+				sprintf(entry, "%d. Hard drive", i + 1);
 				break;
 			case 0x4C50:
 				sprintf(entry, "%d. Line printer", i + 1);
@@ -1807,7 +1818,8 @@ void _devDrop(Control* me)
 		switch (devices[selection]->GetID())
 		{
 			case 0x0144: oldType = 1; break;
-			case 0x4C50: oldType = 2; break;
+			case 0x4844: oldType = 2; break;
+			case 0x4C50: oldType = 3; break;
 		}
 	}
 	int newType = 0;
@@ -1836,6 +1848,10 @@ void _devDrop(Control* me)
 			ini->Set("devices", key, "diskDrive");
 			break;
 		case 2:
+			devices[selection] = (Device*)(new HardDrive());
+			ini->Set("devices", key, "hardDrive");
+			break;
+		case 3:
 			devices[selection] = (Device*)(new LinePrinter());
 			ini->Set("devices", key, "linePrinter");
 			break;
@@ -1848,12 +1864,12 @@ Window* BuildDeviceWindow()
 {
 	auto win = new Window("Devices", 8, 112, 250, 108);
 	win->AddChild(devManList = new ListBox(2, 1, 95, 94, _devSelect));
-	auto drop = new DropDown(100, 2);
-	win->AddChild(drop);
+	devManDrop = new DropDown(100, 2);
+	win->AddChild(devManDrop);
 	win->AddChild(devManHeader = new Label("...", 114, 3, 0x07FF, 0));
-	const char* const areas[] = { "Nothing", "Disk drive", "Line printer" };
-	for (int i = 0; i < 3; i++)
-		drop->AddChild(new MenuItem(areas[i], 0, _devDrop));
+	const char* const areas[] = { "Nothing", "Diskette drive", "Hard drive", "Line printer" };
+	for (int i = 0; i < 4; i++)
+		devManDrop->AddChild(new MenuItem(areas[i], 0, _devDrop));
 	win->AddChild(devManNoOptions = new Label("A swirling void\nhowls before you.", 102, 20, WINDOW_TEXT, 0));
 	win->AddChild(devManDiskette = new TextBox("...", 100, 16, 146));
 	devManDiskette->enabled = false;

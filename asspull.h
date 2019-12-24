@@ -161,12 +161,30 @@ private:
 	unsigned char* data;
 	unsigned short sector;
 	unsigned long capacity;
-	unsigned int tracks, heads, sectors;
-	bool isVHD;
 	int error;
 public:
 	DiskDrive(void);
 	~DiskDrive(void);
+	int Mount(std::string filename);
+	int Unmount();
+	unsigned int Read(unsigned int address);
+	void Write(unsigned int address, unsigned int value);
+	int GetID();
+	bool IsMounted();
+};
+
+class HardDrive : Device
+{
+private:
+	FILE* file;
+	unsigned char* data;
+	unsigned short sector;
+	unsigned long capacity;
+	unsigned int tracks, heads, sectors;
+	int error;
+public:
+	HardDrive(void);
+	~HardDrive(void);
 	int Mount(std::string filename);
 	int Unmount();
 	unsigned int Read(unsigned int address);
