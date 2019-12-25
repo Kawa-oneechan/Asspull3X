@@ -1536,6 +1536,7 @@ void LetItSnow()
 
 void SetStatus(const char* text)
 {
+	printf("STATUS: %s\n", text); 
 	strcpy(uiStatus, text);
 	statusTimer = 100;
 }

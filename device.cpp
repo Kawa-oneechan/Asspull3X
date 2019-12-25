@@ -1,4 +1,5 @@
 #include "asspull.h"
+extern void SetStatus(const char*);
 
 Device* devices[MAXDEVS] = { 0 };
 
@@ -28,6 +29,40 @@ DiskDrive::~DiskDrive()
 	if (file != NULL) fclose(file);
 }
 
+uint16_t ReadMoto16(FILE* file)
+{
+	uint16_t ret = 0;
+	unsigned char x = 0;
+	fread(&x, 1, 1, file); ret = x;
+	fread(&x, 1, 1, file); ret = (ret << 8) | x;
+	return ret;
+}
+
+uint32_t ReadMoto32(FILE* file)
+{
+	uint32_t ret = 0;
+	unsigned char x = 0;
+	fread(&x, 1, 1, file); ret = x;
+	fread(&x, 1, 1, file); ret = (ret << 8) | x;
+	fread(&x, 1, 1, file); ret = (ret << 8) | x;
+	fread(&x, 1, 1, file); ret = (ret << 8) | x;
+	return ret;
+}
+
+/*
+void WriteMoto32(FILE* file, uint32_t v)
+{
+	unsigned char x = (v >> 24) && 0xFF;
+	fwrite(&x, 1, 1, file);
+	x = (v >> 16) && 0xFF;
+	fwrite(&x, 1, 1, file);
+	x = (v >> 8) && 0xFF;
+	fwrite(&x, 1, 1, file);
+	x = (v >> 0) && 0xFF;
+	fwrite(&x, 1, 1, file);
+}
+*/
+
 int DiskDrive::Mount(std::string filename)
 {
 	if (file != NULL)
@@ -51,12 +86,33 @@ int DiskDrive::Mount(std::string filename)
 		//VHD
 		capacity -= 512;
 		fseek(file, capacity, SEEK_SET);
-		fseek(file, 56, SEEK_CUR); //skip over the rest, just get the geometry
+		fseek(file, 8, SEEK_CUR); //skip cookie
+		uint32_t i = ReadMoto32(file);
+		if (i != 2)
+		{
+			SetStatus("Invalid VHD: bad feature bits (must be 2)");
+			fclose(file);
+			return 1;
+		}
+		i = ReadMoto32(file);
+		if (i != 0x00010000)
+		{
+			SetStatus("Invalid VHD: bad version (must be 1.00).");
+			fclose(file);
+			return 1;
+		}
+		fseek(file, 40, SEEK_CUR); //skip over the rest, just get the geometry
+		tracks = ReadMoto16(file);
 		unsigned char x = 0;
-		fread(&x, 1, 1, file); tracks = x;
-		fread(&x, 1, 1, file); tracks = (tracks << 8) | x;
 		fread(&x, 1, 1, file); heads = x;
 		fread(&x, 1, 1, file); sectors = x;
+		i = ReadMoto32(file);
+		if (i != 2)
+		{
+			SetStatus("Invalid VHD: bad disk type (must be FIXED).");
+			fclose(file);
+			return 1;
+		}
 		fseek(file, 0, SEEK_SET);
 		SDL_Log("Mounted VHD. %d * %d * %d * 512 = %d, should be ~%d.", tracks, heads, sectors, tracks * heads * sectors * 512, capacity);
 	}
@@ -117,8 +173,27 @@ void DiskDrive::Write(unsigned int address, unsigned int value)
 			else if (value == 8)
 			{
 				fwrite(data, 1, 512, file);
+
+				/*
+				//Not really needed since we won't *edit* the header.
+				if (type == ddHardDisk)
+				{
+					fseek(file, capacity + 64, SEEK_SET);
+					WriteMoto32(file, 0); //less typing
+					fseek(file, capacity, SEEK_SET);
+					uint32_t checksum = 0;
+					uint8_t b = 0;
+					for (int i = 0; i < 54; i++) //go with the full 512-byte block???
+					{
+						fread(&x, 1, 1, file);
+						checksum += x;
+					}
+					fseek(file, capacity + 64, SEEK_SET);
+					WriteMoto32(file, ~checksum);
+				}
+				*/
+
 				fflush(file);
-				//TODO: update checksum for VHD.
 			}
 			return;
 		}
