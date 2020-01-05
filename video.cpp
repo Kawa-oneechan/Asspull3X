@@ -21,10 +21,11 @@ int gfxMode, gfxFade, scrollX[4], scrollY[4], tileShift[2], mapEnabled[4], mapBl
 SDL_Window* sdlWindow = NULL;
 SDL_Renderer* sdlRenderer = NULL;
 SDL_Texture* sdlTexture = NULL;
+SDL_Texture* frameTexture = NULL;
 unsigned int programId = 0;
 bool customMouse = false, alwaysCustomMouse = false;
 
-int winWidth = 640, winHeight = 480, scrWidth = 640, scrHeight = 480, scale = 1, offsetX = 0, offsetY = 0;
+int winWidth = 640, winHeight = 480, scrWidth = 640, scrHeight = 480, scale = 1, offsetX = 0, offsetY = 0, hMargin = 0, vMargin = 0;
 
 unsigned char* pixels;
 
@@ -640,15 +641,17 @@ void presentBackBuffer(SDL_Renderer *renderer, SDL_Window* win, SDL_Texture* bac
 	}
 
 	SDL_GetWindowSize(sdlWindow, &winWidth, &winHeight);
-	if (winWidth < 640)
+	int minWidth = (frameTexture ? 736 : 640);
+	int minHeight = (frameTexture ? 544 : 480);
+	if (winWidth < minWidth)
 	{
-		winWidth = 640;
-		SDL_SetWindowSize(sdlWindow, 640, winHeight);
+		winWidth = minWidth;
+		SDL_SetWindowSize(sdlWindow, minWidth, winHeight);
 	}
-	if (winHeight < 480)
+	if (winHeight < minHeight)
 	{
-		winHeight = 480;
-		SDL_SetWindowSize(sdlWindow, winWidth, 480);
+		winHeight = minHeight;
+		SDL_SetWindowSize(sdlWindow, winWidth, minHeight);
 	}
 	auto maxScaleX = floorf(winWidth / 640.0f);
 	auto maxScaleY = floorf(winHeight / 480.0f);
@@ -658,10 +661,12 @@ void presentBackBuffer(SDL_Renderer *renderer, SDL_Window* win, SDL_Texture* bac
 	offsetX = (int)floorf((winWidth - scrWidth) * 0.5f);
 	offsetY = (int)floorf((winHeight - scrHeight) * 0.5f);
 
-	GLfloat minx = (GLfloat)offsetX;
-	GLfloat miny = (GLfloat)offsetY;
-	GLfloat maxx = minx + scrWidth;
-	GLfloat maxy = miny + scrHeight;
+	vMargin = (frameTexture ? 56 : 0);
+	hMargin = (frameTexture ? 64 : 0);
+	GLfloat minx = (GLfloat)offsetX + hMargin;
+	GLfloat miny = (GLfloat)offsetY + vMargin;
+	GLfloat maxx = minx + scrWidth + -(hMargin * 2);
+	GLfloat maxy = miny + scrHeight + -(vMargin * 2);
 
 	glBegin(GL_TRIANGLE_STRIP);
 		glTexCoord2f(0.0f, 0.0f);
@@ -673,10 +678,29 @@ void presentBackBuffer(SDL_Renderer *renderer, SDL_Window* win, SDL_Texture* bac
 		glTexCoord2f(1.0f, 1.0f);
 		glVertex2f(maxx, maxy);
 	glEnd();
-	SDL_GL_SwapWindow(win);
 
 	if(programId != 0)
 		glUseProgram(oldProgramId);
+
+	if (frameTexture)
+	{
+		SDL_GetWindowSize(sdlWindow, &winWidth, &winHeight);
+		SDL_GL_BindTexture(frameTexture, NULL, NULL);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glBegin(GL_TRIANGLE_STRIP);
+			glTexCoord2f(0.0f, 0.0f);
+			glVertex2f(0.0f, 0.0f);
+			glTexCoord2f(1.0f, 0.0f);
+			glVertex2f((GLfloat)winWidth, 0.0f);
+			glTexCoord2f(0.0f, 1.0f);
+			glVertex2f(0.0f, (GLfloat)winHeight);
+			glTexCoord2f(1.0f, 1.0f);
+			glVertex2f((GLfloat)winWidth, (GLfloat)winHeight);
+		glEnd();
+	}
+
+	SDL_GL_SwapWindow(win);
 }
 
 void VBlank()
@@ -724,6 +748,28 @@ int InitVideo(bool fullScreen)
 	{
 		SDL_Log("Could not create renderer: %s", SDL_GetError());
 		return -2;
+	}
+
+	FILE* frameFile = fopen("frame.raw", "rb");
+	if (frameFile)
+	{
+		if ((frameTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, 736, 544)))
+		{
+			uint8_t* framePix = (uint8_t*)malloc(736 * 544 * 4);
+			uint8_t b[2];
+			for (auto p = 0; p < 736 * 544; p++)
+			{
+				fread(&b, 1, 2, frameFile);
+				framePix[(p * 4) + 0] = b[0];
+				framePix[(p * 4) + 1] = b[0];
+				framePix[(p * 4) + 2] = b[0];
+				framePix[(p * 4) + 3] = b[1] / 2;
+			}
+			SDL_SetRenderTarget(sdlRenderer, sdlTexture);
+			SDL_UpdateTexture(frameTexture, NULL, framePix, 736 * 4);
+			free(framePix);
+		}
+		fclose(frameFile);
 	}
 
 	pixels = (unsigned char*)malloc(640 * 480 * 4);
