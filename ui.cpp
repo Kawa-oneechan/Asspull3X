@@ -14,6 +14,7 @@
 
 char uiStatus[512] = { 0 };
 char uiFPS[32] = { 0 };
+bool fpsVisible = false;
 int statusTimer = 0;
 int uiKey = 0; //for textboxes
 extern int winWidth, winHeight, scrWidth, scrHeight, scale, offsetX, offsetY;
@@ -1183,7 +1184,8 @@ void HandleStatusLine(int left)
 		DrawString(left, 2, STATUS_TEXT, uiStatus);
 		statusTimer--;
 	}
-	DrawString(640 - 8 - (strlen(uiFPS) * 5), 2, STATUS_TEXT, uiFPS);
+	if (fpsVisible)
+		DrawString(640 - 8 - (strlen(uiFPS) * 5), 2, STATUS_TEXT, uiFPS);
 }
 
 void HandleUI()
@@ -1894,14 +1896,20 @@ Window* BuildDeviceWindow()
 }
 
 extern bool stretch200, fpsCap;
-CheckBox* optionsFPS;
+CheckBox* optionsShowFPS;
+CheckBox* optionsCapFPS;
 CheckBox* options200;
 
 void _optionsCheck(Control* me)
 {
-	if (me == optionsFPS)
+	if (me == optionsShowFPS)
 	{
-		fpsCap = optionsFPS->checked = !optionsFPS->checked;
+		fpsVisible = optionsShowFPS->checked = !optionsShowFPS->checked;
+		ini->Set("video", "showfps", (char*)(fpsVisible ? "true" : "false"));
+	}
+	else if (me == optionsCapFPS)
+	{
+		fpsCap = optionsCapFPS->checked = !optionsCapFPS->checked;
 		ini->Set("video", "fpscap", (char*)(fpsCap ? "true" : "false"));
 	}
 	else if (me == options200)
@@ -1914,9 +1922,10 @@ void _optionsCheck(Control* me)
 Window* BuildOptionsWindow()
 {
 	auto win = new Window("Options", 8, 232, 170, 90);
-	win->AddChild(optionsFPS = new CheckBox("FPS cap", 4, 4, fpsCap, _optionsCheck));
-	win->AddChild(options200 = new CheckBox("Aspect correction", 4, 18, stretch200, _optionsCheck));
-	win->AddChild(new Label("(Work in obvious progress.)", 4, 36, WINDOW_TEXT, 0));
+	win->AddChild(optionsShowFPS = new CheckBox("Show FPS", 4, 4, fpsVisible, _optionsCheck));
+	win->AddChild(optionsCapFPS = new CheckBox("FPS cap", 4, 18, fpsCap, _optionsCheck));
+	win->AddChild(options200 = new CheckBox("Aspect correction", 4, 32, stretch200, _optionsCheck));
+	win->AddChild(new Label("(Work in obvious progress.)", 4, 46, WINDOW_TEXT, 0));
 	win->AddChild(new Button("Okay", 126, 58, 39, _closeWindow));
 	topLevelControls.push_back(std::unique_ptr<Control>(win));
 	win->visible = false;

@@ -22,6 +22,7 @@ int pauseState = 0;
 unsigned char* pauseScreen;
 extern unsigned char* pixels;
 bool fpsCap;
+extern bool fpsVisible;
 #if WIN32 && _CONSOLE
 #include <tchar.h>
 int _tmain(int argc, _TCHAR* argv[])
@@ -38,6 +39,7 @@ int main(int argc, char* argv[])
 	auto thing = ini->Get("video", "fpscap", "true"); if (thing[0] == 't' || thing[0] == 'T' || thing[0] == 1) fpsCap = true;
 	bool fullScreen = false;
 	thing = ini->Get("video", "fullScreen", "false"); if (thing[0] == 't' || thing[0] == 'T' || thing[0] == 1) fullScreen = true;
+	thing = ini->Get("video", "showfps", "false"); if (thing[0] == 't' || thing[0] == 'T' || thing[0] == 1) fpsVisible = true;
 	for (int i = 1; i < argc; i++)
 	{
 		if (argv[i][0] == '-')
