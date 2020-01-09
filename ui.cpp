@@ -89,15 +89,19 @@ void DrawString(int x, int y, int color, std::string str, int cr, int cb);
 void DrawString(int x, int y, int color, std::string str);
 int MeasureString(std::string str);
 void DrawImage(int x, int y, unsigned short* pixmap, int width, int height);
+void DrawFrameRect(int x, int y, int with, int height, int style);
 void LetItSnow();
 
+//To pass data between the UI and application.
 int uiCommand, uiData;
 char uiString[512];
+
 void* draggingWindow = NULL;
 void* focusedWindow = NULL;
 void* focusedTextBox = NULL;
 int dragStartX, dragStartY;
 int dragLeft, dragTop, dragWidth, dragHeight, dragStartLeft, dragStartTop;
+int justClicked;
 
 class Control
 {
@@ -224,27 +228,10 @@ private:
 	void DrawCloseBox()
 	{
 		auto fillColor = BUTTON_FILL;
-		auto textColor = (enabled ? BUTTON_TEXT : BUTTON_BORDER_B);
 		auto closeButtonLeft = absLeft + width - 12;
 		auto closeButtonTop = absTop + 2;
-		if (WasInsideCloseBox())
-		{
-			fillColor = BUTTON_HIGHLIGHT;
-			textColor = BUTTON_HIGHTEXT;
-		}
-		for (auto col = closeButtonLeft; col < closeButtonLeft + 10; col++)
-		{
-			RenderRawPixel(closeButtonTop, col, BUTTON_BORDER_T);
-			RenderRawPixel(closeButtonTop + 9, col, BUTTON_BORDER_B);
-		}
-		for (auto row = closeButtonTop + 1; row < closeButtonTop + 9; row++)
-		{
-			RenderRawPixel(row, closeButtonLeft, BUTTON_BORDER_L);
-			for (auto col = closeButtonLeft + 1; col < closeButtonLeft + 9; col++)
-				RenderRawPixel(row, col, fillColor);
-			RenderRawPixel(row, closeButtonLeft + 9, BUTTON_BORDER_R);
-		}
-		DrawCharacter(closeButtonLeft + 1, closeButtonTop + 1, textColor, 256 + 0);
+		DrawFrameRect(closeButtonLeft, closeButtonTop, 10, 9, ((WasInsideCloseBox() && enabled) << 0) | ((WasInsideCloseBox() && justClicked) << 1));
+		DrawCharacter(closeButtonLeft + 1, closeButtonTop + 1, BUTTON_TEXT, 256 + 0);
 	}
 public:
 	Window(const char* caption, int left, int top, int width, int height)
@@ -374,28 +361,10 @@ public:
 	void Draw()
 	{
 		if (!visible) return;
-		auto fillColor = BUTTON_FILL;
-		auto textColor = (enabled ? BUTTON_TEXT : BUTTON_BORDER_B);
 		height = 13;
-		if (WasInside() && enabled)
-		{
-			fillColor = BUTTON_HIGHLIGHT;
-			textColor = BUTTON_HIGHTEXT;
-		}
-		for (auto col = absLeft; col < absLeft + width; col++)
-		{
-			RenderRawPixel(absTop, col, BUTTON_BORDER_T);
-			RenderRawPixel(absTop + height, col, BUTTON_BORDER_B);
-		}
-		for (auto row = absTop + 1; row < absTop + 13; row++)
-		{
-			RenderRawPixel(row, absLeft, BUTTON_BORDER_L);
-			for (auto col = absLeft + 1; col < absLeft + width - 1; col++)
-				RenderRawPixel(row, col, fillColor);
-			RenderRawPixel(row, absLeft + width - 1, BUTTON_BORDER_R);
-		}
+		DrawFrameRect(absLeft, absTop, width, height, ((WasInside() && enabled) << 0) | ((WasInside() && justClicked) << 1));
 		auto capLeft = absLeft + (width / 2) - (MeasureString(text) / 2);
-		DrawString(capLeft, absTop + 3, textColor, text);
+		DrawString(capLeft, absTop + 3, enabled ? BUTTON_TEXT : BUTTON_BORDER_B, text);
 	}
 	void Handle()
 	{
@@ -423,26 +392,9 @@ public:
 	void Draw()
 	{
 		if (!visible) return;
-		auto fillColor = BUTTON_FILL;
 		auto textColor = (enabled ? BUTTON_TEXT : BUTTON_BORDER_B);
 		height = 10;
-		if (WasInside() && enabled)
-		{
-			fillColor = BUTTON_HIGHLIGHT;
-			textColor = BUTTON_HIGHTEXT;
-		}
-		for (auto col = absLeft; col < absLeft + 10; col++)
-		{
-			RenderRawPixel(absTop, col, BUTTON_BORDER_T);
-			RenderRawPixel(absTop + 9, col, BUTTON_BORDER_B);
-		}
-		for (auto row = absTop + 1; row < absTop + 9; row++)
-		{
-			RenderRawPixel(row, absLeft, BUTTON_BORDER_L);
-			for (auto col = absLeft + 1; col < absLeft + 9; col++)
-				RenderRawPixel(row, col, fillColor);
-			RenderRawPixel(row, absLeft + 9, BUTTON_BORDER_R);
-		}
+		DrawFrameRect(absLeft, absTop, 11, 10, ((WasInside() && enabled) << 0) | ((WasInside() && justClicked) << 1));
 		if (checked)
 			DrawCharacter(absLeft + 1, absTop + 1, textColor, 256 + 14);
 		DrawString(absLeft + 14, absTop + 1, textColor, text);
@@ -472,28 +424,10 @@ public:
 	void Draw()
 	{
 		if (!visible) return;
-		auto fillColor = BUTTON_FILL;
-		auto textColor = (enabled ? BUTTON_TEXT : BUTTON_BORDER_B);
 		width = 10;
 		height = 10;
-		if (WasInside() && enabled)
-		{
-			fillColor = BUTTON_HIGHLIGHT;
-			textColor = BUTTON_HIGHTEXT;
-		}
-		for (auto col = absLeft; col < absLeft + 10; col++)
-		{
-			RenderRawPixel(absTop, col, BUTTON_BORDER_T);
-			RenderRawPixel(absTop + height - 1, col, BUTTON_BORDER_B);
-		}
-		for (auto row = absTop + 1; row < absTop + 9; row++)
-		{
-			RenderRawPixel(row, absLeft, BUTTON_BORDER_L);
-			for (auto col = absLeft + 1; col < absLeft + width - 1; col++)
-				RenderRawPixel(row, col, fillColor);
-			RenderRawPixel(row, absLeft + width - 1, BUTTON_BORDER_R);
-		}
-		DrawCharacter(absLeft + 1, absTop + 1, textColor, 256 + icon);
+		DrawFrameRect(absLeft, absTop, width, height, ((WasInside() && enabled) << 0) | ((WasInside() && justClicked) << 1));
+		DrawCharacter(absLeft + 1, absTop + 1, enabled ? BUTTON_TEXT : BUTTON_BORDER_B, 256 + icon);
 	}
 	void Handle()
 	{
@@ -575,17 +509,7 @@ public:
 			RenderRawPixel(absTop + 1 + i, absLeft + width - 1, WINDOW_BORDERFOC_L);
 		}
 
-		//draw thumb
-		if ((signed)items.size() > numSeen)
-		{
-			for (int row = 0; row < 10; row++)
-			{
-				for (int col = 1; col < 9; col++)
-				{
-					RenderRawPixel(absTop + 11 + thumb + row, absLeft + width - 11 + col, BUTTON_HIGHLIGHT);
-				}
-			}
-		}
+		DrawFrameRect(absLeft + width - 11, absTop + 11 + thumb, 10, 8, 0);
 
 		for (auto child = children.begin(); child != children.end(); child++)
 			(*child)->Draw();
@@ -896,27 +820,10 @@ public:
 	void Draw()
 	{
 		if (!visible) return;
-		auto fillColor = BUTTON_FILL;
 		auto textColor = (enabled ? BUTTON_TEXT : BUTTON_BORDER_B);
 		width = 10;
 		height = 10;
-		if (WasInside() && enabled)
-		{
-			fillColor = BUTTON_HIGHLIGHT;
-			textColor = BUTTON_HIGHTEXT;
-		}
-		for (auto col = absLeft; col < absLeft + width; col++)
-		{
-			RenderRawPixel(absTop, col, BUTTON_BORDER_T);
-			RenderRawPixel(absTop + height - 1, col, BUTTON_BORDER_B);
-		}
-		for (auto row = absTop + 1; row < absTop + 9; row++)
-		{
-			RenderRawPixel(row, absLeft, BUTTON_BORDER_L);
-			for (auto col = absLeft + 1; col < absLeft + width - 1; col++)
-				RenderRawPixel(row, col, fillColor);
-			RenderRawPixel(row, absLeft + width - 1, BUTTON_BORDER_R);
-		}
+		DrawFrameRect(absLeft, absTop, width, height, ((WasInside() && enabled) << 0) | ((WasInside() && justClicked) << 1));
 		DrawCharacter(absLeft + 1, absTop + 1, textColor, 256 + 5);
 	}
 	void Handle()
@@ -1285,7 +1192,6 @@ inline void DarkenPixel(int row, int column)
 }
 
 extern bool customMouse;
-int justClicked = 0;
 int lastMouseTimer = 0, lastX = 0, lastY = 0;
 
 int GetMouseState(int *x, int *y)
@@ -1444,6 +1350,31 @@ void DrawImage(int x, int y, unsigned short* pixmap, int width, int height)
 	for (int row = 0; row < height; row++)
 		for (int col = 0; col < width; col++)
 			RenderRawPixel(y + row, x + col, pixmap[(row * width) + col]);
+}
+
+void DrawFrameRect(int absLeft, int absTop, int width, int height, int style)
+{
+	auto fillColor = BUTTON_FILL;
+	if (style & 1)
+	{
+		fillColor = BUTTON_HIGHLIGHT;
+	}
+	if (style & 2)
+	{
+		fillColor = BUTTON_FILL;
+	}
+	for (auto col = absLeft; col < absLeft + width; col++)
+	{
+		RenderRawPixel(absTop, col, (style & 2) ? BUTTON_BORDER_B : BUTTON_BORDER_T);
+		RenderRawPixel(absTop + height, col, (style & 2) ? BUTTON_BORDER_T : BUTTON_BORDER_B);
+	}
+	for (auto row = absTop + 1; row < absTop + height; row++)
+	{
+		RenderRawPixel(row, absLeft, (style & 2) ? BUTTON_BORDER_R : BUTTON_BORDER_L);
+		for (auto col = absLeft + 1; col < absLeft + width - 1; col++)
+			RenderRawPixel(row, col, fillColor);
+		RenderRawPixel(row, absLeft + width - 1, (style & 2) ? BUTTON_BORDER_L : BUTTON_BORDER_R);
+	}
 }
 
 #define TABWIDTH 48

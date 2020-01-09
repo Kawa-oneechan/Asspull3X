@@ -750,26 +750,32 @@ int InitVideo(bool fullScreen)
 		return -2;
 	}
 
-	FILE* frameFile = fopen("frame.raw", "rb");
-	if (frameFile)
+	bool showFrame = false;
+	thing = ini->Get("video", "showFrame", "false");
+	if (thing[0] == 't' || thing[0] == 'T' || thing[0] == 1) showFrame = true;
+	if (showFrame)
 	{
-		if ((frameTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, 736, 544)))
+		FILE* frameFile = fopen("frame.raw", "rb");
+		if (frameFile)
 		{
-			uint8_t* framePix = (uint8_t*)malloc(736 * 544 * 4);
-			uint8_t b[2];
-			for (auto p = 0; p < 736 * 544; p++)
+			if ((frameTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, 736, 544)))
 			{
-				fread(&b, 1, 2, frameFile);
-				framePix[(p * 4) + 0] = b[0];
-				framePix[(p * 4) + 1] = b[0];
-				framePix[(p * 4) + 2] = b[0];
-				framePix[(p * 4) + 3] = b[1] / 2;
+				uint8_t* framePix = (uint8_t*)malloc(736 * 544 * 4);
+				uint8_t b[2];
+				for (auto p = 0; p < 736 * 544; p++)
+				{
+					fread(&b, 1, 2, frameFile);
+					framePix[(p * 4) + 0] = b[0];
+					framePix[(p * 4) + 1] = b[0];
+					framePix[(p * 4) + 2] = b[0];
+					framePix[(p * 4) + 3] = b[1] / 2;
+				}
+				SDL_SetRenderTarget(sdlRenderer, sdlTexture);
+				SDL_UpdateTexture(frameTexture, NULL, framePix, 736 * 4);
+				free(framePix);
 			}
-			SDL_SetRenderTarget(sdlRenderer, sdlTexture);
-			SDL_UpdateTexture(frameTexture, NULL, framePix, 736 * 4);
-			free(framePix);
+			fclose(frameFile);
 		}
-		fclose(frameFile);
 	}
 
 	pixels = (unsigned char*)malloc(640 * 480 * 4);
