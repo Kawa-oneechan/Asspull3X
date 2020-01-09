@@ -89,7 +89,9 @@ void DrawString(int x, int y, int color, std::string str, int cr, int cb);
 void DrawString(int x, int y, int color, std::string str);
 int MeasureString(std::string str);
 void DrawImage(int x, int y, unsigned short* pixmap, int width, int height);
-void DrawFrameRect(int x, int y, int with, int height, int style);
+void DrawRect(int absLeft, int absTop, int width, int height, int color, int border);
+void DrawFrameRect(int absLeft, int absTop, int width, int height, int style);
+void DrawHLine(int absLeft, int absTop, int width, int color);
 void LetItSnow();
 
 //To pass data between the UI and application.
@@ -470,45 +472,16 @@ public:
 	void Draw()
 	{
 		if (!visible) return;
-		for (int col = 0; col < width; col++)
+		height = (numSeen * 9) + 2;
+		DrawRect(absLeft, absTop, width, height, LISTBOX_FILL, WINDOW_BORDERFOC_B);
+		for (int i = 0; i < numSeen && (i + scroll) < (signed)items.size(); i++)
 		{
-			RenderRawPixel(absTop, absLeft + col, WINDOW_BORDERFOC_B);
-			RenderRawPixel(absTop + 1 + (numSeen * 9), absLeft + col, WINDOW_BORDERFOC_T);
-		}
-		int j = 0;
-		for (int i = 0; i < numSeen && (i + scroll) < (signed)items.size(); i++, j += 9)
-		{
-			int fillColor = (i + scroll == selection) ? LISTBOX_HIGHLIGHT : LISTBOX_FILL;
 			int textColor = (i + scroll == selection) ? LISTBOX_HIGHTEXT : LISTBOX_TEXT;
-			for (int row = 0; row < 9; row++)
-			{
-				RenderRawPixel(absTop + 1 + row + (i * 9), absLeft, WINDOW_BORDERFOC_R);
-				for (int col = 1; col < width - 11; col++)
-				{
-					RenderRawPixel(absTop + 1 + row + (i * 9), absLeft + col, fillColor);
-				}
-				for (int col = width - 11; col < width - 1; col++)
-				{
-					RenderRawPixel(absTop + 1 + row + (i * 9), absLeft + col, LISTBOX_TRACK);
-				}
-				RenderRawPixel(absTop + 1 + row + (i * 9), absLeft + width - 1, WINDOW_BORDERFOC_L);
-			}
+			if (i + scroll == selection)
+				DrawRect(absLeft + 1, absTop + 1 + (i * 9), width - 11, 9, LISTBOX_HIGHLIGHT, -1);
 			DrawString(absLeft + 3, absTop + 2 + (i * 9), textColor, items[i + scroll], absLeft + width - 11, 480);
 		}
-		for (int i = j; i < (numSeen * 9); i++)
-		{
-			RenderRawPixel(absTop + 1 + i, absLeft, WINDOW_BORDERFOC_R);
-			for (int col = 1; col < width - 11; col++)
-			{
-				RenderRawPixel(absTop + 1 + i, absLeft + col, LISTBOX_FILL);
-			}
-			for (int col = width - 11; col < width - 1; col++)
-			{
-				RenderRawPixel(absTop + 1 + i, absLeft + col, LISTBOX_TRACK);
-			}
-			RenderRawPixel(absTop + 1 + i, absLeft + width - 1, WINDOW_BORDERFOC_L);
-		}
-
+		DrawRect(absLeft + width - 11, absTop + 1, 10, height - 1, LISTBOX_TRACK, -1);
 		DrawFrameRect(absLeft + width - 11, absTop + 11 + thumb, 10, 8, 0);
 
 		for (auto child = children.begin(); child != children.end(); child++)
@@ -564,7 +537,7 @@ void doListButton(Control* me)
 	else if (what == 5 && who->scroll < (signed)who->items.size() - who->numSeen)
 		who->scroll++;
 
-	who->thumb = Lerp(1, who->height - 35, (float)((float)who->scroll / (who->items.size() - who->numSeen)));
+	who->thumb = Lerp(1, who->height - 31, (float)((float)who->scroll / (who->items.size() - who->numSeen)));
 }
 
 void* currentMenu = NULL;
@@ -1352,17 +1325,36 @@ void DrawImage(int x, int y, unsigned short* pixmap, int width, int height)
 			RenderRawPixel(y + row, x + col, pixmap[(row * width) + col]);
 }
 
+void DrawRect(int absLeft, int absTop, int width, int height, int color, int border)
+{
+	if (color != 1)
+	{
+		for (auto row = absTop; row < absTop + height; row++)
+			for (auto col = absLeft; col < absLeft + width; col++)
+				RenderRawPixel(row, col, color);
+	}
+	if (border != -1)
+	{
+		for (auto col = absLeft; col < absLeft + width; col++)
+		{
+			RenderRawPixel(absTop, col, border);
+			RenderRawPixel(absTop + height, col, border);
+		}
+		for (auto row = absTop + 1; row < absTop + height; row++)
+		{
+			RenderRawPixel(row, absLeft, border);
+			RenderRawPixel(row, absLeft + width - 1, border);
+		}
+	}
+}
+
 void DrawFrameRect(int absLeft, int absTop, int width, int height, int style)
 {
 	auto fillColor = BUTTON_FILL;
 	if (style & 1)
-	{
 		fillColor = BUTTON_HIGHLIGHT;
-	}
 	if (style & 2)
-	{
 		fillColor = BUTTON_FILL;
-	}
 	for (auto col = absLeft; col < absLeft + width; col++)
 	{
 		RenderRawPixel(absTop, col, (style & 2) ? BUTTON_BORDER_B : BUTTON_BORDER_T);
@@ -1375,6 +1367,12 @@ void DrawFrameRect(int absLeft, int absTop, int width, int height, int style)
 			RenderRawPixel(row, col, fillColor);
 		RenderRawPixel(row, absLeft + width - 1, (style & 2) ? BUTTON_BORDER_L : BUTTON_BORDER_R);
 	}
+}
+
+void DrawHLine(int absLeft, int absTop, int width, int color)
+{
+	for (auto col = absLeft; col < absLeft + width; col++)
+		RenderRawPixel(absTop, col, color);
 }
 
 #define TABWIDTH 48
