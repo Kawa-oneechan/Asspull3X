@@ -711,6 +711,9 @@ void VBlank()
 	//SDL_UpdateWindowSurface(sdlWindow);
 }
 
+#include <vector>
+int decodePNG(std::vector<unsigned char>& out_image, unsigned long& image_width, unsigned long& image_height, const unsigned char* in_png, size_t in_size, bool convert_to_rgba32 = true);
+
 int InitVideo(bool fullScreen)
 {
 	SDL_Log("Creating window...");
@@ -755,26 +758,34 @@ int InitVideo(bool fullScreen)
 	if (thing[0] == 't' || thing[0] == 'T' || thing[0] == 1) showFrame = true;
 	if (showFrame)
 	{
-		FILE* frameFile = fopen("frame.raw", "rb");
+		FILE* frameFile = fopen("frame.png", "rb");
 		if (frameFile)
 		{
-			if ((frameTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, 736, 544)))
-			{
-				uint8_t* framePix = (uint8_t*)malloc(736 * 544 * 4);
-				uint8_t b[2];
-				for (auto p = 0; p < 736 * 544; p++)
-				{
-					fread(&b, 1, 2, frameFile);
-					framePix[(p * 4) + 0] = b[0];
-					framePix[(p * 4) + 1] = b[0];
-					framePix[(p * 4) + 2] = b[0];
-					framePix[(p * 4) + 3] = b[1] / 2;
-				}
-				SDL_SetRenderTarget(sdlRenderer, sdlTexture);
-				SDL_UpdateTexture(frameTexture, NULL, framePix, 736 * 4);
-				free(framePix);
-			}
+			fseek(frameFile, 0, SEEK_END);
+			long fs = ftell(frameFile);
+			const unsigned char* png = (const unsigned char*)malloc(fs);
+			fseek(frameFile, 0, SEEK_SET);
+			fread((void*)png, 1, fs, frameFile);
 			fclose(frameFile);
+			if ((frameTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_TARGET, 736, 544)))
+			{
+				unsigned long width, height;
+				std::vector<unsigned char> framePix;
+				decodePNG(framePix, width, height, (const unsigned char*)png, fs);
+				
+				if (width != 736 || height != 544)
+				{
+					SDL_Log("Monitor frame image is not the correct size, should be 736 by 544. I know.");
+					SDL_DestroyTexture(frameTexture);
+				}
+				else
+				{
+					SDL_SetRenderTarget(sdlRenderer, sdlTexture);
+					SDL_UpdateTexture(frameTexture, NULL, &framePix[0], 736 * 4);
+					alwaysCustomMouse = customMouse = true;
+				}
+			}
+			free((void*)png);
 		}
 	}
 
