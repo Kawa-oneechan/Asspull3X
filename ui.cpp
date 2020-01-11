@@ -89,9 +89,11 @@ void DrawString(int x, int y, int color, std::string str, int cr, int cb);
 void DrawString(int x, int y, int color, std::string str);
 int MeasureString(std::string str);
 void DrawImage(int x, int y, unsigned short* pixmap, int width, int height);
+void DrawRect4(int absLeft, int absTop, int width, int height, int color, int borderL, int borderT, int borderR, int borderB);
 void DrawRect(int absLeft, int absTop, int width, int height, int color, int border);
 void DrawFrameRect(int absLeft, int absTop, int width, int height, int style);
 void DrawHLine(int absLeft, int absTop, int width, int color);
+void DrawVLine(int absLeft, int absTop, int height, int color);
 void LetItSnow();
 
 //To pass data between the UI and application.
@@ -232,7 +234,7 @@ private:
 		auto fillColor = BUTTON_FILL;
 		auto closeButtonLeft = absLeft + width - 12;
 		auto closeButtonTop = absTop + 2;
-		DrawFrameRect(closeButtonLeft, closeButtonTop, 10, 9, ((WasInsideCloseBox() && enabled) << 0) | ((WasInsideCloseBox() && justClicked) << 1));
+		DrawFrameRect(closeButtonLeft, closeButtonTop, 10, 10, ((WasInsideCloseBox() && enabled) << 0) | ((WasInsideCloseBox() && justClicked) << 1));
 		DrawCharacter(closeButtonLeft + 1, closeButtonTop + 1, BUTTON_TEXT, 256 + 0);
 	}
 public:
@@ -274,25 +276,16 @@ public:
 	void Draw()
 	{
 		if (!visible) return;
-		for (auto col = left; col < left + width; col++)
-		{
-			RenderRawPixel(top, col, (focusedWindow == this) ? WINDOW_BORDERFOC_T : WINDOW_BORDER_T);
-			RenderRawPixel(top + height - 1, col, (focusedWindow == this) ? WINDOW_BORDERFOC_B : WINDOW_BORDER_B);
-			DarkenPixel(top + height + 0, col + 2);
-			DarkenPixel(top + height + 1, col + 2);
-		}
-		auto color = WINDOW_CAPTION;
-		for (auto row = top + 1; row < top + height - 1; row++)
-		{
-			RenderRawPixel(row, left, (focusedWindow == this) ? WINDOW_BORDERFOC_L : WINDOW_BORDER_L);
-			if (row == top + 12) color = WINDOW_CAPLINE;
-			if (row == top + 13) color = WINDOW_FILL;
-			for (auto col = left + 1; col < left + width - 1; col++)
-				RenderRawPixel(row, col, color);
-			RenderRawPixel(row, left + width - 1, (focusedWindow == this) ? WINDOW_BORDERFOC_R : WINDOW_BORDER_R);
-			DarkenPixel(row + 1, left + width + 0);
-			DarkenPixel(row + 1, left + width + 1);
-		}
+		if (focusedWindow == this)
+			DrawRect4(left, top, width, height, WINDOW_FILL, WINDOW_BORDERFOC_L, WINDOW_BORDERFOC_T, WINDOW_BORDERFOC_R, WINDOW_BORDERFOC_B);
+		else
+			DrawRect4(left, top, width, height, WINDOW_FILL, WINDOW_BORDER_L, WINDOW_BORDER_T, WINDOW_BORDER_R, WINDOW_BORDER_B);
+		DrawRect(left + 1, top + 1, width - 2, 12, WINDOW_CAPTION, -1);
+		
+		DrawHLine(left + 2, top + height + 0, width, -2);
+		DrawHLine(left + 2, top + height + 1, width, -2);
+		DrawVLine(left + width + 0, top + 2, height - 2, -2);
+		DrawVLine(left + width + 1, top + 2, height - 2, -2);
 		DrawString(left + 3, top + 3, (focusedWindow == this) ? WINDOW_CAPTEXT : WINDOW_CAPTEXTUNF, text);
 
 		DrawCloseBox();
@@ -363,7 +356,7 @@ public:
 	void Draw()
 	{
 		if (!visible) return;
-		height = 13;
+		height = 14;
 		DrawFrameRect(absLeft, absTop, width, height, ((WasInside() && enabled) << 0) | ((WasInside() && justClicked) << 1));
 		auto capLeft = absLeft + (width / 2) - (MeasureString(text) / 2);
 		DrawString(capLeft, absTop + 3, enabled ? BUTTON_TEXT : BUTTON_BORDER_B, text);
@@ -396,7 +389,7 @@ public:
 		if (!visible) return;
 		auto textColor = (enabled ? BUTTON_TEXT : BUTTON_BORDER_B);
 		height = 10;
-		DrawFrameRect(absLeft, absTop, 11, 10, ((WasInside() && enabled) << 0) | ((WasInside() && justClicked) << 1));
+		DrawFrameRect(absLeft, absTop, 11, 11, ((WasInside() && enabled) << 0) | ((WasInside() && justClicked) << 1));
 		if (checked)
 			DrawCharacter(absLeft + 1, absTop + 1, textColor, 256 + 14);
 		DrawString(absLeft + 14, absTop + 1, textColor, text);
@@ -481,8 +474,8 @@ public:
 				DrawRect(absLeft + 1, absTop + 1 + (i * 9), width - 11, 9, LISTBOX_HIGHLIGHT, -1);
 			DrawString(absLeft + 3, absTop + 2 + (i * 9), textColor, items[i + scroll], absLeft + width - 11, 480);
 		}
-		DrawRect(absLeft + width - 11, absTop + 1, 10, height - 1, LISTBOX_TRACK, -1);
-		DrawFrameRect(absLeft + width - 11, absTop + 11 + thumb, 10, 8, 0);
+		DrawRect(absLeft + width - 11, absTop + 1, 10, height - 2, LISTBOX_TRACK, -1);
+		DrawFrameRect(absLeft + width - 11, absTop + 11 + thumb, 10, 9, 0);
 
 		for (auto child = children.begin(); child != children.end(); child++)
 			(*child)->Draw();
@@ -579,34 +572,23 @@ public:
 	{
 		if (this->height == 3) //separator
 		{
-			for (int line = 0; line < 3; line++)
-			{
-				int lineColor = (line == 1) ? PULLDOWN_BORDER_B : PULLDOWN_FILL;
-				RenderRawPixel(absTop + line, absLeft, PULLDOWN_BORDER_L);
-				for (int col = 1; col < width; col++)
-				{
-					RenderRawPixel(absTop + line, absLeft + col, lineColor);
-				}
-				RenderRawPixel(absTop + line, absLeft + width, PULLDOWN_BORDER_R);
-				DarkenPixel(absTop + line + 1, absLeft + width + 1);
-				DarkenPixel(absTop + line + 1, absLeft + width + 2);
-			}
+			DrawHLine(absLeft, absTop + 0, width, PULLDOWN_FILL);
+			DrawHLine(absLeft, absTop + 1, width, PULLDOWN_BORDER_B);
+			DrawHLine(absLeft, absTop + 2, width, PULLDOWN_FILL);
+			DrawVLine(absLeft, absTop, 3, PULLDOWN_BORDER_L);
+			DrawVLine(absLeft + width, absTop, 3, PULLDOWN_BORDER_R);
+			DrawVLine(absLeft + width + 1, absTop + 1, 3, -2);
+			DrawVLine(absLeft + width + 2, absTop + 1, 3, -2);
 			return;
 		}
 
 		int fillColor = WasInside() ? PULLDOWN_HIGHLIGHT : PULLDOWN_FILL;
 		int textColor = WasInside() ? PULLDOWN_HIGHTEXT : PULLDOWN_TEXT;
-		for (int line = 0; line < 12; line++)
-		{
-			RenderRawPixel(absTop + line, absLeft, PULLDOWN_BORDER_L);
-			for (int col = 1; col < width; col++)
-			{
-				RenderRawPixel(absTop + line, absLeft + col, fillColor);
-			}
-			RenderRawPixel(absTop + line, absLeft + width, PULLDOWN_BORDER_R);
-			DarkenPixel(absTop + line + 1, absLeft + width + 1);
-			DarkenPixel(absTop + line + 1, absLeft + width + 2);
-		}
+		DrawRect(absLeft, absTop, width, 12, fillColor, -1);
+		DrawVLine(absLeft, absTop, 12, PULLDOWN_BORDER_L);
+		DrawVLine(absLeft + width, absTop, 12, PULLDOWN_BORDER_R);
+		DrawVLine(absLeft + width + 1, absTop + 1, 12, -2);
+		DrawVLine(absLeft + width + 2, absTop + 1, 12, -2);
 
 		DrawString(absLeft + 4, absTop + 2, textColor, text);
 		if (hotkey)
@@ -686,32 +668,20 @@ public:
 
 		currentMenuWidth = children.begin()->get()->width;
 
-		for (int col = 0; col <= currentMenuWidth; col++)
-		{
-			RenderRawPixel(currentMenuTop - 1, currentMenuLeft + col, PULLDOWN_BORDER_T);
-			RenderRawPixel(currentMenuTop + currentMenuHeight, currentMenuLeft + col, PULLDOWN_BORDER_B);
-			DarkenPixel(currentMenuTop + currentMenuHeight + 1, currentMenuLeft + col + 2);
-			DarkenPixel(currentMenuTop + currentMenuHeight + 2, currentMenuLeft + col + 2);
-		}
+		DrawHLine(currentMenuLeft, currentMenuTop - 1, currentMenuWidth + 1, PULLDOWN_BORDER_T);
+		DrawHLine(currentMenuLeft, currentMenuTop + currentMenuHeight, currentMenuWidth + 1, PULLDOWN_BORDER_B);
+		DrawHLine(currentMenuLeft + 2, currentMenuTop + currentMenuHeight + 1, currentMenuWidth + 1, -2);
+		DrawHLine(currentMenuLeft + 2, currentMenuTop + currentMenuHeight + 2, currentMenuWidth + 1, -2);
 	}
 	void Draw()
 	{
 		int fillColor = (WasInside() || currentMenu == this ) ? MENUBAR_HIGHLIGHT : MENUBAR_FILL;
 		int textColor = (WasInside() || currentMenu == this ) ? MENUBAR_HIGHTEXT : MENUBAR_TEXT;
-		for (int i = absLeft; i < absLeft + width; i++)
-		{
-			for (int j = 0; j < 12; j++)
-			{
-				RenderRawPixel(j, i, fillColor);
-			}
-			DarkenPixel(12, i + 2);
-			DarkenPixel(13, i + 2);
-		}
-		for (int j = 2; j < 12; j++)
-		{
-			DarkenPixel(j, absLeft + width + 0);
-			DarkenPixel(j, absLeft + width + 1);
-		}
+		DrawRect(absLeft, 0, width, 12, fillColor, -1);
+		DrawHLine(absLeft, 12, width, -2);
+		DrawHLine(absLeft, 13, width, -2);
+		DrawVLine(absLeft + width + 0, 2, 12, -2);
+		DrawVLine(absLeft + width + 1, 2, 12, -2);
 		DrawString(absLeft + 4, 2, textColor, text);
 	}
 	void HandlePopup()
@@ -837,20 +807,7 @@ public:
 	void Draw()
 	{
 		if (!visible) return;
-		for (int col = 0; col < width; col++)
-		{
-			RenderRawPixel(absTop, absLeft + col, WINDOW_BORDERFOC_B);
-			RenderRawPixel(absTop + 1 + (visible * 9), absLeft + col, WINDOW_BORDERFOC_T);
-		}
-		for (int row = 0; row < height - 1; row++)
-		{
-			RenderRawPixel(absTop + 1 + row, absLeft, WINDOW_BORDERFOC_R);
-			for (int col = 1; col < width - 1; col++)
-			{
-				RenderRawPixel(absTop + 1 + row, absLeft + col, TEXTBOX_FILL);
-			}
-			RenderRawPixel(absTop + 1 + row, absLeft + width - 1, WINDOW_BORDERFOC_L);
-		}
+		DrawRect4(absLeft, absTop, width, 11, TEXTBOX_FILL, WINDOW_BORDERFOC_R, WINDOW_BORDERFOC_B, WINDOW_BORDERFOC_L, WINDOW_BORDERFOC_T);
 		DrawString(absLeft + 2, absTop + 2, TEXTBOX_TEXT, text, absLeft + width - 1, absTop + 10);
 		if (focusedTextBox != this)
 			return;
@@ -1325,54 +1282,62 @@ void DrawImage(int x, int y, unsigned short* pixmap, int width, int height)
 			RenderRawPixel(y + row, x + col, pixmap[(row * width) + col]);
 }
 
-void DrawRect(int absLeft, int absTop, int width, int height, int color, int border)
+void DrawRect4(int absLeft, int absTop, int width, int height, int color, int borderL, int borderT, int borderR, int borderB)
 {
 	if (color != 1)
 	{
+		//TODO: use DrawRect
 		for (auto row = absTop; row < absTop + height; row++)
 			for (auto col = absLeft; col < absLeft + width; col++)
 				RenderRawPixel(row, col, color);
 	}
-	if (border != -1)
+	if (borderL != -1)
 	{
-		for (auto col = absLeft; col < absLeft + width; col++)
-		{
-			RenderRawPixel(absTop, col, border);
-			RenderRawPixel(absTop + height, col, border);
-		}
+		//TODO: use DrawHLine/DrawVLine
 		for (auto row = absTop + 1; row < absTop + height; row++)
 		{
-			RenderRawPixel(row, absLeft, border);
-			RenderRawPixel(row, absLeft + width - 1, border);
+			RenderRawPixel(row, absLeft, borderL);
+			RenderRawPixel(row, absLeft + width - 1, borderR);
+		}
+		for (auto col = absLeft; col < absLeft + width; col++)
+		{
+			RenderRawPixel(absTop, col, borderT);
+			RenderRawPixel(absTop + height - 1, col, borderB);
 		}
 	}
+}
+
+void DrawRect(int absLeft, int absTop, int width, int height, int color, int border)
+{
+	DrawRect4(absLeft, absTop, width, height, color, border, border, border, border);
 }
 
 void DrawFrameRect(int absLeft, int absTop, int width, int height, int style)
 {
-	auto fillColor = BUTTON_FILL;
-	if (style & 1)
-		fillColor = BUTTON_HIGHLIGHT;
-	if (style & 2)
-		fillColor = BUTTON_FILL;
-	for (auto col = absLeft; col < absLeft + width; col++)
-	{
-		RenderRawPixel(absTop, col, (style & 2) ? BUTTON_BORDER_B : BUTTON_BORDER_T);
-		RenderRawPixel(absTop + height, col, (style & 2) ? BUTTON_BORDER_T : BUTTON_BORDER_B);
-	}
-	for (auto row = absTop + 1; row < absTop + height; row++)
-	{
-		RenderRawPixel(row, absLeft, (style & 2) ? BUTTON_BORDER_R : BUTTON_BORDER_L);
-		for (auto col = absLeft + 1; col < absLeft + width - 1; col++)
-			RenderRawPixel(row, col, fillColor);
-		RenderRawPixel(row, absLeft + width - 1, (style & 2) ? BUTTON_BORDER_L : BUTTON_BORDER_R);
-	}
+	if (style & 2) //clicked
+		DrawRect4(absLeft, absTop, width, height, BUTTON_FILL, BUTTON_BORDER_R, BUTTON_BORDER_B, BUTTON_BORDER_L, BUTTON_BORDER_T);
+	else
+		DrawRect4(absLeft, absTop, width, height, (style & 1) ? BUTTON_BORDER_L : BUTTON_FILL, BUTTON_BORDER_L, BUTTON_BORDER_T, BUTTON_BORDER_R, BUTTON_BORDER_B);
 }
 
 void DrawHLine(int absLeft, int absTop, int width, int color)
 {
-	for (auto col = absLeft; col < absLeft + width; col++)
-		RenderRawPixel(absTop, col, color);
+	if (color == -2)
+		for (auto col = absLeft; col < absLeft + width; col++)
+			DarkenPixel(absTop, col);
+	else
+		for (auto col = absLeft; col < absLeft + width; col++)
+			RenderRawPixel(absTop, col, color);
+}
+
+void DrawVLine(int absLeft, int absTop, int height, int color)
+{
+	if (color == -2)
+		for (auto row = absTop; row < absTop + height; row++)
+			DarkenPixel(row, absLeft);
+	else
+		for (auto row = absTop; row < absTop + height; row++)
+			RenderRawPixel(row, absLeft, color);
 }
 
 #define TABWIDTH 48
