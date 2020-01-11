@@ -97,7 +97,6 @@
     <ClCompile Include="musashi\m68kfpu.c" />
     <ClCompile Include="musashi\m68kops.c" />
     <ClCompile Include="Asspull3X.cpp" />
-    <ClCompile Include="picopng.cpp" />
     <ClCompile Include="sound.cpp" />
     <ClCompile Include="ui.cpp" />
     <ClCompile Include="video.cpp" />

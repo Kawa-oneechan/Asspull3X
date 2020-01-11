@@ -21,11 +21,10 @@ int gfxMode, gfxFade, scrollX[4], scrollY[4], tileShift[2], mapEnabled[4], mapBl
 SDL_Window* sdlWindow = NULL;
 SDL_Renderer* sdlRenderer = NULL;
 SDL_Texture* sdlTexture = NULL;
-SDL_Texture* frameTexture = NULL;
 unsigned int programId = 0;
 bool customMouse = false, alwaysCustomMouse = false;
 
-int winWidth = 640, winHeight = 480, scrWidth = 640, scrHeight = 480, scale = 1, offsetX = 0, offsetY = 0, hMargin = 0, vMargin = 0;
+int winWidth = 640, winHeight = 480, scrWidth = 640, scrHeight = 480, scale = 1, offsetX = 0, offsetY = 0;
 
 unsigned char* pixels;
 
@@ -641,17 +640,15 @@ void presentBackBuffer(SDL_Renderer *renderer, SDL_Window* win, SDL_Texture* bac
 	}
 
 	SDL_GetWindowSize(sdlWindow, &winWidth, &winHeight);
-	int minWidth = (frameTexture ? 736 : 640);
-	int minHeight = (frameTexture ? 544 : 480);
-	if (winWidth < minWidth)
+	if (winWidth < 640)
 	{
-		winWidth = minWidth;
-		SDL_SetWindowSize(sdlWindow, minWidth, winHeight);
+		winWidth = 640;
+		SDL_SetWindowSize(sdlWindow, 640, winHeight);
 	}
-	if (winHeight < minHeight)
+	if (winHeight < 480)
 	{
-		winHeight = minHeight;
-		SDL_SetWindowSize(sdlWindow, winWidth, minHeight);
+		winHeight = 480;
+		SDL_SetWindowSize(sdlWindow, winWidth, 480);
 	}
 	auto maxScaleX = floorf(winWidth / 640.0f);
 	auto maxScaleY = floorf(winHeight / 480.0f);
@@ -661,12 +658,10 @@ void presentBackBuffer(SDL_Renderer *renderer, SDL_Window* win, SDL_Texture* bac
 	offsetX = (int)floorf((winWidth - scrWidth) * 0.5f);
 	offsetY = (int)floorf((winHeight - scrHeight) * 0.5f);
 
-	vMargin = (frameTexture ? 56 : 0);
-	hMargin = (frameTexture ? 64 : 0);
-	GLfloat minx = (GLfloat)offsetX + hMargin;
-	GLfloat miny = (GLfloat)offsetY + vMargin;
-	GLfloat maxx = minx + scrWidth + -(hMargin * 2);
-	GLfloat maxy = miny + scrHeight + -(vMargin * 2);
+	GLfloat minx = (GLfloat)offsetX;
+	GLfloat miny = (GLfloat)offsetY;
+	GLfloat maxx = minx + scrWidth;
+	GLfloat maxy = miny + scrHeight;
 
 	glBegin(GL_TRIANGLE_STRIP);
 		glTexCoord2f(0.0f, 0.0f);
@@ -682,24 +677,6 @@ void presentBackBuffer(SDL_Renderer *renderer, SDL_Window* win, SDL_Texture* bac
 	if(programId != 0)
 		glUseProgram(oldProgramId);
 
-	if (frameTexture)
-	{
-		SDL_GetWindowSize(sdlWindow, &winWidth, &winHeight);
-		SDL_GL_BindTexture(frameTexture, NULL, NULL);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glBegin(GL_TRIANGLE_STRIP);
-			glTexCoord2f(0.0f, 0.0f);
-			glVertex2f(0.0f, 0.0f);
-			glTexCoord2f(1.0f, 0.0f);
-			glVertex2f((GLfloat)winWidth, 0.0f);
-			glTexCoord2f(0.0f, 1.0f);
-			glVertex2f(0.0f, (GLfloat)winHeight);
-			glTexCoord2f(1.0f, 1.0f);
-			glVertex2f((GLfloat)winWidth, (GLfloat)winHeight);
-		glEnd();
-	}
-
 	SDL_GL_SwapWindow(win);
 }
 
@@ -710,9 +687,6 @@ void VBlank()
 	presentBackBuffer(sdlRenderer, sdlWindow, sdlTexture, programId);
 	//SDL_UpdateWindowSurface(sdlWindow);
 }
-
-#include <vector>
-int decodePNG(std::vector<unsigned char>& out_image, unsigned long& image_width, unsigned long& image_height, const unsigned char* in_png, size_t in_size, bool convert_to_rgba32 = true);
 
 int InitVideo(bool fullScreen)
 {
@@ -751,42 +725,6 @@ int InitVideo(bool fullScreen)
 	{
 		SDL_Log("Could not create renderer: %s", SDL_GetError());
 		return -2;
-	}
-
-	bool showFrame = false;
-	thing = ini->Get("video", "showFrame", "false");
-	if (thing[0] == 't' || thing[0] == 'T' || thing[0] == 1) showFrame = true;
-	if (showFrame)
-	{
-		FILE* frameFile = fopen("frame.png", "rb");
-		if (frameFile)
-		{
-			fseek(frameFile, 0, SEEK_END);
-			long fs = ftell(frameFile);
-			const unsigned char* png = (const unsigned char*)malloc(fs);
-			fseek(frameFile, 0, SEEK_SET);
-			fread((void*)png, 1, fs, frameFile);
-			fclose(frameFile);
-			if ((frameTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_TARGET, 736, 544)))
-			{
-				unsigned long width, height;
-				std::vector<unsigned char> framePix;
-				decodePNG(framePix, width, height, (const unsigned char*)png, fs);
-				
-				if (width != 736 || height != 544)
-				{
-					SDL_Log("Monitor frame image is not the correct size, should be 736 by 544. I know.");
-					SDL_DestroyTexture(frameTexture);
-				}
-				else
-				{
-					SDL_SetRenderTarget(sdlRenderer, sdlTexture);
-					SDL_UpdateTexture(frameTexture, NULL, &framePix[0], 736 * 4);
-					alwaysCustomMouse = customMouse = true;
-				}
-			}
-			free((void*)png);
-		}
 	}
 
 	pixels = (unsigned char*)malloc(640 * 480 * 4);
