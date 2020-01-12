@@ -79,8 +79,8 @@ extern int winWidth, winHeight, scrWidth, scrHeight, scale, offsetX, offsetY;
 #define TEXTBOX_TEXT		WINDOW_TEXT
 #define TEXTBOX_CARET		LISTBOX_HIGHTEXT
 
-inline void RenderRawPixel(int row, int column, int color);
-inline void DarkenPixel(int row, int column);
+static inline void RenderRawPixel(int row, int column, int color);
+static inline void DarkenPixel(int row, int column);
 int GetMouseState(int *x, int *y);
 void DrawCursor();
 void DrawCharacter(int x, int y, int color, unsigned short ch, int cr, int cb);
@@ -1101,7 +1101,7 @@ void HandleUI()
 }
 
 extern unsigned char* pixels;
-inline void RenderRawPixel(int row, int column, int color)
+static inline void RenderRawPixel(int row, int column, int color)
 {
 	if (row < 0 || row >= 480 || column < 0 || column >= 640) return;
 	auto target = (((row) * 640) + (column)) * 4;
@@ -1112,7 +1112,7 @@ inline void RenderRawPixel(int row, int column, int color)
 	pixels[target + 1] = (g << 3) + (g >> 2);
 	pixels[target + 2] = (r << 3) + (r >> 2);
 }
-inline void DarkenPixel(int row, int column)
+static inline void DarkenPixel(int row, int column)
 {
 	if (row < 0 || row >= 480 || column < 0 || column >= 640) return;
 	auto target = (((row) * 640) + (column)) * 4;
@@ -1317,7 +1317,7 @@ void DrawFrameRect(int absLeft, int absTop, int width, int height, int style)
 	if (style & 2) //clicked
 		DrawRect4(absLeft, absTop, width, height, BUTTON_FILL, BUTTON_BORDER_R, BUTTON_BORDER_B, BUTTON_BORDER_L, BUTTON_BORDER_T);
 	else
-		DrawRect4(absLeft, absTop, width, height, (style & 1) ? BUTTON_BORDER_L : BUTTON_FILL, BUTTON_BORDER_L, BUTTON_BORDER_T, BUTTON_BORDER_R, BUTTON_BORDER_B);
+		DrawRect4(absLeft, absTop, width, height, (style & 1) ? BUTTON_HIGHLIGHT : BUTTON_FILL, BUTTON_BORDER_L, BUTTON_BORDER_T, BUTTON_BORDER_R, BUTTON_BORDER_B);
 }
 
 void DrawHLine(int absLeft, int absTop, int width, int color)

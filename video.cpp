@@ -13,8 +13,6 @@
 #include <SDL2/SDL_opengl_glext.h>
 #endif
 
-#define RENDERPIXELS_DEFINE
-
 bool gfx320, gfx240, gfxTextBold, stretch200;
 int gfxMode, gfxFade, scrollX[4], scrollY[4], tileShift[2], mapEnabled[4], mapBlend[4];
 
@@ -46,21 +44,7 @@ unsigned char* pixels;
 		} \
 	}
 
-#ifdef RENDERPIXELS_DEFINE
-#define RenderPixel(row, column, color) \
-{ \
-	auto snes = (ramVideo[PAL_ADDR + ((color) * 2) + 0] << 8) + ramVideo[PAL_ADDR + ((color) * 2) + 1]; \
-	auto target = (((row) * 640) + (column)) * 4; \
-	auto r = (snes >> 0) & 0x1F; \
-	auto g = (snes >> 5) & 0x1F; \
-	auto b = (snes >> 10) & 0x1F; \
-	FADECODE; \
-	pixels[target + 0] = (b << 3) + (b >> 2); \
-	pixels[target + 1] = (g << 3) + (g >> 2); \
-	pixels[target + 2] = (r << 3) + (r >> 2); \
-}
-#else
-inline void RenderPixel(int row, int column, int color)
+static inline void RenderPixel(int row, int column, int color)
 {
 	auto snes = (ramVideo[PAL_ADDR + ((color) * 2) + 0] << 8) + ramVideo[PAL_ADDR + ((color) * 2) + 1];
 	auto target = ((row * 640) + column) * 4;
@@ -72,9 +56,8 @@ inline void RenderPixel(int row, int column, int color)
 	pixels[target + 1] = (g << 3) + (g >> 2);
 	pixels[target + 2] = (r << 3) + (r >> 2);
 }
-#endif
 
-inline void RenderBlended(int row, int column, int color, bool subtractive)
+static inline void RenderBlended(int row, int column, int color, bool subtractive)
 {
 	auto snes = (ramVideo[PAL_ADDR + ((color) * 2) + 0] << 8) + ramVideo[PAL_ADDR + ((color) * 2) + 1];
 	auto target = ((row * 640) + column) * 4;
