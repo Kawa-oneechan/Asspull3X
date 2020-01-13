@@ -92,24 +92,24 @@ unsigned int m68k_read_memory_8(unsigned int address)
 		auto reg = address & REGS_SIZE;
 		switch (reg)
 		{
-			case 0x03: //Screen Mode
+			case 0x00: //Interrupts
+				return interrupts;
+			case 0x01: //Screen Mode
 				return (gfxMode |
 					(gfx240 ? 1 << 5 : 0) |
 					(gfx320 ? 1 << 6 : 0) |
 					(gfxTextBold ? 1 << 7 : 0));
-			case 0x04: //ScreenFade
+			case 0x08: //ScreenFade
 				return gfxFade;
-			case 0x05: //Interrupts
-				return interrupts;
-			case 0x0C: //Joypad
-			case 0x0D:
-				return joypad[reg - 0x0C];
-			case 0x0F: //TilemapSet
+			case 0x09: //TilemapSet
 				return (tileShift[1] |
 					(tileShift[0] << 2) |
 					(mapEnabled[1] << 6) |
 					(mapEnabled[0] << 7));
 				//TODO: add mapEnabled[2] and [3].
+			case 0x42: //Joypad
+			case 0x43:
+				return joypad[reg - 0x0C];
 		}
 		return 0;
 	}
@@ -147,11 +147,8 @@ unsigned int m68k_read_memory_16(unsigned int address)
 		auto reg = address & 0x000FFFFF;
 		switch (reg)
 		{
-			case 0x00: //Line
+			case 0x02: //Line
 				return line;
-			case 0x06: //Keyscan
-				keyScan = PollKeyboard(false);
-				return keyScan;
 			case 0x10: //Horizontal scroll
 			case 0x14:
 			case 0x18:
@@ -164,6 +161,9 @@ unsigned int m68k_read_memory_16(unsigned int address)
 			case 0x1E:
 				return scrollY[(reg - 0x12) / 2];
 				break;
+			case 0x40: //Keyscan
+				keyScan = PollKeyboard(false);
+				return keyScan;
 		}
 		return 0;
 	}
@@ -179,13 +179,13 @@ unsigned int m68k_read_memory_32(unsigned int address)
 		auto reg = address & 0x000FFFFF;
 		switch (reg)
 		{
-			case 0x08: //Ticks
+			case 0x04: //Ticks
 				return (int)ticks;
-			case 0x20: //DMA Source
+			case 0x100: //DMA Source
 				return dmaSource;
-			case 0x24: //DMA Target
+			case 0x104: //DMA Target
 				return dmaTarget;
-			case 0x28: //DMA Length
+			case 0x108: //DMA Length
 				return dmaLength;
 			//TODO: HDMA. Fun!
 		}
@@ -206,28 +206,19 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 		auto u8 = (unsigned char)value;
 		switch (reg)
 		{
-			case 0x02: //TilemapBlend
-				mapBlend[0] = ((u8 >> 0) & 1) | (((u8 >> 4) & 1) << 1);
-				mapBlend[1] = ((u8 >> 1) & 1) | (((u8 >> 5) & 1) << 1);
-				mapBlend[2] = ((u8 >> 2) & 1) | (((u8 >> 6) & 1) << 1);
-				mapBlend[3] = ((u8 >> 3) & 1) | (((u8 >> 7) & 1) << 1);
+			case 0x00: //Interrupts
+				interrupts = value;
 				break;
-			case 0x03: //ScreenMode
+			case 0x01: //ScreenMode
 				gfxTextBold = ((u8 >> 7) & 1) == 1;
 				gfx320 = ((u8 >> 6) & 1) == 1;
 				gfx240 = ((u8 >> 5) & 1) == 1;
 				gfxMode = u8 & 0x0F;
 				break;
-			case 0x04: //ScreenFade
+			case 0x08: //ScreenFade
 				gfxFade = u8;
 				break;
-			case 0x5: //VBlankMode
-				interrupts = value;
-				break;
-			case 0x0E: //Debug
-				printf("%c", (char)value);
-				break;
-			case 0x0F: //TilemapSet
+			case 0x09: //TilemapSet
 				mapEnabled[0] = (value & 0x10);
 				mapEnabled[1] = (value & 0x20);
 				mapEnabled[2] = (value & 0x40);
@@ -235,7 +226,19 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				tileShift[0] = (value >> 2) & 3;
 				tileShift[1] = value & 3;
 				break;
-			case 0x2A: //DMA Control
+			case 0x0A: //TilemapBlend
+				mapBlend[0] = ((u8 >> 0) & 1) | (((u8 >> 4) & 1) << 1);
+				mapBlend[1] = ((u8 >> 1) & 1) | (((u8 >> 5) & 1) << 1);
+				mapBlend[2] = ((u8 >> 2) & 1) | (((u8 >> 6) & 1) << 1);
+				mapBlend[3] = ((u8 >> 3) & 1) | (((u8 >> 7) & 1) << 1);
+				break;
+			case 0x48: //Sound out
+				BufferAudioSample((signed char)value);
+				return;
+			case 0x80: //Debug
+				printf("%c", (char)value);
+				break;
+			case 0x10A: //DMA Control
 				{
 				if ((value & 1) == 0) return;
 				auto increaseSource = ((value >> 1) & 1) == 1;
@@ -271,10 +274,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				}
 				break;
 				}
-			case 0x44: //Sound out
-				BufferAudioSample((signed char)value);
-				return;
-			case 0x110: //Blitter key
+			case 0x210: //Blitter key
 				blitKey = value;
 				break;
 		}
@@ -337,27 +337,27 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 		auto reg = address & 0x000FFFFF;
 		switch (reg)
 		{
-			case 0x20: //DMA Source
+			case 0x100: //DMA Source
 				dmaSource = value;
 				break;
-			case 0x24: //DMA Target
+			case 0x104: //DMA Target
 				dmaTarget = value;
 				break;
-			case 0x28: //DMA Length
+			case 0x108: //DMA Length
 				dmaLength = value;
 				break;
-			case 0x40: //MIDI Out
+			case 0x44: //MIDI Out
 				if (value > 0)
 					SendMidi(value);
 				break;
-			case 0x80: //HDMA Control
-			case 0x84:
-			case 0x88:
-			case 0x8C:
-			case 0x90:
-			case 0x94:
-			case 0x98:
-			case 0x9C:
+			case 0x180: //HDMA Control
+			case 0x184:
+			case 0x188:
+			case 0x18C:
+			case 0x190:
+			case 0x194:
+			case 0x198:
+			case 0x19C:
 				{
 				auto channel = (reg & 0xF) / 4;
 				hdmaWidth[channel] = (value >> 4) & 3;
@@ -367,43 +367,43 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 				hdmaCount[channel] = (value >> 20) & 0x3FF;
 				break;
 				}
-			case 0xA0: //HDMA Source
-			case 0xA4:
-			case 0xA8:
-			case 0xAC:
-			case 0xB0:
-			case 0xB4:
-			case 0xB8:
-			case 0xBC:
+			case 0x1A0: //HDMA Source
+			case 0x1A4:
+			case 0x1A8:
+			case 0x1AC:
+			case 0x1B0:
+			case 0x1B4:
+			case 0x1B8:
+			case 0x1BC:
 				{
 				auto channel = (reg & 0xF) / 4;
 				hdmaSource[channel] = value;
 				break;
 				}
-			case 0xC0: //HDMA Target
-			case 0xC4:
-			case 0xC8:
-			case 0xCC:
-			case 0xD0:
-			case 0xD4:
-			case 0xD8:
-			case 0xDC:
+			case 0x1C0: //HDMA Target
+			case 0x1C4:
+			case 0x1C8:
+			case 0x1CC:
+			case 0x1D0:
+			case 0x1D4:
+			case 0x1D8:
+			case 0x1DC:
 				{
 				auto channel = (reg & 0xF) / 4;
 				hdmaTarget[channel] = value;
 				break;
 				}
 
-			case 0x100: //Blitter function
+			case 0x200: //Blitter function
 				HandleBlitter(value);
 				break;
-			case 0x104: //Blitter address A
+			case 0x204: //Blitter address A
 				blitAddrA = value;
 				break;
-			case 0x108: //Blitter address B
+			case 0x208: //Blitter address B
 				blitAddrB = value;
 				break;
-			case 0x10C: //Blitter length
+			case 0x20C: //Blitter length
 				blitLength = value;
 				break;
 		}

@@ -71,7 +71,7 @@ enum uiCommands
 #define WRAM_SIZE	0x00400000
 #define DEVS_SIZE	(DEV_BLOCK * MAXDEVS) //0x0080000
 #define REGS_SIZE	0x000FFFFF
-#define VRAM_SIZE	0x00060000
+#define VRAM_SIZE	0x00080000
 #define STAC_SIZE	0x00010000
 
 #define TEXT_SIZE	((80 * 60) * 2)	//640×480 mode has 8x8 character cells, so 80×60 characters.
@@ -88,7 +88,7 @@ enum uiCommands
 #define WRAM_ADDR	0x01000000
 #define STAC_ADDR	0x013F0000
 #define DEVS_ADDR	0x02000000
-#define REGS_ADDR	0x0D800000
+#define REGS_ADDR	0x0D000000
 #define VRAM_ADDR	0x0E000000
 
 #define TEXT_ADDR	0x000000
@@ -97,11 +97,11 @@ enum uiCommands
 #define MAP2_ADDR	(MAP1_ADDR + MAP_SIZE)
 #define MAP3_ADDR	(MAP2_ADDR + MAP_SIZE)
 #define MAP4_ADDR	(MAP3_ADDR + MAP_SIZE)
-#define TILES_ADDR	0x010000
-#define PAL_ADDR	0x050000
-#define FONT_ADDR	0x050200
-#define SPR1_ADDR	0x054000
-#define SPR2_ADDR	0x054200
+#define TILES_ADDR	0x050000
+#define PAL_ADDR	0x060000
+#define FONT_ADDR	0x060200
+#define SPR1_ADDR	0x064000
+#define SPR2_ADDR	0x064200
 
 //Sanity checks!
 #if (BIOS_ADDR + BIOS_SIZE) > CART_ADDR
@@ -128,6 +128,9 @@ enum uiCommands
 #if (MAP4_ADDR + MAP_SIZE) > TILES_ADDR
 #error MAP4 encroaches on TILES.
 #endif
+#if (BMP_ADDR + BITMAP_SIZE) > TILES_ADDR
+#error 640×480 Bitmap mode will overwrite the tilemap.
+#endif
 #if (BMP_ADDR + BITMAP_SIZE) > PAL_ADDR
 #error 640×480 Bitmap mode will overwrite the palette.
 #endif
@@ -142,6 +145,9 @@ enum uiCommands
 #endif
 #if (SPRITE1 + SPR1_SIZE) > SPR2_ADDR
 #error SPR1 encroaches on SPR2.
+#endif
+#if (SPR2_ADDR + SPR2_SIZE) > VRAM_SIZE
+#error Insufficient VRAM!
 #endif
 
 class Device

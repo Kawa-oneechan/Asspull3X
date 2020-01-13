@@ -18,6 +18,15 @@ extern unsigned int biosSize, romSize;
 
 IniFile* ini;
 
+void Check(unsigned int romSize, unsigned int fileSize)
+{
+	if (romSize != fileSize) SDL_Log("File size is not a power of two: is %d (0x%08X), should be %d (0x%08X).", fileSize, fileSize, romSize, romSize);
+	unsigned int c1 = 0;
+	unsigned int c2 = (romCartridge[0x20] << 24) | (romCartridge[0x21] << 16) | (romCartridge[0x22] << 8) | (romCartridge[0x23] << 0);
+	for (unsigned int i = 0; i < romSize; i++) { if (i == 0x20) i += 4; c1 += romCartridge[i]; }
+	if (c1 != c2) SDL_Log("Checksum mismatch: is 0x%08X, should be 0x%08X.", c2, c1);
+}
+
 int pauseState = 0;
 unsigned char* pauseScreen;
 extern unsigned char* pixels;
@@ -120,7 +129,9 @@ int main(int argc, char* argv[])
 	{
 		SDL_Log("Loading ROM, %s ...", thing);
 		Slurp(romCartridge, thing, &romSize);
+		unsigned int fileSize = romSize;
 		romSize = RoundUp(romSize);
+		Check(romSize, fileSize);
 	}
 
 	SDL_Log("Resetting Musashi...");
@@ -217,7 +228,10 @@ int main(int argc, char* argv[])
 					auto gottaReset = (*(uint32_t*)romCartridge == 0x21535341);
 					memset(romCartridge, 0, CART_SIZE);
 					Slurp(romCartridge, uiString, &romSize);
+					unsigned int fileSize = romSize;
 					romSize = RoundUp(romSize);
+					Check(fileSize, romSize);
+					
 					ini->Set("media", "lastROM", uiString);
 					if (gottaReset)
 						m68k_pulse_reset();

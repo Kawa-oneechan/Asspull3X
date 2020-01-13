@@ -15,18 +15,29 @@ Address space is effectively 28 bits:
 | 01000000 | 01400000 | 00400000 | RAM
 | 013F0000 | 0FFFFFFF | 000FFFFF | STACK
 | 02000000 | 02080000 | 00080000 | DEV
-| 0D800000 |          |          | IO
+| 0D000000 |          |          | IO
 | 0E000000 | 0EFFFFFF | 00FFFFFF | VRAM
+
+## Cart header
+| offset | type     | description
+| ------ | -------- | -----------
+| 20000  | char[4]  | `ASS!` marker
+| 20004  | char[4]  | `jmp` instruction
+| 20008  | char[24] | Product name
+| 20020  | uint32   | Checksum
+| 20024  | uint16   | Creator code
+| 20026  | uint8    | Region code
+| 20027  | uint8    | SRAM size
 
 ## VRAM
 | from     | content
 | -------- |---------
 | 0E000000 | Text/Bitmap/Tilemaps
-| 0E010000 | Tileset
-| 0E050000 | Palette
-| 0E050200 | Font
-| 0E054000 | Sprite tile/pal
-| 0E054200 | Sprite position/flip/priority
+| 0E050000 | Tileset
+| 0E060000 | Palette
+| 0E060200 | Font
+| 0E064000 | Sprite tile/pal
+| 0E064200 | Sprite position/flip/priority
 
 ### Size considerations
 * text: up to 80×60=4800 16-bit cells: 4800×2 = 9600 => `$02580`
@@ -104,44 +115,27 @@ Identified by the value `4C50`, writing to the next byte pipes directly to the p
 
 ## Register map
 
-### 00000	Line
-The current line being drawn as a `uint16`.
-### 00002	TilemapBlend
-    SSSS EEEE
-    |    |_____ Enable for these layers
-    |__________ Subtract instead of add
-*Yeah, just... stick in there why don't you. You monster.*
-### 00003	ScreenMode
-### 00003	ScreenMode
-    B32. ..MM
-    |||    |___ Mode
-    |||________ 240px tall instead of 480px
-    ||_________ 320px wide instead of 640px
-    |__________ Bold in text mode, 200 or 400px in bitmap mode
-### 00004	ScreenFade
-    W..A AAAA
-    |  |_______ Amount
-    |__________ To white
-### 00005	Interrupts
+### 00000	Interrupts
     X... .VH.
     |     ||___ HBlank triggered
     |     |____ VBlank triggered
     |__________ Disable interrupts
 Used by the BIOS dispatcher to determine what to call. Applications can set the disable bit to prevent them from firing.
-### 00006	KeyIn
-    ..... .CAS KKKK KKKK
-           ||| |_____ Keycode
-           |||_______ Shift
-           ||________ Alt
-           |_________ Control
-### 00008	TickCount
+### 00001	ScreenMode
+    B32. ..MM
+    |||    |___ Mode
+    |||________ 240px tall instead of 480px
+    ||_________ 320px wide instead of 640px
+    |__________ Bold in text mode, 200 or 400px in bitmap mode
+### 00002	Line
+The current line being drawn as a `uint16`.
+### 00004	TickCount
 The amount of ticks since the system was turned on as a `uint32`.
-### 0000C	Joypad1
-    YXBA RLDU
-### 0000D	Joypad2
-### 0000E	DebugOut
-Pipe characters to `STDOUT`. 
-### 0000F	TilemapSet
+### 00008	ScreenFade
+    W..A AAAA
+    |  |_______ Amount
+    |__________ To white
+### 00009	TilemapSet
     EEEE TTTT
     |||| | |___ Tile shift for layers 1 and 3
     |||| |_____ Tile shift for layer 2 and 4
@@ -150,49 +144,65 @@ Pipe characters to `STDOUT`.
     ||_________ Layer 3 enabled
     |__________ Layer 4 enabled
 Tile shift adds `128 << T` to the tile # when rendering, so a shift value of 3 means a whole separate set of 1024 tiles.
+### 0000A	TilemapBlend
+    SSSS EEEE
+    |    |_____ Enable for these layers
+    |__________ Subtract instead of add
 ### 00010	TilemapScrollH1
 ### 00012	TilemapScrollV1
 Scroll values for the tile map as `int16`. This repeats for each of the four layers up to `001E TilemapScrollV4`. *The tile map controls are a work in progress.*
-### 00020	DMASource
+### 00040	KeyIn
+    ..... .CAS KKKK KKKK
+           ||| |_____ Keycode
+           |||_______ Shift
+           ||________ Alt
+           |_________ Control
+### 00042	Joypad1
+    YXBA RLDU
+### 00043	Joypad2
+#### 00044	MidiOut
+Send a raw 32-bit message through the MIDI OUT port.
+### 00048	PCMOut
+### 00080	DebugOut
+Pipe characters to `STDOUT`. *Should really be redone as a Line Printer thing.* 
+### 00100	DMASource
 Either a pointer or a value.
-### 00024	DMATarget
+### 00104	DMATarget
 Certainly a pointer.
-### 00028	DMALength
+### 00108	DMALength
 Certainly a value.
-### 0002A	DMAControl
+### 0010A	DMAControl
     ..WW VTSE
       |  ||||__ Enable now
       |  |||___ Increase source every loop
       |  ||____ Increase target every loop
       |  |_____ Use source as direct value, not as a pointer
       |________ Width of data to copy
-#### 00040	MidiOut
-Send a raw 32-bit message through the MIDI OUT port.
-### 00080	HDMAControl1
+### 00180	HDMAControl1
     ...L LLLL LLLL ...S SSSS SSSS D.WW ...E
        |              |           | |     |__ Enable
        |              |           | |________ Width of data to copy
        |              |           |__________ Doublescan
        |              |______________________ Starting scanline
        |_____________________________________ Linecount
-This repeats until `0009C HDMAControl8`.
-### 000A0	HDMASource1
-A pointer. This too repeats until `000BC HDMASource8`.
-### 000C0	HDMADest1
-A pointer. Again repeated until `000DC HDMADest8`.
+This repeats until `0019C HDMAControl8`.
+### 001A0	HDMASource1
+A pointer. This too repeats until `001BC HDMASource8`.
+### 001C0	HDMADest1
+A pointer. Again repeated until `001DC HDMADest8`.
 
 ---
 
 ## Blitter
 | register | name        | format                                    |
 | -------- | ----------- | ----------------------------------------- |
-| 00100    | Function    | `.... .... .... .... .... .... .... FFFF` |
-| 00104    | Source      | Pointer or value                          |
-| 00108    | Destination | Pointer                                   |
-| 0010C    | Length      | Value                                     |
-| 00110    | Key         | Value                                     |
+| 00200    | Function    | `.... .... .... .... .... .... .... FFFF` |
+| 00204    | Source      | Pointer or value                          |
+| 00208    | Destination | Pointer                                   |
+| 0020C    | Length      | Value                                     |
+| 00210    | Key         | Value                                     |
 
-### 0001	Blit
+### 1	Blit
     2222 2222 2222 1111 1111 1111 44KS 0001
     |              |              ||||_______ Enable strideskip
     |              |              |||________ Enable colorkey
@@ -209,7 +219,7 @@ A pointer. Again repeated until `000DC HDMADest8`.
 	* If `4-bit target` is set, behavior is undefined.
 	* If `4-bit target` not set, nothing special is done.
 
-### 0010	Clear
+### 2	Clear
     2222 2222 2222 1111 1111 1111 .WWS 0010
     |_________ Source width
 * Copies the value of `source` to `dest`.
@@ -218,9 +228,9 @@ A pointer. Again repeated until `000DC HDMADest8`.
 * If `width` is set to 2, sets `dest` to the full word.
 * If `width` is set to 3, behavior is undefined.
 
-### 0011	Invert
+### 3	Invert
     2222 2222 2222 1111 1111 1111 ...S 0011
 Inverts the byte values at B, simple as that.
 
-### 0100	UnRLE
+### 4	UnRLE
 Performs a simple RLE decompression from `source` to `dest`. `length` is the *compressed* size.
