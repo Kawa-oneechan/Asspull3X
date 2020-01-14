@@ -25,9 +25,24 @@ Address space is effectively 28 bits:
 | 20004  | char[4]  | `jmp` instruction
 | 20008  | char[24] | Product name
 | 20020  | uint32   | Checksum
-| 20024  | uint16   | Creator code
-| 20026  | uint8    | Region code
-| 20027  | uint8    | SRAM size
+| 20024  | char[3]  | Creator code
+| 20026  | char     | Language/region code
+| 20028  | uint8    | SRAM size
+
+### Language/region codes
+Including but not limited to:
+* `0` Not for public release
+* `w` Worldwide
+* `U` USA/American English
+* `e` European
+* `j` Japan/Japanese
+* `E` United Kingdom/English
+* `F` France/French
+* `D` Germany/German
+* `N` Netherlands/Dutch
+* `I` Italy/Italian
+* `S` Spain/Spanish
+* `s` USA/Spanish
 
 ## VRAM
 | from     | content
