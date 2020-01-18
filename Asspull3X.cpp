@@ -1,4 +1,5 @@
 #include "asspull.h"
+#include "miniz.h"
 
 extern "C" {
 #include "musashi/m68k.h"
@@ -18,13 +19,58 @@ extern unsigned int biosSize, romSize;
 
 IniFile* ini;
 
-void Check(unsigned int romSize, unsigned int fileSize)
+void LoadROM(const char* path)
 {
-	if (romSize != fileSize) SDL_Log("File size is not a power of two: is %d (0x%08X), should be %d (0x%08X).", fileSize, fileSize, romSize, romSize);
+	unsigned int fileSize = 0;
+
+	auto ext = strrchr(path, '.') + 1;
+	if (SDL_strncasecmp(ext, "ap3", 3) == 0)
+	{
+		memset(romCartridge, 0, CART_SIZE);
+		Slurp(romCartridge, path, &romSize);
+	}
+	else if (SDL_strncasecmp(ext, "a3z", 3) == 0)
+	{
+		mz_zip_archive zip;
+		memset(&zip, 0, sizeof(zip));
+		mz_zip_reader_init_file(&zip, path, 0);
+
+		for (int i = 0; i < (int)mz_zip_reader_get_num_files(&zip); i++)
+		{
+			mz_zip_archive_file_stat fs;
+			if (!mz_zip_reader_file_stat(&zip, i, &fs))
+			{
+				mz_zip_reader_end(&zip);
+				return;
+			}
+
+			ext = strrchr(fs.m_filename, '.') + 1;
+			if (SDL_strncasecmp(ext, "ap3", 3) == 0)
+			{
+				romSize = (unsigned int)fs.m_uncomp_size;
+				memset(romCartridge, 0, CART_SIZE);
+				mz_zip_reader_extract_to_mem(&zip, i, romCartridge, romSize, 0);
+				break;
+			}
+		}
+		mz_zip_reader_end(&zip);
+	}
+
+	fileSize = romSize;
+	romSize = RoundUp(romSize);
+	if (romSize != fileSize)
+		SDL_Log("File size is not a power of two: is %d (0x%08X), should be %d (0x%08X).", fileSize, fileSize, romSize, romSize);
+
 	unsigned int c1 = 0;
 	unsigned int c2 = (romCartridge[0x20] << 24) | (romCartridge[0x21] << 16) | (romCartridge[0x22] << 8) | (romCartridge[0x23] << 0);
-	for (unsigned int i = 0; i < romSize; i++) { if (i == 0x20) i += 4; c1 += romCartridge[i]; }
-	if (c1 != c2) SDL_Log("Checksum mismatch: is 0x%08X, should be 0x%08X.", c2, c1);
+	for (unsigned int i = 0; i < romSize; i++)
+	{
+		if (i == 0x20)
+			i += 4; //skip the checksum itself
+		c1 += romCartridge[i];
+	}
+	if (c1 != c2)
+		SDL_Log("Checksum mismatch: is 0x%08X, should be 0x%08X.", c2, c1);
 }
 
 int pauseState = 0;
@@ -128,10 +174,7 @@ int main(int argc, char* argv[])
 	if (thing[0] != 0)
 	{
 		SDL_Log("Loading ROM, %s ...", thing);
-		Slurp(romCartridge, thing, &romSize);
-		unsigned int fileSize = romSize;
-		romSize = RoundUp(romSize);
-		Check(romSize, fileSize);
+		LoadROM(thing);
 	}
 
 	SDL_Log("Resetting Musashi...");
@@ -226,11 +269,7 @@ int main(int argc, char* argv[])
 				{
 					SDL_Log("Loading ROM, %s ...", uiString);
 					auto gottaReset = (*(uint32_t*)romCartridge == 0x21535341);
-					memset(romCartridge, 0, CART_SIZE);
-					Slurp(romCartridge, uiString, &romSize);
-					unsigned int fileSize = romSize;
-					romSize = RoundUp(romSize);
-					Check(fileSize, romSize);
+					LoadROM(uiString);
 					
 					ini->Set("media", "lastROM", uiString);
 					if (gottaReset)
