@@ -84,6 +84,7 @@
   <ItemGroup>
     <ClInclude Include="asspull.h" />
     <ClInclude Include="ini.h" />
+    <ClInclude Include="miniz.h" />
     <ClInclude Include="musashi\m68k.h" />
     <ClInclude Include="musashi\m68kconf.h" />
   </ItemGroup>
@@ -93,6 +94,7 @@
     <ClCompile Include="ini.cpp" />
     <ClCompile Include="keyboard.cpp" />
     <ClCompile Include="memory.cpp" />
+    <ClCompile Include="miniz.c" />
     <ClCompile Include="musashi\m68kcpu.c" />
     <ClCompile Include="musashi\m68kfpu.c" />
     <ClCompile Include="musashi\m68kops.c" />

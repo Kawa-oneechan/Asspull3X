@@ -8,3 +8,4 @@ To actually *use* this, ROM files are included and more up-to-date copies can be
 * PAL Composite shader by r57shell.
 * CRT shader by Timothy Lottes.
 * UI font from a Nokia phone, general UI style cribbed from Nesticle/Genecyst by Bloodlust Software.
+* miniz library by Rich Geldreich.

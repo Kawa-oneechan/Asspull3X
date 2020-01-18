@@ -635,7 +635,11 @@ void presentBackBuffer(SDL_Renderer *renderer, SDL_Window* win, SDL_Texture* bac
 	}
 	auto maxScaleX = floorf(winWidth / 640.0f);
 	auto maxScaleY = floorf(winHeight / 480.0f);
+#if WIN32 && !CLANG
 	scale = (int)__min(maxScaleX, maxScaleY);
+#else
+	scale = (int)__fmin(maxScaleX, maxScaleY);
+#endif
 	scrWidth = 640 * scale;
 	scrHeight = 480 * scale;
 	offsetX = (int)floorf((winWidth - scrWidth) * 0.5f);
@@ -724,39 +728,33 @@ int UninitVideo()
 	return 0;
 }
 
+#include "miniz.h"
+
 void Screenshot()
 {
 #ifdef WIN32
 	char snap[128];
 	__time64_t now;
 	_time64(&now);
-	sprintf(snap, "%llu.bmp", now);
+	sprintf(snap, "%llu.png", now);
 
 	int size = scrWidth * scrHeight * 3;
 
 	char* shot = (char*)malloc(4 * scrWidth * scrHeight);
-	glReadPixels(offsetX, offsetY, scrWidth, scrHeight, GL_BGR, GL_UNSIGNED_BYTE, shot);
+	glReadPixels(offsetX, offsetY, scrWidth, scrHeight, GL_RGB, GL_UNSIGNED_BYTE, shot);
 
-	FILE* f = fopen(snap, "wb");
-	if (!f) return;
-	short s = 0x4D42; fwrite(&s, 2, 1, f);
-	long l = size + 54; fwrite(&l, 4, 1, f);
-	s = 0; fwrite(&s, 2, 2, f);
-	l = 54; fwrite(&l, 4, 1, f);
-	l = 40; fwrite(&l, 4, 1, f);
-	l = scrWidth; fwrite(&l, 4, 1, f);
-	l = scrHeight; fwrite(&l, 4, 1, f);
-	s = 1; fwrite(&s, 2, 1, f);
-	s = 24; fwrite(&s, 2, 1, f);
-	l = 0; fwrite(&l, 4, 1, f);
-	l = size; fwrite(&l, 4, 1, f);
-	l = 7874; fwrite(&l, 4, 1, f); fwrite(&l, 4, 1, f);
-	l = 0; fwrite(&l, 4, 2, f);
-	fwrite(shot, size, 1, f);
-	fclose(f);
-
-	free(shot);
-	SDL_Log("Snap! %s saved.", snap);
+	size_t png_data_size = 0;
+	void *pPNG_data = tdefl_write_image_to_png_file_in_memory_ex(shot, scrWidth, scrHeight, 3, &png_data_size, MZ_DEFAULT_LEVEL, MZ_TRUE);
+	if (!pPNG_data)
+		SDL_Log("Failed to write PNG.");
+	else
+	{
+		FILE *pFile = fopen(snap, "wb");
+		fwrite(pPNG_data, 1, png_data_size, pFile);
+		fclose(pFile);
+		SDL_Log("Snap! %s saved.", snap);
+	}
+	mz_free(pPNG_data);
 #else
 	SDL_Log("Not on this platform just yet.");
 #endif
