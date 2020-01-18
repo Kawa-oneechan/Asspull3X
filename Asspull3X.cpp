@@ -35,6 +35,7 @@ void LoadROM(const char* path)
 		memset(&zip, 0, sizeof(zip));
 		mz_zip_reader_init_file(&zip, path, 0);
 
+		bool foundSomething = false;
 		for (int i = 0; i < (int)mz_zip_reader_get_num_files(&zip); i++)
 		{
 			mz_zip_archive_file_stat fs;
@@ -44,9 +45,13 @@ void LoadROM(const char* path)
 				return;
 			}
 
+			if (!strchr(fs.m_filename, '.'))
+				continue;
+
 			ext = strrchr(fs.m_filename, '.') + 1;
 			if (SDL_strncasecmp(ext, "ap3", 3) == 0)
 			{
+				foundSomething = true;
 				romSize = (unsigned int)fs.m_uncomp_size;
 				memset(romCartridge, 0, CART_SIZE);
 				mz_zip_reader_extract_to_mem(&zip, i, romCartridge, romSize, 0);
@@ -54,6 +59,11 @@ void LoadROM(const char* path)
 			}
 		}
 		mz_zip_reader_end(&zip);
+		if (!foundSomething)
+		{
+			SetStatus("No single AP3 file found in archive.");
+			return;
+		}
 	}
 
 	fileSize = romSize;
