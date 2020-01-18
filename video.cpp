@@ -732,17 +732,10 @@ void Screenshot()
 	_time64(&now);
 	sprintf(snap, "%llu.bmp", now);
 
-	int winWidth, winHeight;
-	SDL_GetWindowSize(sdlWindow, &winWidth, &winHeight);
-	int scrWidth = (winWidth / 640) * 640;
-	int scrHeight = (winHeight / 480) * 480;
-	scrWidth = (int)(scrHeight * 1.33334f);
-	int left = (winWidth - scrWidth) / 2;
-	int top = (winHeight - scrHeight) / 2;
 	int size = scrWidth * scrHeight * 3;
 
 	char* shot = (char*)malloc(4 * scrWidth * scrHeight);
-	glReadPixels(left, top, scrWidth, scrHeight, GL_BGR, GL_UNSIGNED_BYTE, shot);
+	glReadPixels(offsetX, offsetY, scrWidth, scrHeight, GL_BGR, GL_UNSIGNED_BYTE, shot);
 
 	FILE* f = fopen(snap, "wb");
 	if (!f) return;
@@ -757,7 +750,7 @@ void Screenshot()
 	s = 24; fwrite(&s, 2, 1, f);
 	l = 0; fwrite(&l, 4, 1, f);
 	l = size; fwrite(&l, 4, 1, f);
-	l = 7874; fwrite(&l, 4, 2, f);
+	l = 7874; fwrite(&l, 4, 1, f); fwrite(&l, 4, 1, f);
 	l = 0; fwrite(&l, 4, 2, f);
 	fwrite(shot, size, 1, f);
 	fclose(f);
