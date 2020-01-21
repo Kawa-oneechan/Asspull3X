@@ -1,4 +1,5 @@
 #include "asspull.h"
+#include <time.h>
 
 extern void SendMidi(unsigned int message);
 
@@ -33,6 +34,7 @@ int blitAddrA, blitAddrB, blitKey;
 extern unsigned char PollKeyboard(bool force);
 
 long ticks = 0;
+time_t timelatch;
 
 extern bool gfx320, gfx240, gfxTextBold;
 extern int gfxMode, gfxFade, scrollX[4], scrollY[4], tileShift[4], mapEnabled[4], mapBlend[4];
@@ -181,6 +183,13 @@ unsigned int m68k_read_memory_32(unsigned int address)
 		{
 			case 0x04: //Ticks
 				return (int)ticks;
+			case 0x60: //Time_T (top half)
+			{
+				timelatch = time(NULL);
+				return (int)(timelatch >> 32);
+			}
+			case 0x64: //Time_T (bottom half)
+					return (int)timelatch;
 			case 0x100: //DMA Source
 				return dmaSource;
 			case 0x104: //DMA Target
