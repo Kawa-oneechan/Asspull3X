@@ -178,6 +178,8 @@ Scroll values for the tile map as `int16`. This repeats for each of the four lay
 #### 00044	MidiOut
 Send a raw 32-bit message through the MIDI OUT port.
 ### 00048	PCMOut
+### 00060	TimeT
+The only 64-bit value in the system. Emulator-wise, reading the first half latches the current host system time so there's no sudden shifts when you read the second half. Writing the first half likewise latches, and the real time clock isn't actually *set* until the second half is written. If reading returns a null value, the RTC hasn't been set and doesn't tick.
 ### 00080	DebugOut
 Pipe characters to `STDOUT`. *Should really be redone as a Line Printer thing.* 
 ### 00100	DMASource

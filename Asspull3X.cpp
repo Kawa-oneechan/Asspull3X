@@ -16,6 +16,7 @@ extern void _devUpdateDiskette(int);
 extern void ShowOpenFileDialog(int, int, const char*);
 
 extern unsigned int biosSize, romSize;
+extern long rtcOffset;
 
 IniFile* ini;
 
@@ -113,6 +114,8 @@ int main(int argc, char* argv[])
 				fullScreen = true;
 		}
 	}
+
+	rtcOffset = SDL_atoi(ini->Get("media", "rtcOffset", "3735930636")); //DEADC70C
 
 	if (InitVideo(fullScreen) < 0)
 		return 0;

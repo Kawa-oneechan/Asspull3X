@@ -34,7 +34,8 @@ int blitAddrA, blitAddrB, blitKey;
 extern unsigned char PollKeyboard(bool force);
 
 long ticks = 0;
-time_t timelatch;
+time_t timelatch, timesetlatch;
+long rtcOffset = 0;
 
 extern bool gfx320, gfx240, gfxTextBold;
 extern int gfxMode, gfxFade, scrollX[4], scrollY[4], tileShift[4], mapEnabled[4], mapBlend[4];
@@ -184,12 +185,10 @@ unsigned int m68k_read_memory_32(unsigned int address)
 			case 0x04: //Ticks
 				return (int)ticks;
 			case 0x60: //Time_T (top half)
-			{
-				timelatch = time(NULL);
+				timelatch = (rtcOffset == 0xDEADC70C) ? 0 : (time(NULL) + rtcOffset);
 				return (int)(timelatch >> 32);
-			}
 			case 0x64: //Time_T (bottom half)
-					return (int)timelatch;
+				return (int)timelatch;
 			case 0x100: //DMA Source
 				return dmaSource;
 			case 0x104: //DMA Target
@@ -358,6 +357,24 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 			case 0x44: //MIDI Out
 				if (value > 0)
 					SendMidi(value);
+				break;
+			case 0x60: //Time_T (top half)
+				timelatch = time(NULL);
+				if ((signed int)value == -1)
+					value = 0;
+				timesetlatch = value;
+				//return (int)(timelatch >> 32);
+				break;
+			case 0x64: //Time_T (bottom half)
+				timesetlatch <<= 32;
+				timesetlatch |= value;
+				rtcOffset = (long)(timesetlatch - timelatch);
+				{
+					char val[16] = { 0 };
+					SDL_itoa(rtcOffset, val, 10);
+					ini->Set("media", "rtcOffset", val);
+				}
+				//return (int)timelatch;
 				break;
 			case 0x180: //HDMA Control
 			case 0x184:
