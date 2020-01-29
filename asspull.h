@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string>
-#if WIN32
+#if _MSC_VER
 #include <SDL.h>
 #else
 #include <SDL2/SDL.h>

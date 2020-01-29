@@ -89,7 +89,7 @@ unsigned char* pauseScreen;
 extern unsigned char* pixels;
 bool fpsCap;
 extern bool fpsVisible;
-#if WIN32 && _CONSOLE
+#if _MSC_VER && _CONSOLE
 #include <tchar.h>
 int _tmain(int argc, _TCHAR* argv[])
 #else
@@ -283,7 +283,7 @@ int main(int argc, char* argv[])
 					SDL_Log("Loading ROM, %s ...", uiString);
 					auto gottaReset = (*(uint32_t*)romCartridge == 0x21535341);
 					LoadROM(uiString);
-					
+
 					ini->Set("media", "lastROM", uiString);
 					if (gottaReset)
 						m68k_pulse_reset();
@@ -292,7 +292,7 @@ int main(int argc, char* argv[])
 			else if (uiCommand == cmdInsertDisk)
 			{
 				if (devices[uiData] == NULL || devices[uiData]->GetID() != 0x0144)
-					SetStatus("No disk drive.");					
+					SetStatus("No disk drive.");
 				else if (((DiskDrive*)devices[uiData])->IsMounted())
 					SetStatus("Unmount the medium first.");
 				else

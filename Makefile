@@ -1,4 +1,4 @@
-OBJS = Asspull3X.cpp device.cpp ini.cpp keyboard.cpp memory.cpp sound.cpp ui.cpp video.cpp musashi/m68kcpu.c musashi/m68kops.c nativefiledialog/src/nfd_dummy.cpp
+OBJS = Asspull3X.cpp device.cpp ini.cpp keyboard.cpp memory.cpp sound.cpp ui.cpp video.cpp musashi/m68kcpu.c musashi/m68kops.c miniz.c
 
 LIBS = -lSDL2 -lGL
 

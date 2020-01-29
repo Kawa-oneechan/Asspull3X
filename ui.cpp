@@ -3,8 +3,15 @@
 #include <string.h>
 #include <vector>
 #include <memory>
+#ifdef _MSC_VER
 #include <direct.h>
 #include <io.h>
+#else
+#include <unistd.h>
+#include <dirent.h>
+#include <fnmatch.h>
+#include <sys/stat.h>
+#endif
 
 #define LETITSNOW
 #define PROPER_ARROW
@@ -105,7 +112,7 @@ void* focusedWindow = NULL;
 void* focusedTextBox = NULL;
 int dragStartX, dragStartY;
 int dragLeft, dragTop, dragWidth, dragHeight, dragStartLeft, dragStartTop;
-int justClicked;
+int justClicked = 0;
 
 class Control
 {
@@ -178,6 +185,7 @@ public:
 		this->top = this->absTop = top;
 		this->color = color;
 		this->width = (width == 0) ? MeasureString(caption) : width;
+		this->visible = true;
 	}
 	void Draw()
 	{
@@ -197,6 +205,7 @@ public:
 		this->top = this->absTop = top;
 		this->width = width;
 		this->height = height;
+		this->visible = true;
 	}
 	void Draw()
 	{
@@ -281,7 +290,7 @@ public:
 		else
 			DrawRect4(left, top, width, height, WINDOW_FILL, WINDOW_BORDER_L, WINDOW_BORDER_T, WINDOW_BORDER_R, WINDOW_BORDER_B);
 		DrawRect(left + 1, top + 1, width - 2, 12, WINDOW_CAPTION, -1);
-		
+
 		DrawHLine(left + 2, top + height + 0, width, -2);
 		DrawHLine(left + 2, top + height + 1, width, -2);
 		DrawVLine(left + width + 0, top + 2, height - 2, -2);
@@ -352,6 +361,7 @@ public:
 		this->height = 13;
 		this->onClick = click;
 		this->enabled = true;
+		this->visible = true;
 	}
 	void Draw()
 	{
@@ -382,6 +392,7 @@ public:
 		this->height = 13;
 		this->onClick = click;
 		this->enabled = true;
+		this->visible = true;
 		this->checked = checked;
 	}
 	void Draw()
@@ -415,6 +426,7 @@ public:
 		this->height = 10;
 		this->onClick = click;
 		this->enabled = true;
+		this->visible = true;
 	}
 	void Draw()
 	{
@@ -443,7 +455,7 @@ public:
 	int thumb;
 	std::vector<std::string> items;
 	void(*onChange)(Control*, int);
-	void(*onDouble)(Control*, int);
+	void(*onDouble)(Control*, int, const char*);
 	ListBox(int left, int top, int width, int height, void(*change)(Control*, int))
 	{
 		this->left = this->absLeft = left;
@@ -453,6 +465,7 @@ public:
 		this->onChange = change;
 		this->onDouble = NULL;
 		this->enabled = true;
+		this->visible = true;
 		this->selection = 0;
 		this->scroll = 0;
 		this->thumb = 1;
@@ -497,7 +510,7 @@ public:
 				return;
 
 			selection = y + scroll;
-				
+
 			if (onChange)
 				onChange(this, selection);
 			if (onDouble && selection == doubleItem)
@@ -507,7 +520,7 @@ public:
 				if (diff < 750)
 				{
 					doubleTime = 0;
-					onDouble(this, selection);
+					onDouble(this, selection, items[selection].c_str());
 				}
 				else
 					doubleTime = now;
@@ -551,6 +564,7 @@ public:
 		this->onClick = click;
 		this->command = 0;
 		this->enabled = true;
+		this->visible = true;
 	}
 	MenuItem(const char* caption, char hotkey, int uiCommand)
 	{
@@ -620,6 +634,7 @@ public:
 		this->height = 13;
 		this->absTop = 0;
 		this->enabled = true;
+		this->visible = true;
 		this->sizedTheChildren = false;
 	}
 	void AddChild(Control* child)
@@ -751,6 +766,7 @@ public:
 		this->left = this->absLeft = left;
 		this->top = this->absTop = top;
 		this->enabled = true;
+		this->visible = true;
 		this->sizedTheChildren = false;
 	}
 	void AddChild(Control* child)
@@ -799,6 +815,7 @@ public:
 		this->left = this->absLeft = left;
 		this->top = this->absTop = top;
 		this->enabled = true;
+		this->visible = true;
 		this->width = (width == 0) ? MeasureString(caption) : width;
 		this->height = 10;
 		this->onEnter = NULL;
@@ -1432,7 +1449,7 @@ void LetItSnow()
 
 void SetStatus(const char* text)
 {
-	printf("STATUS: %s\n", text); 
+	printf("STATUS: %s\n", text);
 	strcpy(uiStatus, text);
 	statusTimer = 100;
 }
@@ -1456,7 +1473,12 @@ void ShowOpenFileDialog(int command, int data, const char* pattern)
 		auto lastSlash = (char*)strrchr(thing, '\\');
 		if (lastSlash)
 			*(lastSlash + 1) = 0;
+#ifdef _MSC_VER
 		_chdir(thing);
+#else
+		//TODO
+		//chdir(thing);
+#endif
 	}
 
 	fileSelectCommand = command;
@@ -1833,6 +1855,7 @@ void UpdateFileList()
 	fileList->items.clear();
 	fileList->selection = -1;
 	fileList->scroll = 0;
+#ifdef _MSC_VER
 	_finddata_t ff;
 	auto fh = _findfirst("*", &ff);
 	do
@@ -1852,12 +1875,36 @@ void UpdateFileList()
 		} while (_findnext(fh, &ff) == 0);
 	}
 	_findclose(fh);
+#else
+	struct dirent **nl;
+	int n = scandirat(-100, ".", &nl, NULL, alphasort);
+	for (int i = 0; i < n; i++)
+	{
+		if (!strcmp(nl[i]->d_name, "."))
+			continue;
+		if (nl[i]->d_type & DT_DIR)
+		{
+			printf("DIR: %s\n", nl[i]->d_name);
+			fileList->items.push_back(nl[i]->d_name);
+		}
+	}
+	for (int i = 0; i < n; i++)
+	{
+		if (!fnmatch(fileSelectPattern, nl[i]->d_name, 0))
+		{
+			printf("ROM: %s\n", nl[i]->d_name);
+			fileList->items.push_back(nl[i]->d_name);
+		}
+		free(nl[i]);
+	}
+	free(nl);
+#endif
 }
 
-void _fileList(Control* me, int selection)
+void _fileList(Control* me, int index, const char* filename)
 {
-	auto filename = ((ListBox*)me)->items[selection].c_str();
 	//not the best way but FUCK IT!
+#ifdef _MSC_VER
 	_finddata_t ff;
 	auto fh = _findfirst(filename, &ff);
 	auto attrib = ff.attrib;
@@ -1877,6 +1924,23 @@ void _fileList(Control* me, int selection)
 		uiData = fileSelectData;
 		fileSelectWindow->Hide();
 	}
+#else
+	struct stat sb;
+	stat(filename, &sb);
+	if (S_ISDIR(sb.st_mode))
+	{
+		chdir(filename);
+		UpdateFileList();
+	}
+	else
+	{
+		//TODO: produce full path
+		strcpy(uiString, filename);
+		uiCommand = fileSelectCommand;
+		uiData = fileSelectData;
+		fileSelectWindow->Hide();
+	}
+#endif
 }
 
 Window* BuildFileSelectWindow()

@@ -1,5 +1,12 @@
 #include "asspull.h"
+#if _MSC_VER
 #include <direct.h>
+#else
+#include <unistd.h>
+#define strcmpi strcmp
+#define _getcwd getcwd
+#define _chdir chdir
+#endif
 #include <map>
 #include <vector>
 

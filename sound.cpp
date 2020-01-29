@@ -1,7 +1,7 @@
 #include "asspull.h"
 #include <vector>
 
-#if WIN32
+#if _MSC_VER
 #include <Windows.h>
 
 #define LATENCY 64
@@ -104,7 +104,12 @@ void SendMidi(unsigned int message)
 
 #else
 
-#pragma message("No MIDI support for non-Windows targets yet!")
+#pragma message("No sound support for non-Windows targets yet!")
+void BufferAudioSample(signed char sample)
+{
+}
+
+
 int InitSound()
 {
 	return 0;
