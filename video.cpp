@@ -494,6 +494,8 @@ const char* vertexShader = "varying vec4 v_color;"
 "v_texCoord = vec2(gl_MultiTexCoord0);"
 "}";
 
+bool sdl2oh10 = false;
+
 bool initGLExtensions() {
 	glCreateShader = (PFNGLCREATESHADERPROC)SDL_GL_GetProcAddress("glCreateShader");
 	glShaderSource = (PFNGLSHADERSOURCEPROC)SDL_GL_GetProcAddress("glShaderSource");
@@ -633,6 +635,7 @@ void presentBackBuffer(SDL_Renderer *renderer, SDL_Window* win, SDL_Texture* bac
 		winHeight = 480;
 		SDL_SetWindowSize(sdlWindow, winWidth, 480);
 	}
+
 	auto maxScaleX = floorf(winWidth / 640.0f);
 	auto maxScaleY = floorf(winHeight / 480.0f);
 #if _MSC_VER
@@ -645,21 +648,34 @@ void presentBackBuffer(SDL_Renderer *renderer, SDL_Window* win, SDL_Texture* bac
 	offsetX = (int)floorf((winWidth - scrWidth) * 0.5f);
 	offsetY = (int)floorf((winHeight - scrHeight) * 0.5f);
 
-	GLfloat minx = (GLfloat)offsetX;
-	GLfloat miny = (GLfloat)offsetY;
-	GLfloat maxx = minx + scrWidth;
-	GLfloat maxy = miny + scrHeight;
+	if (sdl2oh10)
+	{
+		glViewport(offsetX, offsetY, scrWidth, scrHeight);
 
-	glBegin(GL_TRIANGLE_STRIP);
-		glTexCoord2f(0.0f, 0.0f);
-		glVertex2f(minx, miny);
-		glTexCoord2f(1.0f, 0.0f);
-		glVertex2f(maxx, miny);
-		glTexCoord2f(0.0f, 1.0f);
-		glVertex2f(minx, maxy);
-		glTexCoord2f(1.0f, 1.0f);
-		glVertex2f(maxx, maxy);
-	glEnd();
+		glBegin(GL_TRIANGLE_STRIP);
+			glTexCoord2f(0.0f, 0.0f);
+			glVertex2f(0.0f, 0.0f);
+			glTexCoord2f(1.0f, 0.0f);
+			glVertex2f(640.0f, 0.0f);
+			glTexCoord2f(0.0f, 1.0f);
+			glVertex2f(0.0f, 480.0f);
+			glTexCoord2f(1.0f, 1.0f);
+			glVertex2f(640.0f, 480.0f);
+		glEnd();
+	}
+	else
+	{
+		glBegin(GL_TRIANGLE_STRIP);
+			glTexCoord2f(0.0f, 0.0f);
+			glVertex2f((GLfloat)offsetX, (GLfloat)offsetY);
+			glTexCoord2f(1.0f, 0.0f);
+			glVertex2f((GLfloat)offsetX + scrWidth, (GLfloat)offsetY);
+			glTexCoord2f(0.0f, 1.0f);
+			glVertex2f((GLfloat)offsetX, (GLfloat)offsetY + scrHeight);
+			glTexCoord2f(1.0f, 1.0f);
+			glVertex2f((GLfloat)offsetX + scrWidth, (GLfloat)offsetY + scrHeight);
+		glEnd();
+	}
 
 	if(programId != 0)
 		glUseProgram(oldProgramId);
@@ -677,6 +693,11 @@ void VBlank()
 
 int InitVideo(bool fullScreen)
 {
+	SDL_version linked;
+	SDL_GetVersion(&linked);
+	if (linked.major >= 2 && linked.minor >= 0 && linked.patch > 7)
+		sdl2oh10 = true;
+
 	SDL_Log("Creating window...");
 	auto winWidth = SDL_atoi(ini->Get("video", "width", "640"));
 	auto winHeight = SDL_atoi(ini->Get("video", "height", "480"));
@@ -707,6 +728,17 @@ int InitVideo(bool fullScreen)
 
 	initGLExtensions();
 	programId = compileProgram(ini->Get("video", "shader", ""));
+
+	if (sdl2oh10)
+	{
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		glOrtho(0, 640, 480, 0, -1, 1);
+		glMatrixMode(GL_TEXTURE);
+		glLoadIdentity();
+	}
 
 	if ((sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_TARGET, 640, 480)) == NULL)
 	{
