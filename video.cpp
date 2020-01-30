@@ -695,8 +695,19 @@ int InitVideo(bool fullScreen)
 {
 	SDL_version linked;
 	SDL_GetVersion(&linked);
-	if (linked.major >= 2 && linked.minor >= 0 && linked.patch > 7)
-		sdl2oh10 = true;
+	if (linked.major == 2 && linked.minor == 0)
+	{
+		if (linked.patch > 7)
+			sdl2oh10 = true;
+		else if(linked.patch < 4)
+		{
+			//https://www.youtube.com/watch?v=5FjWe31S_0g
+			char msg[512];
+			sprintf(msg, "You are trying to run with an outdated version of SDL.\n\nYou have version %d.%d.%d.\nYou need version 2.0.4 or later.", linked.major, linked.minor, linked.patch);
+			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Asspull3X",  msg, NULL);
+			return -3;
+		}
+	}
 
 	SDL_Log("Creating window...");
 	auto winWidth = SDL_atoi(ini->Get("video", "width", "640"));
