@@ -575,6 +575,7 @@ public:
 		this->onClick = NULL;
 		this->command = uiCommand;
 		this->enabled = true;
+		this->visible = true;
 
 		if (caption[0] == '-')
 		{
