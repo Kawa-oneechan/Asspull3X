@@ -1471,6 +1471,9 @@ void ShowOpenFileDialog(int command, int data, const char* pattern)
 	fileSelectPattern = pattern;
 	UpdateFileList();
 	fileSelectWindow->Show();
+
+	if (pauseState == 0)
+		pauseState = 1;
 }
 
 #include "aboutpic.c"
@@ -1930,7 +1933,7 @@ void _fileList(Control* me, int index, const char* filename)
 
 Window* BuildFileSelectWindow()
 {
-	auto win = new Window("Open", 8, 8, 128, 256);
+	auto win = new Window("Open", 8, 16, 128, 256);
 	win->AddChild(fileList = new ListBox(4, 3, 120, 240, 0));
 	fileList->onDouble = _fileList;
 	win->Propagate();
