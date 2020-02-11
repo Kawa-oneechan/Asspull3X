@@ -940,7 +940,7 @@ public:
 };
 
 extern int pauseState;
-int mouseTimer = 0, cursorTimer = 0;
+int mouseTimer = 0;
 MenuBar* menuBar = NULL;
 
 Window* aboutWindow;
@@ -1047,9 +1047,6 @@ void HandleUI()
 {
 	int x = 0, y = 0;
 	mouseTimer++;
-	int buttons = GetMouseState(&x, &y);
-	if (pauseState == 2)
-		LetItSnow();
 
 	if (!initialized)
 	{
@@ -1057,6 +1054,15 @@ void HandleUI()
 		initialized = true;
 	}
 
+	if (pauseState == 0)
+	{
+		HandleStatusLine(4);
+		return;
+	}
+
+	int buttons = GetMouseState(&x, &y);
+
+	LetItSnow();
 	if (!topLevelControls.empty())
 	{
 		CheckForWindowPops();
@@ -1086,15 +1092,8 @@ void HandleUI()
 		}
 	}
 
-	int statusLeft = 4;
-
-	if (y <= 10 || currentMenu != NULL || pauseState == 2)
-	{
-		menuBar->Draw();
-		menuBar->Handle();
-		statusLeft = menuBar->width + 4;
-		cursorTimer = 100;
-	}
+	menuBar->Draw();
+	menuBar->Handle();
 
 	if (currentMenu != NULL)
 	{
@@ -1110,10 +1109,7 @@ void HandleUI()
 	if (buttons && focusedTextBox != NULL && !((Control*)focusedTextBox)->WasInside())
 		focusedTextBox = NULL;
 
-	if (focusedWindow != NULL)
-		cursorTimer = 100;
-
-	HandleStatusLine(statusLeft);
+	HandleStatusLine(menuBar->width + 4);
 
 	DrawCursor();
 }
@@ -1226,23 +1222,11 @@ void DrawCursor()
 	GetMouseState(&x, &y);
 	if (oldX != x || oldY != y)
 	{
-		cursorTimer = 100;
 		if (!customMouse)
 			SDL_ShowCursor(1);
 	}
 	oldX = x;
 	oldY = y;
-
-	if (cursorTimer == 0)
-	{
-		if (!customMouse)
-			SDL_ShowCursor(0);
-		return;
-	}
-
-	cursorTimer--;
-	if (!customMouse)
-		return;
 
 	unsigned short pix = 0;
 	for (int row = 0; row < 16; row++)

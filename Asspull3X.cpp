@@ -220,6 +220,8 @@ int main(int argc, char* argv[])
 	auto delta = 0;
 	auto frames = 0;
 
+	SetStatus("Middle-click or Ctrl-P to open UI.");
+
 	while (!quit)
 	{
 		while (SDL_PollEvent(&ev) != 0)
@@ -269,6 +271,14 @@ int main(int argc, char* argv[])
 				}
 				keyScan = 0;
 				break;
+			case SDL_MOUSEBUTTONUP:
+				if (ev.button.button == 2)
+				{
+					if (pauseState == 0)
+						pauseState = 1;
+					else if (pauseState == 2)
+						pauseState = 0;
+				}
 			}
 		}
 
@@ -287,6 +297,9 @@ int main(int argc, char* argv[])
 					ini->Set("media", "lastROM", uiString);
 					if (gottaReset)
 						m68k_pulse_reset();
+
+					if (pauseState == 2)
+						pauseState = 0;
 				}
 			}
 			else if (uiCommand == cmdInsertDisk)
