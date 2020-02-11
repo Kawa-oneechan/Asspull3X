@@ -400,7 +400,7 @@ void RenderTileMode(int line)
 		{
 			//PPPP VH.T TTTT TTTT
 			auto data = (ramVideo[screenSource] << 8) | ramVideo[screenSource+1];
-			auto tile = (data & 0x1FF) + shift;
+			auto tile = (data & 0x3FF) + shift;
 			auto tileX = xxx & 7;
 			auto tileY = yyy & 7;
 

@@ -66,8 +66,8 @@ Including but not limited to:
 * sprites idea B: up to 256 32-bit entries = 1024 => `$00400`
 
 ## Tilemap cell
-    PPPP vh.T TTTT TTTT
-    |    || |____________ Tile #
+    PPPP vhTT TTTT TTTT
+    |    |||_____________ Tile #
     |    ||______________ Horizontal flip
     |    |_______________ Vertical flip
     |____________________ Palette #
