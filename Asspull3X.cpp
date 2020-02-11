@@ -188,6 +188,7 @@ int main(int argc, char* argv[])
 	{
 		SDL_Log("Loading ROM, %s ...", thing);
 		LoadROM(thing);
+		pauseState = 0;
 	}
 
 	SDL_Log("Resetting Musashi...");

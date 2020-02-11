@@ -97,10 +97,10 @@ void RenderSprites(int line, int withPriority)
 		if ((spriteA & 0x800) != 0x800)
 			continue;
 		auto spriteB =
-			(ramVideo[SPR2_ADDR + 0 + (i * 2)] << 24) |
-			(ramVideo[SPR2_ADDR + 1 + (i * 2)] << 16) |
-			(ramVideo[SPR2_ADDR + 2 + (i * 2)] << 8) |
-			(ramVideo[SPR2_ADDR + 3 + (i * 2)] << 0);
+			(ramVideo[SPR2_ADDR + 0 + (i * 4)] << 24) |
+			(ramVideo[SPR2_ADDR + 1 + (i * 4)] << 16) |
+			(ramVideo[SPR2_ADDR + 2 + (i * 4)] << 8) |
+			(ramVideo[SPR2_ADDR + 3 + (i * 4)] << 0);
 		auto prio = (spriteB >> 29) & 7;
 		if (withPriority > -1 && prio != withPriority)
 			continue;
