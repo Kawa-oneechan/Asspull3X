@@ -9,3 +9,4 @@ To actually *use* this, ROM files are included and more up-to-date copies can be
 * CRT shader by Timothy Lottes.
 * UI font from a Nokia phone, general UI style cribbed from Nesticle/Genecyst by Bloodlust Software.
 * miniz library by Rich Geldreich.
+* SimpleIni library by Brodie Thiesfield.

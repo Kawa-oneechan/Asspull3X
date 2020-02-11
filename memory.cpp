@@ -370,9 +370,8 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 				timesetlatch |= value;
 				rtcOffset = (long)(timesetlatch - timelatch);
 				{
-					char val[16] = { 0 };
-					SDL_itoa(rtcOffset, val, 10);
-					ini->Set("media", "rtcOffset", val);
+					ini.SetLongValue("media", "rtcOffset", rtcOffset);
+					ini.SaveFile("settings.ini");
 				}
 				//return (int)timelatch;
 				break;

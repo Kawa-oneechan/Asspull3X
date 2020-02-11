@@ -710,8 +710,8 @@ int InitVideo(bool fullScreen)
 	}
 
 	SDL_Log("Creating window...");
-	auto winWidth = SDL_atoi(ini->Get("video", "width", "640"));
-	auto winHeight = SDL_atoi(ini->Get("video", "height", "480"));
+	auto winWidth = ini.GetLongValue("video", "width", 640);
+	auto winHeight = ini.GetLongValue("video", "height", 480);
 	uint32_t flags = SDL_WINDOW_SHOWN;
 	if (fullScreen)
 		flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
@@ -732,13 +732,11 @@ int InitVideo(bool fullScreen)
 		return -2;
 	}
 
-	auto thing = ini->Get("video", "stretch200", "false");
-	if (thing[0] == 't' || thing[0] == 'T' || thing[0] == 1) stretch200 = true;
-	thing = ini->Get("video", "alwaysCustomMouse", "false");
-	if (thing[0] == 't' || thing[0] == 'T' || thing[0] == 1) alwaysCustomMouse = customMouse = true;
-
+	stretch200 = ini.GetBoolValue("video", "stretch200", false);
+	alwaysCustomMouse = customMouse = ini.GetBoolValue("video", "alwaysCustomMouse", false);
+	
 	initGLExtensions();
-	programId = compileProgram(ini->Get("video", "shader", ""));
+	programId = compileProgram(ini.GetValue("video", "shader", ""));
 
 	if (sdl2oh10)
 	{

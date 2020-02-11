@@ -18,7 +18,7 @@ extern void ShowOpenFileDialog(int, int, const char*);
 extern unsigned int biosSize, romSize;
 extern long rtcOffset;
 
-IniFile* ini;
+CSimpleIniA ini;
 
 void LoadROM(const char* path)
 {
@@ -99,13 +99,15 @@ int main(int argc, char* argv[])
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_VIDEO_OPENGL | SDL_INIT_GAMECONTROLLER) < 0)
 		return 0;
 
-	ini = new IniFile();
-	ini->autoSave = true;
-	ini->Load("settings.ini");
-	auto thing = ini->Get("video", "fpscap", "true"); if (thing[0] == 't' || thing[0] == 'T' || thing[0] == 1) fpsCap = true;
-	bool fullScreen = false;
-	thing = ini->Get("video", "fullScreen", "false"); if (thing[0] == 't' || thing[0] == 'T' || thing[0] == 1) fullScreen = true;
-	thing = ini->Get("video", "showfps", "false"); if (thing[0] == 't' || thing[0] == 'T' || thing[0] == 1) fpsVisible = true;
+	ini.SetSpaces(false);
+	ini.SetMultiKey(false);
+	ini.SetMultiLine(false);
+	ini.SetUnicode(false);
+	ini.LoadFile("settings.ini");
+	fpsCap = ini.GetBoolValue("video", "fpsCap", false);
+	fpsVisible = ini.GetBoolValue("video", "showFps", true);
+	bool fullScreen = ini.GetBoolValue("video", "fullScreen", false);
+
 	for (int i = 1; i < argc; i++)
 	{
 		if (argv[i][0] == '-')
@@ -115,7 +117,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	rtcOffset = SDL_atoi(ini->Get("media", "rtcOffset", "3735930636")); //DEADC70C
+	rtcOffset = ini.GetLongValue("media", "rtcOffset", 0xDEADC70C);
 
 	if (InitVideo(fullScreen) < 0)
 		return 0;
@@ -125,17 +127,18 @@ int main(int argc, char* argv[])
 	{
 		char key[8];
 		char dft[24] = "";
+		const char* thing;
 		//Always load a lineprinter as #1 by default
 		if (i == 1) strcpy(dft, "linePrinter");
 		SDL_itoa(i, key, 10);
-		thing = ini->Get("devices", key, dft);
+		thing = ini.GetValue("devices", key, dft);
 		if (i == 0) thing = "diskDrive"; //Enforce a disk drive as #0.
 		if (thing[0] == 0) continue;
 		if (!strcmp(thing, "diskDrive"))
 		{
 			SDL_Log("Attached a diskette drive as device #%d.", i);
 			devices[i] = (Device*)(new DiskDrive(0));
-			thing = ini->Get("devices/diskDrive", key, "");
+			thing = ini.GetValue("devices/diskDrive", key, "");
 			if (thing[0] != 0)
 			{
 				auto err = ((DiskDrive*)devices[i])->Mount(thing);
@@ -147,7 +150,7 @@ int main(int argc, char* argv[])
 		{
 			SDL_Log("Attached a hard disk drive as device #%d.", i);
 			devices[i] = (Device*)(new DiskDrive(1));
-			thing = ini->Get("devices/hardDrive", key, "");
+			thing = ini.GetValue("devices/hardDrive", key, "");
 			if (thing[0] != 0)
 			{
 				auto err = ((DiskDrive*)devices[i])->Mount(thing);
@@ -179,11 +182,11 @@ int main(int argc, char* argv[])
 			controller[1] = SDL_JoystickOpen(1);
 	}
 
-	thing = ini->Get("media", "bios", "roms\\ass-bios.apb");
+	const char* thing = ini.GetValue("media", "bios", "roms\\ass-bios.apb");
 	SDL_Log("Loading BIOS, %s ...", thing);
 	Slurp(romBIOS, thing, &biosSize);
 	biosSize = RoundUp(biosSize);
-	thing = ini->Get("media", "lastROM", "");
+	thing = ini.GetValue("media", "lastROM", "");
 	if (thing[0] != 0)
 	{
 		SDL_Log("Loading ROM, %s ...", thing);
@@ -295,7 +298,8 @@ int main(int argc, char* argv[])
 					auto gottaReset = (*(uint32_t*)romCartridge == 0x21535341);
 					LoadROM(uiString);
 
-					ini->Set("media", "lastROM", uiString);
+					ini.SetValue("media", "lastROM", uiString);
+					ini.SaveFile("settings.ini");
 					if (gottaReset)
 						m68k_pulse_reset();
 
@@ -327,9 +331,10 @@ int main(int argc, char* argv[])
 						else
 						{
 							if (((DiskDrive*)devices[uiData])->GetType() == ddDiskette)
-								ini->Set("devices/diskDrive", key, uiString);
+								ini.SetValue("devices/diskDrive", key, uiString);
 							else
-								ini->Set("devices/hardDrive", key, uiString);
+								ini.SetValue("devices/hardDrive", key, uiString);
+							ini.SaveFile("settings.ini");
 							_devUpdateDiskette(uiData);
 						}
 					}
@@ -339,7 +344,8 @@ int main(int argc, char* argv[])
 			{
 				SDL_Log("Unloading ROM...");
 				memset(romCartridge, 0, CART_SIZE);
-				ini->Set("media", "lastROM", "");
+				ini.SetValue("media", "lastROM", "");
+				ini.SaveFile("settings.ini");
 				gfxFade = 31;
 				SetStatus("Cart pulled.");
 			}
@@ -352,9 +358,10 @@ int main(int argc, char* argv[])
 					((DiskDrive*)devices[uiData])->Unmount();
 					char key[16]; sprintf(key, "%d", uiData);
 					if (((DiskDrive*)devices[uiData])->GetType() == ddDiskette)
-						ini->Set("devices/diskDrive", key, "");
+						ini.SetValue("devices/diskDrive", key, "");
 					else
-						ini->Set("devices/hardDrive", key, "");
+						ini.SetValue("devices/hardDrive", key, "");
+					ini.SaveFile("settings.ini");
 					SetStatus("Disk ejected.");
 				}
 				_devUpdateDiskette(uiData);
@@ -366,7 +373,8 @@ int main(int argc, char* argv[])
 					SDL_Log("Unloading ROM...");
 					memset(romCartridge, 0, CART_SIZE);
 					((DiskDrive*)devices[0])->Unmount();
-					ini->Set("media", "lastROM", "");
+					ini.SetValue("media", "lastROM", "");
+					ini.SaveFile("settings.ini");
 				}
 				SDL_Log("Resetting Musashi...");
 				SetStatus("System reset.");

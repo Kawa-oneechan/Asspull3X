@@ -9,7 +9,7 @@
 #else
 #include <SDL2/SDL.h>
 #endif
-#include "ini.h"
+#include "SimpleIni.h"
 
 int Lerp(int a, int b, float f);
 unsigned int RoundUp(unsigned int v);
@@ -44,7 +44,7 @@ extern void BufferAudioSample(signed char);
 
 extern void HandleUI();
 
-extern IniFile* ini;
+extern CSimpleIniA ini;
 
 extern const unsigned char keyMap[];
 

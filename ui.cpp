@@ -1,5 +1,4 @@
 #include "asspull.h"
-#include "ini.h"
 #include <string.h>
 #include <vector>
 #include <memory>
@@ -1452,7 +1451,7 @@ void ShowOpenFileDialog(int command, int data, const char* pattern)
 	if (fileSelectWindow->visible)
 		return;
 
-	auto thing = ini->Get("media", "lastROM", "");
+	auto thing = ini.GetValue("media", "lastRom", "");
 	if (thing[0] != 0)
 	{
 		auto lastSlash = (char*)strrchr(thing, '\\');
@@ -1623,9 +1622,9 @@ void _devUpdateDiskette(int devId)
 	SDL_itoa(devId, key, 10);
 	const char* thing;
 	if (((DiskDrive*)devices[devId])->GetType() == ddDiskette)
-		thing = ini->Get("devices/diskDrive", key, "");
+		thing = ini.GetValue("devices/diskDrive", key, "");
 	else
-		thing = ini->Get("devices/hardDrive", key, "");
+		thing = ini.GetValue("devices/hardDrive", key, "");
 	if (thing[0] != 0)
 	{
 		auto lastSlash = strrchr(thing, '\\');
@@ -1754,21 +1753,22 @@ void _devDrop(Control* me)
 	{
 		case 0:
 			devices[selection] = NULL;
-			ini->Set("devices", key, "");
+			ini.SetValue("devices", key, "");
 			break;
 		case 1:
 			devices[selection] = (Device*)(new DiskDrive(0));
-			ini->Set("devices", key, "diskDrive");
+			ini.SetValue("devices", key, "diskDrive");
 			break;
 		case 2:
 			devices[selection] = (Device*)(new DiskDrive(1));
-			ini->Set("devices", key, "hardDrive");
+			ini.SetValue("devices", key, "hardDrive");
 			break;
 		case 3:
 			devices[selection] = (Device*)(new LinePrinter());
-			ini->Set("devices", key, "linePrinter");
+			ini.SetValue("devices", key, "linePrinter");
 			break;
 	}
+	ini.SaveFile("settings.ini");
 	UpdateDevManList();
 	_devSelect(devManList, selection);
 }
@@ -1809,18 +1809,19 @@ void _optionsCheck(Control* me)
 	if (me == optionsShowFPS)
 	{
 		fpsVisible = optionsShowFPS->checked = !optionsShowFPS->checked;
-		ini->Set("video", "showfps", (char*)(fpsVisible ? "true" : "false"));
+		ini.SetBoolValue("video", "showFps", fpsVisible);
 	}
 	else if (me == optionsCapFPS)
 	{
 		fpsCap = optionsCapFPS->checked = !optionsCapFPS->checked;
-		ini->Set("video", "fpscap", (char*)(fpsCap ? "true" : "false"));
+		ini.SetBoolValue("video", "fpsCap", fpsCap);
 	}
 	else if (me == options200)
 	{
 		stretch200 = options200->checked = !options200->checked;
-		ini->Set("video", "stretch200", (char*)(stretch200 ? "true" : "false"));
+		ini.SetBoolValue("video", "stretch200", stretch200);
 	}
+	ini.SaveFile("settings.ini");
 }
 
 Window* BuildOptionsWindow()
