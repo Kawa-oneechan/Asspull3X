@@ -113,6 +113,8 @@ int dragStartX, dragStartY;
 int dragLeft, dragTop, dragWidth, dragHeight, dragStartLeft, dragStartTop;
 int justClicked = 0;
 
+char startingPath[FILENAME_MAX];
+
 class Control
 {
 public:
@@ -961,6 +963,8 @@ void _showFileSelect(Control*) { fileSelectWindow->Show(); }
 
 void InitializeUI()
 {
+	_getcwd(startingPath, FILENAME_MAX);
+
 	menuBar = new MenuBar();
 
 	auto fileMenu = new Menu("File");
@@ -1912,6 +1916,7 @@ void _fileList(Control* me, int index, const char* filename)
 		uiCommand = fileSelectCommand;
 		uiData = fileSelectData;
 		fileSelectWindow->Hide();
+		_chdir(startingPath);
 	}
 #else
 	struct stat sb;
