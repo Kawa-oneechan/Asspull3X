@@ -112,7 +112,7 @@ unsigned int m68k_read_memory_8(unsigned int address)
 				//TODO: add mapEnabled[2] and [3].
 			case 0x42: //Joypad
 			case 0x43:
-				return joypad[reg - 0x0C];
+				return joypad[reg - 0x42];
 		}
 		return 0;
 	}
