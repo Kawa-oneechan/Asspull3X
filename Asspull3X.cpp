@@ -446,16 +446,18 @@ int main(int argc, char* argv[])
 					}
 				}
 			}
-			if (pauseState != 2)
+#ifdef ENABLE_HBLANK
+//HBlank completely fucks everything up. I'm about this close to giving up on supporting it at all.
+			else if (pauseState != 2)
 			{
-				//Would trigger HBlank here but that kills the system???
-				/* if ((interrupts & 0x82) == 0) //if interrupts are enabled and not already in HBlank
+				if ((interrupts & 0x82) == 0) //if interrupts are enabled and not already in HBlank
 				{
 					interrupts |= 2; //set HBlank signal
 					m68k_set_virq(M68K_IRQ_7, 1);
-				} */
+				}
 				m68k_execute(hBlankLasts);
 			}
+#endif
 		}
 		else if (pauseState == 2)
 		{
