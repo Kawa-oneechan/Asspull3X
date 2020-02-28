@@ -1484,8 +1484,8 @@ Window* BuildAboutWindow()
 {
 	auto win = new Window("E Clunibus Tractum", 8, 24, 320, 78);
 	win->AddChild(new Image(aboutPic, 1, 0, 144, 64));
-	win->AddChild(new Label("Asspull \x96\xD7", 150, 4, 0x07FF, 0));
-	win->AddChild(new Label("System design and emulator\nby Kawa", 150, 15, WINDOW_TEXT, 0));
+	win->AddChild(new Label("Clunibus - Asspull \x96\xD7 Emulator", 150, 4, 0x07FF, 0));
+	win->AddChild(new Label("System design & implementation\nby Kawa", 150, 15, WINDOW_TEXT, 0));
 	win->AddChild(new Label(
 #ifdef _MSC_VER
 		"MSVC, "

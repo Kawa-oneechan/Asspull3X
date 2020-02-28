@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual C++ Express 2010
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Asspull3X", "Asspull3X.vcxproj", "{0768E14C-1987-4AA4-BFE0-15664F0FD123}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Clunibus", "Clunibus.vcxproj", "{0768E14C-1987-4AA4-BFE0-15664F0FD123}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

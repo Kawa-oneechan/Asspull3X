@@ -1,0 +1,2 @@
+#include <windows.h>
+100 ICON ".\\app.ico"

@@ -704,7 +704,7 @@ int InitVideo(bool fullScreen)
 			//https://www.youtube.com/watch?v=5FjWe31S_0g
 			char msg[512];
 			sprintf(msg, "You are trying to run with an outdated version of SDL.\n\nYou have version %d.%d.%d.\nYou need version 2.0.4 or later.", linked.major, linked.minor, linked.patch);
-			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Asspull3X",  msg, NULL);
+			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Clunibus",  msg, NULL);
 			return -3;
 		}
 	}
@@ -717,7 +717,7 @@ int InitVideo(bool fullScreen)
 		flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 	else
 		flags |= SDL_WINDOW_RESIZABLE;
-	if ((sdlWindow = SDL_CreateWindow("Asspull IIIx", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, winWidth, winHeight, flags)) == NULL)
+	if ((sdlWindow = SDL_CreateWindow("Clunibus - Asspull IIIx Emulator", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, winWidth, winHeight, flags)) == NULL)
 	{
 		SDL_Log("Could not create window: %s", SDL_GetError());
 		return -1;
@@ -734,7 +734,7 @@ int InitVideo(bool fullScreen)
 
 	stretch200 = ini.GetBoolValue("video", "stretch200", false);
 	alwaysCustomMouse = customMouse = ini.GetBoolValue("video", "alwaysCustomMouse", false);
-	
+
 	initGLExtensions();
 	programId = compileProgram(ini.GetValue("video", "shader", ""));
 
