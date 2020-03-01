@@ -131,11 +131,10 @@ Identified by the value `4C50`, writing to the next byte pipes directly to the p
 ## Register map
 
 ### 00000	Interrupts
-    X... .VH.
-    |     ||___ HBlank triggered
+    X... .V..
     |     |____ VBlank triggered
     |__________ Disable interrupts
-Used by the BIOS dispatcher to determine what to call. Applications can set the disable bit to prevent them from firing.
+Used by the BIOS dispatcher to determine what to call. Applications can set the disable bit to prevent them from firing. Only VBlank is supported for now.
 ### 00001	ScreenMode
     B32. ..MM
     |||    |___ Mode
