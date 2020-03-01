@@ -19,7 +19,10 @@ int gfxMode, gfxFade, scrollX[4], scrollY[4], tileShift[2], mapEnabled[4], mapBl
 SDL_Window* sdlWindow = NULL;
 SDL_Renderer* sdlRenderer = NULL;
 SDL_Texture* sdlTexture = NULL;
-unsigned int programId = 0;
+SDL_Texture* sdlShader = NULL;
+#define MAX_SHADERS 4
+unsigned int programIds[MAX_SHADERS] = { 0 };
+int numShaders = 1;
 bool customMouse = false, alwaysCustomMouse = false;
 
 int winWidth = 640, winHeight = 480, scrWidth = 640, scrHeight = 480, scale = 1, offsetX = 0, offsetY = 0;
@@ -610,75 +613,129 @@ GLuint compileProgram(const char* fragFile)
 	return programId;
 }
 
-void presentBackBuffer(SDL_Renderer *renderer, SDL_Window* win, SDL_Texture* backBuffer, GLuint programId)
+void presentBackBuffer(SDL_Renderer *renderer, SDL_Window* win)
 {
 	GLint oldProgramId;
+	SDL_Texture* source = sdlTexture;
+	SDL_Texture* target = sdlShader;
 
-	SDL_SetRenderTarget(renderer, NULL);
-	SDL_RenderClear(renderer);
-
-	SDL_GL_BindTexture(backBuffer, NULL, NULL);
-	if(programId != 0)
+	for (int i = 0; i < numShaders; i++)
 	{
-		glGetIntegerv(GL_CURRENT_PROGRAM,&oldProgramId);
-		glUseProgram(programId);
+		if (i == numShaders - 1)
+			SDL_SetRenderTarget(renderer, NULL);
+		else
+			SDL_SetRenderTarget(renderer, target);
+		SDL_RenderClear(renderer);
+
+		unsigned int programId = programIds[i];
+
+		SDL_GL_BindTexture(source, NULL, NULL);
+		if(programId != 0)
+		{
+			glGetIntegerv(GL_CURRENT_PROGRAM,&oldProgramId);
+			glUseProgram(programId);
+		}
+
+		if (i == numShaders - 1)
+		{
+			SDL_GetWindowSize(sdlWindow, &winWidth, &winHeight);
+			if (winWidth < 640)
+			{
+				winWidth = 640;
+				SDL_SetWindowSize(sdlWindow, 640, winHeight);
+			}
+			if (winHeight < 480)
+			{
+				winHeight = 480;
+				SDL_SetWindowSize(sdlWindow, winWidth, 480);
+			}
+
+			auto maxScaleX = floorf(winWidth / 640.0f);
+			auto maxScaleY = floorf(winHeight / 480.0f);
+		#if _MSC_VER
+			scale = (int)__min(maxScaleX, maxScaleY);
+		#else
+			scale = (int)fmin(maxScaleX, maxScaleY);
+		#endif
+			scrWidth = 640 * scale;
+			scrHeight = 480 * scale;
+			offsetX = (int)floorf((winWidth - scrWidth) * 0.5f);
+			offsetY = (int)floorf((winHeight - scrHeight) * 0.5f);
+
+			if (sdl2oh10)
+			{
+				glViewport(offsetX, offsetY, scrWidth, scrHeight);
+
+				glBegin(GL_TRIANGLE_STRIP);
+					glTexCoord2f(0.0f, 0.0f);
+					glVertex2f(0.0f, 0.0f);
+					glTexCoord2f(1.0f, 0.0f);
+					glVertex2f(640.0f, 0.0f);
+					glTexCoord2f(0.0f, 1.0f);
+					glVertex2f(0.0f, 480.0f);
+					glTexCoord2f(1.0f, 1.0f);
+					glVertex2f(640.0f, 480.0f);
+				glEnd();
+			}
+			else
+			{
+				glBegin(GL_TRIANGLE_STRIP);
+					glTexCoord2f(0.0f, 0.0f);
+					glVertex2f((GLfloat)offsetX, (GLfloat)offsetY);
+					glTexCoord2f(1.0f, 0.0f);
+					glVertex2f((GLfloat)offsetX + scrWidth, (GLfloat)offsetY);
+					glTexCoord2f(0.0f, 1.0f);
+					glVertex2f((GLfloat)offsetX, (GLfloat)offsetY + scrHeight);
+					glTexCoord2f(1.0f, 1.0f);
+					glVertex2f((GLfloat)offsetX + scrWidth, (GLfloat)offsetY + scrHeight);
+				glEnd();
+			}
+		}
+		else
+		{
+			glViewport(0, 0, 640, 480);
+
+			if (sdl2oh10)
+			{
+				glBegin(GL_TRIANGLE_STRIP);
+					glTexCoord2f(0.0f, 0.0f);
+					glVertex2f(0.0f, 480.0f);
+					glTexCoord2f(1.0f, 0.0f);
+					glVertex2f(640.0f, 480.0f);
+					glTexCoord2f(0.0f, 1.0f);
+					glVertex2f(0.0f, 0.0f);
+					glTexCoord2f(1.0f, 1.0f);
+					glVertex2f(640.0f, 0.0f);
+				glEnd();
+			}
+			else
+			{
+				glBegin(GL_TRIANGLE_STRIP);
+					glTexCoord2f(0.0f, 0.0f);
+					glVertex2f(0.0f, 0.0f);
+					glTexCoord2f(1.0f, 0.0f);
+					glVertex2f(640.0f, 0.0f);
+					glTexCoord2f(0.0f, 1.0f);
+					glVertex2f(0.0f, 480.0f);
+					glTexCoord2f(1.0f, 1.0f);
+					glVertex2f(640.0f, 480.0f);
+				glEnd();
+			}
+		}
+
+		if (source == sdlTexture)
+		{
+			source = sdlShader;
+			target = sdlTexture;
+		}
+		else
+		{
+			source = sdlTexture;
+			target = sdlShader;
+		}
 	}
 
-	SDL_GetWindowSize(sdlWindow, &winWidth, &winHeight);
-	if (winWidth < 640)
-	{
-		winWidth = 640;
-		SDL_SetWindowSize(sdlWindow, 640, winHeight);
-	}
-	if (winHeight < 480)
-	{
-		winHeight = 480;
-		SDL_SetWindowSize(sdlWindow, winWidth, 480);
-	}
-
-	auto maxScaleX = floorf(winWidth / 640.0f);
-	auto maxScaleY = floorf(winHeight / 480.0f);
-#if _MSC_VER
-	scale = (int)__min(maxScaleX, maxScaleY);
-#else
-	scale = (int)fmin(maxScaleX, maxScaleY);
-#endif
-	scrWidth = 640 * scale;
-	scrHeight = 480 * scale;
-	offsetX = (int)floorf((winWidth - scrWidth) * 0.5f);
-	offsetY = (int)floorf((winHeight - scrHeight) * 0.5f);
-
-	if (sdl2oh10)
-	{
-		glViewport(offsetX, offsetY, scrWidth, scrHeight);
-
-		glBegin(GL_TRIANGLE_STRIP);
-			glTexCoord2f(0.0f, 0.0f);
-			glVertex2f(0.0f, 0.0f);
-			glTexCoord2f(1.0f, 0.0f);
-			glVertex2f(640.0f, 0.0f);
-			glTexCoord2f(0.0f, 1.0f);
-			glVertex2f(0.0f, 480.0f);
-			glTexCoord2f(1.0f, 1.0f);
-			glVertex2f(640.0f, 480.0f);
-		glEnd();
-	}
-	else
-	{
-		glBegin(GL_TRIANGLE_STRIP);
-			glTexCoord2f(0.0f, 0.0f);
-			glVertex2f((GLfloat)offsetX, (GLfloat)offsetY);
-			glTexCoord2f(1.0f, 0.0f);
-			glVertex2f((GLfloat)offsetX + scrWidth, (GLfloat)offsetY);
-			glTexCoord2f(0.0f, 1.0f);
-			glVertex2f((GLfloat)offsetX, (GLfloat)offsetY + scrHeight);
-			glTexCoord2f(1.0f, 1.0f);
-			glVertex2f((GLfloat)offsetX + scrWidth, (GLfloat)offsetY + scrHeight);
-		glEnd();
-	}
-
-	if(programId != 0)
-		glUseProgram(oldProgramId);
+	glUseProgram(oldProgramId);
 
 	SDL_GL_SwapWindow(win);
 }
@@ -687,7 +744,7 @@ void VBlank()
 {
 	SDL_SetRenderTarget(sdlRenderer, sdlTexture);
 	SDL_UpdateTexture(sdlTexture, NULL, pixels, 640 * 4);
-	presentBackBuffer(sdlRenderer, sdlWindow, sdlTexture, programId);
+	presentBackBuffer(sdlRenderer, sdlWindow);
 	//SDL_UpdateWindowSurface(sdlWindow);
 }
 
@@ -736,7 +793,26 @@ int InitVideo(bool fullScreen)
 	alwaysCustomMouse = customMouse = ini.GetBoolValue("video", "alwaysCustomMouse", false);
 
 	initGLExtensions();
-	programId = compileProgram(ini.GetValue("video", "shader", ""));
+	numShaders = ini.GetLongValue("video", "shaders", -1);
+	if (numShaders == -1)
+	{
+		numShaders = 1;
+		programIds[0] = compileProgram(ini.GetValue("video", "shader", ""));
+	}
+	else
+	{
+		if (numShaders >= MAX_SHADERS)
+		{
+			SDL_Log("Too many shaders specified: can only do %d but %d were requested.", MAX_SHADERS, numShaders);
+			numShaders = MAX_SHADERS;
+		}
+		for (int i = 0; i < numShaders; i++)
+		{
+			char key[16] = { 0 };
+			sprintf(key, "shader%d", i + 1);
+			programIds[i] = compileProgram(ini.GetValue("video", key, ""));
+		}
+	}
 
 	if (sdl2oh10)
 	{
@@ -751,7 +827,13 @@ int InitVideo(bool fullScreen)
 
 	if ((sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_TARGET, 640, 480)) == NULL)
 	{
-		SDL_Log("Could not create renderer: %s", SDL_GetError());
+		SDL_Log("Could not create texture: %s", SDL_GetError());
+		return -2;
+	}
+
+	if ((sdlShader = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_TARGET, 640, 480)) == NULL)
+	{
+		SDL_Log("Could not create texture: %s", SDL_GetError());
 		return -2;
 	}
 
@@ -765,6 +847,7 @@ int UninitVideo()
 {
 	SDL_DestroyRenderer(sdlRenderer);
 	SDL_DestroyTexture(sdlTexture);
+	SDL_DestroyTexture(sdlShader);
 	SDL_DestroyWindow(sdlWindow);
 	return 0;
 }
