@@ -695,10 +695,10 @@ public:
 		int fillColor = (WasInside() || currentMenu == this ) ? MENUBAR_HIGHLIGHT : MENUBAR_FILL;
 		int textColor = (WasInside() || currentMenu == this ) ? MENUBAR_HIGHTEXT : MENUBAR_TEXT;
 		DrawRect(absLeft, 0, width, 12, fillColor, -1);
-		DrawHLine(absLeft, 12, width, -2);
-		DrawHLine(absLeft, 13, width, -2);
-		DrawVLine(absLeft + width + 0, 2, 12, -2);
-		DrawVLine(absLeft + width + 1, 2, 12, -2);
+		DrawHLine(absLeft + 2, 12, width, -2);
+		DrawHLine(absLeft + 2, 13, width, -2);
+		DrawVLine(absLeft + width + 0, 2, 10, -2);
+		DrawVLine(absLeft + width + 1, 2, 10, -2);
 		DrawString(absLeft + 4, 2, textColor, text);
 	}
 	void HandlePopup()

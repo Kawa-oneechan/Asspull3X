@@ -794,10 +794,13 @@ int InitVideo(bool fullScreen)
 
 	initGLExtensions();
 	numShaders = ini.GetLongValue("video", "shaders", -1);
-	if (numShaders == -1)
+	if (numShaders <= 0)
 	{
+		if (numShaders == 0)
+			programIds[0] = 0;
+		else
+			programIds[0] = compileProgram(ini.GetValue("video", "shader", ""));
 		numShaders = 1;
-		programIds[0] = compileProgram(ini.GetValue("video", "shader", ""));
 	}
 	else
 	{
