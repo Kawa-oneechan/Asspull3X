@@ -371,6 +371,7 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 				rtcOffset = (long)(timesetlatch - timelatch);
 				{
 					ini.SetLongValue("media", "rtcOffset", rtcOffset);
+					ResetPath();
 					ini.SaveFile("settings.ini");
 				}
 				//return (int)timelatch;

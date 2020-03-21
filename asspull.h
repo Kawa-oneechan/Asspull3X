@@ -43,6 +43,7 @@ extern void UninitSound();
 extern void BufferAudioSample(signed char);
 
 extern void HandleUI();
+extern void ResetPath();
 
 extern CSimpleIniA ini;
 

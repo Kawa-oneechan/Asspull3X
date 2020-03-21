@@ -115,6 +115,11 @@ int justClicked = 0;
 
 char startingPath[FILENAME_MAX];
 
+void ResetPath()
+{
+	chdir(startingPath);
+}
+
 class Control
 {
 public:
@@ -1450,12 +1455,22 @@ void _closeWindow(Control* me)
 int fileSelectCommand, fileSelectData;
 const char* fileSelectPattern;
 void UpdateFileList();
+char lastPath[FILENAME_MAX];
+
 void ShowOpenFileDialog(int command, int data, const char* pattern)
 {
 	if (fileSelectWindow->visible)
 		return;
 
-	auto thing = ini.GetValue("media", "lastRom", "");
+	char* thing = (char*)ini.GetValue("media", "lastRom", "");
+	if (thing[0] == 0)
+	{
+		thing = lastPath;
+		if (thing[0] == 0)
+			thing = startingPath;
+		if (thing[strlen(thing)] != '\\')
+			strcat(thing, "\\");
+	}
 	if (thing[0] != 0)
 	{
 		auto lastSlash = (char*)strrchr(thing, '\\');
@@ -1772,6 +1787,7 @@ void _devDrop(Control* me)
 			ini.SetValue("devices", key, "linePrinter");
 			break;
 	}
+	ResetPath();
 	ini.SaveFile("settings.ini");
 	UpdateDevManList();
 	_devSelect(devManList, selection);
@@ -1803,10 +1819,12 @@ Window* BuildDeviceWindow()
 	return win;
 }
 
-extern bool stretch200, fpsCap;
+extern bool stretch200, fpsCap, reloadROM, reloadIMG;
 CheckBox* optionsShowFPS;
 CheckBox* optionsCapFPS;
 CheckBox* options200;
+CheckBox* optionsReloadROM;
+CheckBox* optionsReloadIMG;
 
 void _optionsCheck(Control* me)
 {
@@ -1825,17 +1843,30 @@ void _optionsCheck(Control* me)
 		stretch200 = options200->checked = !options200->checked;
 		ini.SetBoolValue("video", "stretch200", stretch200);
 	}
+	else if (me == optionsReloadROM)
+	{
+		reloadROM = optionsReloadROM->checked = !optionsReloadROM->checked;
+		ini.SetBoolValue("media", "reloadRom", reloadROM);
+	}
+	else if (me == optionsReloadIMG)
+	{
+		reloadIMG = optionsReloadIMG->checked = !optionsReloadIMG->checked;
+		ini.SetBoolValue("media", "reloadImg", reloadIMG);
+	}
+	ResetPath();
 	ini.SaveFile("settings.ini");
 }
 
 Window* BuildOptionsWindow()
 {
-	auto win = new Window("Options", 8, 232, 170, 90);
+	auto win = new Window("Options", 8, 232, 170, 120);
 	win->AddChild(optionsShowFPS = new CheckBox("Show FPS", 4, 4, fpsVisible, _optionsCheck));
 	win->AddChild(optionsCapFPS = new CheckBox("FPS cap", 4, 18, fpsCap, _optionsCheck));
 	win->AddChild(options200 = new CheckBox("Aspect correction", 4, 32, stretch200, _optionsCheck));
-	win->AddChild(new Label("(Work in obvious progress.)", 4, 46, WINDOW_TEXT, 0));
-	win->AddChild(new Button("Okay", 126, 58, 39, _closeWindow));
+	win->AddChild(optionsReloadROM = new CheckBox("Reload ROM", 4, 46, reloadROM, _optionsCheck));
+	win->AddChild(optionsReloadIMG = new CheckBox("Reload disk images", 4, 60, reloadIMG, _optionsCheck));
+	win->AddChild(new Label("(Work in obvious progress.)", 4, 74, WINDOW_TEXT, 0));
+	win->AddChild(new Button("Okay", 126, 88, 39, _closeWindow));
 	topLevelControls.push_back(std::unique_ptr<Control>(win));
 	win->visible = false;
 	return win;
@@ -1910,13 +1941,14 @@ void _fileList(Control* me, int index, const char* filename)
 	else
 	{
 		_getcwd(uiString, FILENAME_MAX);
+		strcpy_s(lastPath, FILENAME_MAX, uiString);
 		if (uiString[strlen(uiString)-1] != '\\')
 			strcat(uiString, "\\");
 		strcat(uiString, filename);
 		uiCommand = fileSelectCommand;
 		uiData = fileSelectData;
 		fileSelectWindow->Hide();
-		_chdir(startingPath);
+		ResetPath();
 	}
 #else
 	struct stat sb;
