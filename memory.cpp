@@ -2,6 +2,7 @@
 #include <time.h>
 
 extern void SendMidi(unsigned int message);
+extern int GetMouseState(int *x, int *y);
 
 extern "C"
 {
@@ -185,6 +186,13 @@ unsigned int m68k_read_memory_32(unsigned int address)
 		{
 			case 0x04: //Ticks
 				return (int)ticks;
+			case 0x50: //Mouse
+				{
+					int x, y, b;
+					GetMouseState(&x, &y);
+					b = SDL_GetMouseState(NULL, NULL);
+					return ((b & 1) << 30) | (y << 16) | ((b & 4) << 29) | x;
+				}
 			case 0x60: //Time_T (top half)
 				timelatch = (rtcOffset == 0xDEADC70C) ? 0 : (time(NULL) + rtcOffset);
 				return (int)(timelatch >> 32);

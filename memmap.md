@@ -178,7 +178,10 @@ Scroll values for the tile map as `int16`. This repeats for each of the four lay
 Send a raw 32-bit message through the MIDI OUT port.
 ### 00048	PCMOut
 ### 00050	Mouse
-Reserved
+    RL.. ...Y YYYY YYYY   .... ..XX XXXX XXXX
+    ||      |                    |______________ Horizontal position (0-639)
+    ||      |___________________________________ Vertical position (0-479)
+    ||__________________________________________ Buttons
 ### 00054	Caret
     EB.. PPPP PPPP PPPP
     ||   |_______________ Position
