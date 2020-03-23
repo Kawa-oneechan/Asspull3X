@@ -39,6 +39,7 @@ long rtcOffset = 0;
 
 extern bool gfx320, gfx240, gfxTextBold;
 extern int gfxMode, gfxFade, scrollX[4], scrollY[4], tileShift[4], mapEnabled[4], mapBlend[4];
+extern int caret;
 
 extern int line, interrupts;
 
@@ -157,16 +158,16 @@ unsigned int m68k_read_memory_16(unsigned int address)
 			case 0x18:
 			case 0x1C:
 				return scrollX[(reg - 0x10) / 2];
-				break;
 			case 0x12: //Vertical scroll
 			case 0x16:
 			case 0x1A:
 			case 0x1E:
 				return scrollY[(reg - 0x12) / 2];
-				break;
 			case 0x40: //Keyscan
 				keyScan = PollKeyboard(false);
 				return keyScan;
+			case 0x54:
+				return caret;
 		}
 		return 0;
 	}
@@ -330,6 +331,9 @@ void m68k_write_memory_16(unsigned int address, unsigned int value)
 			case 0x1A:
 			case 0x1E:
 				scrollY[(reg - 0x12) / 4] = value & 511;
+				break;
+			case 0x54:
+				caret = value;
 				break;
 		}
 		return;

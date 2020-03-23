@@ -15,6 +15,7 @@
 
 bool gfx320, gfx240, gfxTextBold, stretch200;
 int gfxMode, gfxFade, scrollX[4], scrollY[4], tileShift[2], mapEnabled[4], mapBlend[4];
+int caret;
 
 SDL_Window* sdlWindow = NULL;
 SDL_Renderer* sdlRenderer = NULL;
@@ -257,6 +258,7 @@ void RenderTextMode(int line)
 	if (gfx240)
 		font = FONT_ADDR + 0x1000 + (gfxTextBold ? 0x1000 : 0);
 	auto tileY = line % (gfx240 ? 16 : 8); //8;
+
 	//if (gfxTextHigh)
 	//	tileY = (line2 / 2) % 8;
 	for (auto col = 0; col < width; col++)
@@ -278,6 +280,23 @@ void RenderTextMode(int line)
 			{
 				RenderPixel(line, (col * 16) + (bit * 2) + 0, ((scan >> bit) & 1) == 1 ? (att & 0xF) : (att >> 4));
 				RenderPixel(line, (col * 16) + (bit * 2) + 1, ((scan >> bit) & 1) == 1 ? (att & 0xF) : (att >> 4));
+			}
+		}
+	}
+
+	if (caret & 0x8000 && (SDL_GetTicks() % 500) < 250)
+	{
+		int cp = caret & 0x3FFF;
+		int cr = cp / width;
+		int ch = caret & 0x4000 ? -1 : height - 3;
+		if (bgY == cr && line % height > ch)
+		{
+			int cc = cp % width;
+			int ca = ramVideo[TEXT_ADDR + (cp * 2) + 1];
+			int cw = gfx320 ? 16 : 8;
+			for (auto col = 0; col < cw; col++)
+			{
+				RenderPixel(line, (cc * cw) + col, ca & 0xF);
 			}
 		}
 	}

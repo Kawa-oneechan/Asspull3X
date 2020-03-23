@@ -166,17 +166,25 @@ Tile shift adds `128 << T` to the tile # when rendering, so a shift value of 3 m
 ### 00012	TilemapScrollV1
 Scroll values for the tile map as `int16`. This repeats for each of the four layers up to `001E TilemapScrollV4`. *The tile map controls are a work in progress.*
 ### 00040	KeyIn
-    ..... .CAS KKKK KKKK
-           ||| |_____ Keycode
-           |||_______ Shift
-           ||________ Alt
-           |_________ Control
+    .... .CAS KKKK KKKK
+          ||| |__________ Keycode
+          |||____________ Shift
+          ||_____________ Alt
+          |______________ Control
 ### 00042	Joypad1
     YXBA RLDU
 ### 00043	Joypad2
 #### 00044	MidiOut
 Send a raw 32-bit message through the MIDI OUT port.
 ### 00048	PCMOut
+### 00050	Mouse
+Reserved
+### 00054	Caret
+    EB.. PPPP PPPP PPPP
+    ||   |_______________ Position
+    ||___________________ Block shape (0 for line)
+    |____________________ Enabled
+Only rendered in text mode.
 ### 00060	TimeT
 The only 64-bit value in the system. Emulator-wise, reading the first half latches the current host system time so there's no sudden shifts when you read the second half. Writing the first half likewise latches, and the real time clock isn't actually *set* until the second half is written. If reading returns a null value, the RTC hasn't been set and doesn't tick.
 ### 00080	DebugOut
