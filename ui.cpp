@@ -120,6 +120,8 @@ void ResetPath()
 	chdir(startingPath);
 }
 
+#define MARGIN 4
+
 class Control
 {
 public:
@@ -175,6 +177,18 @@ public:
 			return true;
 		return false;
 	}
+	void PlaceBelow(Control* under, bool right)
+	{
+		this->top = under->top + under->height + MARGIN;
+		this->left = under->left;
+		if (right)
+			this->left = under->left + under->width - this->width;
+	}
+	void PlaceBeside(Control* nextTo)
+	{
+		this->top = nextTo->top;
+		this->left = nextTo->left + nextTo->width + MARGIN;
+	}
 };
 
 std::vector<std::unique_ptr<Control>> topLevelControls;
@@ -191,6 +205,7 @@ public:
 		this->top = this->absTop = top;
 		this->color = color;
 		this->width = (width == 0) ? MeasureString(caption) : width;
+		this->height = 10; //TODO: count lines
 		this->visible = true;
 	}
 	void Draw()
@@ -332,7 +347,7 @@ public:
 				dragHeight = height;
 			}
 		}
-		else if (buttons == 1 && draggingWindow == this)
+		else if (buttons == 1 && draggingWindow == this && y - dragStartY > 14)
 		{
 			dragLeft = x - dragStartX;
 			dragTop = y - dragStartY;
@@ -351,6 +366,24 @@ public:
 		if (!visible) return;
 		for (auto child = children.begin(); child != children.end(); child++)
 			(*child)->Handle();
+	}
+	void SizeToFit()
+	{
+		int width = MARGIN * 2;
+		int height = (MARGIN * 2) + 12;
+		for (auto child = children.begin(); child != children.end(); child++)
+		{
+			auto c = child->get();
+			auto childBottom = c->top + c->height;
+			auto childRight = c->left + c->width;
+			if (childBottom > height)
+				height = childBottom + MARGIN;
+			if (childRight > width)
+				width = childRight + MARGIN;
+		}
+		this->width = width;
+		this->height = height + 10 + MARGIN;
+		this->Propagate();
 	}
 };
 
@@ -1860,13 +1893,22 @@ void _optionsCheck(Control* me)
 Window* BuildOptionsWindow()
 {
 	auto win = new Window("Options", 8, 232, 170, 120);
-	win->AddChild(optionsShowFPS = new CheckBox("Show FPS", 4, 4, fpsVisible, _optionsCheck));
+	win->AddChild(optionsShowFPS = new CheckBox("Show FPS", MARGIN, MARGIN, fpsVisible, _optionsCheck));
 	win->AddChild(optionsCapFPS = new CheckBox("FPS cap", 4, 18, fpsCap, _optionsCheck));
 	win->AddChild(options200 = new CheckBox("Aspect correction", 4, 32, stretch200, _optionsCheck));
 	win->AddChild(optionsReloadROM = new CheckBox("Reload ROM", 4, 46, reloadROM, _optionsCheck));
 	win->AddChild(optionsReloadIMG = new CheckBox("Reload disk images", 4, 60, reloadIMG, _optionsCheck));
-	win->AddChild(new Label("(Work in obvious progress.)", 4, 74, WINDOW_TEXT, 0));
-	win->AddChild(new Button("Okay", 126, 88, 39, _closeWindow));
+	auto wipLabel = new Label("(Work in obvious progress.)", 4, 74, WINDOW_TEXT, 0);
+	auto okayButton = new Button("Okay", 126, 88, 39, _closeWindow);
+	win->AddChild(wipLabel);
+	win->AddChild(okayButton);
+	optionsCapFPS->PlaceBelow(optionsShowFPS, false);
+	options200->PlaceBelow(optionsCapFPS, false);
+	optionsReloadROM->PlaceBelow(options200, false);
+	optionsReloadIMG->PlaceBelow(optionsReloadROM, false);
+	wipLabel->PlaceBelow(optionsReloadIMG, false);
+	okayButton->PlaceBelow(wipLabel, true);
+	win->SizeToFit();
 	topLevelControls.push_back(std::unique_ptr<Control>(win));
 	win->visible = false;
 	return win;
