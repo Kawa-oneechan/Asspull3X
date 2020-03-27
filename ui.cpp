@@ -106,8 +106,164 @@ void LetItSnow();
 int uiCommand, uiData;
 char uiString[512];
 
-void* draggingWindow = NULL;
-void* focusedWindow = NULL;
+class Control
+{
+public:
+	int left, top, width, height;
+	int absLeft, absTop;
+	int marginLeft, marginTop;
+	bool enabled, visible;
+	std::string text;
+	Control* parent;
+	std::vector<std::unique_ptr<Control>> children;
+	virtual void Draw() {}
+	virtual void Handle() {}
+	void AddChild(Control* child);
+	void Propagate();
+	bool WasInside();
+	bool WasClicked();
+	void PlaceBelow(Control* under, bool right);
+	void PlaceBeside(Control* nextTo);
+};
+
+class Window : public Control
+{
+private:
+	bool WasInsideCloseBox();
+	bool WasCloseBoxClicked();
+	void DrawCloseBox();
+public:
+	Window(const char* caption, int left, int top, int width, int height);
+	void Show();
+	void Hide();
+	void Draw();
+	void Handle();
+	void SizeToFit();
+};
+
+class Label : public Control
+{
+public:
+	int color;
+	Label(const char* caption, int left, int top, int color, int width);
+	void Draw();
+};
+
+class Image : public Control
+{
+public:
+	unsigned short* pixels;
+	Image(const unsigned short* pixels, int left, int top, int width, int height);
+	void Draw();
+};
+
+
+class Button : public Control
+{
+public:
+	void(*onClick)(Button* me);
+	Button(const char* caption, int left, int top, int width, void(*click)(Button*));
+	void Draw();
+	void Handle();
+};
+
+class CheckBox : public Control
+{
+public:
+	bool checked;
+	void(*onClick)(CheckBox* me);
+	CheckBox(const char* caption, int left, int top, bool checked, void(*click)(CheckBox*));
+	void Draw();
+	void Handle();
+};
+
+class IconButton : public Control
+{
+public:
+	int icon;
+	void(*onClick)(IconButton*);
+	IconButton(int icon, int left, int top, void(*click)(IconButton*));
+	void Draw();
+	void Handle();
+};
+
+class ListBox : public Control
+{
+private:
+	int doubleTime, doubleItem;
+public:
+	int selection;
+	int scroll;
+	int numSeen;
+	int thumb;
+	std::vector<std::string> items;
+	void(*onChange)(ListBox*, int);
+	void(*onDouble)(ListBox*, int, const char*);
+	ListBox(int left, int top, int width, int height, void(*change)(ListBox*, int));
+	void Draw();
+	void Handle();
+};
+
+
+class MenuItem : public Control
+{
+public:
+	char hotkey;
+	void(*onClick)(MenuItem*);
+	int command;
+	MenuItem(const char* caption, char hotkey, void(*click)(MenuItem*));
+	MenuItem(const char* caption, char hotkey, int uiCommand);
+	void Draw();
+	void Handle();
+};
+
+class Menu : public Control
+{
+private:
+	bool sizedTheChildren;
+public:
+	Menu(const char* caption);
+	void AddChild(MenuItem* child);
+	void DrawPopup();
+	void Draw();
+	void HandlePopup();
+	void Handle();
+};
+
+class MenuBar : public Control
+{
+public:
+	MenuBar();
+	void AddChild(Menu* child);
+	void Draw();
+	void Handle();
+};
+
+class DropDown : public Control
+{
+private:
+	bool sizedTheChildren;
+public:
+	DropDown(int left, int top);
+	void AddChild(MenuItem* child);
+	void Draw();
+	void Handle();
+};
+
+class TextBox : public Control
+{
+public:
+	int cursor;
+	int maxLength;
+	void(*onEnter)(TextBox*);
+	TextBox(const char* caption, int left, int top, int width);
+	void Draw();
+	void Handle();
+};
+
+
+Window* draggingWindow = NULL;
+Window* focusedWindow = NULL;
 void* focusedTextBox = NULL;
 int dragStartX, dragStartY;
 int dragLeft, dragTop, dragWidth, dragHeight, dragStartLeft, dragStartTop;
@@ -122,417 +278,371 @@ void ResetPath()
 
 #define MARGIN 4
 
-class Control
+void Control::AddChild(Control* child)
 {
-public:
-	int left, top, width, height;
-	int absLeft, absTop;
-	int marginLeft, marginTop;
-	bool enabled, visible;
-	std::string text;
-	Control* parent;
-	std::vector<std::unique_ptr<Control>> children;
-	virtual void Draw() {}
-	virtual void Handle() {}
-	void AddChild(Control* child)
+	child->absLeft = absLeft + child->left + marginLeft;
+	child->absTop = absTop + child->top + marginTop;
+	child->parent = this;
+	children.push_back(std::unique_ptr<Control>(child));
+}
+void Control::Propagate()
+{
+	for (auto child = children.begin(); child != children.end(); child++)
 	{
-		child->absLeft = absLeft + child->left + marginLeft;
-		child->absTop = absTop + child->top + marginTop;
-		child->parent = this;
-		children.push_back(std::unique_ptr<Control>(child));
+		(*child)->absLeft = absLeft + (*child)->left + marginLeft;
+		(*child)->absTop = absTop + (*child)->top + marginTop;
+		(*child)->Propagate();
 	}
-	void Propagate()
-	{
-		for (auto child = children.begin(); child != children.end(); child++)
-		{
-			(*child)->absLeft = absLeft + (*child)->left + marginLeft;
-			(*child)->absTop = absTop + (*child)->top + marginTop;
-			(*child)->Propagate();
-		}
-	}
-	bool WasInside()
-	{
-		if (!visible) return false;
-		if (draggingWindow != NULL)
-			return false;
-		if (parent != 0 && (parent != focusedWindow && parent->parent != focusedWindow))
-			return false;
-		int x = 0, y = 0;
-		GetMouseState(&x, &y);
-		if (x > absLeft && y > absTop && x < absLeft + width && y < absTop + height)
-			return true;
+}
+bool Control::WasInside()
+{
+	if (!visible) return false;
+	if (draggingWindow != NULL)
 		return false;
-	}
-	bool WasClicked()
-	{
-		if (!visible) return false;
-		if (!enabled) return false;
-		if (draggingWindow != NULL)
-			return false;
-		if (parent != 0 && (parent != focusedWindow && parent->parent != focusedWindow))
-			return false;
-		int x = 0, y = 0;
-		int buttons = GetMouseState(&x, &y);
-		if (x > absLeft && y > absTop && x < absLeft + width && y < absTop + height && buttons)
-			return true;
+	if (parent != 0 && (parent != focusedWindow && parent->parent != focusedWindow))
 		return false;
-	}
-	void PlaceBelow(Control* under, bool right)
-	{
-		this->top = under->top + under->height + MARGIN;
-		this->left = under->left;
-		if (right)
-			this->left = under->left + under->width - this->width;
-	}
-	void PlaceBeside(Control* nextTo)
-	{
-		this->top = nextTo->top;
-		this->left = nextTo->left + nextTo->width + MARGIN;
-	}
-};
+	int x = 0, y = 0;
+	GetMouseState(&x, &y);
+	if (x > absLeft && y > absTop && x < absLeft + width && y < absTop + height)
+		return true;
+	return false;
+}
+bool Control::WasClicked()
+{
+	if (!visible) return false;
+	if (!enabled) return false;
+	if (draggingWindow != NULL)
+		return false;
+	if (parent != 0 && (parent != focusedWindow && parent->parent != focusedWindow))
+		return false;
+	int x = 0, y = 0;
+	int buttons = GetMouseState(&x, &y);
+	if (x > absLeft && y > absTop && x < absLeft + width && y < absTop + height && buttons)
+		return true;
+	return false;
+}
+void Control::PlaceBelow(Control* under, bool right)
+{
+	this->top = under->top + under->height + MARGIN;
+	this->left = under->left;
+	if (right)
+		this->left = under->left + under->width - this->width;
+}
+void Control::PlaceBeside(Control* nextTo)
+{
+	this->top = nextTo->top;
+	this->left = nextTo->left + nextTo->width + MARGIN;
+}
 
 std::vector<std::unique_ptr<Control>> topLevelControls;
-void BringWindowToFront(Control* window);
+void BringWindowToFront(Window* window);
 
-class Label : public Control
+bool Window::WasInsideCloseBox()
 {
-public:
-	int color;
-	Label(const char* caption, int left, int top, int color, int width)
-	{
-		this->text = caption;
-		this->left = this->absLeft = left;
-		this->top = this->absTop = top;
-		this->color = color;
-		this->width = (width == 0) ? MeasureString(caption) : width;
-		this->height = 10; //TODO: count lines
-		this->visible = true;
-	}
-	void Draw()
-	{
-		if (!visible) return;
-		DrawString(absLeft, absTop, color, text);
-	}
-};
-
-class Image : public Control
-{
-public:
-	unsigned short* pixels;
-	Image(const unsigned short* pixels, int left, int top, int width, int height)
-	{
-		this->pixels = (unsigned short*)pixels;
-		this->left = this->absLeft = left;
-		this->top = this->absTop = top;
-		this->width = width;
-		this->height = height;
-		this->visible = true;
-	}
-	void Draw()
-	{
-		if (!visible) return;
-		DrawImage(absLeft, absTop, pixels, width, height);
-	}
-};
-
-class Window : public Control
-{
-private:
-	bool WasInsideCloseBox()
-	{
-		if (draggingWindow != NULL)
-			return false;
-		auto closeButtonLeft = absLeft + width - 12;
-		auto closeButtonTop = absTop + 2;
-		int x = 0, y = 0;
-		GetMouseState(&x, &y);
-		if (x > closeButtonLeft && y > closeButtonTop && x < closeButtonLeft + 10 && y < closeButtonTop + 10)
-			return true;
+	if (draggingWindow != NULL)
 		return false;
-	}
-	bool WasCloseBoxClicked()
-	{
-		if (draggingWindow != NULL)
-			return false;
-		int buttons = GetMouseState(0, 0);
-		if (WasInsideCloseBox() && buttons)
-			return true;
+	auto closeButtonLeft = absLeft + width - 12;
+	auto closeButtonTop = absTop + 2;
+	int x = 0, y = 0;
+	GetMouseState(&x, &y);
+	if (x > closeButtonLeft && y > closeButtonTop && x < closeButtonLeft + 10 && y < closeButtonTop + 10)
+		return true;
+	return false;
+}
+bool Window::WasCloseBoxClicked()
+{
+	if (draggingWindow != NULL)
 		return false;
-	}
-	void DrawCloseBox()
+	int buttons = GetMouseState(0, 0);
+	if (WasInsideCloseBox() && buttons)
+		return true;
+	return false;
+}
+void Window::DrawCloseBox()
+{
+	auto fillColor = BUTTON_FILL;
+	auto closeButtonLeft = absLeft + width - 12;
+	auto closeButtonTop = absTop + 2;
+	DrawFrameRect(closeButtonLeft, closeButtonTop, 10, 10, ((WasInsideCloseBox() && enabled) << 0) | ((WasInsideCloseBox() && justClicked) << 1));
+	DrawCharacter(closeButtonLeft + 1, closeButtonTop + 1, BUTTON_TEXT, 256 + 0);
+}
+Window::Window(const char* caption, int left, int top, int width, int height)
+{
+	this->text = caption;
+	this->left = this->absLeft = left;
+	this->top = this->absTop = top;
+	this->width = width;
+	this->height = height;
+	this->marginLeft = 0;
+	this->marginTop = 13;
+	this->enabled = true;
+	this->visible = true;
+	this->parent = 0;
+}
+void Window::Show()
+{
+	visible = true;
+	BringWindowToFront(this);
+}
+void Window::Hide()
+{
+	visible = false;
+	if (topLevelControls.size() > 1)
 	{
-		auto fillColor = BUTTON_FILL;
-		auto closeButtonLeft = absLeft + width - 12;
-		auto closeButtonTop = absTop + 2;
-		DrawFrameRect(closeButtonLeft, closeButtonTop, 10, 10, ((WasInsideCloseBox() && enabled) << 0) | ((WasInsideCloseBox() && justClicked) << 1));
-		DrawCharacter(closeButtonLeft + 1, closeButtonTop + 1, BUTTON_TEXT, 256 + 0);
-	}
-public:
-	Window(const char* caption, int left, int top, int width, int height)
-	{
-		this->text = caption;
-		this->left = this->absLeft = left;
-		this->top = this->absTop = top;
-		this->width = width;
-		this->height = height;
-		this->marginLeft = 0;
-		this->marginTop = 13;
-		this->enabled = true;
-		this->visible = true;
-		this->parent = 0;
-	}
-	void Show()
-	{
-		visible = true;
-		BringWindowToFront(this);
-	}
-	void Hide()
-	{
-		visible = false;
-		if (topLevelControls.size() > 1)
+		auto next = topLevelControls.end() - 1;
+		while (next != topLevelControls.begin())
 		{
-			auto next = topLevelControls.end() - 1;
-			while (next != topLevelControls.begin())
+			if (next->get()->visible)
 			{
-				if (next->get()->visible)
-				{
-					BringWindowToFront(next->get());
-					break;
-				}
-				next--;
+				BringWindowToFront((Window*)next->get());
+				break;
 			}
+			next--;
 		}
 	}
-	void Draw()
+}
+void Window::Draw()
+{
+	if (!visible) return;
+	if (focusedWindow == this)
+		DrawRect4(left, top, width, height, WINDOW_FILL, WINDOW_BORDERFOC_L, WINDOW_BORDERFOC_T, WINDOW_BORDERFOC_R, WINDOW_BORDERFOC_B);
+	else
+		DrawRect4(left, top, width, height, WINDOW_FILL, WINDOW_BORDER_L, WINDOW_BORDER_T, WINDOW_BORDER_R, WINDOW_BORDER_B);
+	DrawRect(left + 1, top + 1, width - 2, 12, WINDOW_CAPTION, -1);
+
+	DrawHLine(left + 2, top + height + 0, width, -2);
+	DrawHLine(left + 2, top + height + 1, width, -2);
+	DrawVLine(left + width + 0, top + 2, height - 2, -2);
+	DrawVLine(left + width + 1, top + 2, height - 2, -2);
+	DrawString(left + 3, top + 3, (focusedWindow == this) ? WINDOW_CAPTEXT : WINDOW_CAPTEXTUNF, text);
+
+	DrawCloseBox();
+	if (WasCloseBoxClicked())
 	{
-		if (!visible) return;
-		if (focusedWindow == this)
-			DrawRect4(left, top, width, height, WINDOW_FILL, WINDOW_BORDERFOC_L, WINDOW_BORDERFOC_T, WINDOW_BORDERFOC_R, WINDOW_BORDERFOC_B);
-		else
-			DrawRect4(left, top, width, height, WINDOW_FILL, WINDOW_BORDER_L, WINDOW_BORDER_T, WINDOW_BORDER_R, WINDOW_BORDER_B);
-		DrawRect(left + 1, top + 1, width - 2, 12, WINDOW_CAPTION, -1);
-
-		DrawHLine(left + 2, top + height + 0, width, -2);
-		DrawHLine(left + 2, top + height + 1, width, -2);
-		DrawVLine(left + width + 0, top + 2, height - 2, -2);
-		DrawVLine(left + width + 1, top + 2, height - 2, -2);
-		DrawString(left + 3, top + 3, (focusedWindow == this) ? WINDOW_CAPTEXT : WINDOW_CAPTEXTUNF, text);
-
-		DrawCloseBox();
-		if (WasCloseBoxClicked())
-		{
-			Hide();
-			return;
-		}
-
-		for (auto child = children.begin(); child != children.end(); child++)
-			(*child)->Draw();
-
-		if (focusedWindow != this)
-			return;
-
-		int x = 0, y = 0;
-		GetMouseState(&x, &y);
-		int buttons = SDL_GetMouseState(0, 0); //need actual button state to drag!
-		if (buttons == 1 && x > absLeft && y > absTop && x < absLeft + width && y < absTop + 12 && !WasInsideCloseBox())
-		{
-			if (draggingWindow == NULL)
-			{
-				draggingWindow = this;
-				dragStartX = x - absLeft;
-				dragStartY = y - absTop;
-				dragLeft = dragStartLeft =  absLeft;
-				dragTop = dragStartTop = absTop;
-				dragWidth = width;
-				dragHeight = height;
-			}
-		}
-		else if (buttons == 1 && draggingWindow == this && y - dragStartY > 14)
-		{
-			dragLeft = x - dragStartX;
-			dragTop = y - dragStartY;
-		}
-		else if (buttons == 0 && draggingWindow == this)
-		{
-			left = absLeft = dragLeft;
-			top = absTop = dragTop;
-			draggingWindow = NULL;
-			Propagate();
-		}
+		Hide();
 		return;
 	}
-	void Handle()
+
+	for (auto child = children.begin(); child != children.end(); child++)
+		(*child)->Draw();
+
+	if (focusedWindow != this)
+		return;
+
+	int x = 0, y = 0;
+	GetMouseState(&x, &y);
+	int buttons = SDL_GetMouseState(0, 0); //need actual button state to drag!
+	if (buttons == 1 && x > absLeft && y > absTop && x < absLeft + width && y < absTop + 12 && !WasInsideCloseBox())
 	{
-		if (!visible) return;
-		for (auto child = children.begin(); child != children.end(); child++)
-			(*child)->Handle();
-	}
-	void SizeToFit()
-	{
-		int width = MARGIN * 2;
-		int height = (MARGIN * 2) + 12;
-		for (auto child = children.begin(); child != children.end(); child++)
+		if (draggingWindow == NULL)
 		{
-			auto c = child->get();
-			auto childBottom = c->top + c->height;
-			auto childRight = c->left + c->width;
-			if (childBottom > height)
-				height = childBottom + MARGIN;
-			if (childRight > width)
-				width = childRight + MARGIN;
+			draggingWindow = this;
+			dragStartX = x - absLeft;
+			dragStartY = y - absTop;
+			dragLeft = dragStartLeft =  absLeft;
+			dragTop = dragStartTop = absTop;
+			dragWidth = width;
+			dragHeight = height;
 		}
-		this->width = width;
-		this->height = height + 10 + MARGIN;
-		this->Propagate();
 	}
-};
-
-class Button : public Control
+	else if (buttons == 1 && draggingWindow == this && y - dragStartY > 14)
+	{
+		dragLeft = x - dragStartX;
+		dragTop = y - dragStartY;
+	}
+	else if (buttons == 0 && draggingWindow == this)
+	{
+		left = absLeft = dragLeft;
+		top = absTop = dragTop;
+		draggingWindow = NULL;
+		Propagate();
+	}
+	return;
+}
+void Window::Handle()
 {
-public:
-	void(*onClick)(Control* me);
-	Button(const char* caption, int left, int top, int width, void(*click)(Control*))
-	{
-		this->text = caption;
-		this->left = this->absLeft = left;
-		this->top = this->absTop = top;
-		this->width = width;
-		this->height = 13;
-		this->onClick = click;
-		this->enabled = true;
-		this->visible = true;
-	}
-	void Draw()
-	{
-		if (!visible) return;
-		height = 14;
-		DrawFrameRect(absLeft, absTop, width, height, ((WasInside() && enabled) << 0) | ((WasInside() && justClicked) << 1));
-		auto capLeft = absLeft + (width / 2) - (MeasureString(text) / 2);
-		DrawString(capLeft, absTop + 3, enabled ? BUTTON_TEXT : BUTTON_BORDER_B, text);
-	}
-	void Handle()
-	{
-		if (WasClicked() && onClick != NULL)
-			onClick(this);
-	}
-};
-
-class CheckBox : public Control
+	if (!visible) return;
+	for (auto child = children.begin(); child != children.end(); child++)
+		(*child)->Handle();
+}
+void Window::SizeToFit()
 {
-public:
-	bool checked;
-	void(*onClick)(Control* me);
-	CheckBox(const char* caption, int left, int top, bool checked, void(*click)(Control*))
+	int width = MARGIN * 2;
+	int height = (MARGIN * 2) + 12;
+	for (auto child = children.begin(); child != children.end(); child++)
 	{
-		this->text = caption;
-		this->left = this->absLeft = left;
-		this->top = this->absTop = top;
-		this->width = MeasureString(caption) + 16;
-		this->height = 13;
-		this->onClick = click;
-		this->enabled = true;
-		this->visible = true;
-		this->checked = checked;
+		auto c = child->get();
+		auto childBottom = c->top + c->height;
+		auto childRight = c->left + c->width;
+		if (childBottom > height)
+			height = childBottom + MARGIN;
+		if (childRight > width)
+			width = childRight + MARGIN;
 	}
-	void Draw()
-	{
-		if (!visible) return;
-		auto textColor = (enabled ? BUTTON_TEXT : BUTTON_BORDER_B);
-		height = 10;
-		DrawFrameRect(absLeft, absTop, 11, 11, ((WasInside() && enabled) << 0) | ((WasInside() && justClicked) << 1));
-		if (checked)
-			DrawCharacter(absLeft + 1, absTop + 1, textColor, 256 + 14);
-		DrawString(absLeft + 14, absTop + 1, textColor, text);
-	}
-	void Handle()
-	{
-		if (WasClicked() && onClick != NULL)
-			onClick(this);
-	}
-};
+	this->width = width;
+	this->height = height + 10 + MARGIN;
+	this->Propagate();
+}
 
-class IconButton : public Control
+Label::Label(const char* caption, int left, int top, int color, int width)
 {
-public:
-	int icon;
-	void(*onClick)(Control*);
-	IconButton(int icon, int left, int top, void(*click)(Control*))
-	{
-		this->icon = icon;
-		this->left = this->absLeft = left;
-		this->top = this->absTop = top;
-		this->width = 10;
-		this->height = 10;
-		this->onClick = click;
-		this->enabled = true;
-		this->visible = true;
-	}
-	void Draw()
-	{
-		if (!visible) return;
-		width = 10;
-		height = 10;
-		DrawFrameRect(absLeft, absTop, width, height, ((WasInside() && enabled) << 0) | ((WasInside() && justClicked) << 1));
-		DrawCharacter(absLeft + 1, absTop + 1, enabled ? BUTTON_TEXT : BUTTON_BORDER_B, 256 + icon);
-	}
-	void Handle()
-	{
-		if (WasClicked() && onClick != NULL)
-			onClick(this);
-	}
-};
-
-void doListButton(Control* me);
-class ListBox : public Control
+	this->text = caption;
+	this->left = this->absLeft = left;
+	this->top = this->absTop = top;
+	this->color = color;
+	this->width = (width == 0) ? MeasureString(caption) : width;
+	this->height = 10; //TODO: count lines
+	this->visible = true;
+}
+void Label::Draw()
 {
-private:
-	int doubleTime, doubleItem;
-public:
-	int selection;
-	int scroll;
-	int numSeen;
-	int thumb;
-	std::vector<std::string> items;
-	void(*onChange)(Control*, int);
-	void(*onDouble)(Control*, int, const char*);
-	ListBox(int left, int top, int width, int height, void(*change)(Control*, int))
-	{
-		this->left = this->absLeft = left;
-		this->top = this->absTop = top;
-		this->width = width;
-		this->height = height;
-		this->onChange = change;
-		this->onDouble = NULL;
-		this->enabled = true;
-		this->visible = true;
-		this->selection = 0;
-		this->scroll = 0;
-		this->thumb = 1;
-		this->doubleTime = 0;
-		this->numSeen = (height - 2) / 9;
-		this->marginLeft = this->marginTop = 0;
-		this->AddChild(new IconButton(4, width - 11, 1, doListButton));
-		this->AddChild(new IconButton(5, width - 11, (numSeen * 9) - 9, doListButton));
-	}
-	void Draw()
-	{
-		if (!visible) return;
-		height = (numSeen * 9) + 2;
-		DrawRect(absLeft, absTop, width, height, LISTBOX_FILL, WINDOW_BORDERFOC_B);
-		for (int i = 0; i < numSeen && (i + scroll) < (signed)items.size(); i++)
-		{
-			int textColor = (i + scroll == selection) ? LISTBOX_HIGHTEXT : LISTBOX_TEXT;
-			if (i + scroll == selection)
-				DrawRect(absLeft + 1, absTop + 1 + (i * 9), width - 11, 9, LISTBOX_HIGHLIGHT, -1);
-			DrawString(absLeft + 3, absTop + 2 + (i * 9), textColor, items[i + scroll], absLeft + width - 11, 480);
-		}
-		DrawRect(absLeft + width - 11, absTop + 1, 10, height - 2, LISTBOX_TRACK, -1);
-		DrawFrameRect(absLeft + width - 11, absTop + 11 + thumb, 10, 9, 0);
+	if (!visible) return;
+	DrawString(absLeft, absTop, color, text);
+}
 
-		for (auto child = children.begin(); child != children.end(); child++)
-			(*child)->Draw();
+Image::Image(const unsigned short* pixels, int left, int top, int width, int height)
+{
+	this->pixels = (unsigned short*)pixels;
+	this->left = this->absLeft = left;
+	this->top = this->absTop = top;
+	this->width = width;
+	this->height = height;
+	this->visible = true;
+}
+void Image::Draw()
+{
+	if (!visible) return;
+	DrawImage(absLeft, absTop, pixels, width, height);
+}
+
+Button::Button(const char* caption, int left, int top, int width, void(*click)(Button*))
+{
+	this->text = caption;
+	this->left = this->absLeft = left;
+	this->top = this->absTop = top;
+	this->width = width;
+	this->height = 13;
+	this->onClick = click;
+	this->enabled = true;
+	this->visible = true;
+}
+void Button::Draw()
+{
+	if (!visible) return;
+	height = 14;
+	DrawFrameRect(absLeft, absTop, width, height, ((WasInside() && enabled) << 0) | ((WasInside() && justClicked) << 1));
+	auto capLeft = absLeft + (width / 2) - (MeasureString(text) / 2);
+	DrawString(capLeft, absTop + 3, enabled ? BUTTON_TEXT : BUTTON_BORDER_B, text);
+}
+void Button::Handle()
+{
+	if (WasClicked() && onClick != NULL)
+		onClick(this);
+}
+
+CheckBox::CheckBox(const char* caption, int left, int top, bool checked, void(*click)(CheckBox*))
+{
+	this->text = caption;
+	this->left = this->absLeft = left;
+	this->top = this->absTop = top;
+	this->width = MeasureString(caption) + 16;
+	this->height = 13;
+	this->onClick = click;
+	this->enabled = true;
+	this->visible = true;
+	this->checked = checked;
+}
+void CheckBox::Draw()
+{
+	if (!visible) return;
+	auto textColor = (enabled ? BUTTON_TEXT : BUTTON_BORDER_B);
+	height = 10;
+	DrawFrameRect(absLeft, absTop, 11, 11, ((WasInside() && enabled) << 0) | ((WasInside() && justClicked) << 1));
+	if (checked)
+		DrawCharacter(absLeft + 1, absTop + 1, textColor, 256 + 14);
+	DrawString(absLeft + 14, absTop + 1, textColor, text);
+}
+void CheckBox::Handle()
+{
+	if (WasClicked() && onClick != NULL)
+		onClick(this);
+}
+
+IconButton::IconButton(int icon, int left, int top, void(*click)(IconButton*))
+{
+	this->icon = icon;
+	this->left = this->absLeft = left;
+	this->top = this->absTop = top;
+	this->width = 10;
+	this->height = 10;
+	this->onClick = click;
+	this->enabled = true;
+	this->visible = true;
+}
+void IconButton::Draw()
+{
+	if (!visible) return;
+	width = 10;
+	height = 10;
+	DrawFrameRect(absLeft, absTop, width, height, ((WasInside() && enabled) << 0) | ((WasInside() && justClicked) << 1));
+	DrawCharacter(absLeft + 1, absTop + 1, enabled ? BUTTON_TEXT : BUTTON_BORDER_B, 256 + icon);
+}
+void IconButton::Handle()
+{
+	if (WasClicked() && onClick != NULL)
+		onClick(this);
+}
+
+void doListButton(IconButton* me)
+{
+	auto what = me->icon;
+	auto who = (ListBox*)(me->parent);
+	if (what == 4 && who->scroll > 0)
+		who->scroll--;
+	else if (what == 5 && who->scroll < (signed)who->items.size() - who->numSeen)
+		who->scroll++;
+
+	who->thumb = Lerp(1, who->height - 31, (float)((float)who->scroll / (who->items.size() - who->numSeen)));
+}
+
+ListBox::ListBox(int left, int top, int width, int height, void(*change)(ListBox*, int))
+{
+	this->left = this->absLeft = left;
+	this->top = this->absTop = top;
+	this->width = width;
+	this->height = height;
+	this->onChange = change;
+	this->onDouble = NULL;
+	this->enabled = true;
+	this->visible = true;
+	this->selection = 0;
+	this->scroll = 0;
+	this->thumb = 1;
+	this->doubleTime = 0;
+	this->numSeen = (height - 2) / 9;
+	this->marginLeft = this->marginTop = 0;
+	this->AddChild(new IconButton(4, width - 11, 1, doListButton));
+	this->AddChild(new IconButton(5, width - 11, (numSeen * 9) - 9, doListButton));
+}
+void ListBox::Draw()
+{
+	if (!visible) return;
+	height = (numSeen * 9) + 2;
+	DrawRect(absLeft, absTop, width, height, LISTBOX_FILL, WINDOW_BORDERFOC_B);
+	for (int i = 0; i < numSeen && (i + scroll) < (signed)items.size(); i++)
+	{
+		int textColor = (i + scroll == selection) ? LISTBOX_HIGHTEXT : LISTBOX_TEXT;
+		if (i + scroll == selection)
+			DrawRect(absLeft + 1, absTop + 1 + (i * 9), width - 11, 9, LISTBOX_HIGHLIGHT, -1);
+		DrawString(absLeft + 3, absTop + 2 + (i * 9), textColor, items[i + scroll], absLeft + width - 11, 480);
 	}
-	void Handle()
+	DrawRect(absLeft + width - 11, absTop + 1, 10, height - 2, LISTBOX_TRACK, -1);
+	DrawFrameRect(absLeft + width - 11, absTop + 11 + thumb, 10, 9, 0);
+
+	for (auto child = children.begin(); child != children.end(); child++)
+		(*child)->Draw();
+}
+void ListBox::Handle()
 	{
 		if (!visible) return;
 		if (draggingWindow != NULL)
@@ -572,411 +682,369 @@ public:
 		for (auto child = children.begin(); child != children.end(); child++)
 			(*child)->Handle();
 	}
-};
-void doListButton(Control* me)
-{
-	auto what = ((IconButton*)me)->icon;
-	auto who = (ListBox*)me->parent;
-	if (what == 4 && who->scroll > 0)
-		who->scroll--;
-	else if (what == 5 && who->scroll < (signed)who->items.size() - who->numSeen)
-		who->scroll++;
-
-	who->thumb = Lerp(1, who->height - 31, (float)((float)who->scroll / (who->items.size() - who->numSeen)));
-}
 
 void* currentMenu = NULL;
 int currentMenuTop, currentMenuLeft, currentMenuWidth, currentMenuHeight;
 
-class MenuItem : public Control
+MenuItem::MenuItem(const char* caption, char hotkey, void(*click)(MenuItem*))
 {
-public:
-	char hotkey;
-	void(*onClick)(Control*);
-	int command;
-	MenuItem(const char* caption, char hotkey, void(*click)(Control*))
-	{
-		this->text = caption;
-		this->width = MeasureString(caption) + 10;
-		this->hotkey = hotkey;
-		this->height = 12;
-		this->onClick = click;
-		this->command = 0;
-		this->enabled = true;
-		this->visible = true;
-	}
-	MenuItem(const char* caption, char hotkey, int uiCommand)
-	{
-		this->text = caption;
-		this->width = MeasureString(caption) + 10;
-		this->hotkey = hotkey;
-		this->height = 12;
-		this->onClick = NULL;
-		this->command = uiCommand;
-		this->enabled = true;
-		this->visible = true;
+	this->text = caption;
+	this->width = MeasureString(caption) + 10;
+	this->hotkey = hotkey;
+	this->height = 12;
+	this->onClick = click;
+	this->command = 0;
+	this->enabled = true;
+	this->visible = true;
+}
+MenuItem::MenuItem(const char* caption, char hotkey, int uiCommand)
+{
+	this->text = caption;
+	this->width = MeasureString(caption) + 10;
+	this->hotkey = hotkey;
+	this->height = 12;
+	this->onClick = NULL;
+	this->command = uiCommand;
+	this->enabled = true;
+	this->visible = true;
 
-		if (caption[0] == '-')
+	if (caption[0] == '-')
+	{
+		this->enabled = false;
+		this->height = 3;
+	}
+}
+void MenuItem::Draw()
+{
+	if (this->height == 3) //separator
+	{
+		DrawHLine(absLeft, absTop + 0, width, PULLDOWN_FILL);
+		DrawHLine(absLeft, absTop + 1, width, PULLDOWN_BORDER_B);
+		DrawHLine(absLeft, absTop + 2, width, PULLDOWN_FILL);
+		DrawVLine(absLeft, absTop, 3, PULLDOWN_BORDER_L);
+		DrawVLine(absLeft + width, absTop, 3, PULLDOWN_BORDER_R);
+		DrawVLine(absLeft + width + 1, absTop + 1, 3, -2);
+		DrawVLine(absLeft + width + 2, absTop + 1, 3, -2);
+		return;
+	}
+
+	int fillColor = WasInside() ? PULLDOWN_HIGHLIGHT : PULLDOWN_FILL;
+	int textColor = WasInside() ? PULLDOWN_HIGHTEXT : PULLDOWN_TEXT;
+	DrawRect(absLeft, absTop, width, 12, fillColor, -1);
+	DrawVLine(absLeft, absTop, 12, PULLDOWN_BORDER_L);
+	DrawVLine(absLeft + width, absTop, 12, PULLDOWN_BORDER_R);
+	DrawVLine(absLeft + width + 1, absTop + 1, 12, -2);
+	DrawVLine(absLeft + width + 2, absTop + 1, 12, -2);
+
+	DrawString(absLeft + 4, absTop + 2, textColor, text);
+	if (hotkey)
+		DrawCharacter(absLeft + width - 8, absTop + 2, textColor, hotkey);
+}
+void MenuItem::Handle()
+{
+	if (height == 3) return;
+	if (WasClicked())
+	{
+		currentMenu = NULL;
+		if (onClick != NULL && command == 0)
+			onClick(this);
+		else if (command)
+			uiCommand = command;
+	}
+}
+
+Menu::Menu(const char* caption)
+{
+	this->text = caption;
+	this->width = MeasureString(caption) + 10;
+	this->height = 13;
+	this->absTop = 0;
+	this->enabled = true;
+	this->visible = true;
+	this->sizedTheChildren = false;
+}
+void Menu::AddChild(MenuItem* child)
+{
+	child->absLeft = absLeft + child->left + marginLeft;
+	child->absTop = absTop + child->top + marginTop;
+	child->parent = 0;
+	children.push_back(std::unique_ptr<Control>(child));
+}
+void Menu::DrawPopup()
+{
+	currentMenuLeft = absLeft;
+	currentMenuTop = absTop + height;
+
+	int t = currentMenuTop;
+	for (auto child = children.begin(); child != children.end(); child++)
+	{
+		(*child)->absLeft = currentMenuLeft;
+		(*child)->absTop = t;
+		(*child)->Draw();
+		t += (*child)->height;
+	}
+
+	currentMenuHeight = t - currentMenuTop;
+
+	if (!sizedTheChildren)
+	{
+		int w = 1;
+		bool hotkeys = false;
+		for (auto child = children.begin(); child != children.end(); child++)
 		{
-			this->enabled = false;
-			this->height = 3;
+			if ((*child)->width > w)
+				w = (*child)->width;
+			auto mc = (MenuItem*)child->get();
+			if (mc->hotkey)
+				hotkeys = true;
 		}
-	}
-	void Draw()
-	{
-		if (this->height == 3) //separator
+		if (hotkeys)
+			w += 24;
+		for (auto child = children.begin(); child != children.end(); child++)
 		{
-			DrawHLine(absLeft, absTop + 0, width, PULLDOWN_FILL);
-			DrawHLine(absLeft, absTop + 1, width, PULLDOWN_BORDER_B);
-			DrawHLine(absLeft, absTop + 2, width, PULLDOWN_FILL);
-			DrawVLine(absLeft, absTop, 3, PULLDOWN_BORDER_L);
-			DrawVLine(absLeft + width, absTop, 3, PULLDOWN_BORDER_R);
-			DrawVLine(absLeft + width + 1, absTop + 1, 3, -2);
-			DrawVLine(absLeft + width + 2, absTop + 1, 3, -2);
-			return;
+			(*child)->width = w;
 		}
-
-		int fillColor = WasInside() ? PULLDOWN_HIGHLIGHT : PULLDOWN_FILL;
-		int textColor = WasInside() ? PULLDOWN_HIGHTEXT : PULLDOWN_TEXT;
-		DrawRect(absLeft, absTop, width, 12, fillColor, -1);
-		DrawVLine(absLeft, absTop, 12, PULLDOWN_BORDER_L);
-		DrawVLine(absLeft + width, absTop, 12, PULLDOWN_BORDER_R);
-		DrawVLine(absLeft + width + 1, absTop + 1, 12, -2);
-		DrawVLine(absLeft + width + 2, absTop + 1, 12, -2);
-
-		DrawString(absLeft + 4, absTop + 2, textColor, text);
-		if (hotkey)
-			DrawCharacter(absLeft + width - 8, absTop + 2, textColor, hotkey);
+		sizedTheChildren = true;
 	}
-	void Handle()
+
+	currentMenuWidth = children.begin()->get()->width;
+
+	DrawHLine(currentMenuLeft, currentMenuTop - 1, currentMenuWidth + 1, PULLDOWN_BORDER_T);
+	DrawHLine(currentMenuLeft, currentMenuTop + currentMenuHeight, currentMenuWidth + 1, PULLDOWN_BORDER_B);
+	DrawHLine(currentMenuLeft + 2, currentMenuTop + currentMenuHeight + 1, currentMenuWidth + 1, -2);
+	DrawHLine(currentMenuLeft + 2, currentMenuTop + currentMenuHeight + 2, currentMenuWidth + 1, -2);
+}
+void Menu::Draw()
+{
+	int fillColor = (WasInside() || currentMenu == this ) ? MENUBAR_HIGHLIGHT : MENUBAR_FILL;
+	int textColor = (WasInside() || currentMenu == this ) ? MENUBAR_HIGHTEXT : MENUBAR_TEXT;
+	DrawRect(absLeft, 0, width, 12, fillColor, -1);
+	DrawHLine(absLeft + 2, 12, width, -2);
+	DrawHLine(absLeft + 2, 13, width, -2);
+	DrawVLine(absLeft + width + 0, 2, 10, -2);
+	DrawVLine(absLeft + width + 1, 2, 10, -2);
+	DrawString(absLeft + 4, 2, textColor, text);
+}
+void Menu::HandlePopup()
+{
+	for (auto child = children.begin(); child != children.end(); child++)
+		(*child)->Handle();
+}
+void Menu::Handle()
+{
+	if (WasClicked())
 	{
-		if (height == 3) return;
-		if (WasClicked())
-		{
+		if (children.empty())
 			currentMenu = NULL;
-			if (onClick != NULL && command == 0)
-				onClick(this);
-			else if (command)
-				uiCommand = command;
+		else
+		{
+			currentMenu = this;
+			currentMenuLeft = absLeft;
+			currentMenuTop = absTop;
+			currentMenuWidth = currentMenuHeight = 1000;
 		}
 	}
-};
+}
 
-class Menu : public Control
+MenuBar::MenuBar()
 {
-private:
-	bool sizedTheChildren;
-public:
-	Menu(const char* caption)
-	{
-		this->text = caption;
-		this->width = MeasureString(caption) + 10;
-		this->height = 13;
-		this->absTop = 0;
-		this->enabled = true;
-		this->visible = true;
-		this->sizedTheChildren = false;
-	}
-	void AddChild(Control* child)
-	{
-		child->absLeft = absLeft + child->left + marginLeft;
-		child->absTop = absTop + child->top + marginTop;
-		child->parent = 0;
-		children.push_back(std::unique_ptr<Control>(child));
-	}
-	void DrawPopup()
-	{
-		currentMenuLeft = absLeft;
-		currentMenuTop = absTop + height;
-
-		int t = currentMenuTop;
-		for (auto child = children.begin(); child != children.end(); child++)
-		{
-			(*child)->absLeft = currentMenuLeft;
-			(*child)->absTop = t;
-			(*child)->Draw();
-			t += (*child)->height;
-		}
-
-		currentMenuHeight = t - currentMenuTop;
-
-		if (!sizedTheChildren)
-		{
-			int w = 1;
-			bool hotkeys = false;
-			for (auto child = children.begin(); child != children.end(); child++)
-			{
-				if ((*child)->width > w)
-					w = (*child)->width;
-				auto mc = (MenuItem*)child->get();
-				if (mc->hotkey)
-					hotkeys = true;
-			}
-			if (hotkeys)
-				w += 24;
-			for (auto child = children.begin(); child != children.end(); child++)
-			{
-				(*child)->width = w;
-			}
-			sizedTheChildren = true;
-		}
-
-		currentMenuWidth = children.begin()->get()->width;
-
-		DrawHLine(currentMenuLeft, currentMenuTop - 1, currentMenuWidth + 1, PULLDOWN_BORDER_T);
-		DrawHLine(currentMenuLeft, currentMenuTop + currentMenuHeight, currentMenuWidth + 1, PULLDOWN_BORDER_B);
-		DrawHLine(currentMenuLeft + 2, currentMenuTop + currentMenuHeight + 1, currentMenuWidth + 1, -2);
-		DrawHLine(currentMenuLeft + 2, currentMenuTop + currentMenuHeight + 2, currentMenuWidth + 1, -2);
-	}
-	void Draw()
-	{
-		int fillColor = (WasInside() || currentMenu == this ) ? MENUBAR_HIGHLIGHT : MENUBAR_FILL;
-		int textColor = (WasInside() || currentMenu == this ) ? MENUBAR_HIGHTEXT : MENUBAR_TEXT;
-		DrawRect(absLeft, 0, width, 12, fillColor, -1);
-		DrawHLine(absLeft + 2, 12, width, -2);
-		DrawHLine(absLeft + 2, 13, width, -2);
-		DrawVLine(absLeft + width + 0, 2, 10, -2);
-		DrawVLine(absLeft + width + 1, 2, 10, -2);
-		DrawString(absLeft + 4, 2, textColor, text);
-	}
-	void HandlePopup()
-	{
-		for (auto child = children.begin(); child != children.end(); child++)
-			(*child)->Handle();
-	}
-	void Handle()
-	{
-		if (WasClicked())
-		{
-			if (children.empty())
-				currentMenu = NULL;
-			else
-			{
-				currentMenu = this;
-				currentMenuLeft = absLeft;
-				currentMenuTop = absTop;
-				currentMenuWidth = currentMenuHeight = 1000;
-			}
-		}
-	}
-};
-
-class MenuBar : public Control
+	this->parent = 0;
+}
+void MenuBar::AddChild(Menu* child)
 {
-public:
-	MenuBar()
-	{
-		this->parent = 0;
-	}
-	void AddChild(Control* child)
-	{
-		child->absLeft = absLeft + child->left + marginLeft;
-		child->absTop = absTop + child->top + marginTop;
-		child->parent = 0;
-		children.push_back(std::unique_ptr<Control>(child));
-	}
-	void Draw()
-	{
-		int w = 0;
-		for (auto child = children.begin(); child != children.end(); child++)
-		{
-			(*child)->absLeft = w;
-			(*child)->absTop = 0;
-			(*child)->Draw();
-			w += (*child)->width;
-		}
-		width = w;
-	}
-	void Handle()
-	{
-		for (auto child = children.begin(); child != children.end(); child++)
-			(*child)->Handle();
-	}
-};
-
-class DropDown : public Control
+	child->absLeft = absLeft + child->left + marginLeft;
+	child->absTop = absTop + child->top + marginTop;
+	child->parent = 0;
+	children.push_back(std::unique_ptr<Control>(child));
+}
+void MenuBar::Draw()
 {
-private:
-	bool sizedTheChildren;
-public:
-	DropDown(int left, int top)
+	int w = 0;
+	for (auto child = children.begin(); child != children.end(); child++)
 	{
-		this->width = 10;
-		this->height = 10;
-		this->left = this->absLeft = left;
-		this->top = this->absTop = top;
-		this->enabled = true;
-		this->visible = true;
-		this->sizedTheChildren = false;
+		(*child)->absLeft = w;
+		(*child)->absTop = 0;
+		(*child)->Draw();
+		w += (*child)->width;
 	}
-	void AddChild(Control* child)
+	width = w;
+}
+void MenuBar::Handle()
+{
+	for (auto child = children.begin(); child != children.end(); child++)
+		(*child)->Handle();
+}
+
+DropDown::DropDown(int left, int top)
+{
+	this->width = 10;
+	this->height = 10;
+	this->left = this->absLeft = left;
+	this->top = this->absTop = top;
+	this->enabled = true;
+	this->visible = true;
+	this->sizedTheChildren = false;
+}
+void DropDown::AddChild(MenuItem* child)
+{
+	child->absLeft = absLeft + child->left + marginLeft;
+	child->absTop = absTop + child->top + marginTop;
+	child->parent = this;
+	children.push_back(std::unique_ptr<Control>(child));
+}
+void DropDown::Draw()
+{
+	if (!visible) return;
+	auto textColor = (enabled ? BUTTON_TEXT : BUTTON_BORDER_B);
+	width = 10;
+	height = 10;
+	DrawFrameRect(absLeft, absTop, width, height, ((WasInside() && enabled) << 0) | ((WasInside() && justClicked) << 1));
+	DrawCharacter(absLeft + 1, absTop + 1, textColor, 256 + 5);
+}
+void DropDown::Handle()
+{
+	if (WasClicked())
 	{
-		child->absLeft = absLeft + child->left + marginLeft;
-		child->absTop = absTop + child->top + marginTop;
-		child->parent = this;
-		children.push_back(std::unique_ptr<Control>(child));
-	}
-	void Draw()
-	{
-		if (!visible) return;
-		auto textColor = (enabled ? BUTTON_TEXT : BUTTON_BORDER_B);
-		width = 10;
-		height = 10;
-		DrawFrameRect(absLeft, absTop, width, height, ((WasInside() && enabled) << 0) | ((WasInside() && justClicked) << 1));
-		DrawCharacter(absLeft + 1, absTop + 1, textColor, 256 + 5);
-	}
-	void Handle()
-	{
-		if (WasClicked())
+		if (children.empty())
+			currentMenu = NULL;
+		else
 		{
-			if (children.empty())
-				currentMenu = NULL;
-			else
-			{
-				currentMenu = this;
-				currentMenuLeft = absLeft;
-				currentMenuTop = absTop;
-				currentMenuWidth = currentMenuHeight = 1000;
-			}
+			currentMenu = this;
+			currentMenuLeft = absLeft;
+			currentMenuTop = absTop;
+			currentMenuWidth = currentMenuHeight = 1000;
 		}
 	}
-};
+}
 
-class TextBox : public Control
+TextBox::TextBox(const char* caption, int left, int top, int width)
 {
-public:
-	int cursor;
-	int maxLength;
-	void(*onEnter)(Control*);
-	TextBox(const char* caption, int left, int top, int width)
+	this->text = caption;
+	this->cursor = 0;
+	this->left = this->absLeft = left;
+	this->top = this->absTop = top;
+	this->enabled = true;
+	this->visible = true;
+	this->width = (width == 0) ? MeasureString(caption) : width;
+	this->height = 10;
+	this->onEnter = NULL;
+	this->maxLength = 0;
+}
+void TextBox::Draw()
+{
+	if (!visible) return;
+	DrawRect4(absLeft, absTop, width, 11, TEXTBOX_FILL, WINDOW_BORDERFOC_R, WINDOW_BORDERFOC_B, WINDOW_BORDERFOC_L, WINDOW_BORDERFOC_T);
+	DrawString(absLeft + 2, absTop + 2, TEXTBOX_TEXT, text, absLeft + width - 1, absTop + 10);
+	if (focusedTextBox != this)
+		return;
+	auto caretHelper = std::string(text);
+	caretHelper += "   ";
+	caretHelper[cursor] = 0;
+	auto size = MeasureString(caretHelper);
+	if (SDL_GetTicks() % 1024 < 512)
+		DrawCharacter(absLeft + size + 1, absTop + 2, TEXTBOX_CARET, '|');
+}
+void TextBox::Handle()
+{
+	if (WasClicked() && enabled)
+		focusedTextBox = this;
+	if (focusedTextBox != this)
+		return;
+	auto key = uiKey & 0xFF;
+	auto mods = uiKey >> 8;
+	if (mods & 6)
+		return;
+	if (key > 0 && key < 0xFF)
 	{
-		this->text = caption;
-		this->cursor = 0;
-		this->left = this->absLeft = left;
-		this->top = this->absTop = top;
-		this->enabled = true;
-		this->visible = true;
-		this->width = (width == 0) ? MeasureString(caption) : width;
-		this->height = 10;
-		this->onEnter = NULL;
-		this->maxLength = 0;
-	}
-	void Draw()
-	{
-		if (!visible) return;
-		DrawRect4(absLeft, absTop, width, 11, TEXTBOX_FILL, WINDOW_BORDERFOC_R, WINDOW_BORDERFOC_B, WINDOW_BORDERFOC_L, WINDOW_BORDERFOC_T);
-		DrawString(absLeft + 2, absTop + 2, TEXTBOX_TEXT, text, absLeft + width - 1, absTop + 10);
-		if (focusedTextBox != this)
-			return;
-		auto caretHelper = std::string(text);
-		caretHelper += "   ";
-		caretHelper[cursor] = 0;
-		auto size = MeasureString(caretHelper);
-		if (SDL_GetTicks() % 1024 < 512)
-			DrawCharacter(absLeft + size + 1, absTop + 2, TEXTBOX_CARET, '|');
-	}
-	void Handle()
-	{
-		if (WasClicked() && enabled)
-			focusedTextBox = this;
-		if (focusedTextBox != this)
-			return;
-		auto key = uiKey & 0xFF;
-		auto mods = uiKey >> 8;
-		if (mods & 6)
-			return;
-		if (key > 0 && key < 0xFF)
+		if (key == 0x1C) //Enter
 		{
-			if (key == 0x1C) //Enter
+			if (onEnter) onEnter(this);
+		}
+		else if (key == 0xC9) //PgUp
+		{
+			cursor = 0;
+		}
+		else if (key == 0xD1) //PgDown
+		{
+			cursor = text.length();
+		}
+		else if (key == 0xCB) //Left
+		{
+			if (cursor > 0)
+				cursor--;
+		}
+		else if (key == 0xCD) //Right
+		{
+			if (cursor < (signed)text.length())
+				cursor++;
+		}
+		else if (key == 0x0E) //Backspace
+		{
+			if (cursor > 0)
 			{
-				if (onEnter) onEnter(this);
-			}
-			else if (key == 0xC9) //PgUp
-			{
-				cursor = 0;
-			}
-			else if (key == 0xD1) //PgDown
-			{
-				cursor = text.length();
-			}
-			else if (key == 0xCB) //Left
-			{
-				if (cursor > 0)
-					cursor--;
-			}
-			else if (key == 0xCD) //Right
-			{
-				if (cursor < (signed)text.length())
-					cursor++;
-			}
-			else if (key == 0x0E) //Backspace
-			{
-				if (cursor > 0)
-				{
-					cursor--;
-					if (text.length() > 0)
-						text.erase(cursor, 1);
-				}
-			}
-			else if (key == 0xD3) //Delete
-			{
+				cursor--;
 				if (text.length() > 0)
 					text.erase(cursor, 1);
 			}
-			else
-			{
-				if (maxLength && text.length() == maxLength)
-					return;
-				//Consider using actual SDL keys without extra processing?
-				static const char sctoasc[] = {
-				//Unshifted
-				//  0    1    2    3    4    5    6    7    8    9    a    b    c    d    e    f
-					0,   0,   '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b','\t',// 0x00
-					'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',0,   'a', 's', // 0x10
-					'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'','`', 0,   '\\','z', 'x', 'c', 'v', // 0x20
-					'b', 'n', 'm', ',', '.', '/', 0,   '*', 0,   ' ', 0,   0,   0,   0,   0,   0,   // 0x30
-					0,   0,   0,   0,   0,   0,   0,   '7', '8', '9', '-', '4', '5', '6', '+', '1', // 0x40
-					'2', '3', '0', '.', 0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0x50
-					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0x60
-					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0x70
-					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0x80
-					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   '\n',0,   0,   0,   // 0x90
-					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xa0
-					0,   0,   0,   0,   0,   '/', 0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xb0
-					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xc0
-					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xd0
-					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xe0
-					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xf0
-				//Shifted
-				//  0    1    2    3    4    5    6    7    8    9    a    b    c    d    e    f
-					0,   0,   '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '\b','\t',// 0x00
-					'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', '\n',0,   'A', 'S', // 0x10
-					'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '\"','~', 0,   '|', 'Z', 'X', 'C', 'V', // 0x20
-					'B', 'N', 'M', '<', '>', '?', 0,   '*', 0,   ' ', 0,   0,   0,   0,   0,   0,   // 0x30
-					0,   0,   0,   0,   0,   0,   0,   '7', '8', '9', '-', '4', '5', '6', '+', '1', // 0x40
-					'2', '3', '0', '.', 0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0x50
-					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0x60
-					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0x70
-					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0x80
-					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   '\n',0,   0,   0,   // 0x90
-					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xa0
-					0,   0,   0,   0,   0,   '/', 0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xb0
-					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xc0
-					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xd0
-					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xe0
-					0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xf0
-				};
-				if (mods & 1)
-					key += 0x100;
-				if (sctoasc[key] == 0)
-					return;
-				char stuff[2] = { sctoasc[key], 0 };
-				text.insert(cursor, stuff);
-				cursor++;
-			}
+		}
+		else if (key == 0xD3) //Delete
+		{
+			if (text.length() > 0)
+				text.erase(cursor, 1);
+		}
+		else
+		{
+			if (maxLength && text.length() == maxLength)
+				return;
+			//Consider using actual SDL keys without extra processing?
+			static const char sctoasc[] = {
+			//Unshifted
+			//  0    1    2    3    4    5    6    7    8    9    a    b    c    d    e    f
+				0,   0,   '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b','\t',// 0x00
+				'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',0,   'a', 's', // 0x10
+				'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'','`', 0,   '\\','z', 'x', 'c', 'v', // 0x20
+				'b', 'n', 'm', ',', '.', '/', 0,   '*', 0,   ' ', 0,   0,   0,   0,   0,   0,   // 0x30
+				0,   0,   0,   0,   0,   0,   0,   '7', '8', '9', '-', '4', '5', '6', '+', '1', // 0x40
+				'2', '3', '0', '.', 0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0x50
+				0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0x60
+				0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0x70
+				0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0x80
+				0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   '\n',0,   0,   0,   // 0x90
+				0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xa0
+				0,   0,   0,   0,   0,   '/', 0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xb0
+				0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xc0
+				0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xd0
+				0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xe0
+				0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xf0
+			//Shifted
+			//  0    1    2    3    4    5    6    7    8    9    a    b    c    d    e    f
+				0,   0,   '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '\b','\t',// 0x00
+				'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', '\n',0,   'A', 'S', // 0x10
+				'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '\"','~', 0,   '|', 'Z', 'X', 'C', 'V', // 0x20
+				'B', 'N', 'M', '<', '>', '?', 0,   '*', 0,   ' ', 0,   0,   0,   0,   0,   0,   // 0x30
+				0,   0,   0,   0,   0,   0,   0,   '7', '8', '9', '-', '4', '5', '6', '+', '1', // 0x40
+				'2', '3', '0', '.', 0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0x50
+				0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0x60
+				0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0x70
+				0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0x80
+				0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   '\n',0,   0,   0,   // 0x90
+				0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xa0
+				0,   0,   0,   0,   0,   '/', 0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xb0
+				0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xc0
+				0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xd0
+				0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xe0
+				0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   // 0xf0
+			};
+			if (mods & 1)
+				key += 0x100;
+			if (sctoasc[key] == 0)
+				return;
+			char stuff[2] = { sctoasc[key], 0 };
+			text.insert(cursor, stuff);
+			cursor++;
 		}
 	}
-};
+}
 
 extern int pauseState;
 int mouseTimer = 0;
@@ -993,11 +1061,11 @@ Window* BuildDeviceWindow();
 Window* BuildOptionsWindow();
 Window* BuildFileSelectWindow();
 
-void _showAboutDialog(Control*) { aboutWindow->Show(); }
-void _showMemoryViewer(Control*) { memoryWindow->Show(); }
-void _showDevices(Control*) { deviceWindow->Show(); }
-void _showOptions(Control*) { optionsWindow->Show(); }
-void _showFileSelect(Control*) { fileSelectWindow->Show(); }
+void _showAboutDialog(MenuItem*) { aboutWindow->Show(); }
+void _showMemoryViewer(MenuItem*) { memoryWindow->Show(); }
+void _showDevices(MenuItem*) { deviceWindow->Show(); }
+void _showOptions(MenuItem*) { optionsWindow->Show(); }
+void _showFileSelect(MenuItem*) { fileSelectWindow->Show(); }
 
 void InitializeUI()
 {
@@ -1031,7 +1099,7 @@ void InitializeUI()
 	fileSelectWindow = BuildFileSelectWindow();
 }
 
-void BringWindowToFront(Control* window)
+void BringWindowToFront(Window* window)
 {
 	if (focusedWindow != window)
 		focusedTextBox = NULL;
@@ -1062,7 +1130,7 @@ bool CheckForWindowPops()
 		auto win = child->get();
 		if (win->visible && x > win->absLeft && y > win->absTop && x < win->absLeft + win->width && y < win->absTop + win->height)
 		{
-			BringWindowToFront(win);
+			BringWindowToFront((Window*)win);
 			return true;
 		}
 		if (child == topLevelControls.begin())
@@ -1480,7 +1548,7 @@ void SetStatus(const char* text)
 	statusTimer = 100;
 }
 
-void _closeWindow(Control* me)
+void _closeWindow(Button* me)
 {
 	((Window*)me->parent)->Hide();
 }
@@ -1584,7 +1652,7 @@ public:
 	}
 };
 
-void _memViewerScroller(Control *me)
+void _memViewerScroller(IconButton *me)
 {
 	auto mods = SDL_GetModState();
 	auto bigStep = (mods & KMOD_CTRL) ? 0x01000000 : ((mods & KMOD_SHIFT) ? 0x8000 : 0x1000);
@@ -1610,7 +1678,7 @@ void _memViewerScroller(Control *me)
 		memViewerOffset = MAXVIEWEROFFSET;
 }
 
-void _memViewerText(Control* me)
+void _memViewerText(TextBox* me)
 {
 	memViewerOffset = strtol(memViewerTextBox->text.c_str(), NULL, 16);
 	char asText[64] = { 0 };
@@ -1618,7 +1686,7 @@ void _memViewerText(Control* me)
 	memViewerTextBox->text = asText;
 }
 
-void _memViewerDrop(Control* me)
+void _memViewerDrop(MenuItem* me)
 {
 	int selection = 0;
 	for (int i = 0; i < (signed)me->parent->children.size(); i++)
@@ -1652,7 +1720,7 @@ Window* BuildMemoryWindow()
 	const char* const areas[] = { "BIOS", "Cart", "WRAM", "Devices", "Registers", "VRAM" };
 	for (int i = 0; i < 6; i++)
 		drop->AddChild(new MenuItem(areas[i], 0, _memViewerDrop));
-	_memViewerDrop((drop->children.end() - 1)->get()); //that or begin really :shrug:
+	_memViewerDrop((MenuItem*)(drop->children.end() - 1)->get()); //that or begin really :shrug:
 	topLevelControls.push_back(std::unique_ptr<Control>(win));
 	win->visible = false;
 	return win;
@@ -1695,7 +1763,7 @@ void _devUpdateDiskette(int devId)
 	devManDiskette->cursor = 0;
 }
 
-void _devDiskette(Control* me)
+void _devDiskette(Button* me)
 {
 	uiData = devManList->selection;
 	if (me == devManInsert)
@@ -1704,7 +1772,7 @@ void _devDiskette(Control* me)
 		uiCommand = cmdEjectDisk;
 }
 
-void _devSelect(Control* me, int selection)
+void _devSelect(ListBox* me, int selection)
 {
 	devManDrop->enabled = (selection > 0);
 	devManNoOptions->visible = false;
@@ -1770,7 +1838,7 @@ void UpdateDevManList()
 	}
 }
 
-void _devDrop(Control* me)
+void _devDrop(MenuItem* me)
 {
 	int selection = devManList->selection;
 	int oldType = 0;
@@ -1859,7 +1927,7 @@ CheckBox* options200;
 CheckBox* optionsReloadROM;
 CheckBox* optionsReloadIMG;
 
-void _optionsCheck(Control* me)
+void _optionsCheck(CheckBox* me)
 {
 	if (me == optionsShowFPS)
 	{
@@ -1967,7 +2035,7 @@ void UpdateFileList()
 #endif
 }
 
-void _fileList(Control* me, int index, const char* filename)
+void _fileList(ListBox* me, int index, const char* filename)
 {
 	//not the best way but FUCK IT!
 #ifdef _MSC_VER
