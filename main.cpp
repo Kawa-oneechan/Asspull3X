@@ -24,16 +24,16 @@ void LoadROM(std::string path)
 {
 	unsigned int fileSize = 0;
 
-	auto lowerPath = std::string(path);
-	std::transform(lowerPath.begin(), lowerPath.end(), lowerPath.begin(), [](unsigned char c) { return tolower(c); });
+	auto lpath = std::string(path);
+	std::transform(lpath.begin(), lpath.end(), lpath.begin(), [](unsigned char c) { return tolower(c); });
 
-	auto ext = lowerPath.rfind('.') + 1;
-	if (lowerPath.compare(ext, 3, "ap3") == 0)
+	auto ext = lpath.rfind('.') + 1;
+	if (lpath.compare(ext, 3, "ap3") == 0)
 	{
 		memset(romCartridge, 0, CART_SIZE);
 		Slurp(romCartridge, path, &romSize);
 	}
-	else if (lowerPath.compare(ext, 3, "a3z") == 0)
+	else if (lpath.compare(ext, 3, "a3z") == 0)
 	{
 		mz_zip_archive zip;
 		memset(&zip, 0, sizeof(zip));

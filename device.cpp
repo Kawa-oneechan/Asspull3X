@@ -11,8 +11,7 @@ int Device::GetID() { return 0; }
 
 DiskDrive::DiskDrive(int newType)
 {
-	if ((data = (unsigned char*)malloc(0x0000200)) == NULL) return;
-	SDL_memset(data, 0, 0x0000200);
+	if ((data = (unsigned char*)calloc(0, 0x0000200)) == NULL) return;
 	sector = 0;
 	error = 0;
 	capacity = 0;

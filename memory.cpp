@@ -79,14 +79,10 @@ void HandleHdma(int line)
 
 int InitMemory()
 {
-	if ((romBIOS = (unsigned char*)malloc(BIOS_SIZE)) == NULL) return -1;
-	SDL_memset(romBIOS, 0, BIOS_SIZE);
-	if ((romCartridge = (unsigned char*)malloc(CART_SIZE)) == NULL) return -1;
-	SDL_memset(romCartridge, 0, CART_SIZE);
-	if ((ramInternal = (unsigned char*)malloc(WRAM_SIZE)) == NULL) return -1;
-	SDL_memset(ramInternal, 0, WRAM_SIZE);
-	if ((ramVideo = (unsigned char*)malloc(VRAM_SIZE)) == NULL) return -1;
-	SDL_memset(ramVideo, 0, VRAM_SIZE);
+	if ((romBIOS = (unsigned char*)calloc(1, BIOS_SIZE)) == NULL) return -1;
+	if ((romCartridge = (unsigned char*)calloc(1, CART_SIZE)) == NULL) return -1;
+	if ((ramInternal = (unsigned char*)calloc(1, WRAM_SIZE)) == NULL) return -1;
+	if ((ramVideo = (unsigned char*)calloc(1, VRAM_SIZE)) == NULL) return -1;
 	return 0;
 }
 
