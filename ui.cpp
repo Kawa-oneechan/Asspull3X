@@ -18,8 +18,8 @@
 
 #include "nokia.c"
 
-char uiStatus[512] = { 0 };
-char uiFPS[32] = { 0 };
+std::string uiStatus;
+std::string uiFPS = "123";
 bool fpsVisible = false;
 int statusTimer = 0;
 int uiKey = 0; //for textboxes
@@ -133,7 +133,7 @@ private:
 	bool WasCloseBoxClicked();
 	void DrawCloseBox();
 public:
-	Window(const char* caption, int left, int top, int width, int height);
+	Window(std::string caption, int left, int top, int width, int height);
 	void Show();
 	void Hide();
 	void Draw();
@@ -239,7 +239,7 @@ public:
 	void Handle();
 };
 
-class DropDown : public Control
+class DropDown : public Menu
 {
 private:
 	bool sizedTheChildren;
@@ -264,7 +264,7 @@ public:
 
 Window* draggingWindow = NULL;
 Window* focusedWindow = NULL;
-void* focusedTextBox = NULL;
+TextBox* focusedTextBox = NULL;
 int dragStartX, dragStartY;
 int dragLeft, dragTop, dragWidth, dragHeight, dragStartLeft, dragStartTop;
 int justClicked = 0;
@@ -366,7 +366,7 @@ void Window::DrawCloseBox()
 	DrawFrameRect(closeButtonLeft, closeButtonTop, 10, 10, ((WasInsideCloseBox() && enabled) << 0) | ((WasInsideCloseBox() && justClicked) << 1));
 	DrawCharacter(closeButtonLeft + 1, closeButtonTop + 1, BUTTON_TEXT, 256 + 0);
 }
-Window::Window(const char* caption, int left, int top, int width, int height)
+Window::Window(std::string caption, int left, int top, int width, int height)
 {
 	this->text = caption;
 	this->left = this->absLeft = left;
@@ -683,7 +683,7 @@ void ListBox::Handle()
 			(*child)->Handle();
 	}
 
-void* currentMenu = NULL;
+Menu* currentMenu = NULL;
 int currentMenuTop, currentMenuLeft, currentMenuWidth, currentMenuHeight;
 
 MenuItem::MenuItem(const char* caption, char hotkey, void(*click)(MenuItem*))
@@ -875,7 +875,7 @@ void MenuBar::Handle()
 		(*child)->Handle();
 }
 
-DropDown::DropDown(int left, int top)
+DropDown::DropDown(int left, int top) : Menu("")
 {
 	this->width = 10;
 	this->height = 10;
@@ -1149,7 +1149,7 @@ void HandleStatusLine(int left)
 		statusTimer--;
 	}
 	if (fpsVisible)
-		DrawString(640 - 8 - (strlen(uiFPS) * 5), 2, STATUS_TEXT, uiFPS);
+		DrawString(640 - 8 - (3 * 5), 2, STATUS_TEXT, uiFPS);
 }
 
 void HandleUI()
@@ -1541,10 +1541,10 @@ void LetItSnow()
 #define LetItSnow()
 #endif
 
-void SetStatus(const char* text)
+void SetStatus(std::string text)
 {
 	printf("STATUS: %s\n", text);
-	strcpy(uiStatus, text);
+	uiStatus = text;
 	statusTimer = 100;
 }
 
@@ -1554,11 +1554,11 @@ void _closeWindow(Button* me)
 }
 
 int fileSelectCommand, fileSelectData;
-const char* fileSelectPattern;
+std::string fileSelectPattern;
 void UpdateFileList();
 char lastPath[FILENAME_MAX];
 
-void ShowOpenFileDialog(int command, int data, const char* pattern)
+void ShowOpenFileDialog(int command, int data, std::string pattern)
 {
 	if (fileSelectWindow->visible)
 		return;
@@ -1851,7 +1851,7 @@ void _devDrop(MenuItem* me)
 				if (((DiskDrive*)devices[selection])->GetType() == ddHardDisk)
 					oldType = 2;
 				break;
-			case 0x4C50: oldType = 2; break;
+			case 0x4C50: oldType = 3; break;
 		}
 	}
 	int newType = 0;
@@ -2000,7 +2000,7 @@ void UpdateFileList()
 			fileList->items.push_back(ff.name);
 	} while (_findnext(fh, &ff) == 0);
 	_findclose(fh);
-	fh = _findfirst(fileSelectPattern, &ff);
+	fh = _findfirst(fileSelectPattern.c_str(), &ff);
 	if (fh != -1)
 	{
 		do
@@ -2024,7 +2024,7 @@ void UpdateFileList()
 	}
 	for (int i = 0; i < n; i++)
 	{
-		if (!fnmatch(fileSelectPattern, nl[i]->d_name, 0))
+		if (!fnmatch(fileSelectPattern.c_str(), nl[i]->d_name, 0))
 		{
 			printf("ROM: %s\n", nl[i]->d_name);
 			fileList->items.push_back(nl[i]->d_name);

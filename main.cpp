@@ -10,31 +10,34 @@ int line = 0, interrupts = 0;
 extern void Screenshot();
 extern int uiCommand, uiData, uiKey;
 extern char uiString[512];
-extern char uiFPS[];
-extern void SetStatus(const char*);
+extern std::string uiFPS;
+extern void SetStatus(std::string);
 extern void _devUpdateDiskette(int);
-extern void ShowOpenFileDialog(int, int, const char*);
+extern void ShowOpenFileDialog(int, int, std::string);
 
 extern unsigned int biosSize, romSize;
 extern long rtcOffset;
 
 CSimpleIniA ini;
 
-void LoadROM(const char* path)
+void LoadROM(std::string path)
 {
 	unsigned int fileSize = 0;
 
-	auto ext = strrchr(path, '.') + 1;
-	if (SDL_strncasecmp(ext, "ap3", 3) == 0)
+	auto lowerPath = std::string(path);
+	std::transform(lowerPath.begin(), lowerPath.end(), lowerPath.begin(), [](unsigned char c) { return tolower(c); });
+
+	auto ext = lowerPath.rfind('.') + 1;
+	if (lowerPath.compare(ext, 3, "ap3") == 0)
 	{
 		memset(romCartridge, 0, CART_SIZE);
 		Slurp(romCartridge, path, &romSize);
 	}
-	else if (SDL_strncasecmp(ext, "a3z", 3) == 0)
+	else if (lowerPath.compare(ext, 3, "a3z") == 0)
 	{
 		mz_zip_archive zip;
 		memset(&zip, 0, sizeof(zip));
-		mz_zip_reader_init_file(&zip, path, 0);
+		mz_zip_reader_init_file(&zip, path.c_str(), 0);
 
 		bool foundSomething = false;
 		for (int i = 0; i < (int)mz_zip_reader_get_num_files(&zip); i++)
@@ -49,8 +52,8 @@ void LoadROM(const char* path)
 			if (!strchr(fs.m_filename, '.'))
 				continue;
 
-			ext = strrchr(fs.m_filename, '.') + 1;
-			if (SDL_strncasecmp(ext, "ap3", 3) == 0)
+			auto ext2 = strrchr(fs.m_filename, '.') + 1;
+			if (SDL_strncasecmp(ext2, "ap3", 3) == 0)
 			{
 				foundSomething = true;
 				romSize = (unsigned int)fs.m_uncomp_size;
@@ -127,45 +130,46 @@ int main(int argc, char* argv[])
 	//Absolutely always load a disk drive as #0
 	for (int i = 0; i < MAXDEVS; i++)
 	{
-		char key[8];
-		char dft[24] = "";
-		const char* thing;
+		std::string key;
+		std::string dft;
+		std::string thing;
 		//Always load a lineprinter as #1 by default
-		if (i == 1) strcpy(dft, "linePrinter");
-		SDL_itoa(i, key, 10);
-		thing = ini.GetValue("devices", key, dft);
+		if (i == 1) dft = "linePrinter";
+		//SDL_itoa(i, key, 10);
+		key = std::to_string((long double)i);
+		thing = ini.GetValue("devices", key.c_str(), dft.c_str());
 		if (i == 0) thing = "diskDrive"; //Enforce a disk drive as #0.
-		if (thing[0] == 0) continue;
-		if (!strcmp(thing, "diskDrive"))
+		if (thing.empty()) continue;
+		if (!thing.compare("diskDrive"))
 		{
 			SDL_Log("Attached a diskette drive as device #%d.", i);
 			devices[i] = (Device*)(new DiskDrive(0));
-			thing = ini.GetValue("devices/diskDrive", key, "");
+			thing = ini.GetValue("devices/diskDrive", key.c_str(), "");
 			if (reloadIMG && thing[0] != 0)
 			{
 				auto err = ((DiskDrive*)devices[i])->Mount(thing);
 				if (err)
-					SDL_Log("Error %d trying to open disk image \"%s\" for device #%d.", err, thing, i);
+					SDL_Log("Error %d trying to open disk image \"%s\" for device #%d.", err, thing.c_str(), i);
 			}
 		}
-		else if (!strcmp(thing, "hardDrive"))
+		else if (!thing.compare("hardDrive"))
 		{
 			SDL_Log("Attached a hard disk drive as device #%d.", i);
 			devices[i] = (Device*)(new DiskDrive(1));
-			thing = ini.GetValue("devices/hardDrive", key, "");
+			thing = ini.GetValue("devices/hardDrive", key.c_str(), "");
 			if (reloadIMG && thing[0] != 0)
 			{
 				auto err = ((DiskDrive*)devices[i])->Mount(thing);
 				if (err)
-					SDL_Log("Error %d trying to open disk image \"%s\" for device #%d.", err, thing, i);
+					SDL_Log("Error %d trying to open disk image \"%s\" for device #%d.", err, thing.c_str(), i);
 			}
 		}
-		else if (!strcmp(thing, "linePrinter"))
+		else if (!thing.compare("linePrinter"))
 		{
 			SDL_Log("Attached a line printer as device #%d.", i);
 			devices[i] = (Device*)(new LinePrinter());
 		}
-		else SDL_Log("Don't know what a \"%s\" is to connect as device #%d.", thing, i);
+		else SDL_Log("Don't know what a \"%s\" is to connect as device #%d.", thing.c_str(), i);
 	}
 
 	if (InitMemory() < 0)
@@ -184,14 +188,14 @@ int main(int argc, char* argv[])
 			controller[1] = SDL_JoystickOpen(1);
 	}
 
-	const char* thing = ini.GetValue("media", "bios", "roms\\ass-bios.apb");
-	SDL_Log("Loading BIOS, %s ...", thing);
+	std::string thing = ini.GetValue("media", "bios", "roms\\ass-bios.apb");
+	SDL_Log("Loading BIOS, %s ...", thing.c_str());
 	Slurp(romBIOS, thing, &biosSize);
 	biosSize = RoundUp(biosSize);
 	thing = ini.GetValue("media", "lastROM", "");
-	if (reloadROM && thing[0] != 0)
+	if (reloadROM && !thing.empty())
 	{
-		SDL_Log("Loading ROM, %s ...", thing);
+		SDL_Log("Loading ROM, %s ...", thing.c_str());
 		LoadROM(thing);
 		pauseState = 0;
 	}
@@ -438,7 +442,7 @@ int main(int argc, char* argv[])
 				auto averageFPS = frames / (SDL_GetTicks() / 1000.0f);
 				if (averageFPS > 2000000)
 					averageFPS = 0;
-				sprintf(uiFPS, "%d", (int)averageFPS);
+				sprintf((char*)uiFPS.c_str(), "%3d", (int)averageFPS);
 				if (fpsCap && delta < 20)
 					SDL_Delay(20 - delta);
 				startTime = endTime;

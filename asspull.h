@@ -13,8 +13,8 @@
 
 int Lerp(int a, int b, float f);
 unsigned int RoundUp(unsigned int v);
-int Slurp(unsigned char* dest, const char* filePath, unsigned int* size);
-int Dump(const char* filePath, unsigned char* source, unsigned long size);
+int Slurp(unsigned char* dest, std::string filePath, unsigned int* size);
+int Dump(std::string filePath, unsigned char* source, unsigned long size);
 
 extern unsigned char* romBIOS;
 extern unsigned char* romCartridge;

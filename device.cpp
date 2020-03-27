@@ -1,5 +1,5 @@
 #include "asspull.h"
-extern void SetStatus(const char*);
+extern void SetStatus(std::string);
 
 Device* devices[MAXDEVS] = { 0 };
 

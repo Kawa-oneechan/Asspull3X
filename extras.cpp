@@ -17,9 +17,9 @@ unsigned int RoundUp(unsigned int v)
 	return v;
 }
 
-int Slurp(unsigned char* dest, const char* filePath, unsigned int* size)
+int Slurp(unsigned char* dest, std::string filePath, unsigned int* size)
 {
-	FILE* file = fopen(filePath, "rb");
+	FILE* file = fopen(filePath.c_str(), "rb");
 	if (!file) return errno;
 	fseek(file, 0, SEEK_END);
 	long fs = ftell(file);
@@ -30,9 +30,9 @@ int Slurp(unsigned char* dest, const char* filePath, unsigned int* size)
 	return 0;
 }
 
-int Dump(const char* filePath, unsigned char* source, unsigned long size)
+int Dump(std::string filePath, unsigned char* source, unsigned long size)
 {
-	FILE* file = fopen(filePath, "wb");
+	FILE* file = fopen(filePath.c_str(), "wb");
 	if (!file) return errno;
 	fwrite(source, size, 1, file);
 	fclose(file);
