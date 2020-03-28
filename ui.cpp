@@ -1543,7 +1543,7 @@ void LetItSnow()
 
 void SetStatus(std::string text)
 {
-	printf("STATUS: %s\n", text);
+	printf("STATUS: %s\n", text.c_str());
 	uiStatus = text;
 	statusTimer = 100;
 }
