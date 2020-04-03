@@ -418,23 +418,24 @@ void RenderTileMode(int line)
 		auto screenSource = screenBase + (0x000 * (xxx >> 8) + ((xxx & 511) >> 3) + yShift) * 2;
 		auto shift = 0; // 128 << (tileShift[layer] - 1);
 
+		//Grab the first tile
+		//PPPP VH.T TTTT TTTT
+		auto data = (ramVideo[screenSource] << 8) | ramVideo[screenSource+1];
+		auto tile = (data & 0x3FF) + shift;
+		auto tileY = yyy & 7;
+		auto hFlip = (data & 0x0400) == 0x0400;
+		auto vFlip = (data & 0x0800) == 0x0800;
+		auto pal = data >> 12;
+		auto tileBase = charBase + (tile << 5) + (tileY << 2);
+
 		for (auto x = 0; x < 320; x++)
 		{
-			//PPPP VH.T TTTT TTTT
-			auto data = (ramVideo[screenSource] << 8) | ramVideo[screenSource+1];
-			auto tile = (data & 0x3FF) + shift;
 			auto tileX = xxx & 7;
-			auto tileY = yyy & 7;
-
-			auto hFlip = (data & 0x0400) == 0x0400;
-			auto vFlip = (data & 0x0800) == 0x0800;
-
-			auto pal = data >> 12;
 
 			if (hFlip) tileX = 7 - tileX;
 			if (vFlip) tileY = 7 - tileY;
 
-			auto color = (int)ramVideo[charBase + (tile << 5) + (tileY << 2) + (tileX >> 1)];
+			auto color = (int)ramVideo[tileBase + (tileX >> 1)];
 			if ((tileX & 1) == 1) color >>= 4;
 			color &= 0x0F;
 
@@ -458,7 +459,16 @@ void RenderTileMode(int line)
 			}
 
 			if (hFlip) tileX = 7 - tileX;
-			if (tileX == 7) screenSource += 2;
+			if (tileX == 7)
+			{
+				screenSource += 2;
+				data = (ramVideo[screenSource] << 8) | ramVideo[screenSource+1];
+				tile = (data & 0x3FF) + shift;
+				hFlip = (data & 0x0400) == 0x0400;
+				vFlip = (data & 0x0800) == 0x0800;
+				pal = data >> 12;
+				tileBase = charBase + (tile << 5) + (tileY << 2);
+			}
 
 			xxx++;
 			if (xxx == 512)
