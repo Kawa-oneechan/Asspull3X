@@ -25,6 +25,8 @@ int statusTimer = 0;
 int uiKey = 0; //for textboxes
 extern int winWidth, winHeight, scrWidth, scrHeight, scale, offsetX, offsetY;
 
+int lastMouseTimer = 0, lastX = 0, lastY = 0;
+
 #define FAIZ(r, g, b) (((b) >> 3) << 10) | (((g) >> 3) << 5) | ((r) >> 3)
 #define WITH_SHADOW | 0x8000
 
@@ -938,20 +940,40 @@ void TextBox::Draw()
 	if (focusedTextBox != this)
 		return;
 	auto caretHelper = std::string(text);
-	caretHelper += "   ";
-	caretHelper[cursor] = 0;
+	caretHelper.erase(cursor, caretHelper.length() - cursor);
 	auto size = MeasureString(caretHelper);
 	if (SDL_GetTicks() % 1024 < 512)
 		DrawCharacter(absLeft + size + 1, absTop + 2, TEXTBOX_CARET, '|');
 }
 void TextBox::Handle()
 {
-	if (WasClicked() && enabled)
+	auto wasClicked = WasClicked();
+	if (wasClicked && enabled)
 		focusedTextBox = this;
 	if (focusedTextBox != this)
 		return;
 	auto key = uiKey & 0xFF;
 	auto mods = uiKey >> 8;
+
+	if (wasClicked)
+	{
+		auto x = lastX - absLeft;
+		auto y = lastY - absTop;
+		std::string scanner;
+		auto newCursor = 0;
+		for (auto i = 0u; i < text.length(); i++)
+		{
+			scanner.push_back(text[i]);
+			auto width = MeasureString(scanner);
+			if (x >= width)
+				newCursor = i + 1;
+			else
+				break;
+		}
+		if (newCursor < (signed)text.length())
+			cursor = newCursor;
+	}
+
 	if (mods & 6)
 		return;
 	if (key > 0 && key < 0xFF)
@@ -1245,7 +1267,6 @@ static inline void DarkenPixel(int row, int column)
 }
 
 extern bool customMouse;
-int lastMouseTimer = 0, lastX = 0, lastY = 0;
 
 int GetMouseState(int *x, int *y)
 {
