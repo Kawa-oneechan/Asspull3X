@@ -117,7 +117,7 @@ public:
 	bool enabled, visible;
 	std::string text;
 	Control* parent;
-	std::vector<std::unique_ptr<Control>> children;
+	std::vector<Control*> children;
 	virtual void Draw() {}
 	virtual void Handle() {}
 	void AddChild(Control* child);
@@ -285,7 +285,7 @@ void Control::AddChild(Control* child)
 	child->absLeft = absLeft + child->left + marginLeft;
 	child->absTop = absTop + child->top + marginTop;
 	child->parent = this;
-	children.push_back(std::unique_ptr<Control>(child));
+	children.push_back(child);
 }
 void Control::Propagate()
 {
@@ -336,7 +336,7 @@ void Control::PlaceBeside(Control* nextTo)
 	this->left = nextTo->left + nextTo->width + MARGIN;
 }
 
-std::vector<std::unique_ptr<Control>> topLevelControls;
+std::vector<Control*> topLevelControls;
 void BringWindowToFront(Window* window);
 
 bool Window::WasInsideCloseBox()
@@ -394,9 +394,9 @@ void Window::Hide()
 		auto next = topLevelControls.end() - 1;
 		while (next != topLevelControls.begin())
 		{
-			if (next->get()->visible)
+			if ((*next)->visible)
 			{
-				BringWindowToFront((Window*)next->get());
+				BringWindowToFront((Window*)*next);
 				break;
 			}
 			next--;
@@ -473,7 +473,7 @@ void Window::SizeToFit()
 	int height = (MARGIN * 2) + 12;
 	for (auto child = children.begin(); child != children.end(); child++)
 	{
-		auto c = child->get();
+		auto c = (*child);
 		auto childBottom = c->top + c->height;
 		auto childRight = c->left + c->width;
 		if (childBottom > height)
@@ -770,7 +770,7 @@ void Menu::AddChild(MenuItem* child)
 	child->absLeft = absLeft + child->left + marginLeft;
 	child->absTop = absTop + child->top + marginTop;
 	child->parent = 0;
-	children.push_back(std::unique_ptr<Control>(child));
+	children.push_back(child);
 }
 void Menu::DrawPopup()
 {
@@ -796,7 +796,7 @@ void Menu::DrawPopup()
 		{
 			if ((*child)->width > w)
 				w = (*child)->width;
-			auto mc = (MenuItem*)child->get();
+			auto mc = (MenuItem*)(*child);
 			if (mc->hotkey)
 				hotkeys = true;
 		}
@@ -809,7 +809,7 @@ void Menu::DrawPopup()
 		sizedTheChildren = true;
 	}
 
-	currentMenuWidth = children.begin()->get()->width;
+	currentMenuWidth = (*children.begin())->width;
 
 	DrawHLine(currentMenuLeft, currentMenuTop - 1, currentMenuWidth + 1, PULLDOWN_BORDER_T);
 	DrawHLine(currentMenuLeft, currentMenuTop + currentMenuHeight, currentMenuWidth + 1, PULLDOWN_BORDER_B);
@@ -857,7 +857,7 @@ void MenuBar::AddChild(Menu* child)
 	child->absLeft = absLeft + child->left + marginLeft;
 	child->absTop = absTop + child->top + marginTop;
 	child->parent = 0;
-	children.push_back(std::unique_ptr<Control>(child));
+	children.push_back(child);
 }
 void MenuBar::Draw()
 {
@@ -892,7 +892,7 @@ void DropDown::AddChild(MenuItem* child)
 	child->absLeft = absLeft + child->left + marginLeft;
 	child->absTop = absTop + child->top + marginTop;
 	child->parent = this;
-	children.push_back(std::unique_ptr<Control>(child));
+	children.push_back(child);
 }
 void DropDown::Draw()
 {
@@ -1091,6 +1091,10 @@ void _showFileSelect(MenuItem*) { fileSelectWindow->Show(); }
 
 void InitializeUI()
 {
+	static bool initialized = false;
+	if (initialized) return;
+	initialized = true;
+
 	_getcwd(startingPath, FILENAME_MAX);
 
 	menuBar = new MenuBar();
@@ -1130,7 +1134,7 @@ void BringWindowToFront(Window* window)
 		return;
 	for (auto child = topLevelControls.begin(); child != topLevelControls.end(); child++)
 	{
-		if (child->get() == window)
+		if (*child == window)
 		{
 			std::iter_swap(child, topLevelControls.end() - 1);
 			break;
@@ -1149,7 +1153,7 @@ bool CheckForWindowPops()
 		return 0;
 	for (auto child = topLevelControls.end() - 1; ; child--)
 	{
-		auto win = child->get();
+		auto win = *child;
 		if (win->visible && x > win->absLeft && y > win->absTop && x < win->absLeft + win->width && y < win->absTop + win->height)
 		{
 			BringWindowToFront((Window*)win);
@@ -1160,8 +1164,6 @@ bool CheckForWindowPops()
 	}
 	return false;
 }
-
-bool initialized = false;
 
 void HandleStatusLine(int left)
 {
@@ -1178,12 +1180,6 @@ void HandleUI()
 {
 	int x = 0, y = 0;
 	mouseTimer++;
-
-	if (!initialized)
-	{
-		InitializeUI();
-		initialized = true;
-	}
 
 	if (pauseState == 0)
 	{
@@ -1634,7 +1630,7 @@ Window* BuildAboutWindow()
 	__DATE__
 	, 150, win->height - 28, WINDOW_TEXT, 0));
 	win->AddChild(new Button("Cool", win->width - 64 - 4, win->height - 31, 64, _closeWindow));
-	topLevelControls.push_back(std::unique_ptr<Control>(win));
+	topLevelControls.push_back(win);
 	win->visible = false;
 	return win;
 }
@@ -1712,7 +1708,7 @@ void _memViewerDrop(MenuItem* me)
 	int selection = 0;
 	for (int i = 0; i < (signed)me->parent->children.size(); i++)
 	{
-		if (me == me->parent->children[i].get())
+		if (me == me->parent->children[i])
 		{
 			selection = i;
 			break;
@@ -1741,8 +1737,8 @@ Window* BuildMemoryWindow()
 	const char* const areas[] = { "BIOS", "Cart", "WRAM", "Devices", "Registers", "VRAM" };
 	for (int i = 0; i < 6; i++)
 		drop->AddChild(new MenuItem(areas[i], 0, _memViewerDrop));
-	_memViewerDrop((MenuItem*)(drop->children.end() - 1)->get()); //that or begin really :shrug:
-	topLevelControls.push_back(std::unique_ptr<Control>(win));
+	_memViewerDrop((MenuItem*)*(drop->children.end() - 1)); //that or begin really :shrug:
+	topLevelControls.push_back(win);
 	win->visible = false;
 	return win;
 }
@@ -1878,7 +1874,7 @@ void _devDrop(MenuItem* me)
 	int newType = 0;
 	for (int i = 0; i < (signed)me->parent->children.size(); i++)
 	{
-		if (me == me->parent->children[i].get())
+		if (me == me->parent->children[i])
 		{
 			newType = i;
 			break;
@@ -1936,7 +1932,7 @@ Window* BuildDeviceWindow()
 		devManList->items.push_back("...");
 	UpdateDevManList();
 	_devSelect(devManList, 0);
-	topLevelControls.push_back(std::unique_ptr<Control>(win));
+	topLevelControls.push_back(win);
 	win->visible = false;
 	return win;
 }
@@ -1998,7 +1994,7 @@ Window* BuildOptionsWindow()
 	wipLabel->PlaceBelow(optionsReloadIMG, false);
 	okayButton->PlaceBelow(wipLabel, true);
 	win->SizeToFit();
-	topLevelControls.push_back(std::unique_ptr<Control>(win));
+	topLevelControls.push_back(win);
 	win->visible = false;
 	return win;
 }
@@ -2106,7 +2102,7 @@ Window* BuildFileSelectWindow()
 	win->AddChild(fileList = new ListBox(4, 3, 120, 240, 0));
 	fileList->onDouble = _fileList;
 	win->Propagate();
-	topLevelControls.push_back(std::unique_ptr<Control>(win));
+	topLevelControls.push_back(win);
 	win->visible = false;
 	return win;
 }

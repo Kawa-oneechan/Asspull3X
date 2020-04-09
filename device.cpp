@@ -67,7 +67,7 @@ int DiskDrive::Mount(std::string filename)
 	if (file != NULL)
 		return -1;
 	SDL_Log("Mounting disk image, %s ...", filename.c_str());
-	file = fopen(filename.c_str(), "rb");
+	file = fopen(filename.c_str(), "r+b");
 	if (file == 0)
 		return errno;
 	fseek(file, 0, SEEK_END);

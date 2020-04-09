@@ -11,6 +11,7 @@ extern void Screenshot();
 extern int uiCommand, uiData, uiKey;
 extern char uiString[512];
 extern std::string uiFPS;
+extern void InitializeUI();
 extern void SetStatus(std::string);
 extern void _devUpdateDiskette(int);
 extern void ShowOpenFileDialog(int, int, std::string);
@@ -126,6 +127,8 @@ int main(int argc, char* argv[])
 
 	if (InitVideo(fullScreen) < 0)
 		return 0;
+
+	InitializeUI();
 
 	//Absolutely always load a disk drive as #0
 	for (int i = 0; i < MAXDEVS; i++)
