@@ -32,7 +32,7 @@ void HandleBlitter(unsigned int function);
 unsigned int blitLength;
 int blitAddrA, blitAddrB, blitKey;
 
-extern unsigned char PollKeyboard(bool force);
+extern unsigned int PollKeyboard(bool force);
 
 long ticks = 0;
 time_t timelatch, timesetlatch;

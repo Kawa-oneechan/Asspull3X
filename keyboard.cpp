@@ -5,7 +5,7 @@
 static unsigned int lastPollTime = 0;
 static int lastPollResult = 0;
 
-unsigned char PollKeyboard(bool force)
+unsigned int PollKeyboard(bool force)
 {
 	auto newPollTime = SDL_GetTicks();
 	if (!force && newPollTime < lastPollTime + POLLDELAY)
