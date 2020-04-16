@@ -10,6 +10,7 @@
 #include <dirent.h>
 #include <fnmatch.h>
 #include <sys/stat.h>
+#define _getcwd getcwd // the POSIX version doesn't have the underscore
 #endif
 
 #define LETITSNOW

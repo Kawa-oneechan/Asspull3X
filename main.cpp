@@ -191,7 +191,12 @@ int main(int argc, char* argv[])
 			controller[1] = SDL_JoystickOpen(1);
 	}
 
+	// TODO: make this less janky
+	#if _MSC_VER
 	std::string thing = ini.GetValue("media", "bios", "roms\\ass-bios.apb");
+	#else
+	std::string thing = ini.GetValue("media", "bios", "roms/ass-bios.apb");
+	#endif
 	SDL_Log("Loading BIOS, %s ...", thing.c_str());
 	Slurp(romBIOS, thing, &biosSize);
 	biosSize = RoundUp(biosSize);
