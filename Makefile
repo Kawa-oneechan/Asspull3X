@@ -1,13 +1,13 @@
-OBJS = Asspull3X.cpp device.cpp ini.cpp keyboard.cpp memory.cpp sound.cpp ui.cpp video.cpp musashi/m68kcpu.c musashi/m68kops.c miniz.c
+LDFLAGS=$(DEFINES) $(INCLUDES) -lSDL2 -lGL -lm
+TARGET=clunibus
 
-LIBS = -lSDL2 -lGL
+CSRC=$(wildcard *.c) \
+     musashi/m68kcpu.c \
+     musashi/m68kfpu.c \
+     musashi/m68kops.c
+CXXSRC=$(wildcard *.cpp)
 
-TARGET = Asspull3X
-
-CFLAGS = /std:c++11
-
-DEFINES = 
-INCLUDES = 
+OBJ=$(CSRC:.c=.o) $(CXXSRC:.cpp=.o)
 
 # platform detection shamelessly stolen from byuu
 ifeq ($(platform),)
@@ -34,9 +34,34 @@ ifeq ($(platform),)
 endif
 
 ifeq ($(platform),win)
-	DEFINES = -DWIN32 -DCLANG
-	INCLUDES = -IC:/libs/SDL2-2.0.7/include/
+	DEFINES=-DWIN32 -DCLANG
+	INCLUDES=-IC:/libs/SDL2-2.0.7/include/
+	RUN=$(TARGET).exe
+else
+	ifeq ($(platform),x)
+		ifeq ($(PREFIX),)
+			PREFIX=/usr/local
+		endif
+	endif
+	RUN=./$(TARGET)
 endif
 
-all: $(OBJS)
-	clang $(OBJS) -w $(DEFINES) $(INCLUDES) $(LIBS) -lstdc++ -lm -o $(TARGET)
+$(TARGET): $(OBJ)
+	$(CXX) -o $@ $^ $(LDFLAGS)
+
+.PHONY: clean
+clean:
+	$(delete) $(OBJ) $(TARGET)
+
+.PHONY: run
+run: $(TARGET)
+	$(RUN)
+
+.PHONY: install
+install: $(TARGET)
+	mkdir -p $(DESTDIR)$(PREFIX)/bin
+	cp $< $(DESTDIR)$(PREFIX)/bin/clunibus
+
+.PHONY: uninstall
+uninstall:
+	rm -f $(DESTDIR)$(PREFIX)/bin/clunibus
