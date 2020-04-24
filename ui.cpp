@@ -1085,7 +1085,7 @@ Window* BuildOptionsWindow();
 Window* BuildFileSelectWindow();
 
 void _showAboutDialog(MenuItem*) { aboutWindow->Show(); }
-void _showMemoryViewer(MenuItem*) { memoryWindow->Show(); }
+void _showMemoryViewer(MenuItem*) { memoryWindow = BuildMemoryWindow(); memoryWindow->Show(); }
 void _showDevices(MenuItem*) { deviceWindow->Show(); }
 void _showOptions(MenuItem*) { optionsWindow->Show(); }
 void _showFileSelect(MenuItem*) { fileSelectWindow->Show(); }
@@ -1120,7 +1120,7 @@ void InitializeUI()
 	menuBar->AddChild(helpMenu);
 
 	aboutWindow = BuildAboutWindow();
-	memoryWindow = BuildMemoryWindow();
+	memoryWindow = NULL; //BuildMemoryWindow();
 	deviceWindow = BuildDeviceWindow();
 	optionsWindow = BuildOptionsWindow();
 	fileSelectWindow = BuildFileSelectWindow();
@@ -1670,6 +1670,8 @@ public:
 	}
 };
 
+MemoryViewer* memViewer = new MemoryViewer(3, 2);
+
 void _memViewerScroller(IconButton *me)
 {
 	auto mods = SDL_GetModState();
@@ -1725,7 +1727,7 @@ void _memViewerDrop(MenuItem* me)
 Window* BuildMemoryWindow()
 {
 	auto win = new Window("Memory Viewer", 368, 24, 265, 324);
-	win->AddChild(new MemoryViewer(3, 2));
+	win->AddChild(memViewer);
 	win->AddChild(new IconButton(6, 252, 2, _memViewerScroller));
 	win->AddChild(new IconButton(4, 252, 12, _memViewerScroller));
 	win->AddChild(new IconButton(5, 252, 270, _memViewerScroller));
