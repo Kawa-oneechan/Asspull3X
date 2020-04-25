@@ -165,7 +165,7 @@ class DiskDrive : Device
 {
 private:
 	FILE* file;
-	unsigned char* data;
+	unsigned char data[512];
 	unsigned short sector;
 	unsigned long capacity;
 	unsigned int tracks, heads, sectors;

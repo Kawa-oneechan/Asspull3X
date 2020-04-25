@@ -128,8 +128,6 @@ int main(int argc, char* argv[])
 	if (InitVideo(fullScreen) < 0)
 		return 0;
 
-	InitializeUI();
-
 	//Absolutely always load a disk drive as #0
 	for (int i = 0; i < MAXDEVS; i++)
 	{
@@ -174,6 +172,8 @@ int main(int argc, char* argv[])
 		}
 		else SDL_Log("Don't know what a \"%s\" is to connect as device #%d.", thing.c_str(), i);
 	}
+
+	InitializeUI();
 
 	if (InitMemory() < 0)
 		return 0;
