@@ -16,6 +16,12 @@ extern void SetStatus(std::string);
 extern void _devUpdateDiskette(int);
 extern void ShowOpenFileDialog(int, int, std::string);
 
+#ifdef WIN32NATIVE
+extern void LetItSnow();
+extern void InsertDisk(int);
+extern void EjectDisk();
+#endif
+
 extern unsigned int biosSize, romSize;
 extern long rtcOffset;
 
@@ -146,7 +152,7 @@ int main(int argc, char* argv[])
 			SDL_Log("Attached a diskette drive as device #%d.", i);
 			devices[i] = (Device*)(new DiskDrive(0));
 			thing = ini.GetValue("devices/diskDrive", key.c_str(), "");
-			if (reloadIMG && thing[0] != 0)
+			if (reloadIMG && thing.size() != 0)
 			{
 				auto err = ((DiskDrive*)devices[i])->Mount(thing);
 				if (err)
@@ -158,7 +164,7 @@ int main(int argc, char* argv[])
 			SDL_Log("Attached a hard disk drive as device #%d.", i);
 			devices[i] = (Device*)(new DiskDrive(1));
 			thing = ini.GetValue("devices/hardDrive", key.c_str(), "");
-			if (reloadIMG && thing[0] != 0)
+			if (reloadIMG && thing.size() != 0)
 			{
 				auto err = ((DiskDrive*)devices[i])->Mount(thing);
 				if (err)
@@ -304,6 +310,7 @@ int main(int argc, char* argv[])
 		{
 			if (uiCommand == cmdLoadRom)
 			{
+#ifndef WIN32NATIVE
 				if (uiString[0] == 0)
 					ShowOpenFileDialog(cmdLoadRom, 0, "*.ap3");
 				else
@@ -321,6 +328,13 @@ int main(int argc, char* argv[])
 					if (pauseState == 2)
 						pauseState = 0;
 				}
+#else
+				ShowOpenFileDialog(cmdLoadRom, 0, "Asspull IIIx ROMS (*.ap3)|*.ap3");
+				if (uiCommand == 0) continue;
+				SDL_Log("Loading ROM, %s ...", uiString);
+				auto gottaReset = (*(uint32_t*)romCartridge == 0x21535341);
+				LoadROM(uiString);
+#endif
 			}
 			else if (uiCommand == cmdInsertDisk)
 			{
@@ -330,6 +344,7 @@ int main(int argc, char* argv[])
 					SetStatus("Unmount the medium first.");
 				else
 				{
+#ifndef WIN32NATIVE
 					if (uiString[0] == 0)
 					{
 						ShowOpenFileDialog(cmdInsertDisk, uiData, (((DiskDrive*)devices[uiData])->GetType() == ddDiskette ? "*.img" : "*.vhd"));
@@ -354,6 +369,9 @@ int main(int argc, char* argv[])
 							_devUpdateDiskette(uiData);
 						}
 					}
+#else
+					InsertDisk(uiData);
+#endif
 				}
 			}
 			else if (uiCommand == cmdUnloadRom)
@@ -382,7 +400,9 @@ int main(int argc, char* argv[])
 					ini.SaveFile("settings.ini");
 					SetStatus("Disk ejected.");
 				}
+#ifndef WIN32NATIVE
 				_devUpdateDiskette(uiData);
+#endif
 			}
 			else if (uiCommand == cmdReset)
 			{
@@ -439,7 +459,9 @@ int main(int argc, char* argv[])
 					}
 					pauseState = 2;
 				}
+#ifndef WIN32NATIVE
 				HandleUI();
+#endif
 				VBlank();
 
 				if (!startTime)
@@ -470,7 +492,11 @@ int main(int argc, char* argv[])
 		else if (pauseState == 2)
 		{
 			memcpy(pixels, pauseScreen, 640 * 480 * 4);
+#ifndef WIN32NATIVE
 			HandleUI();
+#else
+			LetItSnow();
+#endif
 			VBlank();
 		}
 		line++;
