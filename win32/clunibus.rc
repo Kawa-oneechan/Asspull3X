@@ -14,30 +14,30 @@ IDB_ABOUT BITMAP ".\\res\\about.bmp"
 
 IDR_MAINMENU MENU
 BEGIN
-	POPUP "&File"
+	POPUP "File"
 	BEGIN
-		MENUITEM "&Load ROM…", 1001
-		MENUITEM "&Unload ROM", 1002
-		MENUITEM "&Reset", 1003
+		MENUITEM "Load ROM…\tCtrl+L", 1001
+		MENUITEM "Unload ROM\tCtrl+U", 1002
+		MENUITEM "Reset\tCtrl+R", 1003
 		MENUITEM SEPARATOR
-		MENUITEM "&Quit", 1006
+		MENUITEM "Quit", 1006
 	END
-	POPUP "&Tools"
+	POPUP "Tools"
 	BEGIN
-		MENUITEM "&Options", 1009
+		MENUITEM "Options", 1009
 		MENUITEM SEPARATOR
-		MENUITEM "&Devices", 1010
-		MENUITEM "Dump &RAM", 1005
-		MENUITEM "&Memory viewer", 1007
-		MENUITEM "&Screenshot", 1004
+		MENUITEM "Devices", 1010
+		MENUITEM "Dump RAM\tCtrl+D", 1005
+		MENUITEM "Memory viewer", 1007
+		MENUITEM "Screenshot\tCtrl+S", 1004
 	END
-	POPUP "&Help"
+	POPUP "Help"
 	BEGIN
-		MENUITEM "&About", 1008
+		MENUITEM "About", 1008
 	END
 END
 
-IDD_ABOUT DIALOGEX 0, 0, 345, 111
+IDD_ABOUT DIALOGEX 0, 0, 346, 111
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_TOOLWINDOW
 CAPTION "E Clunibus Tractum"
@@ -45,7 +45,8 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
 	DEFPUSHBUTTON "&Cool", IDOK, 288, 90, 50, 14
 	CONTROL IDB_ABOUT, IDC_STATIC, "Static", SS_BITMAP | SS_SUNKEN, 7, 7, 188, 100
-	LTEXT "Asspull IIIx Fantasy Computer Emulator\n\nSystem design and emulator by Kawa.\n\nThanks and shoutouts to all of the byuuboard. Except you, Strfry.", IDC_STATIC, 200, 7, 138, 78
+	LTEXT "Clunibus — Asspull IIIx Fantasy Computer Emulator\n\n\nSystem design and emulator by Kawa.\n\nThanks and shoutouts to all of the byuuboard. Except you, Strfry.", IDC_STATIC, 200, 7, 138, 78
+	CONTROL "", IDC_STATIC, "Static", SS_ETCHEDHORZ, 200, 32, 138, 1
 END
 
 IDD_DEVICES DIALOGEX 0, 0, 344, 110

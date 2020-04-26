@@ -13,7 +13,6 @@
 #define _getcwd getcwd // the POSIX version doesn't have the underscore
 #endif
 
-#define LETITSNOW
 #define PROPER_ARROW
 //#define BLUE_BALLS
 
@@ -1513,7 +1512,6 @@ int MeasureString(std::string str)
 	return width;
 }
 
-#ifdef LETITSNOW
 #define MAXSNOW 256
 int snowData[MAXSNOW * 2];
 int snowTimer = -1;
@@ -1556,9 +1554,6 @@ void LetItSnow()
 		RenderRawPixel(y, x, 0x7FFF);
 	}
 }
-#else
-#define LetItSnow()
-#endif
 
 void SetStatus(std::string text)
 {
