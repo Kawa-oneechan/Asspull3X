@@ -37,16 +37,17 @@ BEGIN
 	END
 END
 
-IDD_ABOUT DIALOGEX 0, 0, 346, 111
+IDD_ABOUT DIALOGEX 0, 0, 346, 114
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-EXSTYLE WS_EX_TOOLWINDOW
+//EXSTYLE WS_EX_TOOLWINDOW
 CAPTION "E Clunibus Tractum"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-	DEFPUSHBUTTON "&Cool", IDOK, 288, 90, 50, 14
+	DEFPUSHBUTTON "&Cool", IDOK, 288, 92, 50, 14
 	CONTROL IDB_ABOUT, IDC_STATIC, "Static", SS_BITMAP | SS_SUNKEN, 7, 7, 188, 100
-	LTEXT "Clunibus — Asspull IIIx Fantasy Computer Emulator\n\n\nSystem design and emulator by Kawa.\n\nThanks and shoutouts to all of the byuuboard. Except you, Strfry.", IDC_STATIC, 200, 7, 138, 78
-	CONTROL "", IDC_STATIC, "Static", SS_ETCHEDHORZ, 200, 32, 138, 1
+	LTEXT "Clunibus — Asspull IIIx Fantasy Computer Emulator", IDC_HEADER, 200, 8, 138, 24
+	LTEXT "System design and emulator by Kawa.\n\nThanks and shoutouts to all of the byuuboard. Except you, Strfry.", IDC_STATIC, 200, 38, 138, 46
+	CONTROL "", IDC_STATIC, "Static", SS_ETCHEDHORZ, 200, 30, 138, 1
 END
 
 IDD_DEVICES DIALOGEX 0, 0, 344, 110
@@ -69,7 +70,7 @@ END
 
 IDD_MEMVIEWER DIALOGEX 0, 0, 312, 180
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-EXSTYLE WS_EX_TOOLWINDOW
+//EXSTYLE WS_EX_TOOLWINDOW
 CAPTION "Memory viewer"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
@@ -81,7 +82,7 @@ END
 
 IDD_OPTIONS DIALOGEX 0, 0, 160, 108 //114
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-EXSTYLE WS_EX_TOOLWINDOW
+//EXSTYLE WS_EX_TOOLWINDOW
 CAPTION "Options"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
@@ -116,10 +117,10 @@ BEGIN
 			VALUE "CompanyName", "Firrhna Productions"
 			VALUE "FileDescription", "Asspull IIIx Fantasy Computer emulator"
 			VALUE "FileVersion", "1.0.0.1"
-			VALUE "InternalName", "Asspull3.exe"
+			VALUE "InternalName", "Clunibus.exe"
 			VALUE "LegalCopyright", "© 2020 Firrhna Productions"
-			VALUE "OriginalFilename", "Asspull3.exe"
-			VALUE "ProductName", "Asspull IIIx"
+			VALUE "OriginalFilename", "Clunibus.exe"
+			VALUE "ProductName", "Clunibus"
 			VALUE "ProductVersion", "1.0.0.1"
 		END
 	END
