@@ -10,9 +10,9 @@ int line = 0, interrupts = 0;
 extern void Screenshot();
 extern int uiCommand, uiData, uiKey;
 extern char uiString[512];
-extern std::string uiFPS;
 extern void InitializeUI();
 extern void SetStatus(std::string);
+extern void SetFPS(int fps);
 extern void _devUpdateDiskette(int);
 extern void ShowOpenFileDialog(int, int, std::string);
 
@@ -20,6 +20,7 @@ extern void ShowOpenFileDialog(int, int, std::string);
 extern void LetItSnow();
 extern void InsertDisk(int);
 extern void EjectDisk();
+extern void ResizeStatusBar();
 #endif
 
 extern unsigned int biosSize, romSize;
@@ -244,7 +245,11 @@ int main(int argc, char* argv[])
 	auto delta = 0;
 	auto frames = 0;
 
-	SetStatus("Middle-click or Ctrl-P to open UI.");
+#ifndef WIN32NATIVE
+	SetStatus("Middle-click or Ctrl-P to pause emulation and show UI.");
+#else
+	SetStatus("Middle-click or Ctrl-P to pause emulation.");
+#endif
 
 	while (!quit)
 	{
@@ -303,6 +308,11 @@ int main(int argc, char* argv[])
 					else if (pauseState == 2)
 						pauseState = 0;
 				}
+#ifdef WIN32NATIVE
+			case SDL_WINDOWEVENT:
+				if (ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
+					ResizeStatusBar();
+#endif
 			}
 		}
 
@@ -459,9 +469,7 @@ int main(int argc, char* argv[])
 					}
 					pauseState = 2;
 				}
-#ifndef WIN32NATIVE
 				HandleUI();
-#endif
 				VBlank();
 
 				if (!startTime)
@@ -472,7 +480,7 @@ int main(int argc, char* argv[])
 				auto averageFPS = frames / (SDL_GetTicks() / 1000.0f);
 				if (averageFPS > 2000000)
 					averageFPS = 0;
-				sprintf((char*)uiFPS.c_str(), "%3d", (int)averageFPS);
+				SetFPS((int)averageFPS);
 				if (fpsCap && delta < 20)
 					SDL_Delay(20 - delta);
 				startTime = endTime;

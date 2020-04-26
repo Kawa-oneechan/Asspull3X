@@ -11,6 +11,7 @@ processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #include "resource.h"
 #include <Windows.h>
 #include <commdlg.h>
+#include <commctrl.h>
 
 #ifdef _MSC_VER
 #include <direct.h>
@@ -31,11 +32,15 @@ char lastPath[FILENAME_MAX];
 
 HWND hWnd;
 HINSTANCE hInstance;
+HWND hWndStatusBar;
+int statusBarHeight = 0;
+int idStatus;
+
 int uiCommand, uiData, uiKey;
 char uiString[512];
 
+int statusTimer = 0;
 std::string uiStatus;
-std::string uiFPS = "123";
 bool fpsVisible = false;
 
 bool wasPaused = false;
@@ -132,34 +137,40 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 	}
 	case WM_COMMAND:
 	{
+		ResetPath();
 		if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_SHOWFPS)
 		{
 			fpsVisible = (IsDlgButtonChecked(hwndDlg, IDC_SHOWFPS) == 1);
 			ini.SetBoolValue("video", "showFps", fpsVisible);
+			ini.SaveFile("settings.ini");
 			return true;
 		}
 		else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_FPSCAP)
 		{
 			fpsCap = (IsDlgButtonChecked(hwndDlg, IDC_FPSCAP) == 1);
 			ini.SetBoolValue("video", "fpsCap", fpsCap);
+			ini.SaveFile("settings.ini");
 			return true;
 		}
 		else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_ASPECT)
 		{
 			stretch200 = (IsDlgButtonChecked(hwndDlg, IDC_ASPECT) == 1);
 			ini.SetBoolValue("video", "stretch200", stretch200);
+			ini.SaveFile("settings.ini");
 			return true;
 		}
 		else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_RELOAD)
 		{
 			reloadROM = (IsDlgButtonChecked(hwndDlg, IDC_RELOAD) == 1);
 			ini.SetBoolValue("media", "reloadRom", reloadROM);
+			ini.SaveFile("settings.ini");
 			return true;
 		}
 		else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_REMOUNT)
 		{
 			reloadIMG = (IsDlgButtonChecked(hwndDlg, IDC_REMOUNT) == 1);
 			ini.SetBoolValue("media", "reloadImg", reloadIMG);
+			ini.SaveFile("settings.ini");
 			return true;
 		}
 		else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDOK)
@@ -367,7 +378,6 @@ void WndProc(void* userdata, void* hWnd, unsigned int message, Uint64 wParam, Si
 {
 	if (message == WM_COMMAND)
 	{
-		//SDL_Log("WM_COMMAND %d %d", wParam, lParam);
 		if (wParam > 1000 && wParam < 2000)
 		{
 			uiCommand = (int)(wParam - 1000);
@@ -413,6 +423,19 @@ void WndProc(void* userdata, void* hWnd, unsigned int message, Uint64 wParam, Si
 	}
 }
 
+void ResizeStatusBar()
+{
+	SendMessage(hWndStatusBar, WM_SIZE, SIZE_RESTORED, 0);
+}
+
+void HandleUI()
+{
+	if (statusTimer)
+		statusTimer--;
+	else
+		SendMessage(hWndStatusBar, SB_SETTEXT, 1 | (SBT_NOBORDERS << 8), (LPARAM)"");
+}
+
 void InitializeUI()
 {
 	_getcwd(startingPath, FILENAME_MAX);
@@ -444,6 +467,13 @@ void InitializeUI()
 		SetMenuInfo(menuBar, &mainInfo);
 
 		SetMenu(hWnd, menuBar);
+
+		hWndStatusBar = CreateWindowEx(0, STATUSCLASSNAME, NULL, SBARS_SIZEGRIP | WS_CHILD | WS_VISIBLE, 0, 0, 0, 0, hWnd, (HMENU)idStatus, hInstance, NULL);
+		int parts[] = { 48, -1 };
+		SendMessage(hWndStatusBar, SB_SETPARTS, (WPARAM)2, (LPARAM)parts);
+		LPRECT lpRect;
+		GetWindowRect(hWndStatusBar, lpRect);
+		statusBarHeight = lpRect->bottom - lpRect->top;
 	}
 	return;
 }
@@ -492,6 +522,20 @@ bool ShowFileDlg(bool toSave, char* target, size_t max, const char* filter)
 
 void SetStatus(std::string text)
 {
+	SendMessage(hWndStatusBar, SB_SETTEXT, 1 | (SBT_NOBORDERS << 8), (LPARAM)text.c_str());
+	statusTimer = 100;
+}
+
+void SetFPS(int fps)
+{
+	if (fpsVisible)
+	{
+		char b[8] = { 0 };
+		sprintf(b, "%3d", fps);
+		SendMessage(hWndStatusBar, SB_SETTEXT, 0, (LPARAM)b);
+	}
+	else
+		SendMessage(hWndStatusBar, SB_SETTEXT, 0, (LPARAM)"");
 }
 
 extern unsigned char* pixels;

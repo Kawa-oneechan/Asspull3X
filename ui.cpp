@@ -22,6 +22,7 @@
 std::string uiStatus;
 std::string uiFPS = "123";
 bool fpsVisible = false;
+int statusBarHeight = 0;
 int statusTimer = 0;
 int uiKey = 0; //for textboxes
 extern int winWidth, winHeight, scrWidth, scrHeight, scale, offsetX, offsetY;
@@ -1564,6 +1565,11 @@ void SetStatus(std::string text)
 	printf("STATUS: %s\n", text.c_str());
 	uiStatus = text;
 	statusTimer = 100;
+}
+
+void SetFPS(int fps)
+{
+	sprintf((char*)uiFPS.c_str(), "%3d", fps);
 }
 
 void _closeWindow(Button* me)

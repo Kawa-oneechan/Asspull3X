@@ -25,6 +25,7 @@ int winWidth = 640, winHeight = 480, scrWidth = 640, scrHeight = 480, scale = 1,
 
 extern unsigned char* pixels;
 extern bool stretch200;
+extern int statusBarHeight;
 
 PFNGLCREATESHADERPROC glCreateShader;
 PFNGLSHADERSOURCEPROC glShaderSource;
@@ -190,15 +191,16 @@ void presentBackBuffer(SDL_Renderer *renderer, SDL_Window* win)
 		if (i == numShaders - 1)
 		{
 			SDL_GetWindowSize(sdlWindow, &winWidth, &winHeight);
+			winHeight -= statusBarHeight;
 			if (winWidth < 640)
 			{
 				winWidth = 640;
-				SDL_SetWindowSize(sdlWindow, 640, winHeight);
+				SDL_SetWindowSize(sdlWindow, 640, winHeight + statusBarHeight);
 			}
 			if (winHeight < 480)
 			{
 				winHeight = 480;
-				SDL_SetWindowSize(sdlWindow, winWidth, 480);
+				SDL_SetWindowSize(sdlWindow, winWidth, 480 + statusBarHeight);
 			}
 
 			auto maxScaleX = floorf(winWidth / 640.0f);
@@ -212,6 +214,8 @@ void presentBackBuffer(SDL_Renderer *renderer, SDL_Window* win)
 			scrHeight = 480 * scale;
 			offsetX = (int)floorf((winWidth - scrWidth) * 0.5f);
 			offsetY = (int)floorf((winHeight - scrHeight) * 0.5f);
+
+			offsetY += statusBarHeight;
 
 			if (sdl2oh10)
 			{
