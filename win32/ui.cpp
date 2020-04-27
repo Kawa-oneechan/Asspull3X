@@ -42,8 +42,8 @@ char uiString[512];
 int statusTimer = 0;
 std::string uiStatus;
 bool fpsVisible = false;
-
 bool wasPaused = false;
+bool autoUpdate = false;
 
 HWND hWndAbout = NULL, hWndMemViewer = NULL, hWndOptions = NULL, hWndDevices = NULL;
 
@@ -70,17 +70,15 @@ extern "C" unsigned int m68k_read_memory_8(unsigned int address);
 
 void MemViewerDraw(DRAWITEMSTRUCT* dis)
 {
-	/*
-	DC memDC;
-	memDC.CreateCompatibleDC(&dc);
-	CBitmap bitmap, *pOldBitmap;
-	bitmap.CreateCompatibleBitmap(&dc, w, rect.bottom - rect.top);
-	pOldBitmap = memDC.SelectObject(&bitmap);
-	*/
-	auto hdc = dis->hDC;
-
+	//auto hdc = dis->hDC;
 	RECT rect;
 	GetClientRect(dis->hwndItem, &rect);
+	int w = rect.right - rect.left;
+	int h = rect.bottom - rect.top;
+
+	HDC hdc = CreateCompatibleDC(NULL);
+	auto bmp = CreateCompatibleBitmap(hdc, w, h);
+	auto oldBmp = SelectObject(hdc, bmp);
 
 	FillRect(hdc, &dis->rcItem, (HBRUSH)GetStockObject(WHITE_BRUSH));
 	auto oldFont = SelectObject(hdc, GetStockObject(SYSTEM_FIXED_FONT));
@@ -120,6 +118,11 @@ void MemViewerDraw(DRAWITEMSTRUCT* dis)
 	}
 
 	SelectObject(hdc, oldFont);
+
+	BitBlt(dis->hDC, 0, 0, w, h, hdc, 0, 0, SRCCOPY);
+	SelectObject(hdc, oldBmp);
+	DeleteDC(hdc);
+	DeleteObject(bmp);
 }
 
 void SetMemViewer(HWND hwndDlg, int to)
@@ -177,6 +180,26 @@ void MemViewerComboProc(HWND hwndDlg)
 	SetMemViewer(hwndDlg, areas[index]);
 }
 
+WNDPROC oldTextProc;
+LRESULT CALLBACK MemViewerEditProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	switch (msg)
+	{
+		case WM_KEYDOWN:
+			switch (wParam)
+			{
+				case VK_RETURN:
+					char thing[16] = { 0 };
+					GetWindowText(wnd, thing, 16);
+					SetMemViewer(hWndMemViewer, strtol(thing, NULL, 16));
+					return 0;
+			}
+		default:
+			return CallWindowProc(oldTextProc, wnd, msg, wParam, lParam);
+	}
+	return 0;
+}
+
 BOOL CALLBACK MemViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
@@ -194,7 +217,10 @@ BOOL CALLBACK MemViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM
 			for (int i = 0; i < 6; i++)
 				SendDlgItemMessage(hwndDlg, IDC_MEMVIEWERDROP, CB_ADDSTRING, 0, (LPARAM)areas[i]);
 			SendDlgItemMessage(hwndDlg, IDC_MEMVIEWERDROP, CB_SETCURSEL, 1, 0);
+			SendDlgItemMessage(hwndDlg, IDC_MEMVIEWEROFFSET, EM_SETLIMITTEXT, 8, 0);
+			oldTextProc = (WNDPROC)SetWindowLongPtr(GetDlgItem(hwndDlg, IDC_MEMVIEWEROFFSET), GWLP_WNDPROC, (LONG_PTR)MemViewerEditProc);
 			SetScrollRange(GetDlgItem(hwndDlg, IDC_MEMVIEWERSCROLL), SB_CTL, 0, ((VRAM_ADDR + VRAM_SIZE) / 8) - 16, false);
+			CheckDlgButton(hwndDlg, IDC_AUTOUPDATE, autoUpdate);
 			MemViewerComboProc(hwndDlg); //force update
 			return true;
 		}
@@ -207,6 +233,11 @@ BOOL CALLBACK MemViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM
 					MemViewerComboProc(hwndDlg);
 					return true;
 				}
+			}
+			else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_AUTOUPDATE)
+			{
+				autoUpdate = (IsDlgButtonChecked(hwndDlg, IDC_AUTOUPDATE) == 1);
+				return true;
 			}
 		}
 		case WM_DRAWITEM:
@@ -539,6 +570,9 @@ void HandleUI()
 		statusTimer--;
 	else
 		SendMessage(hWndStatusBar, SB_SETTEXT, 1 | (SBT_NOBORDERS << 8), (LPARAM)"");
+
+	if (autoUpdate && hWndMemViewer != NULL)
+		InvalidateRect(GetDlgItem(hWndMemViewer, IDC_MEMVIEWERGRID), NULL, true);
 }
 
 void InitializeUI()
