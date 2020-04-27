@@ -93,6 +93,10 @@ void LoadROM(std::string path)
 	}
 	if (c1 != c2)
 		SDL_Log("Checksum mismatch: is 0x%08X, should be 0x%08X.", c2, c1);
+
+	ini.SetValue("media", "lastROM", path.c_str());
+	ResetPath();
+	ini.SaveFile("settings.ini");
 }
 
 int pauseState = 0;
@@ -329,9 +333,6 @@ int main(int argc, char* argv[])
 					auto gottaReset = (*(uint32_t*)romCartridge == 0x21535341);
 					LoadROM(uiString);
 
-					ini.SetValue("media", "lastROM", uiString);
-					ResetPath();
-					ini.SaveFile("settings.ini");
 					if (gottaReset)
 						m68k_pulse_reset();
 

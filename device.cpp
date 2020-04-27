@@ -11,7 +11,7 @@ int Device::GetID() { return 0; }
 
 DiskDrive::DiskDrive(int newType)
 {
-	//if ((data = (unsigned char*)calloc(0, 0x0000200)) == NULL) return;
+	if ((data = (unsigned char*)calloc(1, 0x0000200)) == NULL) return;
 	sector = 0;
 	error = 0;
 	capacity = 0;
@@ -24,7 +24,7 @@ DiskDrive::DiskDrive(int newType)
 
 DiskDrive::~DiskDrive()
 {
-	//if (data != NULL) free(data);
+	if (data != NULL) free(data);
 	if (file != NULL) fclose(file);
 }
 

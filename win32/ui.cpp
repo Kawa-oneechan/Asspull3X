@@ -66,9 +66,60 @@ BOOL CALLBACK AboutWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPa
 }
 
 unsigned long memViewerOffset;
+extern "C" unsigned int m68k_read_memory_8(unsigned int address);
 
-void MemViewerDraw(HWND hwndDlg)
+void MemViewerDraw(DRAWITEMSTRUCT* dis)
 {
+	/*
+	DC memDC;
+	memDC.CreateCompatibleDC(&dc);
+	CBitmap bitmap, *pOldBitmap;
+	bitmap.CreateCompatibleBitmap(&dc, w, rect.bottom - rect.top);
+	pOldBitmap = memDC.SelectObject(&bitmap);
+	*/
+	auto hdc = dis->hDC;
+
+	RECT rect;
+	GetClientRect(dis->hwndItem, &rect);
+
+	FillRect(hdc, &dis->rcItem, (HBRUSH)GetStockObject(WHITE_BRUSH));
+	auto oldFont = SelectObject(hdc, GetStockObject(SYSTEM_FIXED_FONT));
+	SIZE fontSize;
+	GetTextExtentPoint(hdc, "0", 1, &fontSize);
+	SetTextColor(hdc, RGB(0,0,0));
+	SetBkColor(hdc, RGB(255,255,255));
+	RECT r;
+	r.top = 3;
+	r.left = 3;
+	r.bottom = r.top + fontSize.cy;
+	r.right = rect.right - 3;
+
+	char buf[256] = { 0 };
+
+	const char hex[] = "0123456789ABCDEF";
+	unsigned int offset = memViewerOffset;
+	for (int row = 0; row < 16; row++)
+	{
+		r.left = 3;
+		sprintf(buf, "%08X", offset);
+		DrawText(hdc, buf, -1, &r, DT_TOP | DT_LEFT | DT_NOPREFIX);
+
+		for (int col = 0; col < 8; col++)
+		{
+			auto here = m68k_read_memory_8(offset++);
+			r.left = 3 + 80 + (col * 22);
+			sprintf(buf, "%c%c", hex[(here & 0xF0) >> 4], hex[here & 0x0F]);
+			DrawText(hdc, buf, -1, &r, DT_TOP | DT_LEFT | DT_NOPREFIX);
+			r.left = 3 + 266 + (col * fontSize.cx);
+			sprintf(buf, "%c", here);
+			DrawText(hdc, buf, -1, &r, DT_TOP | DT_LEFT | DT_NOPREFIX);
+		}
+
+		r.top += fontSize.cy;
+		r.bottom += fontSize.cy;
+	}
+
+	SelectObject(hdc, oldFont);
 }
 
 void MemViewerComboProc(HWND hwndDlg)
@@ -79,7 +130,8 @@ void MemViewerComboProc(HWND hwndDlg)
 	char asText[64] = { 0 };
 	sprintf_s(asText, 64, "%08X", memViewerOffset);
 	SetDlgItemText(hwndDlg, IDC_MEMVIEWEROFFSET, asText);
-	MemViewerDraw(hwndDlg);
+	InvalidateRect(GetDlgItem(hwndDlg, IDC_MEMVIEWERGRID), NULL, true);
+	//MemViewerDraw(hwndDlg);
 }
 
 BOOL CALLBACK MemViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam)
@@ -113,6 +165,9 @@ BOOL CALLBACK MemViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM
 				}
 			}
 		}
+		case WM_DRAWITEM:
+			if (wParam == IDC_MEMVIEWERGRID)
+				MemViewerDraw((DRAWITEMSTRUCT*)lParam);
 	}
 	return false;
 }
