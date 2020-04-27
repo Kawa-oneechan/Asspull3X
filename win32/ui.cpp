@@ -122,16 +122,59 @@ void MemViewerDraw(DRAWITEMSTRUCT* dis)
 	SelectObject(hdc, oldFont);
 }
 
-void MemViewerComboProc(HWND hwndDlg)
+void SetMemViewer(HWND hwndDlg, int to)
 {
-	int index = SendDlgItemMessage(hwndDlg, IDC_MEMVIEWERDROP, CB_GETCURSEL, 0, 0);
-	uint32_t areas[] = { BIOS_ADDR, CART_ADDR, WRAM_ADDR, DEVS_ADDR, REGS_ADDR, VRAM_ADDR };
-	memViewerOffset = areas[index];
+	auto max = VRAM_ADDR + VRAM_SIZE - (16 * 8);
+	if (to < 0) to = 0;
+	if (to > max) to = max;
+	memViewerOffset = to;
 	char asText[64] = { 0 };
 	sprintf_s(asText, 64, "%08X", memViewerOffset);
 	SetDlgItemText(hwndDlg, IDC_MEMVIEWEROFFSET, asText);
 	InvalidateRect(GetDlgItem(hwndDlg, IDC_MEMVIEWERGRID), NULL, true);
-	//MemViewerDraw(hwndDlg);
+	SetScrollPos(GetDlgItem(hwndDlg, IDC_MEMVIEWERSCROLL), SB_CTL, to / 8, true);
+}
+
+void MemViewerScroll(HWND hwndDlg, int message, int position)
+{
+	switch (message)
+	{
+		case SB_BOTTOM:
+			SetMemViewer(hwndDlg, ((VRAM_ADDR + VRAM_SIZE) / 8) - 16);
+			return;
+		case SB_TOP:
+			SetMemViewer(hwndDlg, 0);
+			return;
+		case SB_LINEDOWN:
+			SetMemViewer(hwndDlg, memViewerOffset + (16 * 8));
+			return;
+		case SB_LINEUP:
+			SetMemViewer(hwndDlg, memViewerOffset - (16 * 8));
+			return;
+		case SB_PAGEDOWN:
+			SetMemViewer(hwndDlg, memViewerOffset + (256 * 8));
+			return;
+		case SB_PAGEUP:
+			SetMemViewer(hwndDlg, memViewerOffset - (256 * 8));
+			return;
+		case SB_THUMBPOSITION:
+		{
+			SCROLLINFO si;
+			ZeroMemory(&si, sizeof(si));
+			si.cbSize = sizeof(si);
+			si.fMask = SIF_TRACKPOS;
+			GetScrollInfo(GetDlgItem(hwndDlg, IDC_MEMVIEWERSCROLL), SB_CTL, &si);
+			auto newTo = si.nTrackPos;
+			SetMemViewer(hwndDlg, newTo * 8);
+		}
+	}
+}
+
+void MemViewerComboProc(HWND hwndDlg)
+{
+	int index = SendDlgItemMessage(hwndDlg, IDC_MEMVIEWERDROP, CB_GETCURSEL, 0, 0);
+	uint32_t areas[] = { BIOS_ADDR, CART_ADDR, WRAM_ADDR, DEVS_ADDR, REGS_ADDR, VRAM_ADDR };
+	SetMemViewer(hwndDlg, areas[index]);
 }
 
 BOOL CALLBACK MemViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam)
@@ -151,6 +194,7 @@ BOOL CALLBACK MemViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM
 			for (int i = 0; i < 6; i++)
 				SendDlgItemMessage(hwndDlg, IDC_MEMVIEWERDROP, CB_ADDSTRING, 0, (LPARAM)areas[i]);
 			SendDlgItemMessage(hwndDlg, IDC_MEMVIEWERDROP, CB_SETCURSEL, 1, 0);
+			SetScrollRange(GetDlgItem(hwndDlg, IDC_MEMVIEWERSCROLL), SB_CTL, 0, ((VRAM_ADDR + VRAM_SIZE) / 8) - 16, false);
 			MemViewerComboProc(hwndDlg); //force update
 			return true;
 		}
@@ -167,7 +211,13 @@ BOOL CALLBACK MemViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM
 		}
 		case WM_DRAWITEM:
 			if (wParam == IDC_MEMVIEWERGRID)
+			{
 				MemViewerDraw((DRAWITEMSTRUCT*)lParam);
+				return true;
+			}
+		case WM_VSCROLL:
+			MemViewerScroll(hwndDlg, LOWORD(wParam), HIWORD(wParam));
+			return true;
 	}
 	return false;
 }
