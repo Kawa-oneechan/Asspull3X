@@ -69,6 +69,11 @@ BOOL CALLBACK AboutWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPa
 	return false;
 }
 
+#define BYTES 16
+#define LINES 16
+#define PAGE (BYTES * LINES)
+#define MAXRANGE (VRAM_ADDR + VRAM_SIZE - PAGE)
+
 unsigned long memViewerOffset;
 extern "C" unsigned int m68k_read_memory_8(unsigned int address);
 
@@ -100,19 +105,19 @@ void MemViewerDraw(DRAWITEMSTRUCT* dis)
 
 	const char hex[] = "0123456789ABCDEF";
 	unsigned int offset = memViewerOffset;
-	for (int row = 0; row < 16; row++)
+	for (int row = 0; row < LINES; row++)
 	{
 		r.left = 3;
 		sprintf(buf, "%08X", offset);
 		DrawText(hdc, buf, -1, &r, DT_TOP | DT_LEFT | DT_NOPREFIX);
 
-		for (int col = 0; col < 8; col++)
+		for (int col = 0; col < BYTES; col++)
 		{
 			auto here = m68k_read_memory_8(offset++);
 			r.left = 3 + 80 + (col * 22);
 			sprintf(buf, "%c%c", hex[(here & 0xF0) >> 4], hex[here & 0x0F]);
 			DrawText(hdc, buf, -1, &r, DT_TOP | DT_LEFT | DT_NOPREFIX);
-			r.left = 3 + 266 + (col * fontSize.cx);
+			r.left = 3 + 442 + (col * fontSize.cx);
 			sprintf(buf, "%c", here);
 			DrawText(hdc, buf, -1, &r, DT_TOP | DT_LEFT | DT_NOPREFIX);
 		}
@@ -131,15 +136,14 @@ void MemViewerDraw(DRAWITEMSTRUCT* dis)
 
 void SetMemViewer(HWND hwndDlg, int to)
 {
-	auto max = VRAM_ADDR + VRAM_SIZE - (16 * 8);
 	if (to < 0) to = 0;
-	if (to > max) to = max;
+	if (to > MAXRANGE) to = MAXRANGE;
 	memViewerOffset = to;
 	char asText[64] = { 0 };
 	sprintf_s(asText, 64, "%08X", memViewerOffset);
 	SetDlgItemText(hwndDlg, IDC_MEMVIEWEROFFSET, asText);
 	InvalidateRect(GetDlgItem(hwndDlg, IDC_MEMVIEWERGRID), NULL, true);
-	SetScrollPos(GetDlgItem(hwndDlg, IDC_MEMVIEWERSCROLL), SB_CTL, to / 8, true);
+	SetScrollPos(GetDlgItem(hwndDlg, IDC_MEMVIEWERSCROLL), SB_CTL, to / BYTES, true);
 }
 
 void MemViewerScroll(HWND hwndDlg, int message, int position)
@@ -147,22 +151,22 @@ void MemViewerScroll(HWND hwndDlg, int message, int position)
 	switch (message)
 	{
 		case SB_BOTTOM:
-			SetMemViewer(hwndDlg, ((VRAM_ADDR + VRAM_SIZE) / 8) - 16);
+			SetMemViewer(hwndDlg, MAXRANGE);
 			return;
 		case SB_TOP:
 			SetMemViewer(hwndDlg, 0);
 			return;
 		case SB_LINEDOWN:
-			SetMemViewer(hwndDlg, memViewerOffset + (16 * 8));
+			SetMemViewer(hwndDlg, memViewerOffset + BYTES);
 			return;
 		case SB_LINEUP:
-			SetMemViewer(hwndDlg, memViewerOffset - (16 * 8));
+			SetMemViewer(hwndDlg, memViewerOffset - BYTES);
 			return;
 		case SB_PAGEDOWN:
-			SetMemViewer(hwndDlg, memViewerOffset + (256 * 8));
+			SetMemViewer(hwndDlg, memViewerOffset + PAGE);
 			return;
 		case SB_PAGEUP:
-			SetMemViewer(hwndDlg, memViewerOffset - (256 * 8));
+			SetMemViewer(hwndDlg, memViewerOffset - PAGE);
 			return;
 		case SB_THUMBPOSITION:
 		{
@@ -172,7 +176,7 @@ void MemViewerScroll(HWND hwndDlg, int message, int position)
 			si.fMask = SIF_TRACKPOS;
 			GetScrollInfo(GetDlgItem(hwndDlg, IDC_MEMVIEWERSCROLL), SB_CTL, &si);
 			auto newTo = si.nTrackPos;
-			SetMemViewer(hwndDlg, newTo * 8);
+			SetMemViewer(hwndDlg, newTo * BYTES);
 		}
 	}
 }
@@ -223,7 +227,7 @@ BOOL CALLBACK MemViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM
 			SendDlgItemMessage(hwndDlg, IDC_MEMVIEWERDROP, CB_SETCURSEL, 1, 0);
 			SendDlgItemMessage(hwndDlg, IDC_MEMVIEWEROFFSET, EM_SETLIMITTEXT, 8, 0);
 			oldTextProc = (WNDPROC)SetWindowLongPtr(GetDlgItem(hwndDlg, IDC_MEMVIEWEROFFSET), GWLP_WNDPROC, (LONG_PTR)MemViewerEditProc);
-			SetScrollRange(GetDlgItem(hwndDlg, IDC_MEMVIEWERSCROLL), SB_CTL, 0, ((VRAM_ADDR + VRAM_SIZE) / 8) - 16, false);
+			SetScrollRange(GetDlgItem(hwndDlg, IDC_MEMVIEWERSCROLL), SB_CTL, 0, ((VRAM_ADDR + VRAM_SIZE) / BYTES) - LINES, false);
 			CheckDlgButton(hwndDlg, IDC_AUTOUPDATE, autoUpdate);
 			MemViewerComboProc(hwndDlg); //force update
 			return true;
