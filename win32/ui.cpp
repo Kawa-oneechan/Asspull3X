@@ -46,6 +46,7 @@ bool wasPaused = false;
 bool autoUpdate = false;
 
 HWND hWndAbout = NULL, hWndMemViewer = NULL, hWndOptions = NULL, hWndDevices = NULL;
+HFONT headerFont = NULL;
 
 bool ShowFileDlg(bool toSave, char* target, size_t max, const char* filter);
 void InsertDisk(int devId);
@@ -55,6 +56,9 @@ BOOL CALLBACK AboutWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPa
 {
 	switch (message)
 	{
+	case WM_INITDIALOG:
+		SendDlgItemMessage(hwndDlg, IDC_HEADER, WM_SETFONT, (WPARAM)headerFont, (LPARAM)true);
+		return true;
 	case WM_CLOSE:
 	case WM_COMMAND:
 		//EndDialog(hwndDlg, wParam);
@@ -470,6 +474,7 @@ BOOL CALLBACK DevicesWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 	}
 	case WM_INITDIALOG:
 	{
+		SendDlgItemMessage(hwndDlg, IDC_HEADER, WM_SETFONT, (WPARAM)headerFont, (LPARAM)true);
 		LPCSTR devices[] = { "Nothing", "Diskette drive", "Hard drive", "Line printer" };
 		for (int i = 0; i < 4; i++)
 			SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, LB_ADDSTRING, 0, (LPARAM)devices[i]);
@@ -613,6 +618,8 @@ void InitializeUI()
 		LPRECT lpRect;
 		GetWindowRect(hWndStatusBar, lpRect);
 		statusBarHeight = lpRect->bottom - lpRect->top;
+
+		headerFont = CreateFont(12, 0, 0, 0, FW_BOLD, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "MS Shell Dlg");
 	}
 	return;
 }
