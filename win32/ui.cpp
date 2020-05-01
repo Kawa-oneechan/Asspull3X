@@ -656,7 +656,7 @@ void InitializeUI()
 		GetWindowRect(hWndStatusBar, &rect);
 		statusBarHeight = rect.bottom - rect.top;
 
-		headerFont = CreateFont(12, 0, 0, 0, FW_BOLD, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "MS Shell Dlg");
+		headerFont = CreateFont(18, 0, 0, 0, 0, 1, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Segoe UI");
 	}
 	return;
 }
