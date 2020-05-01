@@ -56,15 +56,18 @@ BOOL CALLBACK AboutWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPa
 {
 	switch (message)
 	{
-	case WM_INITDIALOG:
-		SendDlgItemMessage(hwndDlg, IDC_HEADER, WM_SETFONT, (WPARAM)headerFont, (LPARAM)true);
-		return true;
-	case WM_CLOSE:
-	case WM_COMMAND:
-		//EndDialog(hwndDlg, wParam);
-		DestroyWindow(hwndDlg);
-		hWndAbout = NULL;
-		return true;
+		case WM_INITDIALOG:
+		{
+			SendDlgItemMessage(hwndDlg, IDC_HEADER, WM_SETFONT, (WPARAM)headerFont, (LPARAM)true);
+			return true;
+		}
+		case WM_CLOSE:
+		case WM_COMMAND:
+		{
+			DestroyWindow(hwndDlg);
+			hWndAbout = NULL;
+			return true;
+		}
 	}
 	return false;
 }
@@ -189,7 +192,7 @@ void MemViewerComboProc(HWND hwndDlg)
 }
 
 WNDPROC oldTextProc;
-LRESULT CALLBACK MemViewerEditProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam)
+BOOL CALLBACK MemViewerEditProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg)
 	{
@@ -249,14 +252,26 @@ BOOL CALLBACK MemViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM
 			}
 		}
 		case WM_DRAWITEM:
+		{
 			if (wParam == IDC_MEMVIEWERGRID)
 			{
 				MemViewerDraw((DRAWITEMSTRUCT*)lParam);
 				return true;
 			}
+			return false;
+		}
+		case WM_CTLCOLORSTATIC:
+		{	
+			if (lParam == (LPARAM)GetDlgItem(hwndDlg, IDC_MEMVIEWERGRID))
+				return (COLOR_WINDOW+1);
+			else
+				return false;
+		}
 		case WM_VSCROLL:
+		{
 			MemViewerScroll(hwndDlg, LOWORD(wParam), HIWORD(wParam));
 			return true;
+		}
 	}
 	return false;
 }
@@ -267,63 +282,81 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 {
 	switch (message)
 	{
-	case WM_CLOSE:
-	{
-		DestroyWindow(hwndDlg);
-		hWndOptions = NULL;
-		return true;
-	}
-	case WM_INITDIALOG:
-	{
-		CheckDlgButton(hwndDlg, IDC_FPSCAP, fpsCap);
-		CheckDlgButton(hwndDlg, IDC_ASPECT, stretch200);
-		return true;
-	}
-	case WM_COMMAND:
-	{
-		ResetPath();
-		if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_SHOWFPS)
-		{
-			fpsVisible = (IsDlgButtonChecked(hwndDlg, IDC_SHOWFPS) == 1);
-			ini.SetBoolValue("video", "showFps", fpsVisible);
-			ini.SaveFile("settings.ini");
-			return true;
-		}
-		else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_FPSCAP)
-		{
-			fpsCap = (IsDlgButtonChecked(hwndDlg, IDC_FPSCAP) == 1);
-			ini.SetBoolValue("video", "fpsCap", fpsCap);
-			ini.SaveFile("settings.ini");
-			return true;
-		}
-		else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_ASPECT)
-		{
-			stretch200 = (IsDlgButtonChecked(hwndDlg, IDC_ASPECT) == 1);
-			ini.SetBoolValue("video", "stretch200", stretch200);
-			ini.SaveFile("settings.ini");
-			return true;
-		}
-		else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_RELOAD)
-		{
-			reloadROM = (IsDlgButtonChecked(hwndDlg, IDC_RELOAD) == 1);
-			ini.SetBoolValue("media", "reloadRom", reloadROM);
-			ini.SaveFile("settings.ini");
-			return true;
-		}
-		else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_REMOUNT)
-		{
-			reloadIMG = (IsDlgButtonChecked(hwndDlg, IDC_REMOUNT) == 1);
-			ini.SetBoolValue("media", "reloadImg", reloadIMG);
-			ini.SaveFile("settings.ini");
-			return true;
-		}
-		else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDOK)
+		case WM_CLOSE:
 		{
 			DestroyWindow(hwndDlg);
 			hWndOptions = NULL;
 			return true;
 		}
-	}
+		case WM_INITDIALOG:
+		{
+			CheckDlgButton(hwndDlg, IDC_FPSCAP, fpsCap);
+			CheckDlgButton(hwndDlg, IDC_ASPECT, stretch200);
+			CheckDlgButton(hwndDlg, IDC_SHOWFPS, fpsVisible);
+			CheckDlgButton(hwndDlg, IDC_RELOAD, reloadROM);
+			CheckDlgButton(hwndDlg, IDC_REMOUNT, reloadIMG);
+			return true;
+		}
+		case WM_PAINT:
+		{
+			PAINTSTRUCT ps;
+			HDC hdc = BeginPaint(hwndDlg, &ps);
+			RECT rect = { 0 };
+			rect.bottom = 7 + 14 + 7; //margin, button, padding
+			MapDialogRect(hwndDlg, &rect);
+			auto h = rect.bottom;
+			GetClientRect(hwndDlg, &rect);
+			rect.bottom -= h;
+			FillRect(hdc, &rect, (HBRUSH)(COLOR_WINDOW+1));
+			EndPaint(hwndDlg, &ps);
+		}
+		case WM_CTLCOLORSTATIC:
+			return (COLOR_WINDOW+1);
+		case WM_COMMAND:
+		{
+			ResetPath();
+			if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_SHOWFPS)
+			{
+				fpsVisible = (IsDlgButtonChecked(hwndDlg, IDC_SHOWFPS) == 1);
+				ini.SetBoolValue("video", "showFps", fpsVisible);
+				ini.SaveFile("settings.ini");
+				return true;
+			}
+			else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_FPSCAP)
+			{
+				fpsCap = (IsDlgButtonChecked(hwndDlg, IDC_FPSCAP) == 1);
+				ini.SetBoolValue("video", "fpsCap", fpsCap);
+				ini.SaveFile("settings.ini");
+				return true;
+			}
+			else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_ASPECT)
+			{
+				stretch200 = (IsDlgButtonChecked(hwndDlg, IDC_ASPECT) == 1);
+				ini.SetBoolValue("video", "stretch200", stretch200);
+				ini.SaveFile("settings.ini");
+				return true;
+			}
+			else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_RELOAD)
+			{
+				reloadROM = (IsDlgButtonChecked(hwndDlg, IDC_RELOAD) == 1);
+				ini.SetBoolValue("media", "reloadRom", reloadROM);
+				ini.SaveFile("settings.ini");
+				return true;
+			}
+			else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_REMOUNT)
+			{
+				reloadIMG = (IsDlgButtonChecked(hwndDlg, IDC_REMOUNT) == 1);
+				ini.SetBoolValue("media", "reloadImg", reloadIMG);
+				ini.SaveFile("settings.ini");
+				return true;
+			}
+			else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDOK)
+			{
+				DestroyWindow(hwndDlg);
+				hWndOptions = NULL;
+				return true;
+			}
+		}
 	}
 	return false;
 }
@@ -619,9 +652,9 @@ void InitializeUI()
 		hWndStatusBar = CreateWindowEx(0, STATUSCLASSNAME, NULL, SBARS_SIZEGRIP | WS_CHILD | WS_VISIBLE, 0, 0, 0, 0, hWnd, (HMENU)idStatus, hInstance, NULL);
 		int parts[] = { 48, -1 };
 		SendMessage(hWndStatusBar, SB_SETPARTS, (WPARAM)2, (LPARAM)parts);
-		LPRECT lpRect;
-		GetWindowRect(hWndStatusBar, lpRect);
-		statusBarHeight = lpRect->bottom - lpRect->top;
+		RECT rect;
+		GetWindowRect(hWndStatusBar, &rect);
+		statusBarHeight = rect.bottom - rect.top;
 
 		headerFont = CreateFont(12, 0, 0, 0, FW_BOLD, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "MS Shell Dlg");
 	}
