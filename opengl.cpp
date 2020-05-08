@@ -215,10 +215,10 @@ void presentBackBuffer(SDL_Renderer *renderer, SDL_Window* win)
 			offsetX = (int)floorf((winWidth - scrWidth) * 0.5f);
 			offsetY = (int)floorf((winHeight - scrHeight) * 0.5f);
 
-			offsetY += statusBarHeight;
-
 			if (sdl2oh10)
 			{
+				offsetY += statusBarHeight;
+
 				glViewport(offsetX, offsetY, scrWidth, scrHeight);
 
 				glBegin(GL_TRIANGLE_STRIP);
@@ -234,6 +234,8 @@ void presentBackBuffer(SDL_Renderer *renderer, SDL_Window* win)
 			}
 			else
 			{
+				//Do NOT add the status bar height here, we work the other way up.
+
 				glBegin(GL_TRIANGLE_STRIP);
 					glTexCoord2f(0.0f, 0.0f);
 					glVertex2f((GLfloat)offsetX, (GLfloat)offsetY);
