@@ -300,8 +300,8 @@ void RenderBitmapMode1(int line)
 	{
 		auto twoPix = ramVideo[effective * imgWidth + p];
 		p++;
-		auto l = (twoPix >> 4) & 0x0F;
-		auto r = (twoPix >> 0) & 0x0F;
+		auto l = (twoPix >> 0) & 0x0F;
+		auto r = (twoPix >> 4) & 0x0F;
 		if (!gfx320)
 		{
 			RenderPixel(line, col + 0, l);
