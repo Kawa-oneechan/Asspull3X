@@ -46,7 +46,7 @@ bool wasPaused = false;
 bool autoUpdate = false;
 
 HWND hWndAbout = NULL, hWndMemViewer = NULL, hWndOptions = NULL, hWndDevices = NULL;
-HFONT headerFont = NULL;
+HFONT headerFont = NULL, monoFont = NULL;
 
 bool ShowFileDlg(bool toSave, char* target, size_t max, const char* filter);
 void InsertDisk(int devId);
@@ -93,7 +93,7 @@ void MemViewerDraw(DRAWITEMSTRUCT* dis)
 	auto oldBmp = SelectObject(hdc, bmp);
 
 	FillRect(hdc, &dis->rcItem, (HBRUSH)GetStockObject(WHITE_BRUSH));
-	auto oldFont = SelectObject(hdc, GetStockObject(SYSTEM_FIXED_FONT));
+	auto oldFont = SelectObject(hdc, monoFont);
 	SIZE fontSize;
 	GetTextExtentPoint(hdc, "0", 1, &fontSize);
 	SetTextColor(hdc, RGB(0,0,0));
@@ -223,7 +223,7 @@ BOOL CALLBACK MemViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM
 		}
 		case WM_INITDIALOG:
 		{
-			SendDlgItemMessage(hwndDlg, IDC_MEMVIEWEROFFSET, WM_SETFONT, (WPARAM)GetStockObject(SYSTEM_FIXED_FONT), false);
+			SendDlgItemMessage(hwndDlg, IDC_MEMVIEWEROFFSET, WM_SETFONT, (WPARAM)monoFont, false);
 			LPCSTR areas[] = { "BIOS", "Cart", "WRAM", "Devices", "Registers", "VRAM" };
 			for (int i = 0; i < 6; i++)
 				SendDlgItemMessage(hwndDlg, IDC_MEMVIEWERDROP, CB_ADDSTRING, 0, (LPARAM)areas[i]);
@@ -656,7 +656,8 @@ void InitializeUI()
 		GetWindowRect(hWndStatusBar, &rect);
 		statusBarHeight = rect.bottom - rect.top;
 
-		headerFont = CreateFont(18, 0, 0, 0, 0, 1, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Segoe UI");
+		headerFont = CreateFont(18, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Segoe UI");
+		monoFont = CreateFont(16, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Courier New");
 	}
 	return;
 }
