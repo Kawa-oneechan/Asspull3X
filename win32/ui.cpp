@@ -61,6 +61,26 @@ BOOL CALLBACK AboutWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPa
 			SendDlgItemMessage(hwndDlg, IDC_HEADER, WM_SETFONT, (WPARAM)headerFont, (LPARAM)true);
 			return true;
 		}
+		case WM_PAINT:
+		{
+			PAINTSTRUCT ps;
+			HDC hdc = BeginPaint(hwndDlg, &ps);
+			RECT rect = { 0 };
+			rect.bottom = 7 + 14 + 7; //margin, button, padding
+			MapDialogRect(hwndDlg, &rect);
+			auto h = rect.bottom;
+			GetClientRect(hwndDlg, &rect);
+			rect.bottom -= h;
+			FillRect(hdc, &rect, (HBRUSH)(COLOR_WINDOW + 1));
+			EndPaint(hwndDlg, &ps);
+			return true;
+		}
+		case WM_CTLCOLORSTATIC:
+			if (lParam == (LPARAM)GetDlgItem(hwndDlg, IDC_LINK))
+				return false;
+			else if (lParam == (LPARAM)GetDlgItem(hwndDlg, IDC_HEADER))
+				SetTextColor((HDC)wParam, RGB(0x00, 0x33, 0x99));
+			return (COLOR_WINDOW + 1);
 		case WM_CLOSE:
 		case WM_COMMAND:
 		{
@@ -68,6 +88,19 @@ BOOL CALLBACK AboutWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPa
 			hWndAbout = NULL;
 			return true;
 		}
+		case WM_NOTIFY:
+			switch (((LPNMHDR)lParam)->code)
+			{
+				case NM_CLICK:
+				case NM_RETURN:
+				{
+					PNMLINK pNMLink = (PNMLINK)lParam;
+					LITEM item = pNMLink->item;
+					if ((((LPNMHDR)lParam)->hwndFrom == GetDlgItem(hwndDlg, IDC_LINK)) && (item.iLink == 0))
+						ShellExecuteA(NULL, "open", "https://github.com/Kawa-oneechan/Asspull3X", NULL, NULL, SW_SHOW);
+					break;
+				}
+			}
 	}
 	return false;
 }
@@ -309,6 +342,7 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 			rect.bottom -= h;
 			FillRect(hdc, &rect, (HBRUSH)(COLOR_WINDOW+1));
 			EndPaint(hwndDlg, &ps);
+			return true;
 		}
 		case WM_CTLCOLORSTATIC:
 			return (COLOR_WINDOW+1);
@@ -370,9 +404,12 @@ void UpdateDevicePage(HWND hwndDlg)
 	EnableWindow(GetDlgItem(hwndDlg, IDC_DEVTYPE), (devNum > 0));
 
 	//Hide everything regardless at first.
-	int everything[] = { IDC_DEVNONE, IDC_DDFILE, IDC_DDINSERT, IDC_DDEJECT };
-	for (int i = 0; i < 4; i++)
+	int everything[] = { IDC_DEVNONE, IDC_DDFILE, IDC_DDINSERT, IDC_DDEJECT, IDC_PRIMARYDEVICE };
+	for (int i = 0; i < 5; i++)
 		ShowWindow(GetDlgItem(hwndDlg, everything[i]), SW_HIDE);
+
+	if (devNum == 0)
+		ShowWindow(GetDlgItem(hwndDlg, IDC_PRIMARYDEVICE), SW_SHOW);
 
 	if (device == NULL)
 	{
@@ -385,29 +422,29 @@ void UpdateDevicePage(HWND hwndDlg)
 	{
 		switch (device->GetID())
 		{
-		case 0x0144:
-		{
-			for (int i = 1; i < 4; i++)
-				ShowWindow(GetDlgItem(hwndDlg, everything[i]), SW_SHOW);
-			SetDlgItemText(hwndDlg, IDC_HEADER, (((DiskDrive*)device)->GetType() == ddHardDisk) ? "Hard drive" : "Diskette drive");
-			SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, LB_SETCURSEL, (((DiskDrive*)device)->GetType() == ddHardDisk) ? 2 : 1, 0);
-			char key[8] = { 0 };
-			SDL_itoa(devNum, key, 10);
-			auto val = ini.GetValue("devices/diskDrive", key, "");
-			SetDlgItemText(hwndDlg, IDC_DDFILE, val);
-			EnableWindow(GetDlgItem(hwndDlg, IDC_DDINSERT), val[0] == 0);
-			EnableWindow(GetDlgItem(hwndDlg, IDC_DDEJECT), val[0] != 0);
-			SendDlgItemMessage(hwndDlg, IDC_DECO, STM_SETICON, (WPARAM)LoadImage(hInstance, MAKEINTRESOURCE((((DiskDrive*)device)->GetType() == ddHardDisk) ? IDI_HARDDRIVE :IDI_DISKDRIVE), IMAGE_ICON, 0, 0, 0), 0);
-			break;
-		}
-		case 0x4C50:
-		{
-			ShowWindow(GetDlgItem(hwndDlg, IDC_DEVNONE), SW_SHOW);
-			SetDlgItemText(hwndDlg, IDC_HEADER, "Line printer");
-			SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, LB_SETCURSEL, 3, 0);
-			SendDlgItemMessage(hwndDlg, IDC_DECO, STM_SETICON, (WPARAM)LoadImage(hInstance, MAKEINTRESOURCE(IDI_PRINTER), IMAGE_ICON, 0, 0, 0), 0);
-			break;
-		}
+			case 0x0144:
+			{
+				for (int i = 1; i < 4; i++)
+					ShowWindow(GetDlgItem(hwndDlg, everything[i]), SW_SHOW);
+				SetDlgItemText(hwndDlg, IDC_HEADER, (((DiskDrive*)device)->GetType() == ddHardDisk) ? "Hard drive" : "Diskette drive");
+				SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, LB_SETCURSEL, (((DiskDrive*)device)->GetType() == ddHardDisk) ? 2 : 1, 0);
+				char key[8] = { 0 };
+				SDL_itoa(devNum, key, 10);
+				auto val = ini.GetValue("devices/diskDrive", key, "");
+				SetDlgItemText(hwndDlg, IDC_DDFILE, val);
+				EnableWindow(GetDlgItem(hwndDlg, IDC_DDINSERT), val[0] == 0);
+				EnableWindow(GetDlgItem(hwndDlg, IDC_DDEJECT), val[0] != 0);
+				SendDlgItemMessage(hwndDlg, IDC_DECO, STM_SETICON, (WPARAM)LoadImage(hInstance, MAKEINTRESOURCE((((DiskDrive*)device)->GetType() == ddHardDisk) ? IDI_HARDDRIVE :IDI_DISKDRIVE), IMAGE_ICON, 0, 0, 0), 0);
+				break;
+			}
+			case 0x4C50:
+			{
+				ShowWindow(GetDlgItem(hwndDlg, IDC_DEVNONE), SW_SHOW);
+				SetDlgItemText(hwndDlg, IDC_HEADER, "Line printer");
+				SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, LB_SETCURSEL, 3, 0);
+				SendDlgItemMessage(hwndDlg, IDC_DECO, STM_SETICON, (WPARAM)LoadImage(hInstance, MAKEINTRESOURCE(IDI_PRINTER), IMAGE_ICON, 0, 0, 0), 0);
+				break;
+			}
 		}
 	}
 }
@@ -457,14 +494,14 @@ void SwitchDevice(HWND hwndDlg)
 	{
 		switch (devices[devNum]->GetID())
 		{
-		case 0x0144:
-			oldType = 1;
-			if (((DiskDrive*)devices[devNum])->GetType() == ddHardDisk)
+			case 0x0144:
+				oldType = 1;
+				if (((DiskDrive*)devices[devNum])->GetType() == ddHardDisk)
+					oldType = 2;
+				break;
+			case 0x4C50:
 				oldType = 2;
-			break;
-		case 0x4C50:
-			oldType = 2;
-			break;
+				break;
 		}
 	}
 
@@ -502,52 +539,52 @@ BOOL CALLBACK DevicesWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 {
 	switch (message)
 	{
-	case WM_CLOSE:
-	{
-		DestroyWindow(hwndDlg);
-		hWndDevices = NULL;
-		if (!wasPaused) pauseState = 0;
-		return true;
-	}
-	case WM_INITDIALOG:
-	{
-		SendDlgItemMessage(hwndDlg, IDC_HEADER, WM_SETFONT, (WPARAM)headerFont, (LPARAM)true);
-		LPCSTR devices[] = { "Nothing", "Diskette drive", "Hard drive", "Line printer" };
-		for (int i = 0; i < 4; i++)
-			SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, LB_ADDSTRING, 0, (LPARAM)devices[i]);
-		UpdateDeviceList(hwndDlg);
-		return true;
-	}
-	case WM_COMMAND:
-	{
-		if (HIWORD(wParam) == LBN_SELCHANGE && LOWORD(wParam) == IDC_DEVLIST)
-		{
-			UpdateDevicePage(hwndDlg);
-			return true;
-		}
-		if (HIWORD(wParam) == LBN_SELCHANGE && LOWORD(wParam) == IDC_DEVTYPE)
-		{
-			SwitchDevice(hwndDlg);
-			return true;
-		}
-		else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_DDINSERT)
-		{
-			int devID = SendDlgItemMessage(hwndDlg, IDC_DEVLIST, LB_GETCURSEL, 0, 0);
-			InsertDisk(devID);
-			return true;
-		}
-		else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_DDEJECT)
-		{
-			EjectDisk();
-		}
-		else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDOK)
+		case WM_CLOSE:
 		{
 			DestroyWindow(hwndDlg);
 			hWndDevices = NULL;
 			if (!wasPaused) pauseState = 0;
 			return true;
 		}
-	}
+		case WM_INITDIALOG:
+		{
+			SendDlgItemMessage(hwndDlg, IDC_HEADER, WM_SETFONT, (WPARAM)headerFont, (LPARAM)true);
+			LPCSTR devices[] = { "Nothing", "Diskette drive", "Hard drive", "Line printer" };
+			for (int i = 0; i < 4; i++)
+				SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, LB_ADDSTRING, 0, (LPARAM)devices[i]);
+			UpdateDeviceList(hwndDlg);
+			return true;
+		}
+		case WM_COMMAND:
+		{
+			if (HIWORD(wParam) == LBN_SELCHANGE && LOWORD(wParam) == IDC_DEVLIST)
+			{
+				UpdateDevicePage(hwndDlg);
+				return true;
+			}
+			if (HIWORD(wParam) == LBN_SELCHANGE && LOWORD(wParam) == IDC_DEVTYPE)
+			{
+				SwitchDevice(hwndDlg);
+				return true;
+			}
+			else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_DDINSERT)
+			{
+				int devID = SendDlgItemMessage(hwndDlg, IDC_DEVLIST, LB_GETCURSEL, 0, 0);
+				InsertDisk(devID);
+				return true;
+			}
+			else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_DDEJECT)
+			{
+				EjectDisk();
+			}
+			else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDOK)
+			{
+				DestroyWindow(hwndDlg);
+				hWndDevices = NULL;
+				if (!wasPaused) pauseState = 0;
+				return true;
+			}
+		}
 	}
 	return false;
 }
@@ -833,12 +870,6 @@ void ShowOpenFileDialog(int command, int data, std::string pattern)
 		auto lastSlash = (char*)strrchr(thing, '\\');
 		if (lastSlash)
 			*(lastSlash + 1) = 0;
-#ifdef _MSC_VER
-		//_chdir(thing);
-#else
-		//TODO
-		//chdir(thing);
-#endif
 	}
 
 	uiCommand = 0;
