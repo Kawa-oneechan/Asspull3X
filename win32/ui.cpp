@@ -52,6 +52,21 @@ bool ShowFileDlg(bool toSave, char* target, size_t max, const char* filter);
 void InsertDisk(int devId);
 void EjectDisk();
 
+void DrawWin7Thing(HWND hwndDlg)
+{
+	PAINTSTRUCT ps;
+	HDC hdc = BeginPaint(hwndDlg, &ps);
+	RECT rect = { 0 };
+	rect.bottom = 7 + 14 + 7; //margin, button, padding
+	MapDialogRect(hwndDlg, &rect);
+	auto h = rect.bottom;
+	GetClientRect(hwndDlg, &rect);
+	rect.bottom -= h;
+	FillRect(hdc, &rect, (HBRUSH)(COLOR_WINDOW + 1));
+	EndPaint(hwndDlg, &ps);
+	return;
+}
+
 BOOL CALLBACK AboutWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
@@ -63,16 +78,7 @@ BOOL CALLBACK AboutWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPa
 		}
 		case WM_PAINT:
 		{
-			PAINTSTRUCT ps;
-			HDC hdc = BeginPaint(hwndDlg, &ps);
-			RECT rect = { 0 };
-			rect.bottom = 7 + 14 + 7; //margin, button, padding
-			MapDialogRect(hwndDlg, &rect);
-			auto h = rect.bottom;
-			GetClientRect(hwndDlg, &rect);
-			rect.bottom -= h;
-			FillRect(hdc, &rect, (HBRUSH)(COLOR_WINDOW + 1));
-			EndPaint(hwndDlg, &ps);
+			DrawWin7Thing(hwndDlg);
 			return true;
 		}
 		case WM_CTLCOLORSTATIC:
@@ -332,16 +338,7 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 		}
 		case WM_PAINT:
 		{
-			PAINTSTRUCT ps;
-			HDC hdc = BeginPaint(hwndDlg, &ps);
-			RECT rect = { 0 };
-			rect.bottom = 7 + 14 + 7; //margin, button, padding
-			MapDialogRect(hwndDlg, &rect);
-			auto h = rect.bottom;
-			GetClientRect(hwndDlg, &rect);
-			rect.bottom -= h;
-			FillRect(hdc, &rect, (HBRUSH)(COLOR_WINDOW+1));
-			EndPaint(hwndDlg, &ps);
+			DrawWin7Thing(hwndDlg);
 			return true;
 		}
 		case WM_CTLCOLORSTATIC:
