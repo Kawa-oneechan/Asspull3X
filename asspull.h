@@ -204,3 +204,12 @@ public:
 };
 
 extern Device* devices[MAXDEVS];
+
+namespace Discord
+{
+	extern bool enabled;
+
+	extern void Init();
+	extern void UpdateDiscordPresence(char* gameName);
+	extern void Shutdown();
+}

@@ -95,6 +95,10 @@ void LoadROM(std::string path)
 	ini.SetValue("media", "lastROM", path.c_str());
 	ResetPath();
 	ini.SaveFile("settings.ini");
+
+	char romName[32] = { 0 };
+	memcpy(romName, romCartridge + 8, 24);
+	Discord::UpdateDiscordPresence(romName);
 }
 
 int pauseState = 0;
@@ -122,6 +126,7 @@ int main(int argc, char* argv[])
 	reloadROM = ini.GetBoolValue("media", "reloadRom", false);
 	reloadIMG = ini.GetBoolValue("media", "reloadImg", false);
 	bool fullScreen = ini.GetBoolValue("video", "fullScreen", false);
+	Discord::enabled = ini.GetBoolValue("media", "discord", false);
 
 	for (int i = 1; i < argc; i++)
 	{
@@ -249,6 +254,8 @@ int main(int argc, char* argv[])
 
 	SetStatus("Middle-click or Ctrl-P to pause emulation.");
 
+	Discord::Init();
+
 	while (!quit)
 	{
 		while (SDL_PollEvent(&ev) != 0)
@@ -340,6 +347,7 @@ int main(int argc, char* argv[])
 				ini.SaveFile("settings.ini");
 				gfxFade = 31;
 				SetStatus("Cart pulled.");
+				Discord::UpdateDiscordPresence("Not playing");
 			}
 			else if (uiCommand == cmdEjectDisk)
 			{
@@ -455,6 +463,7 @@ int main(int argc, char* argv[])
 			line = 0;
 		}
 	}
+	Discord::Shutdown();
 
 	UninitSound();
 	UninitVideo();
