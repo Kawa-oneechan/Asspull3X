@@ -399,9 +399,6 @@ int InitVideo(bool fullScreen)
 
 	pixels = (unsigned char*)malloc(640 * 480 * 4);
 
-#ifndef WIN32NATIVE
-	SDL_ShowCursor(!customMouse);
-#endif
 	return 0;
 }
 

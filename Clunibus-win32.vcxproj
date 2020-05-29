@@ -11,21 +11,22 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{0768E14C-1987-4AA4-BFE0-15664F0FD123}</ProjectGuid>
+    <ProjectGuid>{64FD143E-7F53-48B3-B239-9FC8124339B0}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Clunibus</RootNamespace>
+    <ProjectName>Clunibus</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -41,6 +42,7 @@
     <LinkIncremental>true</LinkIncremental>
     <LibraryPath>C:\libs\SDL2-2.0.7\lib\x86;$(LibraryPath)</LibraryPath>
     <IncludePath>C:\libs\SDL2-2.0.7\include;$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -61,6 +63,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>opengl32.lib;SDL2.lib;SDL2main.lib;kernel32.lib;user32.lib;gdi32.lib;winmm.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -71,7 +74,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32NATIVE;WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -79,6 +82,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>opengl32.lib;SDL2.lib;SDL2main.lib;kernel32.lib;user32.lib;gdi32.lib;winmm.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -86,10 +90,18 @@
     <ClInclude Include="miniz.h" />
     <ClInclude Include="musashi\m68k.h" />
     <ClInclude Include="musashi\m68kconf.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="SimpleIni.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="ui.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="device.cpp" />
+    <ClCompile Include="dlg\about.cpp" />
+    <ClCompile Include="dlg\common.cpp" />
+    <ClCompile Include="dlg\devices.cpp" />
+    <ClCompile Include="dlg\memviewer.cpp" />
+    <ClCompile Include="dlg\options.cpp" />
     <ClCompile Include="extras.cpp" />
     <ClCompile Include="keyboard.cpp" />
     <ClCompile Include="memory.cpp" />
@@ -107,7 +119,19 @@
     <ResourceCompile Include="clunibus.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.ico" />
+    <Image Include="res\printer.ico" />
+    <Image Include="res\diskdrive.ico" />
+    <Image Include="res\blank.ico" />
+    <Image Include="res\about.bmp" />
+    <Image Include="res\Asspull3X.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\about.bmp" />
+    <None Include="res\blank.ico" />
+    <None Include="res\cdrom.ico" />
+    <None Include="res\diskdrive.ico" />
+    <None Include="res\harddrive.ico" />
+    <None Include="res\printer.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

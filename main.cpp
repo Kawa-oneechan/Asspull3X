@@ -16,12 +16,10 @@ extern void SetFPS(int fps);
 extern void _devUpdateDiskette(int);
 extern void ShowOpenFileDialog(int, int, std::string);
 
-#ifdef WIN32NATIVE
 extern void LetItSnow();
 extern void InsertDisk(int);
 extern void EjectDisk();
 extern void ResizeStatusBar();
-#endif
 
 extern unsigned int biosSize, romSize;
 extern long rtcOffset;
@@ -249,11 +247,7 @@ int main(int argc, char* argv[])
 	auto delta = 0;
 	auto frames = 0;
 
-#ifndef WIN32NATIVE
-	SetStatus("Middle-click or Ctrl-P to pause emulation and show UI.");
-#else
 	SetStatus("Middle-click or Ctrl-P to pause emulation.");
-#endif
 
 	while (!quit)
 	{
@@ -312,11 +306,9 @@ int main(int argc, char* argv[])
 					else if (pauseState == 2)
 						pauseState = 0;
 				}
-#ifdef WIN32NATIVE
 			case SDL_WINDOWEVENT:
 				if (ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
 					ResizeStatusBar();
-#endif
 			}
 		}
 
@@ -324,28 +316,11 @@ int main(int argc, char* argv[])
 		{
 			if (uiCommand == cmdLoadRom)
 			{
-#ifndef WIN32NATIVE
-				if (uiString[0] == 0)
-					ShowOpenFileDialog(cmdLoadRom, 0, "*.ap3");
-				else
-				{
-					SDL_Log("Loading ROM, %s ...", uiString);
-					auto gottaReset = (*(uint32_t*)romCartridge == 0x21535341);
-					LoadROM(uiString);
-
-					if (gottaReset)
-						m68k_pulse_reset();
-
-					if (pauseState == 2)
-						pauseState = 0;
-				}
-#else
 				ShowOpenFileDialog(cmdLoadRom, 0, "Asspull IIIx ROMS (*.ap3)|*.ap3");
 				if (uiCommand == 0) continue;
 				SDL_Log("Loading ROM, %s ...", uiString);
 				auto gottaReset = (*(uint32_t*)romCartridge == 0x21535341);
 				LoadROM(uiString);
-#endif
 			}
 			else if (uiCommand == cmdInsertDisk)
 			{
@@ -354,36 +329,7 @@ int main(int argc, char* argv[])
 				else if (((DiskDrive*)devices[uiData])->IsMounted())
 					SetStatus("Unmount the medium first.");
 				else
-				{
-#ifndef WIN32NATIVE
-					if (uiString[0] == 0)
-					{
-						ShowOpenFileDialog(cmdInsertDisk, uiData, (((DiskDrive*)devices[uiData])->GetType() == ddDiskette ? "*.img" : "*.vhd"));
-					}
-					else
-					{
-						char key[16];
-						sprintf(key, "%d", uiData);
-						auto ret = ((DiskDrive*)devices[uiData])->Mount(uiString);
-						if (ret == -1)
-							SetStatus("Eject the diskette first, with Ctrl-Shift-U.");
-						else if (ret != 0)
-							SDL_Log("Error %d trying to open disk image.", ret);
-						else
-						{
-							if (((DiskDrive*)devices[uiData])->GetType() == ddDiskette)
-								ini.SetValue("devices/diskDrive", key, uiString);
-							else
-								ini.SetValue("devices/hardDrive", key, uiString);
-							ResetPath();
-							ini.SaveFile("settings.ini");
-							_devUpdateDiskette(uiData);
-						}
-					}
-#else
 					InsertDisk(uiData);
-#endif
-				}
 			}
 			else if (uiCommand == cmdUnloadRom)
 			{
@@ -411,9 +357,6 @@ int main(int argc, char* argv[])
 					ini.SaveFile("settings.ini");
 					SetStatus("Disk ejected.");
 				}
-#ifndef WIN32NATIVE
-				_devUpdateDiskette(uiData);
-#endif
 			}
 			else if (uiCommand == cmdReset)
 			{
@@ -501,11 +444,7 @@ int main(int argc, char* argv[])
 		else if (pauseState == 2)
 		{
 			memcpy(pixels, pauseScreen, 640 * 480 * 4);
-#ifndef WIN32NATIVE
-			HandleUI();
-#else
 			LetItSnow();
-#endif
 			VBlank();
 		}
 		line++;
