@@ -99,7 +99,6 @@
     <ClCompile Include="device.cpp" />
     <ClCompile Include="discord.cpp" />
     <ClCompile Include="dlg\about.cpp" />
-    <ClCompile Include="dlg\common.cpp" />
     <ClCompile Include="dlg\devices.cpp" />
     <ClCompile Include="dlg\memviewer.cpp" />
     <ClCompile Include="dlg\options.cpp" />
