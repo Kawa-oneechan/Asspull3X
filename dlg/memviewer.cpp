@@ -16,16 +16,22 @@ void MemViewerDraw(DRAWITEMSTRUCT* dis)
 	int w = rect.right - rect.left;
 	int h = rect.bottom - rect.top;
 
-	HDC hdc = CreateCompatibleDC(NULL);
+	HDC hdc = CreateCompatibleDC(dis->hDC);
 	auto bmp = CreateCompatibleBitmap(hdc, w, h);
 	auto oldBmp = SelectObject(hdc, bmp);
 
-	FillRect(hdc, &dis->rcItem, (HBRUSH)GetStockObject(WHITE_BRUSH));
+	FillRect(hdc, &dis->rcItem, hbrBack);
 	auto oldFont = SelectObject(hdc, monoFont);
 	SIZE fontSize;
 	GetTextExtentPoint(hdc, "0", 1, &fontSize);
-	SetTextColor(hdc, RGB(0,0,0));
-	SetBkColor(hdc, RGB(255,255,255));
+	SetTextColor(hdc, rgbText);
+	SetBkColor(hdc, rgbBack);
+	
+	//Uncomment to get the weird shit seen on Twitter
+	//Looks like this: https://pbs.twimg.com/media/EZWXK5DWAAI73Jk?format=png&name=orig
+	//SetTextColor(dis->hDC, rgbText);
+	//SetBkColor(dis->hDC, rgbBack);
+
 	RECT r;
 	r.top = 3;
 	r.left = 3;
@@ -56,7 +62,6 @@ void MemViewerDraw(DRAWITEMSTRUCT* dis)
 		r.top += fontSize.cy;
 		r.bottom += fontSize.cy;
 	}
-
 	SelectObject(hdc, oldFont);
 
 	BitBlt(dis->hDC, 0, 0, w, h, hdc, 0, 0, SRCCOPY);
@@ -188,12 +193,29 @@ BOOL CALLBACK MemViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM
 			}
 			return false;
 		}
+		case WM_PAINT:
+		{
+			DrawWindowBk(hwndDlg, false);
+			return true;
+		}
+		case WM_NOTIFY:
+		{
+			if(((LPNMHDR)lParam)->code == NM_CUSTOMDRAW)
+			{
+				auto nmc = (LPNMCUSTOMDRAW)lParam;
+				if (nmc->hdr.idFrom == IDC_AUTOUPDATE)
+				{
+					DrawCheckbox(hwndDlg, nmc);
+					return true;
+				}
+			}
+		}
 		case WM_CTLCOLORSTATIC:
-		{	
+		{
+			SetTextColor((HDC)wParam, rgbText);
 			if (lParam == (LPARAM)GetDlgItem(hwndDlg, IDC_MEMVIEWERGRID))
-				return (COLOR_WINDOW+1);
-			else
-				return false;
+				return (INT_PTR)hbrList;
+			return (INT_PTR)hbrBack;
 		}
 		case WM_VSCROLL:
 		{

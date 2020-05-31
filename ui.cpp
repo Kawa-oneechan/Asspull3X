@@ -112,8 +112,8 @@ void SetThemeColors()
 	{
 		case 0: //light
 		{
-			rgbBack = RGB(240, 240, 240);
-			rgbStripe = RGB(255, 255, 255);
+			rgbBack = RGB(255, 255, 255);
+			rgbStripe = RGB(240, 240, 240);
 			rgbText = RGB(0, 0, 0);
 			rgbList = RGB(0, 0, 0);
 			rgbHeader = RGB(0x00, 0x33, 0x99);

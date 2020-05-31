@@ -115,6 +115,7 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 						ini.SetValue("media", "bios", thePath);
 						ini.SetLongValue("media", "theme", SendDlgItemMessage(hwndDlg, IDC_THEME, CB_GETCURSEL, 0, 0));
 						SetThemeColors();
+						ini.SaveFile("settings.ini");
 						DestroyWindow(hwndDlg);
 						hWndOptions = NULL;
 						return true;
