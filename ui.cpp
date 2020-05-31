@@ -137,7 +137,12 @@ void SetThemeColors()
 	hbrBack = CreateSolidBrush(rgbBack);
 	hbrStripe = CreateSolidBrush(rgbStripe);
 	hbrList = CreateSolidBrush(rgbListBk);
-	//TODO: find open windows (there's a finite set anyway) and invalidate them so they redraw.
+
+	if (hWndAbout != NULL) RedrawWindow(hWndAbout, NULL, NULL, RDW_INVALIDATE);
+	if (hWndDevices != NULL) RedrawWindow(hWndDevices, NULL, NULL, RDW_INVALIDATE);
+	if (hWndMemViewer != NULL) RedrawWindow(hWndMemViewer, NULL, NULL, RDW_INVALIDATE);
+	//Being called right before the options window is closed, we don't need to bother with it.
+	//if (hWndOptions != NULL) RedrawWindow(hWndOptions, NULL, NULL, RDW_INVALIDATE);
 }
 
 void WndProc(void* userdata, void* hWnd, unsigned int message, Uint64 wParam, Sint64 lParam)
