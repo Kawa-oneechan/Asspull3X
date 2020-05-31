@@ -161,6 +161,31 @@ BOOL CALLBACK DevicesWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 			UpdateDeviceList(hwndDlg);
 			return true;
 		}
+		case WM_PAINT:
+		{
+			DrawWindowBk(hwndDlg, false);
+			return true;
+		}
+		case WM_CTLCOLORLISTBOX:
+		{
+			SetTextColor((HDC)wParam, rgbList);
+			SetBkColor((HDC)wParam, rgbListBk);
+			return (INT_PTR)hbrList;
+		}
+		case WM_CTLCOLORSTATIC:
+		{
+			SetTextColor((HDC)wParam, rgbText);
+			if (lParam == (LPARAM)GetDlgItem(hwndDlg, IDC_HEADER))
+				SetTextColor((HDC)wParam, rgbHeader);
+			SetBkColor((HDC)wParam, rgbBack);
+			if (lParam == (LPARAM)GetDlgItem(hwndDlg, IDC_DDFILE))
+			{
+				SetTextColor((HDC)wParam, rgbList);
+				SetBkColor((HDC)wParam, rgbListBk);
+				return (INT_PTR)hbrList;
+			}
+			return (INT_PTR)hbrBack;
+		}
 		case WM_COMMAND:
 		{
 			if (HIWORD(wParam) == LBN_SELCHANGE && LOWORD(wParam) == IDC_DEVLIST)

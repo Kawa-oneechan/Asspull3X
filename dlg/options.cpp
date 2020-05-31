@@ -19,23 +19,46 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 			CheckDlgButton(hwndDlg, IDC_REMOUNT, reloadIMG);
 			for (int i = 10; i < 13; i++)
 				SendDlgItemMessage(hwndDlg, i, WM_SETFONT, (WPARAM)headerFont, (LPARAM)true);
-			LPCSTR themes[] = { "Light", "Dark", "Match system" };
+			LPCSTR themes[] = { "Light", "Dark" };
 			for (int i = 0; i < 3; i++)
 				SendDlgItemMessage(hwndDlg, IDC_THEME, CB_ADDSTRING, 0, (LPARAM)themes[i]);
-			SendDlgItemMessage(hwndDlg, IDC_THEME, CB_SETCURSEL, 0, 0);
+			SendDlgItemMessage(hwndDlg, IDC_THEME, CB_SETCURSEL, ini.GetLongValue("media", "theme", 0), 0);
 			SetDlgItemText(hwndDlg, IDC_BIOSPATH, ini.GetValue("media", "bios", ""));
 			return true;
 		}
 		case WM_PAINT:
 		{
-			DrawWin7Thing(hwndDlg);
+			DrawWindowBk(hwndDlg, true);
 			return true;
 		}
+		case WM_NOTIFY:
+		{
+			if(((LPNMHDR)lParam)->code == NM_CUSTOMDRAW)
+			{
+				auto nmc = (LPNMCUSTOMDRAW)lParam;
+				int idFrom = nmc->hdr.idFrom;
+				switch(idFrom)
+				{
+					case IDC_SHOWFPS:
+					case IDC_FPSCAP:
+					case IDC_ASPECT:
+					case IDC_RELOAD:
+					case IDC_REMOUNT:
+					{
+						DrawCheckbox(hwndDlg, nmc);
+						return true;
+					}
+					break;
+				}
+			}
+		}
 		case WM_CTLCOLORSTATIC:
+			SetTextColor((HDC)wParam, rgbText);
+			SetBkColor((HDC)wParam, rgbBack);
 			for (int i = 10; i < 13; i++)
 				if (lParam == (LPARAM)GetDlgItem(hwndDlg, i))
-					SetTextColor((HDC)wParam, RGB(0x00, 0x33, 0x99));
-			return (COLOR_WINDOW+1);
+					SetTextColor((HDC)wParam, rgbHeader);
+			return (INT_PTR)hbrBack;
 		case WM_COMMAND:
 		{
 			ResetPath();
@@ -90,6 +113,8 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 						char thePath[FILENAME_MAX] = { 0 };
 						GetWindowText(GetDlgItem(hwndDlg, IDC_BIOSPATH), thePath, FILENAME_MAX);
 						ini.SetValue("media", "bios", thePath);
+						ini.SetLongValue("media", "theme", SendDlgItemMessage(hwndDlg, IDC_THEME, CB_GETCURSEL, 0, 0));
+						SetThemeColors();
 						DestroyWindow(hwndDlg);
 						hWndOptions = NULL;
 						return true;

@@ -24,22 +24,120 @@ bool autoUpdate = false;
 
 HWND hWndAbout = NULL, hWndMemViewer = NULL, hWndOptions = NULL, hWndDevices = NULL;
 HFONT headerFont = NULL, monoFont = NULL;
+HBRUSH hbrBack = NULL, hbrStripe = NULL, hbrList = NULL;
+COLORREF rgbBack = NULL, rgbStripe = NULL, rgbText = NULL, rgbHeader = NULL, rgbList = NULL, rgbListBk = NULL;
 
 bool ShowFileDlg(bool toSave, char* target, size_t max, const char* filter);
 
-void DrawWin7Thing(HWND hwndDlg)
+void DrawWindowBk(HWND hwndDlg, bool stripe)
 {
 	PAINTSTRUCT ps;
 	HDC hdc = BeginPaint(hwndDlg, &ps);
-	RECT rect = { 0 };
-	rect.bottom = 7 + 14 + 7; //margin, button, padding
-	MapDialogRect(hwndDlg, &rect);
-	auto h = rect.bottom;
-	GetClientRect(hwndDlg, &rect);
-	rect.bottom -= h;
-	FillRect(hdc, &rect, (HBRUSH)(COLOR_WINDOW + 1));
+	if (stripe)
+	{
+		RECT rect = { 0 };
+		rect.bottom = 7 + 14 + 7; //margin, button, padding
+		MapDialogRect(hwndDlg, &rect);
+		auto h = rect.bottom;
+		GetClientRect(hwndDlg, &rect);
+		rect.bottom -= h;
+		FillRect(hdc, &ps.rcPaint, hbrStripe);
+		FillRect(hdc, &rect, hbrBack);
+	}
+	else
+	{
+		FillRect(hdc, &ps.rcPaint, hbrBack);
+		EndPaint(hwndDlg, &ps);
+	}
 	EndPaint(hwndDlg, &ps);
 	return;
+}
+
+void DrawCheckbox(HWND hwndDlg, LPNMCUSTOMDRAW nmc)
+{
+	int idFrom = nmc->hdr.idFrom;
+	switch(nmc->dwDrawStage)
+	{
+		case CDDS_PREERASE:
+		{
+			SetBkColor(nmc->hdc, rgbBack);
+			SetTextColor(nmc->hdc, rgbText);
+
+			HTHEME hTheme = OpenThemeData(nmc->hdr.hwndFrom, L"BUTTON");
+			if(!hTheme)
+			{
+				CloseThemeData(hTheme);
+				SetWindowLongPtr(hwndDlg, DWLP_MSGRESULT, (LONG_PTR)CDRF_DODEFAULT);
+				return;
+			}
+
+			LRESULT state = SendMessage(nmc->hdr.hwndFrom, BM_GETSTATE, 0, 0 );
+
+			auto checked = IsDlgButtonChecked(hwndDlg, idFrom);
+			int stateID = checked ? CBS_CHECKEDNORMAL : CBS_UNCHECKEDNORMAL;
+			if (nmc->uItemState & CDIS_SELECTED)
+				stateID = checked ? CBS_CHECKEDPRESSED : CBS_UNCHECKEDPRESSED;
+			else if (nmc->uItemState & CDIS_HOT)
+				stateID = checked ? CBS_CHECKEDHOT : CBS_UNCHECKEDHOT;
+                           
+			RECT r;
+			SIZE s;
+
+			GetThemePartSize(hTheme, nmc->hdc, BP_CHECKBOX, stateID, NULL, TS_TRUE, &s);
+
+			r.left = nmc->rc.left;
+			r.top = nmc->rc.top + 3;
+			r.right = r.left + s.cx;
+			r.bottom = r.top + s.cy;
+
+			DrawThemeBackground(hTheme, nmc->hdc, BP_CHECKBOX, stateID, &r, NULL);
+
+			nmc->rc.left +=  3 + s.cx;
+
+			char text[256];
+			GetDlgItemText(hwndDlg, idFrom, text, 255);
+			DrawText(nmc->hdc, text, -1, &nmc->rc, DT_SINGLELINE | DT_VCENTER);
+
+			CloseThemeData(hTheme);
+			SetWindowLongPtr(hwndDlg, DWLP_MSGRESULT, (LONG_PTR)CDRF_SKIPDEFAULT);
+			return;
+		}
+	}
+}
+
+void SetThemeColors()
+{
+	int theme = ini.GetLongValue("media", "theme", 0);
+	switch (theme)
+	{
+		case 0: //light
+		{
+			rgbBack = RGB(240, 240, 240);
+			rgbStripe = RGB(255, 255, 255);
+			rgbText = RGB(0, 0, 0);
+			rgbList = RGB(0, 0, 0);
+			rgbHeader = RGB(0x00, 0x33, 0x99);
+			rgbListBk = RGB(255, 255, 255);
+			break;
+		}
+		case 1: //dark
+		{
+			rgbBack = RGB(42, 42, 42);
+			rgbStripe = RGB(76, 74, 72);
+			rgbText = RGB(255, 255, 255);
+			rgbList = RGB(255, 255, 255);
+			rgbHeader = RGB(0x8E, 0xCA, 0xF8);
+			rgbListBk = RGB(76, 74, 72);
+		}
+		//this space for rent
+	}
+	if (hbrBack != NULL) DeleteObject(hbrBack);
+	if (hbrStripe != NULL) DeleteObject(hbrStripe);
+	if (hbrList != NULL) DeleteObject(hbrList);
+	hbrBack = CreateSolidBrush(rgbBack);
+	hbrStripe = CreateSolidBrush(rgbStripe);
+	hbrList = CreateSolidBrush(rgbListBk);
+	//TODO: find open windows (there's a finite set anyway) and invalidate them so they redraw.
 }
 
 void WndProc(void* userdata, void* hWnd, unsigned int message, Uint64 wParam, Sint64 lParam)
@@ -130,6 +228,8 @@ void InitializeUI()
 
 		headerFont = CreateFont(18, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Segoe UI");
 		monoFont = CreateFont(16, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Courier New");
+
+		SetThemeColors();
 	}
 	return;
 }

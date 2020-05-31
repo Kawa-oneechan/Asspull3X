@@ -4,6 +4,8 @@
 #include <Windows.h>
 #include <commdlg.h>
 #include <commctrl.h>
+#include <Uxtheme.h>
+#include <vsstyle.h>
 
 #ifdef _MSC_VER
 #include <direct.h>
@@ -41,12 +43,17 @@ extern bool wasPaused;
 extern bool autoUpdate;
 extern bool fpsCap, stretch200;
 
+
 extern bool ShowFileDlg(bool toSave, char* target, size_t max, const char* filter);
 
 extern void InsertDisk(int devId);
 extern void EjectDisk();
 
-extern void DrawWin7Thing(HWND hwndDlg);
+extern HBRUSH hbrBack, hbrStripe, hbrList;
+extern COLORREF rgbBack, rgbStripe, rgbText, rgbHeader, rgbList, rgbListBk;
+extern void DrawWindowBk(HWND hwndDlg, bool stripe);
+extern void DrawCheckbox(HWND hwndDlg, LPNMCUSTOMDRAW dis);
+extern void SetThemeColors();
 
 extern void ShowAbout();
 extern void ShowMemViewer();

@@ -11,15 +11,20 @@ BOOL CALLBACK AboutWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPa
 		}
 		case WM_PAINT:
 		{
-			DrawWin7Thing(hwndDlg);
+			DrawWindowBk(hwndDlg, true);
 			return true;
 		}
 		case WM_CTLCOLORSTATIC:
+			SetBkColor((HDC)wParam, rgbBack);
+			SetTextColor((HDC)wParam, rgbText);
 			if (lParam == (LPARAM)GetDlgItem(hwndDlg, IDC_LINK))
-				return false;
+			{
+				SetBkColor((HDC)wParam, rgbStripe);
+				return (INT_PTR)hbrStripe;
+			}
 			else if (lParam == (LPARAM)GetDlgItem(hwndDlg, IDC_HEADER))
-				SetTextColor((HDC)wParam, RGB(0x00, 0x33, 0x99));
-			return (COLOR_WINDOW + 1);
+				SetTextColor((HDC)wParam, rgbHeader);
+			return (INT_PTR)hbrBack;
 		case WM_CLOSE:
 		case WM_COMMAND:
 		{
