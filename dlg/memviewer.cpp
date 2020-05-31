@@ -10,27 +10,21 @@ extern "C" unsigned int m68k_read_memory_8(unsigned int address);
 
 void MemViewerDraw(DRAWITEMSTRUCT* dis)
 {
-	//auto hdc = dis->hDC;
 	RECT rect;
 	GetClientRect(dis->hwndItem, &rect);
 	int w = rect.right - rect.left;
 	int h = rect.bottom - rect.top;
 
 	HDC hdc = CreateCompatibleDC(dis->hDC);
-	auto bmp = CreateCompatibleBitmap(hdc, w, h);
+	auto bmp = CreateCompatibleBitmap(dis->hDC, w, h);
 	auto oldBmp = SelectObject(hdc, bmp);
 
-	FillRect(hdc, &dis->rcItem, hbrBack);
+	FillRect(hdc, &dis->rcItem, hbrList);
 	auto oldFont = SelectObject(hdc, monoFont);
 	SIZE fontSize;
 	GetTextExtentPoint(hdc, "0", 1, &fontSize);
-	SetTextColor(hdc, rgbText);
-	SetBkColor(hdc, rgbBack);
-	
-	//Uncomment to get the weird shit seen on Twitter
-	//Looks like this: https://pbs.twimg.com/media/EZWXK5DWAAI73Jk?format=png&name=orig
-	//SetTextColor(dis->hDC, rgbText);
-	//SetBkColor(dis->hDC, rgbBack);
+	SetTextColor(hdc, rgbList);
+	SetBkColor(hdc, rgbListBk);
 
 	RECT r;
 	r.top = 3;
