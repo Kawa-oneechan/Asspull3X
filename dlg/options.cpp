@@ -59,6 +59,12 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 				if (lParam == (LPARAM)GetDlgItem(hwndDlg, i))
 					SetTextColor((HDC)wParam, rgbHeader);
 			return (INT_PTR)hbrBack;
+		case WM_CTLCOLOREDIT:
+		{	
+			SetTextColor((HDC)wParam, rgbList);
+			SetBkColor((HDC)wParam, rgbListBk);
+			return (INT_PTR)hbrList;
+		}
 		case WM_COMMAND:
 		{
 			ResetPath();
