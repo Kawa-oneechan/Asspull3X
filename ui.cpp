@@ -105,9 +105,41 @@ void DrawCheckbox(HWND hwndDlg, LPNMCUSTOMDRAW nmc)
 	}
 }
 
+typedef void (WINAPI * fnRtlGetNtVersionNumbers) (LPDWORD major, LPDWORD minor, LPDWORD build);
+bool IsWin10()
+{
+	auto RtlGetNtVersionNumbers = (fnRtlGetNtVersionNumbers)GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "RtlGetNtVersionNumbers");
+	if (RtlGetNtVersionNumbers)
+	{
+		DWORD major, minor, build;
+		RtlGetNtVersionNumbers(&major, &minor, &build);
+		build &= ~0xF0000000;
+		if (major == 10 && minor == 0 && build > 18360)
+			return true;
+	}
+	return false;
+}
+
+int MatchTheme()
+{
+	if (!IsWin10()) return 0;
+	DWORD nResult;
+	HKEY key;
+	if (RegOpenKeyEx(HKEY_CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", 0, KEY_READ, &key)) return 0;
+	DWORD dwBufferSize = sizeof(DWORD);
+	RegQueryValueEx(key, "AppsUseLightTheme", 0, NULL, (LPBYTE)&nResult, &dwBufferSize);
+	RegCloseKey(key);
+	//AppsUseLightTheme == 0 means light, and that's the inverse of our list.
+	return !nResult;
+}
+
 void SetThemeColors()
 {
 	int theme = ini.GetLongValue("media", "theme", 0);
+
+	if (theme == 2) //match
+		theme = MatchTheme();
+
 	switch (theme)
 	{
 		case 0: //light
@@ -198,7 +230,7 @@ void InitializeUI()
 
 	SDL_SysWMinfo info;
 	SDL_VERSION(&info.version);
-	if(SDL_GetWindowWMInfo(sdlWindow, &info))
+	if (SDL_GetWindowWMInfo(sdlWindow, &info))
 	{
 		if (info.subsystem != SDL_SYSWM_WINDOWS)
 			return;

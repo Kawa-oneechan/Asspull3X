@@ -54,6 +54,7 @@ extern COLORREF rgbBack, rgbStripe, rgbText, rgbHeader, rgbList, rgbListBk;
 extern void DrawWindowBk(HWND hwndDlg, bool stripe);
 extern void DrawCheckbox(HWND hwndDlg, LPNMCUSTOMDRAW dis);
 extern void SetThemeColors();
+extern bool IsWin10();
 
 extern void ShowAbout();
 extern void ShowMemViewer();
