@@ -11,6 +11,7 @@ IDI_HARDDRIVE ICON ".\\res\\harddrive.ico"
 IDI_CDROM ICON ".\\res\\cdrom.ico"
 
 IDB_ABOUT BITMAP ".\\res\\about.bmp"
+IDB_DANCE BITMAP ".\\res\\dance.bmp"
 
 IDR_MAINMENU MENU
 BEGIN
@@ -45,7 +46,7 @@ BEGIN
 	DEFPUSHBUTTON "Cool", IDOK, 293, 93, 50, 14
 	CONTROL IDB_ABOUT, IDC_STATIC, "Static", SS_BITMAP, 0, 0, 160, 85
 	LTEXT "Clunibus \x97 Asspull IIIx Fantasy Computer Emulator", IDC_HEADER, 167, 7, 176, 16
-	LTEXT "System design and emulator by Kawa.\n\nThanks and shoutouts to all of the byuuboard.\nExcept for you, Strfry.", IDC_STATIC, 167, 24, 176, 32
+	LTEXT "System design and emulator by Kawa.\n\nThanks and shoutouts to all of the byuuboard.\nExcept for you, Strfry.", IDC_STATIC, 167, 24, 140, 32
 	CONTROL "", IDC_STATIC, "Static", SS_ETCHEDHORZ, 167, 20, 176, 1
 	CONTROL "<a>GitHub page</a>", IDC_LINK, "SysLink", 0, 7, 94, 153, 8
 END

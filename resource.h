@@ -3,6 +3,7 @@
 #define IDR_MAINMENU 101
 #define IDD_ABOUT 102
 #define IDB_ABOUT 103
+#define IDB_DANCE 104
 #define IDD_DEVICES 105
 #define IDI_APP 107
 #define IDD_MEMVIEWER 108

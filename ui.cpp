@@ -213,6 +213,7 @@ void ResizeStatusBar()
 	SendMessage(hWndStatusBar, WM_SIZE, SIZE_RESTORED, 0);
 }
 
+extern void AnimateAbout();
 void HandleUI()
 {
 	if (statusTimer)
@@ -222,6 +223,9 @@ void HandleUI()
 
 	if (autoUpdate && hWndMemViewer != NULL)
 		InvalidateRect(GetDlgItem(hWndMemViewer, IDC_MEMVIEWERGRID), NULL, true);
+
+	if (hWndAbout != NULL)
+		AnimateAbout();
 }
 
 void InitializeUI()
