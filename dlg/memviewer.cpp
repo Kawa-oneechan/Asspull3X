@@ -8,6 +8,8 @@
 unsigned long memViewerOffset;
 extern "C" unsigned int m68k_read_memory_8(unsigned int address);
 
+extern unsigned char* ramVideo;
+
 void MemViewerDraw(DRAWITEMSTRUCT* dis)
 {
 	RECT rect;
@@ -49,8 +51,18 @@ void MemViewerDraw(DRAWITEMSTRUCT* dis)
 			sprintf(buf, "%c%c", hex[(here & 0xF0) >> 4], hex[here & 0x0F]);
 			DrawText(hdc, buf, -1, &r, DT_TOP | DT_LEFT | DT_NOPREFIX);
 			r.left = 3 + 442 + (col * fontSize.cx);
-			sprintf(buf, "%c", here);
-			DrawText(hdc, buf, -1, &r, DT_TOP | DT_LEFT | DT_NOPREFIX);
+			//sprintf(buf, "%c", here);
+			//DrawText(hdc, buf, -1, &r, DT_TOP | DT_LEFT | DT_NOPREFIX);
+
+			unsigned char* glyph = (ramVideo + FONT_ADDR + 0x1000) + (here * 16);
+			for (auto line = 0; line < 16; line++)
+			{
+				unsigned char scan = glyph[line];
+				for (auto bit = 0; bit < 8; bit++)
+				{
+					SetPixel(hdc, r.left + bit, r.top + line, ((scan >> bit) & 1) == 1 ? rgbList : rgbListBk);
+				}
+			}
 		}
 
 		r.top += fontSize.cy;
