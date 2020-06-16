@@ -133,7 +133,14 @@ int main(int argc, char* argv[])
 	{
 		if (argv[i][0] == '-')
 		{
-			//:shrug:
+			if (!strcmp(argv[i], "--fpscap"))
+				fpsCap = false;
+			else if (!strcmp(argv[i], "--noreload"))
+				reloadROM = false;
+			else if (!strcmp(argv[i], "--noremount"))
+				reloadIMG = false;
+			else if (!strcmp(argv[i], "--nodiscord"))
+				Discord::enabled = false;
 		}
 		else if (i == 1)
 		{
