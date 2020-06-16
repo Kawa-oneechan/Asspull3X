@@ -7,6 +7,7 @@ extern "C" {
 
 static bool quit = 0;
 int line = 0, interrupts = 0;
+int invertButtons = 1;
 extern void Screenshot();
 extern int uiCommand, uiData, uiKey;
 extern char uiString[512];
@@ -125,6 +126,7 @@ int main(int argc, char* argv[])
 	fpsVisible = ini.GetBoolValue("video", "showFps", true);
 	reloadROM = ini.GetBoolValue("media", "reloadRom", false);
 	reloadIMG = ini.GetBoolValue("media", "reloadImg", false);
+	invertButtons = (int)ini.GetBoolValue("media", "invertButtons", false);
 	Discord::enabled = ini.GetBoolValue("media", "discord", false);
 
 	char* paramLoad = NULL;
@@ -285,11 +287,11 @@ int main(int argc, char* argv[])
 
 			case SDL_JOYBUTTONDOWN:
 				if (ev.jbutton.which < 2)
-					joypad[ev.jbutton.which] |= 16 << ev.jbutton.button;
+					joypad[ev.jbutton.which] |= 16 << (ev.jbutton.button ^ invertButtons);
 				break;
 			case SDL_JOYBUTTONUP:
 				if (ev.jbutton.which < 2)
-					joypad[ev.jbutton.which] &= ~(16 << ev.jbutton.button);
+					joypad[ev.jbutton.which] &= ~(16 << (ev.jbutton.button ^ invertButtons));
 				break;
 			case SDL_JOYHATMOTION:
 				if (ev.jhat.which < 2 && ev.jhat.hat == 0)
