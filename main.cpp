@@ -125,21 +125,25 @@ int main(int argc, char* argv[])
 	fpsVisible = ini.GetBoolValue("video", "showFps", true);
 	reloadROM = ini.GetBoolValue("media", "reloadRom", false);
 	reloadIMG = ini.GetBoolValue("media", "reloadImg", false);
-	bool fullScreen = ini.GetBoolValue("video", "fullScreen", false);
 	Discord::enabled = ini.GetBoolValue("media", "discord", false);
+
+	char* paramLoad = NULL;
 
 	for (int i = 1; i < argc; i++)
 	{
 		if (argv[i][0] == '-')
 		{
-			if (argv[i][1] == 'f')
-				fullScreen = true;
+			//:shrug:
+		}
+		else if (i == 1)
+		{
+			paramLoad = argv[i];
 		}
 	}
 
 	rtcOffset = ini.GetLongValue("media", "rtcOffset", 0xDEADC70C);
 
-	if (InitVideo(fullScreen) < 0)
+	if (InitVideo() < 0)
 		return 0;
 
 	//Absolutely always load a disk drive as #0
@@ -215,10 +219,16 @@ int main(int argc, char* argv[])
 	Slurp(romBIOS, thing, &biosSize);
 	biosSize = RoundUp(biosSize);
 	thing = ini.GetValue("media", "lastROM", "");
-	if (reloadROM && !thing.empty())
+	if (reloadROM && !thing.empty() && paramLoad == NULL)
 	{
 		SDL_Log("Loading ROM, %s ...", thing.c_str());
 		LoadROM(thing);
+		pauseState = 0;
+	}
+	else if (paramLoad != NULL)
+	{
+		SDL_Log("Command-line loading ROM, %s ...", paramLoad);
+		LoadROM(std::string(paramLoad));
 		pauseState = 0;
 	}
 

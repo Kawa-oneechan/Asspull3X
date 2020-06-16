@@ -305,7 +305,7 @@ void VBlank()
 	//SDL_UpdateWindowSurface(sdlWindow);
 }
 
-int InitVideo(bool fullScreen)
+int InitVideo()
 {
 	SDL_version linked;
 	SDL_GetVersion(&linked);
@@ -326,17 +326,11 @@ int InitVideo(bool fullScreen)
 	SDL_Log("Creating window...");
 	auto winWidth = ini.GetLongValue("video", "width", 640);
 	auto winHeight = ini.GetLongValue("video", "height", 480);
-	uint32_t flags = SDL_WINDOW_SHOWN;
-	if (fullScreen)
-		flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
-	else
-		flags |= SDL_WINDOW_RESIZABLE;
-	if ((sdlWindow = SDL_CreateWindow("Clunibus - Asspull IIIx Emulator", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, winWidth, winHeight, flags)) == NULL)
+	if ((sdlWindow = SDL_CreateWindow("Clunibus - Asspull IIIx Emulator", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, winWidth, winHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE)) == NULL)
 	{
 		SDL_Log("Could not create window: %s", SDL_GetError());
 		return -1;
 	}
-
 
 	SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
 

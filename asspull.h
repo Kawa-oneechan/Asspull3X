@@ -32,7 +32,7 @@ extern FILE* diskFile;
 
 extern void RenderLine(int);
 extern void VBlank();
-extern int InitVideo(bool);
+extern int InitVideo();
 extern int UninitVideo();
 
 extern void HandleHdma(int line);
