@@ -1,16 +1,8 @@
 #include "asspull.h"
 #include <time.h>
-#if _MSC_VER
+#include <math.h>
 #include <SDL_opengl.h>
 #include <SDL_opengl_glext.h>
-//undo some irrelevant Windows stuff
-#ifdef TEXT
-#undef TEXT
-#endif
-#else
-#include <SDL2/SDL_opengl.h>
-#include <SDL2/SDL_opengl_glext.h>
-#endif
 
 SDL_Window* sdlWindow = NULL;
 SDL_Renderer* sdlRenderer = NULL;
@@ -205,11 +197,7 @@ void presentBackBuffer(SDL_Renderer *renderer, SDL_Window* win)
 
 			auto maxScaleX = floorf(winWidth / 640.0f);
 			auto maxScaleY = floorf(winHeight / 480.0f);
-		#if _MSC_VER
 			scale = (int)__min(maxScaleX, maxScaleY);
-		#else
-			scale = (int)fmin(maxScaleX, maxScaleY);
-		#endif
 			scrWidth = 640 * scale;
 			scrHeight = 480 * scale;
 			offsetX = (int)floorf((winWidth - scrWidth) * 0.5f);
@@ -409,7 +397,6 @@ int UninitVideo()
 
 void Screenshot()
 {
-#ifdef _MSC_VER
 	char snap[128];
 	__time64_t now;
 	_time64(&now);
@@ -432,8 +419,4 @@ void Screenshot()
 		SDL_Log("Snap! %s saved.", snap);
 	}
 	mz_free(pPNG_data);
-#else
-	//TODO: get a timestamp, then move the actual taking of the shot *out* of the #ifdef.
-	SDL_Log("Not on this platform just yet.");
-#endif
 }

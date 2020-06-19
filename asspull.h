@@ -4,11 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string>
-#if _MSC_VER
 #include <SDL.h>
-#else
-#include <SDL2/SDL.h>
-#endif
 #include "SimpleIni.h"
 
 int Lerp(int a, int b, float f);
@@ -79,8 +75,8 @@ enum uiCommands
 #define VRAM_SIZE	0x00080000
 #define STAC_SIZE	0x00010000
 
-#define TEXT_SIZE	((80 * 60) * 2)	//640×480 mode has 8x8 character cells, so 80×60 characters.
-#define BITMAP_SIZE	(640 * 480)		//640×480 mode in 256 colors.
+#define TEXT_SIZE	((80 * 60) * 2)	//640x480 mode has 8x8 character cells, so 80ï¿½60 characters.
+#define BITMAP_SIZE	(640 * 480)		//640x480 mode in 256 colors.
 #define MAP_SIZE	(((512 / 8) * (512 / 8)) * 4)	//Each tile is a 16-bit value.
 #define TILES_SIZE	((((8 * 8) / 2) * 512) + (128 << 3))
 #define PAL_SIZE	(256 * 2)	//256 xBGR-1555 colors.
@@ -134,10 +130,10 @@ enum uiCommands
 #error MAP4 encroaches on TILES.
 #endif
 #if (BMP_ADDR + BITMAP_SIZE) > TILES_ADDR
-#error 640×480 Bitmap mode will overwrite the tilemap.
+#error 640x480 Bitmap mode will overwrite the tilemap.
 #endif
 #if (BMP_ADDR + BITMAP_SIZE) > PAL_ADDR
-#error 640×480 Bitmap mode will overwrite the palette.
+#error 640x480 Bitmap mode will overwrite the palette.
 #endif
 #if (TILES_ADDR + TILES_SIZE) > PAL_ADDR
 #error TILES encroaches on PAL.

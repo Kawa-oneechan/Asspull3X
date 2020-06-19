@@ -6,17 +6,8 @@
 #include <commctrl.h>
 #include <Uxtheme.h>
 #include <vsstyle.h>
-
-#ifdef _MSC_VER
 #include <direct.h>
 #include <io.h>
-#else
-#include <unistd.h>
-#include <dirent.h>
-#include <fnmatch.h>
-#include <sys/stat.h>
-#define _getcwd getcwd // the POSIX version doesn't have the underscore
-#endif
 
 extern int pauseState;
 extern bool stretch200, fpsCap, reloadROM, reloadIMG;
