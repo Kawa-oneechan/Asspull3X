@@ -293,6 +293,8 @@ void VBlank()
 	//SDL_UpdateWindowSurface(sdlWindow);
 }
 
+extern HWND hWnd;
+
 int InitVideo()
 {
 	SDL_version linked;
@@ -306,7 +308,8 @@ int InitVideo()
 			//https://www.youtube.com/watch?v=5FjWe31S_0g
 			char msg[512];
 			sprintf(msg, "You are trying to run with an outdated version of SDL.\n\nYou have version %d.%d.%d.\nYou need version 2.0.4 or later.", linked.major, linked.minor, linked.patch);
-			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Clunibus",  msg, NULL);
+			//SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Clunibus",  msg, NULL);
+			MessageBox(hWnd, msg, "Clunibus", 0);
 			return -3;
 		}
 	}
