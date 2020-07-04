@@ -16,7 +16,7 @@ extern void SetStatus(std::string);
 extern void SetFPS(int fps);
 extern void _devUpdateDiskette(int);
 extern void ShowOpenFileDialog(int, int, std::string);
-
+extern bool ShowFileDlg(bool, char*, size_t, const char*);
 extern void LetItSnow();
 extern void InsertDisk(int);
 extern void EjectDisk();
@@ -218,9 +218,22 @@ int main(int argc, char* argv[])
 			controller[1] = SDL_JoystickOpen(1);
 	}
 
-	std::string thing = ini.GetValue("media", "bios", "roms\\ass-bios.apb");
+	std::string thing = ini.GetValue("media", "bios", ""); //"roms\\ass-bios.apb");
 	if (thing.empty())
-		thing = "roms\\ass-bios.apb";
+	{
+		//thing = "roms\\ass-bios.apb";
+		char thePath[FILENAME_MAX] = "roms\\ass-bios.apb";
+		if (ShowFileDlg(false, thePath, 256, "A3X BIOS files (*.apb)|*.apb"))
+		{
+			thing = thePath;
+			ini.SetValue("media", "bios", thePath);
+			ini.SaveFile("settings.ini");
+		}
+		else
+		{
+			return 0;
+		}
+	}
 	SDL_Log("Loading BIOS, %s ...", thing.c_str());
 	Slurp(romBIOS, thing, &biosSize);
 	biosSize = RoundUp(biosSize);
