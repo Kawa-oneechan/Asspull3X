@@ -219,6 +219,8 @@ int main(int argc, char* argv[])
 	}
 
 	std::string thing = ini.GetValue("media", "bios", "roms\\ass-bios.apb");
+	if (thing.empty())
+		thing = "roms\\ass-bios.apb";
 	SDL_Log("Loading BIOS, %s ...", thing.c_str());
 	Slurp(romBIOS, thing, &biosSize);
 	biosSize = RoundUp(biosSize);
