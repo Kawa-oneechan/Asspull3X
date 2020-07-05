@@ -47,7 +47,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(ProjectDir)libs\SDL2-2.0.12\include;$(ProjectDir)libs\discord-rpc\win32-dynamic\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir)libs\SDL2-2.0.7\lib\x86;$(ProjectDir)libs\discord-rpc\win32-dynamic\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(ProjectDir)libs\SDL2-2.0.12\lib\x86;$(ProjectDir)libs\discord-rpc\win32-dynamic\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
