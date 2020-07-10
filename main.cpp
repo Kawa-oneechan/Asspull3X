@@ -264,7 +264,7 @@ int main(int argc, char* argv[])
 
 	SDL_Event ev;
 
-	const auto mHz = 8;
+	const auto mHz = 16;
 	const auto screenFreq = 60;
 	const auto pixsPerRow = 640;
 	const auto lines = 480;
