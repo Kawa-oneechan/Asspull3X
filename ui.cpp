@@ -230,6 +230,8 @@ void HandleUI()
 
 void InitializeUI()
 {
+	SetProcessDPIAware();
+
 	_getcwd(startingPath, FILENAME_MAX);
 
 	SDL_SysWMinfo info;
@@ -267,7 +269,13 @@ void InitializeUI()
 		GetWindowRect(hWndStatusBar, &rect);
 		statusBarHeight = rect.bottom - rect.top;
 
-		headerFont = CreateFont(18, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Segoe UI");
+		auto scrDC = GetDC(0);
+		//auto dpiX = (float)GetDeviceCaps(scrDC, LOGPIXELSX);
+		auto dpiY = (float)GetDeviceCaps(scrDC, LOGPIXELSY);
+		auto headerSize = MulDiv(13, dpiY, 72);
+		ReleaseDC(0, scrDC);
+
+		headerFont = CreateFont(headerSize, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Segoe UI");
 		monoFont = CreateFont(16, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Courier New");
 
 		SetThemeColors();
