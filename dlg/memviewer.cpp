@@ -14,8 +14,8 @@ void MemViewerDraw(DRAWITEMSTRUCT* dis)
 {
 	RECT rect;
 	GetClientRect(dis->hwndItem, &rect);
-	int w = rect.right - rect.left;
-	int h = rect.bottom - rect.top;
+	int w = 584; //rect.right - rect.left;
+	int h = 262; //rect.bottom - rect.top;
 
 	HDC hdc = CreateCompatibleDC(dis->hDC);
 	auto bmp = CreateCompatibleBitmap(dis->hDC, w, h);
@@ -70,7 +70,8 @@ void MemViewerDraw(DRAWITEMSTRUCT* dis)
 	}
 	SelectObject(hdc, oldFont);
 
-	BitBlt(dis->hDC, 0, 0, w, h, hdc, 0, 0, SRCCOPY);
+	//BitBlt(dis->hDC, 0, 0, w, h, hdc, 0, 0, SRCCOPY);
+	StretchBlt(dis->hDC, 0, 0, rect.right - rect.left, rect.bottom - rect.top, hdc, 0, 0, w, h, SRCCOPY);
 	SelectObject(hdc, oldBmp);
 	DeleteDC(hdc);
 	DeleteObject(bmp);
@@ -162,7 +163,7 @@ BOOL CALLBACK MemViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM
 		}
 		case WM_INITDIALOG:
 		{
-			SendDlgItemMessage(hwndDlg, IDC_MEMVIEWEROFFSET, WM_SETFONT, (WPARAM)monoFont, false);
+			//SendDlgItemMessage(hwndDlg, IDC_MEMVIEWEROFFSET, WM_SETFONT, (WPARAM)monoFont, false);
 			LPCSTR areas[] = { "BIOS", "Cart", "WRAM", "Devices", "Registers", "VRAM" };
 			for (int i = 0; i < 6; i++)
 				SendDlgItemMessage(hwndDlg, IDC_MEMVIEWERDROP, CB_ADDSTRING, 0, (LPARAM)areas[i]);
