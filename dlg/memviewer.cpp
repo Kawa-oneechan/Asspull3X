@@ -230,6 +230,10 @@ BOOL CALLBACK MemViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM
 			SetBkColor((HDC)wParam, rgbListBk);
 			return (INT_PTR)hbrList;
 		}
+		case WM_CTLCOLORBTN:
+		{
+			return (INT_PTR)hbrBack;
+		}
 		case WM_VSCROLL:
 		{
 			MemViewerScroll(hwndDlg, LOWORD(wParam), HIWORD(wParam));

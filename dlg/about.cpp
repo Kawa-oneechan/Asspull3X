@@ -61,6 +61,7 @@ BOOL CALLBACK AboutWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPa
 			return true;
 		}
 		case WM_CTLCOLORSTATIC:
+		{
 			SetBkColor((HDC)wParam, rgbBack);
 			SetTextColor((HDC)wParam, rgbText);
 			if (lParam == (LPARAM)GetDlgItem(hwndDlg, IDC_LINK))
@@ -71,6 +72,11 @@ BOOL CALLBACK AboutWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPa
 			else if (lParam == (LPARAM)GetDlgItem(hwndDlg, IDC_HEADER))
 				SetTextColor((HDC)wParam, rgbHeader);
 			return (INT_PTR)hbrBack;
+		}
+		case WM_CTLCOLORBTN:
+		{
+			return (INT_PTR)hbrBack;
+		}
 		case WM_CLOSE:
 		case WM_COMMAND:
 		{

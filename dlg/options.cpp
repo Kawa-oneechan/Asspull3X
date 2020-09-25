@@ -55,17 +55,23 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 			}
 		}
 		case WM_CTLCOLORSTATIC:
+		{
 			SetTextColor((HDC)wParam, rgbText);
 			SetBkColor((HDC)wParam, rgbBack);
 			for (int i = 10; i < 13; i++)
 				if (lParam == (LPARAM)GetDlgItem(hwndDlg, i))
 					SetTextColor((HDC)wParam, rgbHeader);
 			return (INT_PTR)hbrBack;
+		}
 		case WM_CTLCOLOREDIT:
 		{	
 			SetTextColor((HDC)wParam, rgbList);
 			SetBkColor((HDC)wParam, rgbListBk);
 			return (INT_PTR)hbrList;
+		}
+		case WM_CTLCOLORBTN:
+		{
+			return (INT_PTR)hbrBack;
 		}
 		case WM_COMMAND:
 		{

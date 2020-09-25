@@ -186,6 +186,10 @@ BOOL CALLBACK DevicesWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 			}
 			return (INT_PTR)hbrBack;
 		}
+		case WM_CTLCOLORBTN:
+		{
+			return (INT_PTR)hbrBack;
+		}
 		case WM_COMMAND:
 		{
 			if (HIWORD(wParam) == LBN_SELCHANGE && LOWORD(wParam) == IDC_DEVLIST)
