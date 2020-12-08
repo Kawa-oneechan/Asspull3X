@@ -171,7 +171,7 @@ BOOL CALLBACK MemViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM
 			SendDlgItemMessage(hwndDlg, IDC_MEMVIEWEROFFSET, EM_SETLIMITTEXT, 8, 0);
 			oldTextProc = (WNDPROC)SetWindowLongPtr(GetDlgItem(hwndDlg, IDC_MEMVIEWEROFFSET), GWLP_WNDPROC, (LONG_PTR)MemViewerEditProc);
 			SetScrollRange(GetDlgItem(hwndDlg, IDC_MEMVIEWERSCROLL), SB_CTL, 0, ((VRAM_ADDR + VRAM_SIZE) / BYTES) - LINES, false);
-			CheckDlgButton(hwndDlg, IDC_AUTOUPDATE, autoUpdate);
+			CheckDlgButton(hwndDlg, IDC_AUTOUPDATE, autoUpdateMemViewer);
 			MemViewerComboProc(hwndDlg); //force update
 			return true;
 		}
@@ -185,9 +185,14 @@ BOOL CALLBACK MemViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM
 					return true;
 				}
 			}
+			else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_REFRESH)
+			{
+				InvalidateRect(GetDlgItem(hWndMemViewer, IDC_MEMVIEWERGRID), NULL, true);
+				return true;
+			}
 			else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_AUTOUPDATE)
 			{
-				autoUpdate = (IsDlgButtonChecked(hwndDlg, IDC_AUTOUPDATE) == 1);
+				autoUpdateMemViewer = (IsDlgButtonChecked(hwndDlg, IDC_AUTOUPDATE) == 1);
 				return true;
 			}
 		}

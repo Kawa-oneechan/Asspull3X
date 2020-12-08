@@ -20,9 +20,10 @@ int statusTimer = 0;
 std::string uiStatus;
 bool fpsVisible = false;
 bool wasPaused = false;
-bool autoUpdate = false;
+bool autoUpdateMemViewer = false;
+bool autoUpdatePalViewer = false;
 
-HWND hWndAbout = NULL, hWndMemViewer = NULL, hWndOptions = NULL, hWndDevices = NULL;
+HWND hWndAbout = NULL, hWndMemViewer = NULL, hWndOptions = NULL, hWndDevices = NULL, hWndPalViewer = NULL;
 HFONT headerFont = NULL, monoFont = NULL;
 HBRUSH hbrBack = NULL, hbrStripe = NULL, hbrList = NULL;
 COLORREF rgbBack = NULL, rgbStripe = NULL, rgbText = NULL, rgbHeader = NULL, rgbList = NULL, rgbListBk = NULL;
@@ -194,6 +195,11 @@ void WndProc(void* userdata, void* hWnd, unsigned int message, Uint64 wParam, Si
 				uiCommand = cmdNone;
 				ShowMemViewer();
 			}
+			else if (uiCommand == cmdPalViewer)
+			{
+				uiCommand = cmdNone;
+				ShowPalViewer();
+			}
 			else if (uiCommand == cmdOptions)
 			{
 				uiCommand = cmdNone;
@@ -221,8 +227,10 @@ void HandleUI()
 	else
 		SendMessage(hWndStatusBar, SB_SETTEXT, 1 | (SBT_NOBORDERS << 8), (LPARAM)"");
 
-	if (autoUpdate && hWndMemViewer != NULL)
+	if (autoUpdateMemViewer && hWndMemViewer != NULL && IsWindowVisible(hWndMemViewer))
 		InvalidateRect(GetDlgItem(hWndMemViewer, IDC_MEMVIEWERGRID), NULL, true);
+	if (autoUpdatePalViewer && hWndPalViewer != NULL && IsWindowVisible(hWndPalViewer))
+		InvalidateRect(GetDlgItem(hWndPalViewer, IDC_MEMVIEWERGRID), NULL, true);
 
 	if (hWndAbout != NULL)
 		AnimateAbout();

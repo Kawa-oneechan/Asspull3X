@@ -12,7 +12,7 @@
 extern int pauseState;
 extern bool stretch200, fpsCap, reloadROM, reloadIMG;
 
-extern HWND hWndAbout, hWndMemViewer, hWndOptions, hWndDevices;
+extern HWND hWndAbout, hWndMemViewer, hWndOptions, hWndDevices, hWndPalViewer;
 extern HFONT headerFont, monoFont;
 
 extern char startingPath[FILENAME_MAX];
@@ -31,7 +31,7 @@ extern int statusTimer;
 extern std::string uiStatus;
 extern bool fpsVisible;
 extern bool wasPaused;
-extern bool autoUpdate;
+extern bool autoUpdateMemViewer, autoUpdatePalViewer;
 extern bool fpsCap, stretch200;
 
 
@@ -51,5 +51,6 @@ extern void ShowAbout();
 extern void ShowMemViewer();
 extern void ShowOptions();
 extern void ShowDevices();
+extern void ShowPalViewer();
 
 extern void UpdateDevicePage(HWND hwndDlg);

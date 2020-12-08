@@ -55,6 +55,7 @@ enum uiCommands
 	cmdDump,
 	cmdQuit,
 	cmdMemViewer,
+	cmdPalViewer,
 	cmdAbout,
 	cmdOptions,
 	cmdDevices,
