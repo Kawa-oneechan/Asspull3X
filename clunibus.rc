@@ -35,7 +35,7 @@ BEGIN
 	END
 	POPUP "Help"
 	BEGIN
-		MENUITEM "About", 1008
+		MENUITEM "About", 1009
 	END
 END
 
