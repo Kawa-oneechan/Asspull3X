@@ -22,6 +22,7 @@ bool fpsVisible = false;
 bool wasPaused = false;
 bool autoUpdateMemViewer = false;
 bool autoUpdatePalViewer = false;
+int theme = 0;
 
 HWND hWndAbout = NULL, hWndMemViewer = NULL, hWndOptions = NULL, hWndDevices = NULL, hWndPalViewer = NULL;
 HFONT headerFont = NULL, monoFont = NULL;
@@ -106,6 +107,45 @@ void DrawCheckbox(HWND hwndDlg, LPNMCUSTOMDRAW nmc)
 	}
 }
 
+bool DrawDarkButton(HWND hwndDlg, LPNMCUSTOMDRAW nmc)
+{
+	if (theme == 0)
+		return false; //don't draw jack
+	int idFrom = nmc->hdr.idFrom;
+	switch(nmc->dwDrawStage)
+	{
+		case CDDS_PREPAINT:
+		{
+			SetBkColor(nmc->hdc, rgbBack);
+			SetTextColor(nmc->hdc, rgbText);
+
+			HBRUSH border = CreateSolidBrush(rgbText);
+
+			FillRect(nmc->hdc, &nmc->rc, border);
+			InflateRect(&nmc->rc, -1, -1);
+			if (nmc->uItemState & CDIS_DEFAULT)
+				InflateRect(&nmc->rc, -1, -1);
+
+			FillRect(nmc->hdc, &nmc->rc, (nmc->uItemState & CDIS_SELECTED) ? hbrList : hbrBack);
+
+			if (nmc->uItemState & CDIS_FOCUS)
+			{
+				InflateRect(&nmc->rc, -1, -1);
+				DrawFocusRect(nmc->hdc, &nmc->rc);
+			}
+		
+			DeleteObject(border);
+
+			SetBkColor(nmc->hdc, (nmc->uItemState & CDIS_SELECTED) ? rgbListBk : rgbBack);
+			char text[256];
+			GetDlgItemText(hwndDlg, idFrom, text, 255);
+			DrawText(nmc->hdc, text, -1, &nmc->rc, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+			SetWindowLongPtr(hwndDlg, DWLP_MSGRESULT, (LONG_PTR)CDRF_SKIPDEFAULT);
+		}
+	}
+	return true;
+}
+
 typedef void (WINAPI * fnRtlGetNtVersionNumbers) (LPDWORD major, LPDWORD minor, LPDWORD build);
 bool IsWin10()
 {
@@ -136,7 +176,7 @@ int MatchTheme()
 
 void SetThemeColors()
 {
-	int theme = ini.GetLongValue("media", "theme", 0);
+	theme = ini.GetLongValue("media", "theme", 0);
 
 	if (theme == 2) //match
 		theme = MatchTheme();

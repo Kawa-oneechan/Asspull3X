@@ -96,6 +96,16 @@ BOOL CALLBACK AboutWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPa
 						ShellExecuteA(NULL, "open", "https://github.com/Kawa-oneechan/Asspull3X", NULL, NULL, SW_SHOW);
 					break;
 				}
+				case NM_CUSTOMDRAW:
+				{
+					auto nmc = (LPNMCUSTOMDRAW)lParam;
+					int idFrom = nmc->hdr.idFrom;
+					switch(idFrom)
+					{
+						case IDOK: return DrawDarkButton(hwndDlg, nmc);
+						break;
+					}
+				}
 			}
 	}
 	return false;

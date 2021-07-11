@@ -111,6 +111,8 @@ BOOL CALLBACK PalViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM
 					DrawCheckbox(hwndDlg, nmc);
 					return true;
 				}
+				else if (nmc->hdr.idFrom == IDC_REFRESH)
+					return DrawDarkButton(hwndDlg, nmc);
 			}
 		}
 		case WM_CTLCOLORSTATIC:

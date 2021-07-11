@@ -161,6 +161,24 @@ BOOL CALLBACK DevicesWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 			UpdateDeviceList(hwndDlg);
 			return true;
 		}
+		case WM_NOTIFY:
+		{
+			switch (((LPNMHDR)lParam)->code)
+			{
+				case NM_CUSTOMDRAW:
+				{
+					auto nmc = (LPNMCUSTOMDRAW)lParam;
+					int idFrom = nmc->hdr.idFrom;
+					switch(idFrom)
+					{
+						case IDOK:
+						case IDC_DDINSERT:
+						case IDC_DDEJECT: return DrawDarkButton(hwndDlg, nmc);
+						break;
+					}
+				}
+			}
+		}
 		case WM_PAINT:
 		{
 			DrawWindowBk(hwndDlg, false);

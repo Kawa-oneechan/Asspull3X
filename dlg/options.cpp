@@ -51,6 +51,7 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 						return true;
 					}
 					break;
+					case IDOK: return DrawDarkButton(hwndDlg, nmc);
 				}
 			}
 		}

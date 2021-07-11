@@ -44,6 +44,7 @@ extern HBRUSH hbrBack, hbrStripe, hbrList;
 extern COLORREF rgbBack, rgbStripe, rgbText, rgbHeader, rgbList, rgbListBk;
 extern void DrawWindowBk(HWND hwndDlg, bool stripe);
 extern void DrawCheckbox(HWND hwndDlg, LPNMCUSTOMDRAW dis);
+extern bool DrawDarkButton(HWND hwndDlg, LPNMCUSTOMDRAW dis);
 extern void SetThemeColors();
 extern bool IsWin10();
 
