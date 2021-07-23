@@ -136,8 +136,9 @@ Identified by the value `4C50`, writing to the next byte pipes directly to the p
     |__________ Disable interrupts
 Used by the BIOS dispatcher to determine what to call. Applications can set the disable bit to prevent them from firing. Only VBlank is supported for now.
 ### 00001	ScreenMode
-    B32. ..MM
-    |||    |___ Mode
+    B32b ..MM
+    ||||   |___ Mode
+    ||||_______ Enable blinking in text mode
     |||________ 240px tall instead of 480px
     ||_________ 320px wide instead of 640px
     |__________ Bold in text mode, 200 or 400px in bitmap mode

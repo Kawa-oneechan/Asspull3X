@@ -1,11 +1,13 @@
 #include "asspull.h"
 #include <math.h>
 
-bool gfx320, gfx240, gfxTextBold, stretch200;
+bool gfx320, gfx240, gfxTextBold, gfxTextBlink, stretch200;
 int gfxMode, gfxFade, scrollX[4], scrollY[4], tileShift[2], mapEnabled[4], mapBlend[4];
 int caret;
 
 unsigned char* pixels;
+
+#define BLINK ((SDL_GetTicks() % 600) < 300)
 
 #define FADECODE \
 	if (gfxFade > 0) \
@@ -246,6 +248,14 @@ void RenderTextMode(int line)
 		//	continue;
 		auto glyph = font + (chr * (gfx240 ? 16 : 8)); //8);
 		auto scan = ramVideo[glyph + tileY];
+
+		if (gfxTextBlink && (att & 0x80))
+		{
+			att = (att & 0x7F);
+			if (BLINK)
+				att = (att & 0x70) | ((att & 0x70) >> 4);
+		}
+
 		if (!gfx320)
 		{
 			for (auto bit = 0; bit < 8; bit++)
@@ -261,7 +271,7 @@ void RenderTextMode(int line)
 		}
 	}
 
-	if (caret & 0x8000 && (SDL_GetTicks() % 500) < 250)
+	if (caret & 0x8000 && BLINK)
 	{
 		int cp = caret & 0x3FFF;
 		int cr = cp / width;

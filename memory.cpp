@@ -38,7 +38,7 @@ long ticks = 0;
 time_t timelatch, timesetlatch;
 long rtcOffset = 0;
 
-extern bool gfx320, gfx240, gfxTextBold;
+extern bool gfx320, gfx240, gfxTextBold, gfxTextBlink;
 extern int gfxMode, gfxFade, scrollX[4], scrollY[4], tileShift[4], mapEnabled[4], mapBlend[4];
 extern int caret;
 
@@ -97,6 +97,7 @@ unsigned int m68k_read_memory_8(unsigned int address)
 				return interrupts;
 			case 0x01: //Screen Mode
 				return (gfxMode |
+					(gfxTextBlink ? 1 << 4 : 0) |
 					(gfx240 ? 1 << 5 : 0) |
 					(gfx320 ? 1 << 6 : 0) |
 					(gfxTextBold ? 1 << 7 : 0));
@@ -226,6 +227,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				gfxTextBold = ((u8 >> 7) & 1) == 1;
 				gfx320 = ((u8 >> 6) & 1) == 1;
 				gfx240 = ((u8 >> 5) & 1) == 1;
+				gfxTextBlink = ((u8 >> 4) & 1) == 1;
 				gfxMode = u8 & 0x0F;
 				break;
 			case 0x08: //ScreenFade
