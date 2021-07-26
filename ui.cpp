@@ -25,8 +25,9 @@ bool autoUpdatePalViewer = false;
 int theme = 0;
 
 HWND hWndAbout = NULL, hWndMemViewer = NULL, hWndOptions = NULL, hWndDevices = NULL, hWndPalViewer = NULL;
-HFONT headerFont = NULL, monoFont = NULL;
+HFONT headerFont = NULL, monoFont = NULL, statusFont = NULL;
 HBRUSH hbrBack = NULL, hbrStripe = NULL, hbrList = NULL;
+HPEN hpnStripe = NULL;
 COLORREF rgbBack = NULL, rgbStripe = NULL, rgbText = NULL, rgbHeader = NULL, rgbList = NULL, rgbListBk = NULL;
 
 bool ShowFileDlg(bool toSave, char* target, size_t max, const char* filter);
@@ -207,9 +208,11 @@ void SetThemeColors()
 	if (hbrBack != NULL) DeleteObject(hbrBack);
 	if (hbrStripe != NULL) DeleteObject(hbrStripe);
 	if (hbrList != NULL) DeleteObject(hbrList);
+	if (hpnStripe != NULL) DeleteObject(hpnStripe);
 	hbrBack = CreateSolidBrush(rgbBack);
 	hbrStripe = CreateSolidBrush(rgbStripe);
 	hbrList = CreateSolidBrush(rgbListBk);
+	hpnStripe = CreatePen(PS_SOLID, 1, rgbStripe);
 
 	if (hWndAbout != NULL) RedrawWindow(hWndAbout, NULL, NULL, RDW_INVALIDATE);
 	if (hWndDevices != NULL) RedrawWindow(hWndDevices, NULL, NULL, RDW_INVALIDATE);
@@ -254,18 +257,57 @@ void WndProc(void* userdata, void* hWnd, unsigned int message, Uint64 wParam, Si
 	}
 }
 
+std::string statusFPS, statusText;
+
 void ResizeStatusBar()
 {
-	SendMessage(hWndStatusBar, WM_SIZE, SIZE_RESTORED, 0);
+	int winWidth, winHeight;
+	SDL_GetWindowSize(sdlWindow, &winWidth, &winHeight);
+	RECT sbRect = { 0, winHeight - (statusBarHeight * 1), winWidth, winHeight};
+	SetWindowPos(hWndStatusBar, HWND_NOTOPMOST, 0 , winHeight - statusBarHeight, winWidth, statusBarHeight, SWP_NOZORDER);
+}
+
+void DrawStatusBar()
+{
+	int winWidth, winHeight;
+	SDL_GetWindowSize(sdlWindow, &winWidth, &winHeight);
+	auto realDC = GetDC(hWndStatusBar);
+	RECT sbRect = { 0, 0, winWidth, statusBarHeight };
+
+	HDC hdc = CreateCompatibleDC(realDC);
+	auto bmp = CreateCompatibleBitmap(realDC, winWidth, statusBarHeight);
+	auto oldBmp = SelectObject(hdc, bmp);
+
+	auto old = SelectObject(hdc, hpnStripe);
+	FillRect(hdc, &sbRect, hbrBack);
+	MoveToEx(hdc, 0, 0, NULL);
+	LineTo(hdc, winWidth, 0);
+	MoveToEx(hdc, 40, 3, NULL);
+	LineTo(hdc, 40, statusBarHeight - 3);
+	SelectObject(hdc, old);
+	SetBkMode(hdc, TRANSPARENT);
+	SetTextColor(hdc, rgbText);
+	old = SelectObject(hdc, statusFont);
+	TextOut(hdc, 4, 4, statusFPS.c_str(), statusFPS.length());
+	TextOut(hdc, 48, 4, statusText.c_str(), statusText.length());
+	SelectObject(hdc, old);
+
+	BitBlt(realDC, 0, 0, winWidth, statusBarHeight, hdc, 0, 0, SRCCOPY);
+	SelectObject(hdc, oldBmp);
+	DeleteDC(hdc);
+	DeleteObject(bmp);
 }
 
 extern void AnimateAbout();
+
 void HandleUI()
 {
 	if (statusTimer)
 		statusTimer--;
 	else
-		SendMessage(hWndStatusBar, SB_SETTEXT, 1 | (SBT_NOBORDERS << 8), (LPARAM)"");
+		statusText = "";
+		//SendMessage(hWndStatusBar, SB_SETTEXT, 1 | (SBT_NOBORDERS << 8), (LPARAM)"");
+	DrawStatusBar();
 
 	if (autoUpdateMemViewer && hWndMemViewer != NULL && IsWindowVisible(hWndMemViewer))
 		InvalidateRect(GetDlgItem(hWndMemViewer, IDC_MEMVIEWERGRID), NULL, true);
@@ -310,12 +352,16 @@ void InitializeUI()
 
 		SetMenu(hWnd, menuBar);
 
-		hWndStatusBar = CreateWindowEx(0, STATUSCLASSNAME, NULL, SBARS_SIZEGRIP | WS_CHILD | WS_VISIBLE, 0, 0, 0, 0, hWnd, (HMENU)idStatus, hInstance, NULL);
-		int parts[] = { 48, -1 };
-		SendMessage(hWndStatusBar, SB_SETPARTS, (WPARAM)2, (LPARAM)parts);
-		RECT rect;
-		GetWindowRect(hWndStatusBar, &rect);
-		statusBarHeight = rect.bottom - rect.top;
+		//hWndStatusBar = CreateWindowEx(0, STATUSCLASSNAME, NULL, SBARS_SIZEGRIP | WS_CHILD | WS_VISIBLE, 0, 0, 0, 0, hWnd, (HMENU)idStatus, hInstance, NULL);
+		//int parts[] = { 48, -1 };
+		//SendMessage(hWndStatusBar, SB_SETPARTS, (WPARAM)2, (LPARAM)parts);
+		//RECT rect;
+		//GetWindowRect(hWndStatusBar, &rect);
+		//statusBarHeight = rect.bottom - rect.top;
+		hWndStatusBar = CreateWindowEx(0, "STATIC", NULL, WS_CHILD | WS_VISIBLE | SS_OWNERDRAW, 0, 0, 0, 0, hWnd, 0, hInstance, NULL);
+		statusBarHeight = 23;
+		statusFPS = "     ";
+
 
 		auto scrDC = GetDC(0);
 		//auto dpiX = (float)GetDeviceCaps(scrDC, LOGPIXELSX);
@@ -325,6 +371,7 @@ void InitializeUI()
 
 		headerFont = CreateFont(headerSize, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Segoe UI");
 		monoFont = CreateFont(16, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Courier New");
+		statusFont = CreateFont(14, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Segoe UI");
 
 		SetThemeColors();
 	}
@@ -375,20 +422,22 @@ bool ShowFileDlg(bool toSave, char* target, size_t max, const char* filter)
 
 void SetStatus(std::string text)
 {
-	SendMessage(hWndStatusBar, SB_SETTEXT, 1 | (SBT_NOBORDERS << 8), (LPARAM)text.c_str());
-	statusTimer = 100;
+	statusText = text;
+	statusTimer = 4 * text.length();;
 }
 
 void SetFPS(int fps)
 {
 	if (fpsVisible)
 	{
-		char b[8] = { 0 };
-		sprintf(b, "%3d", fps);
-		SendMessage(hWndStatusBar, SB_SETTEXT, 0, (LPARAM)b);
+		//char b[8] = { 0 };
+		//sprintf(b, "%3d", fps);
+		//statusFPS.assign(b);
+		//itoa(fps, &statusFPS[0], 10);
+		sprintf(&statusFPS[0], "%3d", fps); //I too like to live dangerously.
 	}
 	else
-		SendMessage(hWndStatusBar, SB_SETTEXT, 0, (LPARAM)"");
+		statusFPS = "     ";
 }
 
 extern unsigned char* pixels;
