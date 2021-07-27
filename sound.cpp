@@ -15,6 +15,9 @@ int blockIndex = 0;
 
 void BufferAudioSample(signed char sample)
 {
+	if (soundHandle == 0)
+		return;
+
 	auto block = (signed char*)headers[blockIndex].lpData;
 	block[frameIndex] = (unsigned char)((int)sample + 128);
 	if(++frameIndex >= frameCount)
@@ -33,53 +36,62 @@ void BufferAudioSample(signed char sample)
 
 int InitSound()
 {
-	int devID = (int)ini.GetLongValue("media", "midiDevice", 0);
-	auto res = midiOutOpen(&midiDevice, devID, NULL, NULL, 0);
-	if (res == MMSYSERR_BADDEVICEID)
-	{
-		SDL_Log("Could not open MIDI device #%d: bad device ID.", devID);
-		return 1; //Negative would mean to stop loading but who cares?
-	}
-	else if (res == MMSYSERR_BADDEVICEID)
-	{
-		SDL_Log("Could not open MIDI device #%d: device already allocated.", devID);
-		return 2; //If we *do* fail to open a device, we'll just run silent, pffft.
-	}
-	if (midiDevice)
-		midiOutReset(midiDevice);
+	UninitSound();
 
-	WAVEFORMATEX format = {};
-	format.wFormatTag = WAVE_FORMAT_PCM;
-	format.nChannels = 1;
-	format.nSamplesPerSec = 11025;
-	format.nBlockAlign = 1;
-	format.wBitsPerSample = 8;
-	format.nAvgBytesPerSec = format.nSamplesPerSec * format.nBlockAlign;
-	format.cbSize = 0;
-	res = waveOutOpen(&soundHandle, WAVE_MAPPER, &format, 0, 0, CALLBACK_NULL);
-	if (res != MMSYSERR_NOERROR)
+	if (ini.GetBoolValue("audio", "music", true))
 	{
-		SDL_Log("Could not open audio device: error %d", res);
-		return 3;
+		int devID = (int)ini.GetLongValue("audio", "midiDevice", 0);
+		auto res = midiOutOpen(&midiDevice, devID, NULL, NULL, 0);
+		if (res == MMSYSERR_BADDEVICEID)
+		{
+			SDL_Log("Could not open MIDI device #%d: bad device ID.", devID);
+			return 1; //Negative would mean to stop loading but who cares?
+		}
+		else if (res == MMSYSERR_BADDEVICEID)
+		{
+			SDL_Log("Could not open MIDI device #%d: device already allocated.", devID);
+			return 2; //If we *do* fail to open a device, we'll just run silent, pffft.
+		}
+
+		if (midiDevice)
+			midiOutReset(midiDevice);
 	}
 
-    frameCount = LATENCY;
-    blockCount = BLOCKCOUNT;
-    frameIndex = 0;
-    blockIndex = 0;
-
-    headers.resize(blockCount);
-    for(int i = 0; i < blockCount; i++)
+	if (ini.GetBoolValue("audio", "sound", true))
 	{
-		auto& header = headers[i];
-		memset((void*)&header, 0, sizeof(WAVEHDR));
-		header.lpData = (LPSTR)LocalAlloc(LMEM_FIXED, frameCount * 1);
-		header.dwBufferLength = frameCount * 1;
-		waveOutPrepareHeader(soundHandle, &header, sizeof(WAVEHDR));
-	}
+		WAVEFORMATEX format = {};
+		format.wFormatTag = WAVE_FORMAT_PCM;
+		format.nChannels = 1;
+		format.nSamplesPerSec = 11025;
+		format.nBlockAlign = 1;
+		format.wBitsPerSample = 8;
+		format.nAvgBytesPerSec = format.nSamplesPerSec * format.nBlockAlign;
+		format.cbSize = 0;
+		auto res = waveOutOpen(&soundHandle, WAVE_MAPPER, &format, 0, 0, CALLBACK_NULL);
+		if (res != MMSYSERR_NOERROR)
+		{
+			SDL_Log("Could not open audio device: error %d", res);
+			return 3;
+		}
 
-	waveOutSetVolume(soundHandle, 0x80008000);
-	waveOutRestart(soundHandle);
+		frameCount = LATENCY;
+		blockCount = BLOCKCOUNT;
+		frameIndex = 0;
+		blockIndex = 0;
+
+		headers.resize(blockCount);
+		for(int i = 0; i < blockCount; i++)
+		{
+			auto& header = headers[i];
+			memset((void*)&header, 0, sizeof(WAVEHDR));
+			header.lpData = (LPSTR)LocalAlloc(LMEM_FIXED, frameCount * 1);
+			header.dwBufferLength = frameCount * 1;
+			waveOutPrepareHeader(soundHandle, &header, sizeof(WAVEHDR));
+		}
+
+		waveOutSetVolume(soundHandle, 0x80008000);
+		waveOutRestart(soundHandle);
+	}
 
 	return 0;
 }
@@ -91,6 +103,8 @@ void UninitSound()
 		midiOutReset(midiDevice);
 		midiOutClose(midiDevice);
 	}
+	if (soundHandle)
+		waveOutClose(soundHandle);
 }
 
 void SendMidi(unsigned int message)

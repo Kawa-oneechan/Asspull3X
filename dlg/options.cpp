@@ -17,6 +17,8 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 			CheckDlgButton(hwndDlg, IDC_SHOWFPS, fpsVisible);
 			CheckDlgButton(hwndDlg, IDC_RELOAD, reloadROM);
 			CheckDlgButton(hwndDlg, IDC_REMOUNT, reloadIMG);
+			CheckDlgButton(hwndDlg, IDC_SOUND, ini.GetBoolValue("audio", "sound", true));
+			CheckDlgButton(hwndDlg, IDC_MUSIC, ini.GetBoolValue("audio", "music", true));
 			for (int i = 10; i < 14; i++)
 				SendDlgItemMessage(hwndDlg, i, WM_SETFONT, (WPARAM)headerFont, (LPARAM)true);
 			LPCSTR themes[] = { "Light", "Dark" };
@@ -54,6 +56,7 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 					}
 					break;
 					case IDOK:
+					case IDCANCEL:
 					case IDC_BIOSBROWSE:
 						return DrawDarkButton(hwndDlg, nmc);
 				}
@@ -85,41 +88,6 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 			{
 				switch (LOWORD(wParam))
 				{
-					case IDC_SHOWFPS:
-					{
-						fpsVisible = (IsDlgButtonChecked(hwndDlg, IDC_SHOWFPS) == 1);
-						ini.SetBoolValue("video", "showFps", fpsVisible);
-						ini.SaveFile("settings.ini");
-						return true;
-					}
-					case IDC_FPSCAP:
-					{
-						fpsCap = (IsDlgButtonChecked(hwndDlg, IDC_FPSCAP) == 1);
-						ini.SetBoolValue("video", "fpsCap", fpsCap);
-						ini.SaveFile("settings.ini");
-						return true;
-					}
-					case IDC_ASPECT:
-					{
-						stretch200 = (IsDlgButtonChecked(hwndDlg, IDC_ASPECT) == 1);
-						ini.SetBoolValue("video", "stretch200", stretch200);
-						ini.SaveFile("settings.ini");
-						return true;
-					}
-					case IDC_RELOAD:
-					{
-						reloadROM = (IsDlgButtonChecked(hwndDlg, IDC_RELOAD) == 1);
-						ini.SetBoolValue("media", "reloadRom", reloadROM);
-						ini.SaveFile("settings.ini");
-						return true;
-					}
-					case IDC_REMOUNT:
-					{
-						reloadIMG = (IsDlgButtonChecked(hwndDlg, IDC_REMOUNT) == 1);
-						ini.SetBoolValue("media", "reloadImg", reloadIMG);
-						ini.SaveFile("settings.ini");
-						return true;
-					}
 					case IDC_BIOSBROWSE:
 					{
 						char thePath[FILENAME_MAX] = { 0 };
@@ -133,8 +101,32 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 						GetWindowText(GetDlgItem(hwndDlg, IDC_BIOSPATH), thePath, FILENAME_MAX);
 						ini.SetValue("media", "bios", thePath);
 						ini.SetLongValue("media", "theme", SendDlgItemMessage(hwndDlg, IDC_THEME, CB_GETCURSEL, 0, 0));
-						SetThemeColors();
+
+						fpsVisible = (IsDlgButtonChecked(hwndDlg, IDC_SHOWFPS) == 1);
+						fpsCap = (IsDlgButtonChecked(hwndDlg, IDC_FPSCAP) == 1);
+						stretch200 = (IsDlgButtonChecked(hwndDlg, IDC_ASPECT) == 1);
+						reloadROM = (IsDlgButtonChecked(hwndDlg, IDC_RELOAD) == 1);
+						reloadIMG = (IsDlgButtonChecked(hwndDlg, IDC_REMOUNT) == 1);
+						auto enableSound = (IsDlgButtonChecked(hwndDlg, IDC_SOUND) == 1);
+						auto enableMusic = (IsDlgButtonChecked(hwndDlg, IDC_MUSIC) == 1);
+
+						ini.SetBoolValue("video", "fpsCap", fpsCap);
+						ini.SetBoolValue("video", "showFps", fpsVisible);
+						ini.SetBoolValue("video", "stretch200", stretch200);
+						ini.SetBoolValue("audio", "sound", enableSound);
+						ini.SetBoolValue("audio", "music", enableMusic);
+						ini.SetBoolValue("media", "reloadRom", reloadROM);
+						ini.SetBoolValue("media", "reloadImg", reloadIMG);
 						ini.SaveFile("settings.ini");
+						DestroyWindow(hwndDlg);
+						hWndOptions = NULL;
+
+						SetThemeColors();
+						InitSound();
+						return true;
+					}
+					case IDCANCEL:
+					{
 						DestroyWindow(hwndDlg);
 						hWndOptions = NULL;
 						return true;
