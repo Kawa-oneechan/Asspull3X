@@ -17,7 +17,7 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 			CheckDlgButton(hwndDlg, IDC_SHOWFPS, fpsVisible);
 			CheckDlgButton(hwndDlg, IDC_RELOAD, reloadROM);
 			CheckDlgButton(hwndDlg, IDC_REMOUNT, reloadIMG);
-			for (int i = 10; i < 13; i++)
+			for (int i = 10; i < 14; i++)
 				SendDlgItemMessage(hwndDlg, i, WM_SETFONT, (WPARAM)headerFont, (LPARAM)true);
 			LPCSTR themes[] = { "Light", "Dark" };
 			for (int i = 0; i < 3; i++)
@@ -46,6 +46,8 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 					case IDC_ASPECT:
 					case IDC_RELOAD:
 					case IDC_REMOUNT:
+					case IDC_SOUND:
+					case IDC_MUSIC:
 					{
 						DrawCheckbox(hwndDlg, nmc);
 						return true;
@@ -61,7 +63,7 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 		{
 			SetTextColor((HDC)wParam, rgbText);
 			SetBkColor((HDC)wParam, rgbBack);
-			for (int i = 10; i < 13; i++)
+			for (int i = 10; i < 14; i++)
 				if (lParam == (LPARAM)GetDlgItem(hwndDlg, i))
 					SetTextColor((HDC)wParam, rgbHeader);
 			return (INT_PTR)hbrBack;
