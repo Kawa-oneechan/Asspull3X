@@ -269,30 +269,34 @@ void ResizeStatusBar()
 
 void DrawStatusBar()
 {
-	int winWidth, winHeight;
-	SDL_GetWindowSize(sdlWindow, &winWidth, &winHeight);
-	auto realDC = GetDC(hWndStatusBar);
-	RECT sbRect = { 0, 0, winWidth, statusBarHeight };
+	RECT sbRect;
+	GetClientRect(hWnd, &sbRect);
+	sbRect.bottom = statusBarHeight;
 
-	HDC hdc = CreateCompatibleDC(realDC);
-	auto bmp = CreateCompatibleBitmap(realDC, winWidth, statusBarHeight);
+	auto realDC = GetDC(hWndStatusBar);
+	auto hdc = CreateCompatibleDC(realDC);
+	auto bmp = CreateCompatibleBitmap(realDC, sbRect.right, sbRect.bottom);
 	auto oldBmp = SelectObject(hdc, bmp);
 
 	auto old = SelectObject(hdc, hpnStripe);
 	FillRect(hdc, &sbRect, hbrBack);
 	MoveToEx(hdc, 0, 0, NULL);
-	LineTo(hdc, winWidth, 0);
+	LineTo(hdc, sbRect.right, 0);
 	MoveToEx(hdc, 40, 3, NULL);
-	LineTo(hdc, 40, statusBarHeight - 3);
-	SelectObject(hdc, old);
-	SetBkMode(hdc, TRANSPARENT);
-	SetTextColor(hdc, rgbText);
-	old = SelectObject(hdc, statusFont);
-	TextOut(hdc, 4, 4, statusFPS.c_str(), statusFPS.length());
-	TextOut(hdc, 48, 4, statusText.c_str(), statusText.length());
+	LineTo(hdc, 40, sbRect.bottom - 3);
 	SelectObject(hdc, old);
 
-	BitBlt(realDC, 0, 0, winWidth, statusBarHeight, hdc, 0, 0, SRCCOPY);
+	old = SelectObject(hdc, statusFont);
+	SetBkColor(hdc, rgbBack);
+	SetTextColor(hdc, rgbText);
+	RECT sbText = { 4, 4, 40, sbRect.bottom - 4 };
+	DrawText(hdc, statusFPS.c_str(), statusFPS.length(), &sbText, DT_RIGHT);
+	sbText.left = 48;
+	sbText.right = sbRect.right - 48;
+	DrawText(hdc, statusText.c_str(), statusText.length(), &sbText, DT_END_ELLIPSIS); 
+	SelectObject(hdc, old);
+
+	BitBlt(realDC, 0, 0, sbRect.right, sbRect.bottom, hdc, 0, 0, SRCCOPY);
 	SelectObject(hdc, oldBmp);
 	DeleteDC(hdc);
 	DeleteObject(bmp);
@@ -352,20 +356,13 @@ void InitializeUI()
 
 		SetMenu(hWnd, menuBar);
 
-		//hWndStatusBar = CreateWindowEx(0, STATUSCLASSNAME, NULL, SBARS_SIZEGRIP | WS_CHILD | WS_VISIBLE, 0, 0, 0, 0, hWnd, (HMENU)idStatus, hInstance, NULL);
-		//int parts[] = { 48, -1 };
-		//SendMessage(hWndStatusBar, SB_SETPARTS, (WPARAM)2, (LPARAM)parts);
-		//RECT rect;
-		//GetWindowRect(hWndStatusBar, &rect);
-		//statusBarHeight = rect.bottom - rect.top;
 		hWndStatusBar = CreateWindowEx(0, "STATIC", NULL, WS_CHILD | WS_VISIBLE | SS_OWNERDRAW, 0, 0, 0, 0, hWnd, 0, hInstance, NULL);
 		statusBarHeight = 23;
 		statusFPS = "     ";
 
 
 		auto scrDC = GetDC(0);
-		//auto dpiX = (float)GetDeviceCaps(scrDC, LOGPIXELSX);
-		auto dpiY = (float)GetDeviceCaps(scrDC, LOGPIXELSY);
+		auto dpiY = GetDeviceCaps(scrDC, LOGPIXELSY);
 		auto headerSize = MulDiv(13, dpiY, 72);
 		ReleaseDC(0, scrDC);
 
@@ -423,19 +420,13 @@ bool ShowFileDlg(bool toSave, char* target, size_t max, const char* filter)
 void SetStatus(std::string text)
 {
 	statusText = text;
-	statusTimer = 4 * text.length();;
+	statusTimer = 4 * text.length();
 }
 
 void SetFPS(int fps)
 {
 	if (fpsVisible)
-	{
-		//char b[8] = { 0 };
-		//sprintf(b, "%3d", fps);
-		//statusFPS.assign(b);
-		//itoa(fps, &statusFPS[0], 10);
-		sprintf(&statusFPS[0], "%3d", fps); //I too like to live dangerously.
-	}
+		itoa(fps, &statusFPS[0], 10); //I too like to live dangerously.
 	else
 		statusFPS = "     ";
 }
