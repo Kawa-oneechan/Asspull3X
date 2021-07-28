@@ -13,6 +13,9 @@ int blockCount = 0;
 int frameIndex = 0;
 int blockIndex = 0;
 
+int programs[16] = { 0 };
+std::vector<unsigned int> keyOns;
+
 void BufferAudioSample(signed char sample)
 {
 	if (soundHandle == 0)
@@ -55,6 +58,12 @@ int InitSound()
 
 		if (midiDevice)
 			midiOutReset(midiDevice);
+
+		for (auto i = 0; i < 16; i++)
+		{
+			auto message = (0xC0 | i) | (programs[i] << 8);
+			midiOutShortMsg(midiDevice, message);
+		}
 	}
 
 	if (ini.GetBoolValue("audio", "sound", true))
@@ -100,6 +109,13 @@ void UninitSound()
 {
 	if (midiDevice)
 	{
+		for (auto kon = keyOns.begin(); kon != keyOns.end(); ++kon)
+		{
+			auto message = *kon & ~0x10; //turn it into a koff
+			midiOutShortMsg(midiDevice, message);
+		}
+		keyOns.clear();
+
 		midiOutReset(midiDevice);
 		midiOutClose(midiDevice);
 	}
@@ -109,6 +125,28 @@ void UninitSound()
 
 void SendMidi(unsigned int message)
 {
-	if (midiDevice)
-		midiOutShortMsg(midiDevice, message);
+	if ((message & 0x0000F0) == 0xC0)
+	{
+		programs[(message & 0x0F)] = (message >> 8) & 0xFF;
+	}
+
+	if (midiDevice == 0) return;
+	
+	midiOutShortMsg(midiDevice, message);
+	if ((message & 0x0000F0) == 0x90)
+	{
+		keyOns.push_back(message);
+	}
+	else if ((message & 0x0000F0) == 0x80)
+	{
+		message |= 0x10; //turn it into a keyon
+		for (auto kon = keyOns.begin(); kon != keyOns.end(); ++kon)
+		{
+			if (*kon == message)
+			{
+				keyOns.erase(kon);
+				break;
+			}
+		}
+	}
 }
