@@ -272,6 +272,10 @@ void ResizeStatusBar()
 	auto realDC = GetDC(hWndStatusBar);
 	statusDC = CreateCompatibleDC(realDC);
 	statusBmp = CreateCompatibleBitmap(realDC, sbRect.right, sbRect.bottom);
+
+	SelectObject(statusDC, GetStockObject(DC_PEN));
+	SelectObject(statusDC, statusFont);
+	SelectObject(statusDC, statusBmp);
 }
 
 void DrawStatusBar()
@@ -282,17 +286,15 @@ void DrawStatusBar()
 
 	auto realDC = GetDC(hWndStatusBar);
 	auto hdc = statusDC;
-	auto oldBmp = SelectObject(statusDC, statusBmp);
 
-	auto old = SelectObject(hdc, hpnStripe);
 	FillRect(hdc, &sbRect, hbrBack);
+
+	SetDCPenColor(hdc, rgbStripe);
 	MoveToEx(hdc, 0, 0, NULL);
 	LineTo(hdc, sbRect.right, 0);
 	MoveToEx(hdc, 40, 3, NULL);
 	LineTo(hdc, 40, sbRect.bottom - 3);
-	SelectObject(hdc, old);
 
-	old = SelectObject(hdc, statusFont);
 	SetBkColor(hdc, rgbBack);
 	SetTextColor(hdc, rgbText);
 	RECT sbText = { 4, 4, 40, sbRect.bottom - 4 };
@@ -300,10 +302,8 @@ void DrawStatusBar()
 	sbText.left = 48;
 	sbText.right = sbRect.right - 48;
 	DrawText(hdc, statusText.c_str(), statusText.length(), &sbText, DT_END_ELLIPSIS); 
-	SelectObject(hdc, old);
 
 	BitBlt(realDC, 0, 0, sbRect.right, sbRect.bottom, hdc, 0, 0, SRCCOPY);
-	SelectObject(hdc, oldBmp);
 }
 
 extern void AnimateAbout();
