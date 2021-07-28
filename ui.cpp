@@ -259,12 +259,19 @@ void WndProc(void* userdata, void* hWnd, unsigned int message, Uint64 wParam, Si
 
 std::string statusFPS, statusText;
 
+HDC statusDC = NULL;
+HBITMAP statusBmp = NULL;
 void ResizeStatusBar()
 {
-	int winWidth, winHeight;
-	SDL_GetWindowSize(sdlWindow, &winWidth, &winHeight);
-	RECT sbRect = { 0, winHeight - (statusBarHeight * 1), winWidth, winHeight};
-	SetWindowPos(hWndStatusBar, HWND_NOTOPMOST, 0 , winHeight - statusBarHeight, winWidth, statusBarHeight, SWP_NOZORDER);
+	RECT sbRect;
+	GetClientRect(hWnd, &sbRect);
+	SetWindowPos(hWndStatusBar, HWND_NOTOPMOST, 0, sbRect.bottom - statusBarHeight, sbRect.right, statusBarHeight, SWP_NOZORDER);
+
+	if (statusDC) DeleteDC(statusDC);
+	if (statusBmp) DeleteObject(statusBmp);
+	auto realDC = GetDC(hWndStatusBar);
+	statusDC = CreateCompatibleDC(realDC);
+	statusBmp = CreateCompatibleBitmap(realDC, sbRect.right, sbRect.bottom);
 }
 
 void DrawStatusBar()
@@ -274,9 +281,8 @@ void DrawStatusBar()
 	sbRect.bottom = statusBarHeight;
 
 	auto realDC = GetDC(hWndStatusBar);
-	auto hdc = CreateCompatibleDC(realDC);
-	auto bmp = CreateCompatibleBitmap(realDC, sbRect.right, sbRect.bottom);
-	auto oldBmp = SelectObject(hdc, bmp);
+	auto hdc = statusDC;
+	auto oldBmp = SelectObject(statusDC, statusBmp);
 
 	auto old = SelectObject(hdc, hpnStripe);
 	FillRect(hdc, &sbRect, hbrBack);
@@ -298,8 +304,6 @@ void DrawStatusBar()
 
 	BitBlt(realDC, 0, 0, sbRect.right, sbRect.bottom, hdc, 0, 0, SRCCOPY);
 	SelectObject(hdc, oldBmp);
-	DeleteDC(hdc);
-	DeleteObject(bmp);
 }
 
 extern void AnimateAbout();
