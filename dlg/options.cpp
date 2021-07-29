@@ -72,7 +72,8 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 			return (INT_PTR)hbrBack;
 		}
 		case WM_CTLCOLOREDIT:
-		{	
+		case WM_CTLCOLORLISTBOX:
+		{
 			SetTextColor((HDC)wParam, rgbList);
 			SetBkColor((HDC)wParam, rgbListBk);
 			return (INT_PTR)hbrList;
