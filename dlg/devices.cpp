@@ -1,6 +1,5 @@
 #include "..\ui.h"
 
-
 void UpdateDevicePage(HWND hwndDlg)
 {
 	int devNum = SendDlgItemMessage(hwndDlg, IDC_DEVLIST, LB_GETCURSEL, 0, 0);

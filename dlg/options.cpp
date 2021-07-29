@@ -12,21 +12,35 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 		}
 		case WM_INITDIALOG:
 		{
+			for (int i = 10; i < 14; i++)
+				SendDlgItemMessage(hwndDlg, i, WM_SETFONT, (WPARAM)headerFont, (LPARAM)true);
+
 			CheckDlgButton(hwndDlg, IDC_FPSCAP, fpsCap);
 			CheckDlgButton(hwndDlg, IDC_ASPECT, stretch200);
 			CheckDlgButton(hwndDlg, IDC_SHOWFPS, fpsVisible);
-			CheckDlgButton(hwndDlg, IDC_RELOAD, reloadROM);
-			CheckDlgButton(hwndDlg, IDC_REMOUNT, reloadIMG);
-			CheckDlgButton(hwndDlg, IDC_SOUND, ini.GetBoolValue("audio", "sound", true));
-			CheckDlgButton(hwndDlg, IDC_MUSIC, ini.GetBoolValue("audio", "music", true));
-			for (int i = 10; i < 14; i++)
-				SendDlgItemMessage(hwndDlg, i, WM_SETFONT, (WPARAM)headerFont, (LPARAM)true);
+			
 			LPCSTR themes[] = { "Light", "Dark" };
 			for (int i = 0; i < 3; i++)
 				SendDlgItemMessage(hwndDlg, IDC_THEME, CB_ADDSTRING, 0, (LPARAM)themes[i]);
 			if (IsWin10())
 				SendDlgItemMessage(hwndDlg, IDC_THEME, CB_ADDSTRING, 0, (LPARAM)"Match");
 			SendDlgItemMessage(hwndDlg, IDC_THEME, CB_SETCURSEL, ini.GetLongValue("media", "theme", 0), 0);
+
+			int midiDevs = midiOutGetNumDevs();
+			MIDIOUTCAPS caps = { 0 };
+			for (int i = 0; i < midiDevs; i++)
+			{
+				midiOutGetDevCaps(i, &caps, sizeof(MIDIOUTCAPS));
+				SendDlgItemMessage(hwndDlg, IDC_MIDIDEV, CB_ADDSTRING, 0, (LPARAM)caps.szPname);
+			}
+			int dev = ini.GetLongValue("audio", "midiDevice", 0);
+			if (dev >= midiDevs) dev = 0;
+			CheckDlgButton(hwndDlg, IDC_SOUND, ini.GetBoolValue("audio", "sound", true));
+			CheckDlgButton(hwndDlg, IDC_MUSIC, ini.GetBoolValue("audio", "music", true));
+			SendDlgItemMessage(hwndDlg, IDC_MIDIDEV, CB_SETCURSEL, dev, 0);
+
+			CheckDlgButton(hwndDlg, IDC_RELOAD, reloadROM);
+			CheckDlgButton(hwndDlg, IDC_REMOUNT, reloadIMG);
 			SetDlgItemText(hwndDlg, IDC_BIOSPATH, ini.GetValue("media", "bios", ""));
 			return true;
 		}
@@ -102,6 +116,7 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 						GetWindowText(GetDlgItem(hwndDlg, IDC_BIOSPATH), thePath, FILENAME_MAX);
 						ini.SetValue("media", "bios", thePath);
 						ini.SetLongValue("media", "theme", SendDlgItemMessage(hwndDlg, IDC_THEME, CB_GETCURSEL, 0, 0));
+						ini.SetLongValue("audio", "midiDevice", SendDlgItemMessage(hwndDlg, IDC_MIDIDEV, CB_GETCURSEL, 0, 0));
 
 						fpsVisible = (IsDlgButtonChecked(hwndDlg, IDC_SHOWFPS) == 1);
 						fpsCap = (IsDlgButtonChecked(hwndDlg, IDC_FPSCAP) == 1);
