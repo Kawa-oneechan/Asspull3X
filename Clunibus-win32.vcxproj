@@ -113,6 +113,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="opengl.cpp" />
     <ClCompile Include="sound.cpp" />
+    <ClCompile Include="startup.cpp" />
     <ClCompile Include="ui.cpp" />
     <ClCompile Include="video.cpp" />
   </ItemGroup>
