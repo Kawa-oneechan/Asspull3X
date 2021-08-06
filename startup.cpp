@@ -175,9 +175,9 @@ int main(int argc, char* argv[])
 			controller[1] = SDL_JoystickOpen(1);
 	}
 
-	Preload();
-
 	Discord::Init();
+
+	Preload();
 
 	MainLoop();
 
