@@ -514,9 +514,6 @@ int GetMouseState(int *x, int *y)
 	nX = (nX - offsetX) / scale;
 	nY = (nY - offsetY) / scale;
 
-	//if (customMouse)
-	//	SDL_ShowCursor((nX < 0 || nY < 0 || nX > 640 || nY > 480));
-
 	*x = nX;
 	*y = nY;
 	lastX = nX;

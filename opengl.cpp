@@ -11,7 +11,6 @@ SDL_Texture* sdlShader = NULL;
 #define MAX_SHADERS 4
 unsigned int programIds[MAX_SHADERS] = { 0 };
 int numShaders = 1;
-bool customMouse = false, alwaysCustomMouse = false;
 
 int winWidth = 640, winHeight = 480, scrWidth = 640, scrHeight = 480, scale = 1, offsetX = 0, offsetY = 0;
 
@@ -127,8 +126,6 @@ GLuint compileProgram(const char* fragFile)
 	vtxShaderId = compileShader(vertexShader, GL_VERTEX_SHADER);
 
 	auto source = ReadTextFile(fragFile);
-	if (!alwaysCustomMouse)
-		customMouse = (strstr(source, "{customMouseCursor}") != NULL);
 	fragShaderId = compileShader(source, GL_FRAGMENT_SHADER);
 	free(source);
 
@@ -332,7 +329,6 @@ int InitVideo()
 	}
 
 	stretch200 = ini.GetBoolValue("video", "stretch200", false);
-	alwaysCustomMouse = customMouse = ini.GetBoolValue("video", "alwaysCustomMouse", false);
 
 	initGLExtensions();
 	numShaders = ini.GetLongValue("video", "shaders", -1);
