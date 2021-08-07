@@ -246,6 +246,16 @@ BOOL CALLBACK MemViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM
 			MemViewerScroll(hwndDlg, LOWORD(wParam), HIWORD(wParam));
 			return true;
 		}
+		case WM_MOUSEWHEEL:
+		{
+			auto delta = GET_WHEEL_DELTA_WPARAM(wParam);
+			auto inc = PAGE;
+			if (GET_KEYSTATE_WPARAM(wParam) & MK_CONTROL)
+				inc *= 8;
+			if (delta > 0)
+				inc = -inc;
+			SetMemViewer(hwndDlg, memViewerOffset + inc);
+		}
 	}
 	return false;
 }
