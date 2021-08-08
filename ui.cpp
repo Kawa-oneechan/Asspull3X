@@ -16,6 +16,7 @@ int idStatus;
 int uiCommand;
 char uiString[512];
 
+int mouseTimer = -1;
 int statusTimer = 0;
 std::string uiStatus;
 bool fpsVisible = false;
@@ -314,7 +315,19 @@ void HandleUI()
 		statusTimer--;
 	else
 		statusText = "";
-		//SendMessage(hWndStatusBar, SB_SETTEXT, 1 | (SBT_NOBORDERS << 8), (LPARAM)"");
+
+	if (mouseTimer > 0)
+	{
+		mouseTimer--;
+		if (mouseTimer == 0)
+			SDL_ShowCursor(false);
+	}
+	if (mouseTimer == 0 && (SDL_GetModState() & KMOD_RCTRL))
+	{
+		SDL_ShowCursor(true);
+		mouseTimer = 6 * 60;
+	}
+
 	DrawStatusBar();
 
 	if (autoUpdateMemViewer && hWndMemViewer != NULL && IsWindowVisible(hWndMemViewer))
@@ -480,46 +493,6 @@ void LetItSnow()
 		auto target = ((y * 640) + x) * 4;
 		pixels[target + 0] = pixels[target + 1] = pixels[target + 2] = 255;
 	}
-}
-
-int mouseTimer = 0;
-int lastMouseTimer = 0, lastX = 0, lastY = 0;
-int justClicked = 0;
-extern int winWidth, winHeight, scrWidth, scrHeight, scale, offsetX, offsetY;
-
-int GetMouseState(int *x, int *y)
-{
-	if (mouseTimer == lastMouseTimer)
-	{
-		if (x != NULL) *x = lastX;
-		if (y != NULL) *y = lastY;
-		return (justClicked == 2) ? 1 : 0;
-	}
-	int buttons = SDL_GetMouseState(x, y);
-
-	lastMouseTimer = mouseTimer;
-	if (justClicked == 0 && buttons == 1)
-		justClicked = 1;
-	else if (justClicked == 1 && buttons == 0)
-		justClicked = 2;
-	else if (justClicked == 2)
-		justClicked = 0;
-
-	if (x == NULL || y == NULL)
-		return (justClicked == 2) ? 1 : 0;
-
-	int uX = *x, uY = *y;
-	int nX = *x, nY = *y;
-
-	nX = (nX - offsetX) / scale;
-	nY = (nY - offsetY) / scale;
-
-	*x = nX;
-	*y = nY;
-	lastX = nX;
-	lastY = nY;
-
-	return (justClicked == 2) ? 1 : 0;
 }
 
 void ResetPath()

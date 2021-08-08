@@ -2,7 +2,7 @@
 #include <time.h>
 
 extern void SendMidi(unsigned int message);
-extern int GetMouseState(int *x, int *y);
+extern int mouseTimer;
 
 extern "C"
 {
@@ -41,6 +41,8 @@ long rtcOffset = 0;
 extern bool gfx320, gfx240, gfxTextBold, gfxTextBlink;
 extern int gfxMode, gfxFade, scrollX[4], scrollY[4], tileShift[4], mapEnabled[4], mapBlend[4];
 extern int caret;
+
+extern int scale, offsetX, offsetY, statusBarHeight;
 
 extern int line, interrupts;
 
@@ -186,8 +188,23 @@ unsigned int m68k_read_memory_32(unsigned int address)
 			case 0x50: //Mouse
 				{
 					int x, y, b;
-					GetMouseState(&x, &y);
-					b = SDL_GetMouseState(NULL, NULL);
+					b = SDL_GetMouseState(&x, &y);
+					
+					int uX = x, uY = y;
+					int nX = x, nY = y;
+					
+					nX = (nX - offsetX) / scale;
+					nY = (nY - offsetY + statusBarHeight) / scale;
+
+					if (nX < 0) nX = 0;
+					if (nY < 0) nY = 0;
+					if (nX >= 640) nX = 639;
+					if (nY >= 480) nY = 479;
+					x = nX;
+					y = nY;
+
+					if (mouseTimer == -1)
+						mouseTimer = 3 * 60;
 					return ((b & 1) << 30) | (y << 16) | ((b & 4) << 29) | x;
 				}
 			case 0x60: //Time_T (top half)
