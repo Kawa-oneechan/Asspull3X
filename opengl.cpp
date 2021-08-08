@@ -8,7 +8,7 @@ SDL_Window* sdlWindow = NULL;
 SDL_Renderer* sdlRenderer = NULL;
 SDL_Texture* sdlTexture = NULL;
 SDL_Texture* sdlShader = NULL;
-#define MAX_SHADERS 4
+#define MAX_SHADERS 8
 unsigned int programIds[MAX_SHADERS] = { 0 };
 int numShaders = 1;
 
@@ -332,12 +332,9 @@ int InitVideo()
 
 	initGLExtensions();
 	numShaders = ini.GetLongValue("video", "shaders", -1);
-	if (numShaders <= 0)
+	if (numShaders == 0)
 	{
-		if (numShaders == 0)
-			programIds[0] = 0;
-		else
-			programIds[0] = compileProgram(ini.GetValue("video", "shader", ""));
+		programIds[0] = 0;
 		numShaders = 1;
 	}
 	else
