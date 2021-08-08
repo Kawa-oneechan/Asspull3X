@@ -12,7 +12,7 @@
 extern int pauseState;
 extern bool stretch200, fpsCap, reloadROM, reloadIMG;
 
-extern HWND hWndAbout, hWndMemViewer, hWndOptions, hWndDevices, hWndPalViewer;
+extern HWND hWndAbout, hWndMemViewer, hWndOptions, hWndDevices, hWndPalViewer, hWndShaders;
 extern HFONT headerFont, monoFont;
 
 extern char startingPath[FILENAME_MAX];

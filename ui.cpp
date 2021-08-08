@@ -25,7 +25,7 @@ bool autoUpdateMemViewer = false;
 bool autoUpdatePalViewer = false;
 int theme = 0;
 
-HWND hWndAbout = NULL, hWndMemViewer = NULL, hWndOptions = NULL, hWndDevices = NULL, hWndPalViewer = NULL;
+HWND hWndAbout = NULL, hWndMemViewer = NULL, hWndOptions = NULL, hWndDevices = NULL, hWndPalViewer = NULL, hWndShaders = NULL;
 HFONT headerFont = NULL, monoFont = NULL, statusFont = NULL;
 HBRUSH hbrBack = NULL, hbrStripe = NULL, hbrList = NULL;
 HPEN hpnStripe = NULL;

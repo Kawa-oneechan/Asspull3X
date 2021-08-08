@@ -103,6 +103,7 @@
     <ClCompile Include="dlg\memviewer.cpp" />
     <ClCompile Include="dlg\options.cpp" />
     <ClCompile Include="dlg\palviewer.cpp" />
+    <ClCompile Include="dlg\shaders.cpp" />
     <ClCompile Include="extras.cpp" />
     <ClCompile Include="keyboard.cpp" />
     <ClCompile Include="memory.cpp" />
