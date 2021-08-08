@@ -227,7 +227,8 @@ BOOL CALLBACK DevicesWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 			}
 			else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_DDEJECT)
 			{
-				EjectDisk();
+				int devID = SendDlgItemMessage(hwndDlg, IDC_DEVLIST, LB_GETCURSEL, 0, 0);
+				EjectDisk(devID);
 			}
 			else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDOK)
 			{

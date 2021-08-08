@@ -13,7 +13,7 @@ HWND hWndStatusBar;
 int statusBarHeight = 0;
 int idStatus;
 
-int uiCommand, uiData, uiKey;
+int uiCommand;
 char uiString[512];
 
 int statusTimer = 0;
@@ -561,19 +561,19 @@ void ShowOpenFileDialog(int command, int data, std::string pattern)
 
 void InsertDisk(int devId)
 {
-	ShowOpenFileDialog(cmdInsertDisk, uiData, (((DiskDrive*)devices[uiData])->GetType() == ddDiskette ? "Disk images (*.img)|*.img" : "Disk images (*.vhd)|*.vhd"));
+	ShowOpenFileDialog(cmdInsertDisk, devId, (((DiskDrive*)devices[devId])->GetType() == ddDiskette ? "Disk images (*.img)|*.img" : "Disk images (*.vhd)|*.vhd"));
 	if (uiCommand == 0)
 		return;
 	char key[16];
-	sprintf(key, "%d", uiData);
-	auto ret = ((DiskDrive*)devices[uiData])->Mount(uiString);
+	sprintf(key, "%d", devId);
+	auto ret = ((DiskDrive*)devices[devId])->Mount(uiString);
 	if (ret == -1)
 		SetStatus("Eject the diskette first, with Ctrl-Shift-U.");
 	else if (ret != 0)
 		SDL_Log("Error %d trying to open disk image.", ret);
 	else
 	{
-		if (((DiskDrive*)devices[uiData])->GetType() == ddDiskette)
+		if (((DiskDrive*)devices[devId])->GetType() == ddDiskette)
 			ini.SetValue("devices/diskDrive", key, uiString);
 		else
 			ini.SetValue("devices/hardDrive", key, uiString);
@@ -583,11 +583,11 @@ void InsertDisk(int devId)
 	}
 }
 
-void EjectDisk()
+void EjectDisk(int devId)
 {
-	((DiskDrive*)devices[uiData])->Unmount();
-	char key[16]; sprintf(key, "%d", uiData);
-	if (((DiskDrive*)devices[uiData])->GetType() == ddDiskette)
+	((DiskDrive*)devices[devId])->Unmount();
+	char key[16]; sprintf(key, "%d", devId);
+	if (((DiskDrive*)devices[devId])->GetType() == ddDiskette)
 		ini.SetValue("devices/diskDrive", key, "");
 	else
 		ini.SetValue("devices/hardDrive", key, "");

@@ -10,7 +10,7 @@ static bool quit = 0;
 int line = 0, interrupts = 0;
 int invertButtons = 1;
 extern void Screenshot();
-extern int uiCommand, uiData, uiKey;
+extern int uiCommand;
 extern char uiString[512];
 extern void InitializeUI();
 extern void SetStatus(std::string);
@@ -20,7 +20,7 @@ extern void ShowOpenFileDialog(int, int, std::string);
 extern bool ShowFileDlg(bool, char*, size_t, const char*);
 extern void LetItSnow();
 extern void InsertDisk(int);
-extern void EjectDisk();
+extern void EjectDisk(int);
 extern void ResizeStatusBar();
 
 extern unsigned int biosSize, romSize;
@@ -115,10 +115,10 @@ void MainLoop()
 	m68k_pulse_reset();
 
 	SDL_Log("Asspull IIIx is ready.");
-	SDL_Log("Press Ctrl-L to load a ROM, Ctrl-Shift-L to load a diskette.");
-	SDL_Log("Press Ctrl-U to unload ROM, Ctrl-Shift-U to unload diskette.");
-	SDL_Log("Press Ctrl-R to reset, Ctrl-Shift-R to unload and reset.");
-	SDL_Log("Press Ctrl-D to dump RAM, Ctrl-S to take a screenshot.");
+	SDL_Log("Press RCtrl-L to load a ROM, RCtrl-Shift-L to load a diskette.");
+	SDL_Log("Press RCtrl-U to unload ROM, RCtrl-Shift-U to unload diskette.");
+	SDL_Log("Press RCtrl-R to reset, RCtrl-Shift-R to unload and reset.");
+	SDL_Log("Press RCtrl-D to dump RAM, RCtrl-S to take a screenshot.");
 
 	SDL_Event ev;
 
@@ -139,7 +139,7 @@ void MainLoop()
 	auto delta = 0;
 	auto frames = 0;
 
-	SetStatus("Middle-click or Ctrl-P to pause emulation.");
+	SetStatus("Middle-click or RCtrl-P to pause emulation.");
 
 	while (!quit)
 	{
@@ -164,11 +164,12 @@ void MainLoop()
 					joypad[ev.jbutton.which] = (joypad[ev.jbutton.which] & ~15) | ev.jhat.value;
 				break;
 			case SDL_KEYUP:
-				uiKey = keyMap[ev.key.keysym.scancode];
+			{
+				auto uiKey = keyMap[ev.key.keysym.scancode];
 				if (ev.key.keysym.mod & KMOD_SHIFT) uiKey |= 0x100;
 				if (ev.key.keysym.mod & KMOD_ALT) uiKey |= 0x200;
-				if (ev.key.keysym.mod & KMOD_CTRL) uiKey |= 0x400;
-				if (ev.key.keysym.mod & KMOD_LCTRL)
+				if (ev.key.keysym.mod & KMOD_LCTRL) uiKey |= 0x400;
+				if (ev.key.keysym.mod & KMOD_RCTRL)
 				{
 					if (ev.key.keysym.sym == SDLK_l)
 						uiCommand = (ev.key.keysym.mod & KMOD_SHIFT) ? cmdInsertDisk : cmdLoadRom;
@@ -188,8 +189,8 @@ void MainLoop()
 							pauseState = 0;
 					}
 				}
-				keyScan = 0;
 				break;
+			}
 			case SDL_MOUSEBUTTONUP:
 				if (ev.button.button == 2)
 				{
@@ -216,12 +217,12 @@ void MainLoop()
 			}
 			else if (uiCommand == cmdInsertDisk)
 			{
-				if (devices[uiData] == NULL || devices[uiData]->GetID() != 0x0144)
+				if (devices[0] == NULL || devices[0]->GetID() != 0x0144)
 					SetStatus("No disk drive.");
-				else if (((DiskDrive*)devices[uiData])->IsMounted())
+				else if (((DiskDrive*)devices[0])->IsMounted())
 					SetStatus("Unmount the medium first.");
 				else
-					InsertDisk(uiData);
+					InsertDisk(0);
 			}
 			else if (uiCommand == cmdUnloadRom)
 			{
@@ -236,28 +237,17 @@ void MainLoop()
 			}
 			else if (uiCommand == cmdEjectDisk)
 			{
-				if (devices[uiData] == NULL || devices[uiData]->GetID() != 0x0144)
+				if (devices[0] == NULL || devices[0]->GetID() != 0x0144)
 					SetStatus("No disk drive.");
-				else if (((DiskDrive*)devices[uiData])->IsMounted())
-				{
-					((DiskDrive*)devices[uiData])->Unmount();
-					char key[16]; sprintf(key, "%d", uiData);
-					if (((DiskDrive*)devices[uiData])->GetType() == ddDiskette)
-						ini.SetValue("devices/diskDrive", key, "");
-					else
-						ini.SetValue("devices/hardDrive", key, "");
-					ResetPath();
-					ini.SaveFile("settings.ini");
-					SetStatus("Disk ejected.");
-				}
+				else if (((DiskDrive*)devices[0])->IsMounted())
+					EjectDisk(0);
 			}
 			else if (uiCommand == cmdReset)
 			{
-				if (uiData)
+				if (SDL_GetModState() & KMOD_SHIFT)
 				{
 					SDL_Log("Unloading ROM...");
 					memset(romCartridge, 0, CART_SIZE);
-					((DiskDrive*)devices[0])->Unmount();
 					ini.SetValue("media", "lastROM", "");
 					ResetPath();
 					ini.SaveFile("settings.ini");
@@ -280,7 +270,7 @@ void MainLoop()
 			{
 				Screenshot();
 			}
-			uiCommand = uiData = 0;
+			uiCommand = 0;
 			uiString[0] = 0;
 		}
 

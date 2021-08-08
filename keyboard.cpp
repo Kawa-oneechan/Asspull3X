@@ -24,7 +24,9 @@ unsigned int PollKeyboard(bool force)
 	auto mods = SDL_GetModState();
 	if (mods & KMOD_SHIFT) lastPollResult |= 0x100;
 	if (mods & KMOD_ALT) lastPollResult |= 0x200;
-	if (mods & KMOD_CTRL) lastPollResult |= 0x400;
+	if (mods & KMOD_LCTRL) lastPollResult |= 0x400;
+	if (mods & KMOD_RCTRL) lastPollResult = 0; //reserved for the UI
+	/*
 	if (lastPollResult & 0x0400)
 	{
 		if ((lastPollResult & 0xFF) == 0x26 ||
@@ -36,6 +38,7 @@ unsigned int PollKeyboard(bool force)
 			(lastPollResult & 0xFF) == 0x1F)
 			lastPollResult = 0; //eat any special controls
 	}
+	*/
 	lastPollTime = newPollTime;
 	return lastPollResult;
 }

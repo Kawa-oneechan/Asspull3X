@@ -17,9 +17,9 @@ IDR_MAINMENU MENU
 BEGIN
 	POPUP "File"
 	BEGIN
-		MENUITEM "Load ROM…\tCtrl+L", 1001
-		MENUITEM "Unload ROM\tCtrl+U", 1002
-		MENUITEM "Reset\tCtrl+R", 1003
+		MENUITEM "Load ROM…\tRCtrl+L", 1001
+		MENUITEM "Unload ROM\tRCtrl+U", 1002
+		MENUITEM "Reset\tRCtrl+R", 1003
 		MENUITEM SEPARATOR
 		MENUITEM "Quit", 1006
 	END
@@ -28,10 +28,10 @@ BEGIN
 		MENUITEM "Options", 1010
 		MENUITEM SEPARATOR
 		MENUITEM "Devices", 1011
-		MENUITEM "Dump RAM\tCtrl+D", 1005
+		MENUITEM "Dump RAM\tRCtrl+D", 1005
 		MENUITEM "Memory viewer", 1007
 		MENUITEM "Palette viewer", 1008
-		MENUITEM "Screenshot\tCtrl+S", 1004
+		MENUITEM "Screenshot\tRCtrl+S", 1004
 	END
 	POPUP "Help"
 	BEGIN

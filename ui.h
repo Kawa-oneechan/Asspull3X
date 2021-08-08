@@ -24,9 +24,6 @@ extern HWND hWndStatusBar;
 extern int statusBarHeight;
 extern int idStatus;
 
-extern int uiCommand, uiData, uiKey;
-extern char uiString[512];
-
 extern int statusTimer;
 extern std::string uiStatus;
 extern bool fpsVisible;
@@ -38,7 +35,7 @@ extern bool fpsCap, stretch200;
 extern bool ShowFileDlg(bool toSave, char* target, size_t max, const char* filter);
 
 extern void InsertDisk(int devId);
-extern void EjectDisk();
+extern void EjectDisk(int devId);
 
 extern HBRUSH hbrBack, hbrStripe, hbrList;
 extern COLORREF rgbBack, rgbStripe, rgbText, rgbHeader, rgbList, rgbListBk;
