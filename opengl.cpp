@@ -8,8 +8,7 @@ SDL_Window* sdlWindow = NULL;
 SDL_Renderer* sdlRenderer = NULL;
 SDL_Texture* sdlTexture = NULL;
 SDL_Texture* sdlShader = NULL;
-#define MAX_SHADERS 8
-unsigned int programIds[MAX_SHADERS] = { 0 };
+unsigned int programIds[MAXSHADERS] = { 0 };
 int numShaders = 1;
 
 int winWidth = 640, winHeight = 480, scrWidth = 640, scrHeight = 480, scale = 1, offsetX = 0, offsetY = 0;
@@ -339,10 +338,10 @@ int InitVideo()
 	}
 	else
 	{
-		if (numShaders >= MAX_SHADERS)
+		if (numShaders >= MAXSHADERS)
 		{
-			SDL_Log("Too many shaders specified: can only do %d but %d were requested.", MAX_SHADERS, numShaders);
-			numShaders = MAX_SHADERS;
+			SDL_Log("Too many shaders specified: can only do %d but %d were requested.", MAXSHADERS, numShaders);
+			numShaders = MAXSHADERS;
 		}
 		for (int i = 0; i < numShaders; i++)
 		{

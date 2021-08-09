@@ -121,6 +121,9 @@ bool DrawDarkButton(HWND hwndDlg, LPNMCUSTOMDRAW nmc)
 			SetBkColor(nmc->hdc, rgbBack);
 			SetTextColor(nmc->hdc, rgbText);
 
+			if (nmc->uItemState & CDIS_DISABLED)
+				SetTextColor(nmc->hdc, rgbListBk);
+
 			HBRUSH border = CreateSolidBrush(rgbText);
 
 			FillRect(nmc->hdc, &nmc->rc, border);

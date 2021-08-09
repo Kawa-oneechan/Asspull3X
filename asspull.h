@@ -64,6 +64,8 @@ enum uiCommands
 	cmdCreateDisk,
 };
 
+#define MAXSHADERS 8
+
 #define MAXDEVS 16
 #define DEVBLOCK	0x8000
 
