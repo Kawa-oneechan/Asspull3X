@@ -291,6 +291,30 @@ void VBlank()
 
 extern HWND hWnd;
 
+void InitShaders()
+{
+	numShaders = ini.GetLongValue("video", "shaders", -1);
+	if (numShaders == 0)
+	{
+		programIds[0] = 0;
+		numShaders = 1;
+	}
+	else
+	{
+		if (numShaders >= MAXSHADERS)
+		{
+			SDL_Log("Too many shaders specified: can only do %d but %d were requested.", MAXSHADERS, numShaders);
+			numShaders = MAXSHADERS;
+		}
+		for (int i = 0; i < numShaders; i++)
+		{
+			char key[16] = { 0 };
+			sprintf(key, "shader%d", i + 1);
+			programIds[i] = compileProgram(ini.GetValue("video", key, ""));
+		}
+	}
+}
+
 int InitVideo()
 {
 	SDL_version linked;
@@ -330,26 +354,8 @@ int InitVideo()
 	stretch200 = ini.GetBoolValue("video", "stretch200", false);
 
 	initGLExtensions();
-	numShaders = ini.GetLongValue("video", "shaders", -1);
-	if (numShaders == 0)
-	{
-		programIds[0] = 0;
-		numShaders = 1;
-	}
-	else
-	{
-		if (numShaders >= MAXSHADERS)
-		{
-			SDL_Log("Too many shaders specified: can only do %d but %d were requested.", MAXSHADERS, numShaders);
-			numShaders = MAXSHADERS;
-		}
-		for (int i = 0; i < numShaders; i++)
-		{
-			char key[16] = { 0 };
-			sprintf(key, "shader%d", i + 1);
-			programIds[i] = compileProgram(ini.GetValue("video", key, ""));
-		}
-	}
+
+	InitShaders();
 
 	if (sdl2oh10)
 	{

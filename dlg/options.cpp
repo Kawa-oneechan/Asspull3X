@@ -71,6 +71,7 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 					break;
 					case IDOK:
 					case IDCANCEL:
+					case IDC_EDITSHADERS:
 					case IDC_BIOSBROWSE:
 						return DrawDarkButton(hwndDlg, nmc);
 				}
@@ -103,12 +104,18 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 			{
 				switch (LOWORD(wParam))
 				{
+					case IDC_EDITSHADERS:
+					{
+						ShowShaders();
+						return false;
+					}
 					case IDC_BIOSBROWSE:
 					{
 						char thePath[FILENAME_MAX] = { 0 };
 						GetWindowText(GetDlgItem(hwndDlg, IDC_BIOSPATH), thePath, FILENAME_MAX);
 						if (ShowFileDlg(false, thePath, 256, "A3X BIOS files (*.apb)|*.apb"))
 							SetWindowText(GetDlgItem(hwndDlg, IDC_BIOSPATH), thePath);
+						return false;
 					}
 					case IDOK:
 					{

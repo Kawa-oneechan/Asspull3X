@@ -50,5 +50,6 @@ extern void ShowMemViewer();
 extern void ShowOptions();
 extern void ShowDevices();
 extern void ShowPalViewer();
+extern void ShowShaders();
 
 extern void UpdateDevicePage(HWND hwndDlg);

@@ -1,5 +1,7 @@
 #include "..\ui.h"
 
+extern void InitShaders();
+
 static void EnableShaderButtons(HWND hwndDlg)
 {
 	EnableWindow(GetDlgItem(hwndDlg, IDC_ADDSHADER),
@@ -13,8 +15,8 @@ static void EnableShaderButtons(HWND hwndDlg)
 	auto allowInUse = (inUseCount > 0) && (inUseSel != LB_ERR);
 
 	EnableWindow(GetDlgItem(hwndDlg, IDC_REMOVESHADER), allowInUse);
-	EnableWindow(GetDlgItem(hwndDlg, IDC_MOVESHADERUP), allowInUse);
-	EnableWindow(GetDlgItem(hwndDlg, IDC_MOVESHADERDOWN), allowInUse);
+	EnableWindow(GetDlgItem(hwndDlg, IDC_MOVESHADERUP), allowInUse && (inUseSel > 0));
+	EnableWindow(GetDlgItem(hwndDlg, IDC_MOVESHADERDOWN), allowInUse && (inUseSel < inUseCount - 1));
 }
 
 BOOL CALLBACK ShadersWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam)
@@ -25,20 +27,11 @@ BOOL CALLBACK ShadersWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 		{
 			DestroyWindow(hwndDlg);
 			hWndShaders = NULL;
-			if (!wasPaused) pauseState = 0;
 			return true;
 		}
 		case WM_INITDIALOG:
 		{
 			SendDlgItemMessage(hwndDlg, IDC_SHADERSAVAILABLE, LB_DIR, DDL_READWRITE, (LPARAM)"*.fs");
-
-			/*
-			//TEST: try moving the fourth item up
-			char fourth[256];
-			SendDlgItemMessage(hwndDlg, IDC_SHADERSAVAILABLE, LB_GETTEXT, 4, (LPARAM)fourth);
-			SendDlgItemMessage(hwndDlg, IDC_SHADERSAVAILABLE, LB_DELETESTRING, 4, 0);
-			SendDlgItemMessage(hwndDlg, IDC_SHADERSAVAILABLE, LB_INSERTSTRING, 3, (LPARAM)fourth);
-			*/
 
 			auto numShaders = ini.GetLongValue("video", "shaders", -1);
 			for (int i = 0; i < numShaders; i++)
@@ -114,9 +107,37 @@ BOOL CALLBACK ShadersWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 				{
 				case IDOK:
 					{
+						auto cnt = SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETCOUNT, 0, 0);
+
+						ini.SetLongValue("video", "shaders", cnt);
+						for (int i = 0; i < MAXSHADERS; i++)
+						{
+							char key[16] = { 0 };
+							sprintf(key, "shader%d", i + 1);
+							if (i < cnt)
+							{
+								char val[256];
+								SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETTEXT, i, (LPARAM)val);
+								ini.SetValue("video", key, val);
+							}
+							else
+							{
+								ini.Delete("video", key, true);
+							}
+						}
+						ini.SaveFile("settings.ini");
+
+						//DestroyWindow(hwndDlg);
+						//hWndShaders = NULL;
+
+						InitShaders();
+
+						return true;
+					}
+				case IDCANCEL:
+					{
 						DestroyWindow(hwndDlg);
-						hWndDevices = NULL;
-						if (!wasPaused) pauseState = 0;
+						hWndShaders = NULL;
 						return true;
 					}
 				case IDC_ADDSHADER:
@@ -146,7 +167,33 @@ BOOL CALLBACK ShadersWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 						EnableShaderButtons(hwndDlg);
 						return false;
 					}
-
+				case IDC_MOVESHADERUP:
+					{
+						auto sel = SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETCURSEL, 0, 0);
+						if (sel == LB_ERR || sel == 0)
+							return false;
+						char toMove[256];
+						SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETTEXT, sel, (LPARAM)toMove);
+						SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_DELETESTRING, sel, 0);
+						SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_INSERTSTRING, sel - 1, (LPARAM)toMove);
+						SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_SETCURSEL, sel - 1, 0);
+						EnableShaderButtons(hwndDlg);
+						return false;
+					}
+				case IDC_MOVESHADERDOWN:
+					{
+						auto sel = SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETCURSEL, 0, 0);
+						auto cnt = SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETCOUNT, 0, 0);
+						if (sel == LB_ERR || sel == cnt - 1)
+							return false;
+						char toMove[256];
+						SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETTEXT, sel, (LPARAM)toMove);
+						SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_DELETESTRING, sel, 0);
+						SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_INSERTSTRING, sel + 1, (LPARAM)toMove);
+						SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_SETCURSEL, sel + 1, 0);
+						EnableShaderButtons(hwndDlg);
+						return false;
+					}
 				}
 			}
 		}
@@ -158,8 +205,6 @@ void ShowShaders()
 {
 	if (!IsWindow(hWndShaders))
 	{
-		wasPaused = pauseState > 0;
-		if (!wasPaused) pauseState = 1;
 		hWndShaders = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_SHADERS), (HWND)hWnd, (DLGPROC)ShadersWndProc);
 		ShowWindow(hWndShaders, SW_SHOW);
 	}
