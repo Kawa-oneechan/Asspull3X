@@ -10,6 +10,7 @@ SDL_Texture* sdlTexture = NULL;
 SDL_Texture* sdlShader = NULL;
 unsigned int programIds[MAXSHADERS] = { 0 };
 int numShaders = 1;
+float iTime = 0;
 
 int winWidth = 640, winHeight = 480, scrWidth = 640, scrHeight = 480, scale = 1, offsetX = 0, offsetY = 0;
 
@@ -30,6 +31,8 @@ PFNGLVALIDATEPROGRAMPROC glValidateProgram;
 PFNGLGETPROGRAMIVPROC glGetProgramiv;
 PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog;
 PFNGLUSEPROGRAMPROC glUseProgram;
+PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
+PFNGLUNIFORM1FPROC glUniform1f;
 
 const char* vertexShader = "varying vec4 v_color;"
 "varying vec2 v_texCoord;"
@@ -55,11 +58,13 @@ bool initGLExtensions() {
 	glGetProgramiv = (PFNGLGETPROGRAMIVPROC)SDL_GL_GetProcAddress("glGetProgramiv");
 	glGetProgramInfoLog = (PFNGLGETPROGRAMINFOLOGPROC)SDL_GL_GetProcAddress("glGetProgramInfoLog");
 	glUseProgram = (PFNGLUSEPROGRAMPROC)SDL_GL_GetProcAddress("glUseProgram");
+	glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)SDL_GL_GetProcAddress("glGetUniformLocation");
+	glUniform1f = (PFNGLUNIFORM1FPROC)SDL_GL_GetProcAddress("glUniform1f");
 
 	return glCreateShader && glShaderSource && glCompileShader && glGetShaderiv &&
 		glGetShaderInfoLog && glDeleteShader && glAttachShader && glCreateProgram &&
 		glLinkProgram && glValidateProgram && glGetProgramiv && glGetProgramInfoLog &&
-		glUseProgram;
+		glUseProgram && glGetUniformLocation && glUniform1f;
 }
 
 GLuint compileShader(const char* source, GLuint shaderType)
@@ -170,10 +175,15 @@ void presentBackBuffer(SDL_Renderer *renderer, SDL_Window* win)
 		unsigned int programId = programIds[i];
 
 		SDL_GL_BindTexture(source, NULL, NULL);
+
 		if(programId != 0)
 		{
 			glGetIntegerv(GL_CURRENT_PROGRAM,&oldProgramId);
 			glUseProgram(programId);
+
+			auto timeU = glGetUniformLocation(programId, "iTime");
+			if (timeU != -1)
+				glUniform1f(timeU, iTime);
 		}
 
 		if (i == numShaders - 1)
@@ -285,6 +295,9 @@ void VBlank()
 {
 	SDL_SetRenderTarget(sdlRenderer, sdlTexture);
 	SDL_UpdateTexture(sdlTexture, NULL, pixels, 640 * 4);
+
+	iTime += 0.01f;
+
 	presentBackBuffer(sdlRenderer, sdlWindow);
 	//SDL_UpdateWindowSurface(sdlWindow);
 }
