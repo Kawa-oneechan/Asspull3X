@@ -8,15 +8,15 @@ Address space is effectively 28 bits:
       |_______ bank
 
 ## Regions
-| from     | to       | size     | name
-| -------- | -------- | -------- |------
-| 00000000 | 0001FFFF | 00020000 | BIOS
-| 00020000 | 00FFFFFF | 00FE0000 | ROM
-| 01000000 | 01400000 | 00400000 | RAM
-| 013F0000 | 0FFFFFFF | 000FFFFF | STACK
-| 02000000 | 02080000 | 00080000 | DEV
-| 0D000000 |          |          | IO
-| 0E000000 | 0EFFFFFF | 00FFFFFF | VRAM
+| from     | to       | size     | name|
+| -------- | -------- | -------- |------|
+| 00000000 | 0001FFFF | 00020000 | BIOS|
+| 00020000 | 00FFFFFF | 00FE0000 | ROM|
+| 01000000 | 01400000 | 00400000 | RAM|
+| 013F0000 | 0FFFFFFF | 000FFFFF | STACK|
+| 02000000 | 02080000 | 00080000 | DEV|
+| 0D000000 |          |          | IO|
+| 0E000000 | E080000 | 00080000 | VRAM|
 
 ## Cart header
 | offset | type     | description

@@ -252,6 +252,11 @@ void WndProc(void* userdata, void* hWnd, unsigned int message, Uint64 wParam, Si
 				uiCommand = cmdNone;
 				ShowOptions();
 			}
+			else if (uiCommand == cmdShaders)
+			{
+				uiCommand = cmdNone;
+				ShowShaders();
+			}
 			else if (uiCommand == cmdDevices)
 			{
 				uiCommand = cmdNone;

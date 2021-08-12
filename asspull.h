@@ -58,6 +58,7 @@ enum uiCommands
 	cmdPalViewer,
 	cmdAbout,
 	cmdOptions,
+	cmdShaders,
 	cmdDevices,
 	cmdInsertDisk,
 	cmdEjectDisk,
