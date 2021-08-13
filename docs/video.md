@@ -17,7 +17,7 @@ compatible text mode, but with a few more lines in total.
     |    |_______________ Foreground color
     |____________________ Background color
 
-Character cells are read from `0E000000` and drawn using the palette from `0E060000` and the font graphics at `0E060200` (depending on screen size and the bold bit). If the blink bit in the [ScreenMode register](registers.md#00001screenmode) is set, the most significant bit of a character cell will enable blinking for that cell instead of setting the background color to a value between 8 and 15.
+Character cells are read from `0E000000` and drawn using the palette from `0E060000` and the font graphics at `0E060200` (depending on screen size and the bold bit). If the blink bit in the [ScreenMode register](registers.md#00001reg_screenmode) is set, the most significant bit of a character cell will enable blinking for that cell instead of setting the background color to a value between 8 and 15.
 
 ## Bitmap modes
 
