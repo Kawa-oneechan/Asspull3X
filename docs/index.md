@@ -10,15 +10,15 @@ Address space on the Motorola 68020 is 32-bits, but the *Asspull IIIx* only uses
 
 This address space is divided into the following regions:
 
-| address  | size     | name
-| -------- | -------- | --------
-| 00000000 | 00020000 | BIOS
-| 00020000 | 00FE0000 | ROM
-| 01000000 | 00400000 | RAM
-| 013F0000 | 000FFFFF | STACK
-| 02000000 | 00080000 | DEV
-| 0D000000 |          | REGS
-| 0E000000 | 00FFFFFF | VRAM
+| address  | size     | name|
+| -------- | -------- | --------|
+| 00000000 | 00020000 | BIOS|
+| 00020000 | 00FE0000 | ROM|
+| 01000000 | 00400000 | RAM|
+| 013F0000 | 000FFFFF | STACK|
+| 02000000 | 00080000 | DEV|
+| 0D000000 |          | REGS|
+| 0E000000 | 00080000 | VRAM|
 
 For the memory-mapped registers, please refer to the [Registers guide](registers.md).
 
@@ -26,13 +26,13 @@ Device memory is divided into sixteen blocks of `0x8000` bytes, or 32 kibibytes 
 
 Video memory is subdivided into the following regions:
 
-| address  | content
-| -------- | --------
-| 0E000000 | Text, bitmap, and tilemap data
-| 0E050000 | Tile graphics
-| 0E060000 | Palette data
-| 0E060200 | Font graphics
-| 0E064000 | Object tile and palette data
-| 0E064200 | Objection position and priority data
+| address  | content|
+| -------- | --------|
+| 0E000000 | Text, bitmap, and tile map data |
+| 0E050000 | Tile graphics|
+| 0E060000 | Palette data|
+| 0E060200 | Font graphics|
+| 0E064000 | Object tile and palette data|
+| 0E064200 | Objection position and priority data|
 
 Please refer to the [Video guide](video.md) for details.

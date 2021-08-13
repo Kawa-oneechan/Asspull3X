@@ -5,8 +5,8 @@ To actually *use* this, ROM files are included and more up-to-date copies can be
 
 ## Acknowledgments
 * OpenGL shader thing based on [an example by Augusto Ruiz](https://github.com/AugustoRuiz/sdl2glsl).
-* PAL Composite shader by r57shell.
+* PAL Composite shader by Viacheslav Slavinsky.
 * CRT shader by Timothy Lottes.
-* UI font from a Nokia phone, general UI style cribbed from Nesticle/Genecyst by Bloodlust Software.
 * miniz library by Rich Geldreich.
 * SimpleIni library by Brodie Thiesfield.
+

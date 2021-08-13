@@ -17,16 +17,7 @@ compatible text mode, but with a few more lines in total.
     |    |_______________ Foreground color
     |____________________ Background color
 
-There is no blink.
-
-Character cells are read from `0E000000` and drawn using the palette from `0E060000` and the font graphics at `0E060200` (depending on screen size and the bold bit).
-
-### 0D000001	ScreenMode
-    BWH. ..00
-    |||    |___ Mode (0 - Text)
-    |||________ Font height (0 - 8px, 1 - 16px) and line count (0 - 60 lines, 1 - 30 lines)
-    ||_________ Font width (0 - 8px, 1 - stretch to 16px) and column count (0 - 80 cols, 1 - 40 cols)
-    |__________ Font variant (0 - thin, 1 - bold)
+Character cells are read from `0E000000` and drawn using the palette from `0E060000` and the font graphics at `0E060200` (depending on screen size and the bold bit). If the blink bit in the [ScreenMode register](registers.md#00001screenmode) is set, the most significant bit of a character cell will enable blinking for that cell instead of setting the background color to a value between 8 and 15.
 
 ## Bitmap modes
 
@@ -34,17 +25,10 @@ In both 16 and 256 color bitmap modes, the image is drawn from `0E000000` using 
 
 That order is right-left -- `1F` means a white pixel on the left, dark blue on the right.
 
-### 0D000001	ScreenMode
-    AWH. ..MM
-    |||    |___ Mode (1 - 16 color, 2 - 256 color)
-    |||________ Screen height (0 - 480 pixels, 1 - 240 pixels)
-    ||_________ Screen width (0 - 640 pixels, 1 - 320 pixels)
-    |__________ Aspect mode (0 - 400 pixels, 1 - 200 pixels)
-
-
+---
 
 TODO: finish this with the tilemap mode and everything about sprites, as pasted below.
-<!--
+
 ### Tilemap cell
     PPPP vhTT TTTT TTTT
     |    |||_____________ Tile #
@@ -85,4 +69,5 @@ TODO: finish this with the tilemap mode and everything about sprites, as pasted 
 #### Other modes:
 1. Stuff
 2. Sprites with any priority
--->
+
+/end TODO
