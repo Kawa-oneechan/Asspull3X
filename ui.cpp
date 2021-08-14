@@ -228,6 +228,8 @@ void SetThemeColors()
 WNDPROC SDLWinProc = NULL;
 LRESULT WndProc(HWND hWnd, unsigned int message, WPARAM wParam, LPARAM lParam)
 {
+	//We get to do a lotta fancy fuckery now that this is a Win32 wndproc and not
+	//SDL's watered-down one.
 	switch(message)
 	{
 		case WM_COMMAND:
@@ -235,35 +237,14 @@ LRESULT WndProc(HWND hWnd, unsigned int message, WPARAM wParam, LPARAM lParam)
 			if (wParam > 1000 && wParam < 2000)
 			{
 				uiCommand = (int)(wParam - 1000);
-				if (uiCommand == cmdAbout)
+				if (uiCommand >= cmdMemViewer && uiCommand <= cmdDevices)
 				{
-					uiCommand = cmdNone;
-					ShowAbout();
-				}
-				else if (uiCommand == cmdMemViewer)
-				{
-					uiCommand = cmdNone;
-					ShowMemViewer();
-				}
-				else if (uiCommand == cmdPalViewer)
-				{
-					uiCommand = cmdNone;
-					ShowPalViewer();
-				}
-				else if (uiCommand == cmdOptions)
-				{
-					uiCommand = cmdNone;
-					ShowOptions();
-				}
-				else if (uiCommand == cmdShaders)
-				{
-					uiCommand = cmdNone;
-					ShowShaders();
-				}
-				else if (uiCommand == cmdDevices)
-				{
-					uiCommand = cmdNone;
-					ShowDevices();
+					void(*commands[])(void) = {
+						ShowMemViewer, ShowPalViewer, ShowAbout,
+						ShowOptions, ShowShaders, ShowDevices
+					};
+					commands[uiCommand - cmdMemViewer]();
+					uiCommand = 0;
 				}
 				return 0;
 			}
@@ -371,7 +352,6 @@ void InitializeUI()
 		hWnd = info.info.win.window;
 		hInstance = info.info.win.hinstance;
 
-		//SDL_SetWindowsMessageHook(WndProc, 0);
 		SDLWinProc = (WNDPROC)GetWindowLongPtr(hWnd, GWLP_WNDPROC);
 		SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG)WndProc);
 
