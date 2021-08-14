@@ -225,44 +225,51 @@ void SetThemeColors()
 	//if (hWndOptions != NULL) RedrawWindow(hWndOptions, NULL, NULL, RDW_INVALIDATE);
 }
 
-void WndProc(void* userdata, void* hWnd, unsigned int message, Uint64 wParam, Sint64 lParam)
+WNDPROC SDLWinProc = NULL;
+LRESULT WndProc(HWND hWnd, unsigned int message, WPARAM wParam, LPARAM lParam)
 {
-	if (message == WM_COMMAND)
+	switch(message)
 	{
-		if (wParam > 1000 && wParam < 2000)
+		case WM_COMMAND:
 		{
-			uiCommand = (int)(wParam - 1000);
-			if (uiCommand == cmdAbout)
+			if (wParam > 1000 && wParam < 2000)
 			{
-				uiCommand = cmdNone;
-				ShowAbout();
-			}
-			else if (uiCommand == cmdMemViewer)
-			{
-				uiCommand = cmdNone;
-				ShowMemViewer();
-			}
-			else if (uiCommand == cmdPalViewer)
-			{
-				uiCommand = cmdNone;
-				ShowPalViewer();
-			}
-			else if (uiCommand == cmdOptions)
-			{
-				uiCommand = cmdNone;
-				ShowOptions();
-			}
-			else if (uiCommand == cmdShaders)
-			{
-				uiCommand = cmdNone;
-				ShowShaders();
-			}
-			else if (uiCommand == cmdDevices)
-			{
-				uiCommand = cmdNone;
-				ShowDevices();
+				uiCommand = (int)(wParam - 1000);
+				if (uiCommand == cmdAbout)
+				{
+					uiCommand = cmdNone;
+					ShowAbout();
+				}
+				else if (uiCommand == cmdMemViewer)
+				{
+					uiCommand = cmdNone;
+					ShowMemViewer();
+				}
+				else if (uiCommand == cmdPalViewer)
+				{
+					uiCommand = cmdNone;
+					ShowPalViewer();
+				}
+				else if (uiCommand == cmdOptions)
+				{
+					uiCommand = cmdNone;
+					ShowOptions();
+				}
+				else if (uiCommand == cmdShaders)
+				{
+					uiCommand = cmdNone;
+					ShowShaders();
+				}
+				else if (uiCommand == cmdDevices)
+				{
+					uiCommand = cmdNone;
+					ShowDevices();
+				}
+				return 0;
 			}
 		}
+		default:
+			return CallWindowProc(SDLWinProc, hWnd, message, wParam, lParam);
 	}
 }
 
@@ -364,7 +371,9 @@ void InitializeUI()
 		hWnd = info.info.win.window;
 		hInstance = info.info.win.hinstance;
 
-		SDL_SetWindowsMessageHook(WndProc, 0);
+		//SDL_SetWindowsMessageHook(WndProc, 0);
+		SDLWinProc = (WNDPROC)GetWindowLongPtr(hWnd, GWLP_WNDPROC);
+		SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG)WndProc);
 
 		HMENU menuBar = LoadMenu(hInstance, MAKEINTRESOURCE(IDR_MAINMENU));
 

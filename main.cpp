@@ -6,7 +6,7 @@ extern "C" {
 }
 
 bool fpsCap;
-static bool quit = 0;
+bool quit = 0;
 int line = 0, interrupts = 0;
 int invertButtons = 1;
 extern void Screenshot();
@@ -143,7 +143,7 @@ void MainLoop()
 
 	while (!quit)
 	{
-		while (SDL_PollEvent(&ev) != 0)
+		if (SDL_PollEvent(&ev) != 0)
 		{
 			switch (ev.type)
 			{
