@@ -268,6 +268,7 @@ void WndProc(void* userdata, void* hWnd, unsigned int message, Uint64 wParam, Si
 
 std::string statusFPS, statusText;
 
+HDC statusRealDC = NULL;
 HDC statusDC = NULL;
 HBITMAP statusBmp = NULL;
 void ResizeStatusBar()
@@ -276,11 +277,12 @@ void ResizeStatusBar()
 	GetClientRect(hWnd, &sbRect);
 	SetWindowPos(hWndStatusBar, HWND_NOTOPMOST, 0, sbRect.bottom - statusBarHeight, sbRect.right, statusBarHeight, SWP_NOZORDER);
 
+	if (statusRealDC) ReleaseDC(hWnd, statusRealDC);
 	if (statusDC) DeleteDC(statusDC);
 	if (statusBmp) DeleteObject(statusBmp);
-	auto realDC = GetDC(hWndStatusBar);
-	statusDC = CreateCompatibleDC(realDC);
-	statusBmp = CreateCompatibleBitmap(realDC, sbRect.right, sbRect.bottom);
+	statusRealDC = GetDC(hWndStatusBar);
+	statusDC = CreateCompatibleDC(statusRealDC);
+	statusBmp = CreateCompatibleBitmap(statusRealDC, sbRect.right, sbRect.bottom);
 
 	SelectObject(statusDC, GetStockObject(DC_PEN));
 	SelectObject(statusDC, statusFont);
@@ -293,7 +295,6 @@ void DrawStatusBar()
 	GetClientRect(hWnd, &sbRect);
 	sbRect.bottom = statusBarHeight;
 
-	auto realDC = GetDC(hWndStatusBar);
 	auto hdc = statusDC;
 
 	FillRect(hdc, &sbRect, hbrBack);
@@ -312,7 +313,7 @@ void DrawStatusBar()
 	sbText.right = sbRect.right - 48;
 	DrawText(hdc, statusText.c_str(), statusText.length(), &sbText, DT_END_ELLIPSIS); 
 
-	BitBlt(realDC, 0, 0, sbRect.right, sbRect.bottom, hdc, 0, 0, SRCCOPY);
+	BitBlt(statusRealDC, 0, 0, sbRect.right, sbRect.bottom, hdc, 0, 0, SRCCOPY);
 }
 
 extern void AnimateAbout();
