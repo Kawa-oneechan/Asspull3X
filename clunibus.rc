@@ -49,7 +49,7 @@ BEGIN
 	//CONTROL "Cool", IDOK, "Button", WS_TABSTOP, 293, 93, 50, 14
 	CONTROL IDB_ABOUT, IDC_STATIC, "Static", SS_BITMAP, 0, 0, 160, 85
 	LTEXT "Clunibus \x97 Asspull IIIx Fantasy Computer Emulator", IDC_HEADER, 167, 7, 176, 16
-	LTEXT "System design and emulator by Kawa.\n\nThanks and shoutouts to all of the byuuboard.\nExcept for you, Strfry.", IDC_STATIC, 167, 24, 140, 32
+	LTEXT "System design and emulator by Kawa.\n\nThanks and shoutouts to all of the people on the bcord.", IDC_STATIC, 167, 24, 140, 32
 	CONTROL "", IDC_STATIC, "Static", SS_ETCHEDHORZ, 167, 20, 176, 1
 	CONTROL "<a>GitHub page</a>", IDC_LINK, "SysLink", 0, 7, 94, 153, 8
 END
