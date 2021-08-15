@@ -13,6 +13,14 @@ IDI_CDROM ICON ".\\res\\cdrom.ico"
 IDB_ABOUT BITMAP ".\\res\\about.bmp"
 IDB_DANCE BITMAP ".\\res\\dance.bmp"
 
+//Menu icons
+1001 BITMAP ".\\res\\menu\\open.bmp"
+1003 BITMAP ".\\res\\menu\\reset.bmp"
+1007 BITMAP ".\\res\\menu\\memory.bmp"
+1008 BITMAP ".\\res\\menu\\palette.bmp"
+1011 BITMAP ".\\res\\menu\\shaders.bmp"
+1012 BITMAP ".\\res\\menu\\devices.bmp"
+
 IDR_MAINMENU MENU
 BEGIN
 	POPUP "File"
@@ -29,9 +37,9 @@ BEGIN
 		MENUITEM "Shaders", 1011
 		MENUITEM SEPARATOR
 		MENUITEM "Devices", 1012
-		MENUITEM "Dump RAM\tRCtrl+D", 1005
 		MENUITEM "Memory viewer", 1007
 		MENUITEM "Palette viewer", 1008
+		MENUITEM "Dump RAM\tRCtrl+D", 1005
 		MENUITEM "Screenshot\tRCtrl+S", 1004
 	END
 	POPUP "Help"

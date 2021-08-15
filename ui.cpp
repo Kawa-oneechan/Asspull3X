@@ -369,12 +369,20 @@ void InitializeUI()
 		};
 		SetMenuInfo(menuBar, &mainInfo);
 
+		MENUITEMINFO miInfo = { sizeof(MENUITEMINFO), MIIM_BITMAP };
+		for (int i = 0; i < 20; i++)
+		{
+			auto hBmp = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(1000 + i), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
+			if (hBmp == NULL)
+				continue;
+			miInfo.hbmpItem = hBmp;
+			SetMenuItemInfo(menuBar, 1000 + i, FALSE, &miInfo);
+		}
 		SetMenu(hWnd, menuBar);
 
 		hWndStatusBar = CreateWindowEx(0, "STATIC", NULL, WS_CHILD | WS_VISIBLE | SS_OWNERDRAW, 0, 0, 0, 0, hWnd, 0, hInstance, NULL);
 		statusBarHeight = 23;
 		statusFPS = "     ";
-
 
 		auto scrDC = GetDC(0);
 		auto dpiY = GetDeviceCaps(scrDC, LOGPIXELSY);
