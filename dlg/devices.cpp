@@ -107,7 +107,7 @@ void SwitchDevice(HWND hwndDlg)
 					oldType = 2;
 				break;
 			case 0x4C50:
-				oldType = 2;
+				oldType = 3;
 				break;
 		}
 	}
