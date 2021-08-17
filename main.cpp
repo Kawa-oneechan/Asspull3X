@@ -1,4 +1,5 @@
 #include "asspull.h"
+#include "resource.h"
 #include "miniz.h"
 
 extern "C" {
@@ -73,7 +74,7 @@ void LoadROM(std::string path)
 		mz_zip_reader_end(&zip);
 		if (!foundSomething)
 		{
-			SetStatus(74); //"No single AP3 file found in archive."
+			SetStatus(IDS_NOTHINGINZIP); //"No single AP3 file found in archive."
 			return;
 		}
 	}
@@ -81,7 +82,7 @@ void LoadROM(std::string path)
 	fileSize = romSize;
 	romSize = RoundUp(romSize);
 	if (romSize != fileSize)
-		SDL_Log(GetString(50), fileSize, fileSize, romSize, romSize); //"File size is not a power of two: is %d (0x%08X), should be %d (0x%08X)."
+		SDL_Log(GetString(IDS_BADSIZE), fileSize, fileSize, romSize, romSize); //"File size is not a power of two: is %d (0x%08X), should be %d (0x%08X)."
 
 	unsigned int c1 = 0;
 	unsigned int c2 = (romCartridge[0x20] << 24) | (romCartridge[0x21] << 16) | (romCartridge[0x22] << 8) | (romCartridge[0x23] << 0);
@@ -92,7 +93,7 @@ void LoadROM(std::string path)
 		c1 += romCartridge[i];
 	}
 	if (c1 != c2)
-		SDL_Log(GetString(51), c2, c1); //"Checksum mismatch: is 0x%08X, should be 0x%08X."
+		SDL_Log(GetString(IDS_BADCHECKSUM), c2, c1); //"Checksum mismatch: is 0x%08X, should be 0x%08X."
 
 	ini.SetValue("media", "lastROM", path.c_str());
 	ResetPath();
@@ -111,16 +112,12 @@ void MainLoop()
 {
 	pauseScreen = (unsigned char*)malloc(640 * 480 * 4);
 
-	SDL_Log(GetString(52));
+	SDL_Log(GetString(IDS_RESETTING));
 	m68k_init();
 	m68k_set_cpu_type(M68K_CPU_TYPE_68020);
 	m68k_pulse_reset();
 
-	SDL_Log(GetString(53)); //"Asspull IIIx is ready."...
-	SDL_Log("Press RCtrl-L to load a ROM, RCtrl-Shift-L to load a diskette.");
-	SDL_Log("Press RCtrl-U to unload ROM, RCtrl-Shift-U to unload diskette.");
-	SDL_Log("Press RCtrl-R to reset, RCtrl-Shift-R to unload and reset.");
-	SDL_Log("Press RCtrl-D to dump RAM, RCtrl-S to take a screenshot.");
+	printf(GetString(IDS_ASSPULLISREADY)); //"Asspull IIIx is ready."...
 
 	SDL_Event ev;
 
@@ -141,7 +138,7 @@ void MainLoop()
 	auto delta = 0;
 	auto frames = 0;
 
-	SetStatus(5); //"Middle-click or RCtrl-P to pause emulation."
+	SetStatus(IDS_CLICKTORELEASE); //"Middle-click or RCtrl-P to pause emulation."
 
 	while (!quit)
 	{
@@ -211,36 +208,36 @@ void MainLoop()
 		{
 			if (uiCommand == cmdLoadRom)
 			{
-				ShowOpenFileDialog(cmdLoadRom, 0, GetString(4)); //"Asspull IIIx ROMS (*.ap3)|*.ap3"
+				ShowOpenFileDialog(cmdLoadRom, 0, GetString(IDS_CARTFILTER)); //"Asspull IIIx ROMS (*.ap3)|*.ap3"
 				if (uiCommand == 0) continue;
-				SDL_Log(GetString(60), uiString); //"Loading ROM, %s ..."
+				SDL_Log(GetString(IDS_LOADINGROM), uiString); //"Loading ROM, %s ..."
 				auto gottaReset = (*(uint32_t*)romCartridge == 0x21535341);
 				LoadROM(uiString);
 			}
 			else if (uiCommand == cmdInsertDisk)
 			{
 				if (devices[0] == NULL || devices[0]->GetID() != 0x0144)
-					SetStatus(13); //"No disk drive."
+					SetStatus(IDS_NODISKDRIVE); //"No disk drive."
 				else if (((DiskDrive*)devices[0])->IsMounted())
-					SetStatus(14); //"Unmount the medium first."
+					SetStatus(IDS_UNMOUNTFIRST); //"Unmount the medium first."
 				else
 					InsertDisk(0);
 			}
 			else if (uiCommand == cmdUnloadRom)
 			{
-				SDL_Log(GetString(61)); //"Unloading ROM..."
+				SDL_Log(GetString(IDS_UNLOADINGROM)); //"Unloading ROM..."
 				memset(romCartridge, 0, CART_SIZE);
 				ini.SetValue("media", "lastROM", "");
 				ResetPath();
 				ini.SaveFile("settings.ini");
 				gfxFade = 31;
-				SetStatus(15); //"Cart pulled."
-				Discord::UpdateDiscordPresence(GetString(9));
+				SetStatus(IDS_CARTEJECTED); //"Cart pulled."
+				Discord::UpdateDiscordPresence(GetString(IDS_NOTPLAYING));
 			}
 			else if (uiCommand == cmdEjectDisk)
 			{
 				if (devices[0] == NULL || devices[0]->GetID() != 0x0144)
-					SetStatus(13); //"No disk drive."
+					SetStatus(IDS_NODISKDRIVE); //"No disk drive."
 				else if (((DiskDrive*)devices[0])->IsMounted())
 					EjectDisk(0);
 			}
@@ -248,14 +245,14 @@ void MainLoop()
 			{
 				if (SDL_GetModState() & KMOD_SHIFT)
 				{
-					SDL_Log(GetString(61)); //"Unloading ROM..."
+					SDL_Log(GetString(IDS_UNLOADINGROM)); //"Unloading ROM..."
 					memset(romCartridge, 0, CART_SIZE);
 					ini.SetValue("media", "lastROM", "");
 					ResetPath();
 					ini.SaveFile("settings.ini");
 				}
-				SDL_Log(GetString(51)); //"Resetting Musashi..."
-				SetStatus(6); //"System reset."
+				SDL_Log(GetString(IDS_BADCHECKSUM)); //"Resetting Musashi..."
+				SetStatus(IDS_SYSTEMRESET); //"System reset."
 				m68k_pulse_reset();
 			}
 			else if (uiCommand == cmdQuit)
@@ -264,7 +261,7 @@ void MainLoop()
 			}
 			else if (uiCommand == cmdDump)
 			{
-				SDL_Log(GetString(62)); //"Dumping core..."
+				SDL_Log(GetString(IDS_UNMOUNTINGDISK)); //"Dumping core..."
 				Dump("wram.bin", ramInternal, WRAM_SIZE);
 				Dump("vram.bin", ramVideo, VRAM_SIZE);
 			}

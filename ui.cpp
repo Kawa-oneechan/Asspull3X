@@ -355,6 +355,8 @@ void InitializeUI()
 		SDLWinProc = (WNDPROC)GetWindowLongPtr(hWnd, GWLP_WNDPROC);
 		SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG)WndProc);
 
+		InitCommonControls();
+
 		HMENU menuBar = LoadMenu(hInstance, MAKEINTRESOURCE(IDR_MAINMENU));
 
 		MENUINFO mainInfo =
@@ -461,10 +463,10 @@ void SetFPS(int fps)
 		statusFPS = "     ";
 }
 
-static char getStringBuffer[256];
+static char getStringBuffer[512];
 char* GetString(int stab)
 {
-	LoadString(hInstance, stab, getStringBuffer, 256);
+	LoadString(hInstance, stab, getStringBuffer, 512);
 	return getStringBuffer;
 }
 
@@ -554,14 +556,14 @@ void ShowOpenFileDialog(int command, int data, std::string pattern)
 
 void InsertDisk(int devId)
 {
-	ShowOpenFileDialog(cmdInsertDisk, devId, (((DiskDrive*)devices[devId])->GetType() == ddDiskette ? GetString(2) : GetString(3)));
+	ShowOpenFileDialog(cmdInsertDisk, devId, (((DiskDrive*)devices[devId])->GetType() == ddDiskette ? GetString(IDS_DDFILTER) : GetString(IDS_HDFILTER)));
 	if (uiCommand == 0)
 		return;
 	char key[16];
 	sprintf(key, "%d", devId);
 	auto ret = ((DiskDrive*)devices[devId])->Mount(uiString);
 	if (ret == -1)
-		SetStatus(10); //"Eject the diskette first, with Ctrl-Shift-U."
+		SetStatus(IDS_EJECTFIRST); //"Eject the diskette first, with Ctrl-Shift-U."
 	else if (ret != 0)
 		SDL_Log("Error %d trying to open disk image.", ret);
 	else
@@ -586,6 +588,6 @@ void EjectDisk(int devId)
 		ini.SetValue("devices/hardDrive", key, "");
 	ResetPath();
 	ini.SaveFile("settings.ini");
-	SetStatus(11); //"Disk ejected."
+	SetStatus(IDS_DISKEJECTED); //"Disk ejected."
 	if (hWndDevices != NULL) UpdateDevicePage(hWndDevices);
 }

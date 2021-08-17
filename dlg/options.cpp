@@ -22,9 +22,9 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 			CheckDlgButton(hwndDlg, IDC_SHOWFPS, fpsVisible);
 			
 			for (int i = 0; i < 2; i++)
-				SendDlgItemMessage(hwndDlg, IDC_THEME, CB_ADDSTRING, 0, (LPARAM)GetString(100 + i));
+				SendDlgItemMessage(hwndDlg, IDC_THEME, CB_ADDSTRING, 0, (LPARAM)GetString(IDS_THEMES + i));
 			if (IsWin10())
-				SendDlgItemMessage(hwndDlg, IDC_THEME, CB_ADDSTRING, 0, (LPARAM)GetString(102)); 
+				SendDlgItemMessage(hwndDlg, IDC_THEME, CB_ADDSTRING, 0, (LPARAM)GetString(IDS_THEMES + 2)); 
 			SendDlgItemMessage(hwndDlg, IDC_THEME, CB_SETCURSEL, ini.GetLongValue("media", "theme", 0), 0);
 
 			int midiDevs = midiOutGetNumDevs();

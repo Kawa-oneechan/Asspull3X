@@ -2,6 +2,7 @@
 #include <time.h>
 #include <SDL.h>
 #include <Windows.h>
+#include "resource.h"
 
 extern char* GetString(int);
 
@@ -31,7 +32,7 @@ namespace Discord
 		discordDLL = LoadLibraryExA("discord-rpc.dll", NULL, 0);
 		if (discordDLL == NULL)
 		{
-			SDL_Log(GetString(73)); //"Discord is enabled but the DLL isn't here."
+			SDL_Log(GetString(IDS_DISCORDDLL)); //"Discord is enabled but the DLL isn't here."
 			enabled = false;
 			return;
 		}
@@ -42,7 +43,7 @@ namespace Discord
 
 		DiscordEventHandlers handlers = {};
 		__Discord_Initialize(ApplicationId, &handlers, 1, nullptr);
-		UpdateDiscordPresence(GetString(9)); //"Not playing"
+		UpdateDiscordPresence(GetString(IDS_NOTPLAYING)); //"Not playing"
 	}
 
 	void UpdateDiscordPresence(char* gameName)
