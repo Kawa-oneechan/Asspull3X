@@ -1,5 +1,7 @@
 #include "..\ui.h"
 
+extern char* GetString(int);
+
 BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
@@ -19,11 +21,13 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 			CheckDlgButton(hwndDlg, IDC_ASPECT, stretch200);
 			CheckDlgButton(hwndDlg, IDC_SHOWFPS, fpsVisible);
 			
-			LPCSTR themes[] = { "Light", "Dark" };
-			for (int i = 0; i < 3; i++)
-				SendDlgItemMessage(hwndDlg, IDC_THEME, CB_ADDSTRING, 0, (LPARAM)themes[i]);
+			//LPCSTR themes[] = { "Light", "Dark" };
+			for (int i = 0; i < 2; i++)
+				SendDlgItemMessage(hwndDlg, IDC_THEME, CB_ADDSTRING, 0, (LPARAM)GetString(100 + i));
+				//SendDlgItemMessage(hwndDlg, IDC_THEME, CB_ADDSTRING, 0, (LPARAM)themes[i]);
 			if (IsWin10())
-				SendDlgItemMessage(hwndDlg, IDC_THEME, CB_ADDSTRING, 0, (LPARAM)"Match");
+				SendDlgItemMessage(hwndDlg, IDC_THEME, CB_ADDSTRING, 0, (LPARAM)GetString(102)); 
+				//SendDlgItemMessage(hwndDlg, IDC_THEME, CB_ADDSTRING, 0, (LPARAM)"Match");
 			SendDlgItemMessage(hwndDlg, IDC_THEME, CB_SETCURSEL, ini.GetLongValue("media", "theme", 0), 0);
 
 			int midiDevs = midiOutGetNumDevs();

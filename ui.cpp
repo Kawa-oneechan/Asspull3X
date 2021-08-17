@@ -446,12 +446,26 @@ void SetStatus(std::string text)
 	statusTimer = 4 * text.length();
 }
 
+void SetStatus(int stab)
+{
+	char b[256];
+	LoadString(hInstance, stab, b, 256);
+	SetStatus(b);
+}
+
 void SetFPS(int fps)
 {
 	if (fpsVisible)
 		itoa(fps, &statusFPS[0], 10); //I too like to live dangerously.
 	else
 		statusFPS = "     ";
+}
+
+static char getStringBuffer[256];
+char* GetString(int stab)
+{
+	LoadString(hInstance, stab, getStringBuffer, 256);
+	return getStringBuffer;
 }
 
 extern unsigned char* pixels;
@@ -540,14 +554,14 @@ void ShowOpenFileDialog(int command, int data, std::string pattern)
 
 void InsertDisk(int devId)
 {
-	ShowOpenFileDialog(cmdInsertDisk, devId, (((DiskDrive*)devices[devId])->GetType() == ddDiskette ? "Disk images (*.img)|*.img" : "Disk images (*.vhd)|*.vhd"));
+	ShowOpenFileDialog(cmdInsertDisk, devId, (((DiskDrive*)devices[devId])->GetType() == ddDiskette ? GetString(2) : GetString(3)));
 	if (uiCommand == 0)
 		return;
 	char key[16];
 	sprintf(key, "%d", devId);
 	auto ret = ((DiskDrive*)devices[devId])->Mount(uiString);
 	if (ret == -1)
-		SetStatus("Eject the diskette first, with Ctrl-Shift-U.");
+		SetStatus(10); //"Eject the diskette first, with Ctrl-Shift-U."
 	else if (ret != 0)
 		SDL_Log("Error %d trying to open disk image.", ret);
 	else
@@ -572,6 +586,6 @@ void EjectDisk(int devId)
 		ini.SetValue("devices/hardDrive", key, "");
 	ResetPath();
 	ini.SaveFile("settings.ini");
-	SetStatus("Disk ejected.");
+	SetStatus(11); //"Disk ejected."
 	if (hWndDevices != NULL) UpdateDevicePage(hWndDevices);
 }

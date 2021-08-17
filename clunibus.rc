@@ -23,6 +23,63 @@ IDB_DANCE BITMAP ".\\res\\dance.bmp"
 1011 BITMAP ".\\res\\menu\\shaders.bmp"
 1012 BITMAP ".\\res\\menu\\devices.bmp"
 
+STRINGTABLE
+{
+	1, "Clunibus - Asspull IIIx Emulator"
+	2, "Disk images (*.img)|*.img"
+	3, "Disk images (*.vhd)|*.vhd"
+	4, "Asspull IIIx ROMS (*.ap3)|*.ap3"
+	5, "Middle-click or RCtrl-P to pause emulation."
+	6, "System reset."
+	7, "You are trying to run with an outdated version of SDL.\n\nYou have version %d.%d.%d.\nYou need version 2.0.4 or later."
+	8, "Clunibus"
+	9, "Not playing"
+
+	10, "Eject the diskette first, with Ctrl-Shift-U."
+	11, "Disk ejected."
+	12, "Clunibus - %s"
+	13, "No disk drive."
+	14, "Unmount the medium first."
+	15, "Cart pulled."
+
+	20, "Invalid VHD: bad feature bits (must be 2)"
+	21, "Invalid VHD: bad version (must be 1.00)."
+	22, "Invalid VHD: bad disk type (must be FIXED)."
+
+	50, "File size is not a power of two: is %d (0x%08X), should be %d (0x%08X)."
+	51, "Checksum mismatch: is 0x%08X, should be 0x%08X."
+	52, "Resetting Musashi..."
+	53, "Asspull IIIx is ready.\n"
+	60, "Loading ROM, %s ..."
+	61, "Unloading ROM..."
+	62, "Unmounting diskette..."
+	63, "Mounting disk image, %s ..."
+	64, "Mounted VHD. %d * %d * %d * 512 = %d, should be ~%d."
+	65, "Error compiling shader: %d"
+	66, "Too many shaders specified: can only do %d but %d were requested."
+	67, "Could not create window: %s"
+	68, "Could not create renderer: %s"
+	69, "Nice."
+	70, "Could not create texture: %s"
+	71, "Failed to write PNG."
+	72, "Snap! %s saved."
+	73, "Discord is enabled but the DLL isn't here."
+	74, "No single AP3 file found in archive."
+
+	100, "Light"
+	101, "Dark"
+	102, "Match"
+
+	200, "Nothing"
+	201, "Diskette drive"
+	202, "Hard drive"
+	203, "Line printer"
+	250, "No device"
+	251, "Diskette drive"
+	252, "Hard drive"
+	253, "Line printer"
+}
+
 IDR_MAINMENU MENU
 BEGIN
 	POPUP "File"

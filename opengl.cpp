@@ -18,6 +18,8 @@ extern unsigned char* pixels;
 extern bool stretch200;
 extern int statusBarHeight;
 
+extern char* GetString(int);
+
 PFNGLCREATESHADERPROC glCreateShader;
 PFNGLSHADERSOURCEPROC glShaderSource;
 PFNGLCOMPILESHADERPROC glCompileShader;
@@ -71,7 +73,7 @@ GLuint compileShader(const char* source, GLuint shaderType)
 {
 	if (source == NULL)
 	{
-		SDL_Log("Cannot compile shader, source is null.");
+		SDL_Log(GetString(63)); //"Mounting disk image, %s ..."
 		return 0;
 	}
 	//SDL_Log("Compiling shader: %s", source);
@@ -87,7 +89,7 @@ GLuint compileShader(const char* source, GLuint shaderType)
 	glGetShaderiv( result, GL_COMPILE_STATUS, &shaderCompiled );
 	if( shaderCompiled != GL_TRUE )
 	{
-		SDL_Log("Error compiling shader: %d", result);
+		SDL_Log(GetString(65), result); //"Error compiling shader: %d"
 		GLint logLength;
 		glGetShaderiv(result, GL_INFO_LOG_LENGTH, &logLength);
 		if (logLength > 0)
@@ -316,7 +318,7 @@ void InitShaders()
 	{
 		if (numShaders >= MAXSHADERS)
 		{
-			SDL_Log("Too many shaders specified: can only do %d but %d were requested.", MAXSHADERS, numShaders);
+			SDL_Log(GetString(66), MAXSHADERS, numShaders); //"Too many shaders specified: can only do %d but %d were requested."
 			numShaders = MAXSHADERS;
 		}
 		for (int i = 0; i < numShaders; i++)
@@ -340,19 +342,19 @@ int InitVideo()
 		{
 			//https://www.youtube.com/watch?v=5FjWe31S_0g
 			char msg[512];
-			sprintf(msg, "You are trying to run with an outdated version of SDL.\n\nYou have version %d.%d.%d.\nYou need version 2.0.4 or later.", linked.major, linked.minor, linked.patch);
+			sprintf(msg, GetString(7), linked.major, linked.minor, linked.patch); //"You are trying to run with an outdated version of SDL.\n\nYou have version %d.%d.%d.\nYou need version 2.0.4 or later."
 			//SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Clunibus",  msg, NULL);
-			MessageBox(hWnd, msg, "Clunibus", 0);
+			MessageBox(hWnd, msg, GetString(8), 0); //"Clunibus"
 			return -3;
 		}
 	}
 
-	SDL_Log("Creating window...");
+	//SDL_Log("Creating window...");
 	auto winWidth = ini.GetLongValue("video", "width", 640);
 	auto winHeight = ini.GetLongValue("video", "height", 480);
-	if ((sdlWindow = SDL_CreateWindow("Clunibus - Asspull IIIx Emulator", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, winWidth, winHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE)) == NULL)
+	if ((sdlWindow = SDL_CreateWindow(GetString(1), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, winWidth, winHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE)) == NULL)
 	{
-		SDL_Log("Could not create window: %s", SDL_GetError());
+		SDL_Log(GetString(67), SDL_GetError()); //"Could not create window: %s"
 		return -1;
 	}
 
@@ -360,7 +362,7 @@ int InitVideo()
 
 	if ((sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE)) == NULL)
 	{
-		SDL_Log("Could not create renderer: %s", SDL_GetError());
+		SDL_Log(GetString(68), SDL_GetError()); //"Could not create renderer: %s"
 		return -2;
 	}
 
@@ -383,13 +385,13 @@ int InitVideo()
 
 	if ((sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_TARGET, 640, 480)) == NULL)
 	{
-		SDL_Log("Could not create texture: %s", SDL_GetError());
+		SDL_Log(GetString(70), SDL_GetError()); //"Could not create texture: %s"
 		return -2;
 	}
 
 	if ((sdlShader = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_TARGET, 640, 480)) == NULL)
 	{
-		SDL_Log("Could not create texture: %s", SDL_GetError());
+		SDL_Log(GetString(70), SDL_GetError()); //"Could not create texture: %s"
 		return -2;
 	}
 
@@ -424,13 +426,13 @@ void Screenshot()
 	size_t png_data_size = 0;
 	void *pPNG_data = tdefl_write_image_to_png_file_in_memory_ex(shot, scrWidth, scrHeight, 3, &png_data_size, MZ_DEFAULT_LEVEL, MZ_TRUE);
 	if (!pPNG_data)
-		SDL_Log("Failed to write PNG.");
+		SDL_Log(GetString(71)); //"Failed to write PNG."
 	else
 	{
 		FILE *pFile = fopen(snap, "wb");
 		fwrite(pPNG_data, 1, png_data_size, pFile);
 		fclose(pFile);
-		SDL_Log("Snap! %s saved.", snap);
+		SDL_Log(GetString(72), snap); //"Snap! %s saved."
 	}
 	mz_free(pPNG_data);
 }

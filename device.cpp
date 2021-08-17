@@ -1,5 +1,7 @@
 #include "asspull.h"
 extern void SetStatus(std::string);
+extern void SetStatus(int);
+extern char* GetString(int);
 
 Device* devices[MAXDEVS] = { 0 };
 
@@ -66,7 +68,7 @@ int DiskDrive::Mount(std::string filename)
 {
 	if (file != NULL)
 		return -1;
-	SDL_Log("Mounting disk image, %s ...", filename.c_str());
+	SDL_Log(GetString(63), filename.c_str()); //"Mounting disk image, %s ..."
 	file = fopen(filename.c_str(), "r+b");
 	if (file == 0)
 		return errno;
@@ -89,14 +91,14 @@ int DiskDrive::Mount(std::string filename)
 		uint32_t i = ReadMoto32(file);
 		if (i != 2)
 		{
-			SetStatus("Invalid VHD: bad feature bits (must be 2)");
+			SetStatus(20); //"Invalid VHD: bad feature bits (must be 2)"
 			fclose(file);
 			return 1;
 		}
 		i = ReadMoto32(file);
 		if (i != 0x00010000)
 		{
-			SetStatus("Invalid VHD: bad version (must be 1.00).");
+			SetStatus(21); //"Invalid VHD: bad version (must be 1.00)."
 			fclose(file);
 			return 1;
 		}
@@ -108,12 +110,12 @@ int DiskDrive::Mount(std::string filename)
 		i = ReadMoto32(file);
 		if (i != 2)
 		{
-			SetStatus("Invalid VHD: bad disk type (must be FIXED).");
+			SetStatus(23); //"Invalid VHD: bad disk type (must be FIXED)."
 			fclose(file);
 			return 1;
 		}
 		fseek(file, 0, SEEK_SET);
-		SDL_Log("Mounted VHD. %d * %d * %d * 512 = %d, should be ~%d.", tracks, heads, sectors, tracks * heads * sectors * 512, capacity);
+		SDL_Log(GetString(64), tracks, heads, sectors, tracks * heads * sectors * 512, capacity); //"Mounted VHD. %d * %d * %d * 512 = %d, should be ~%d."
 	}
 	return 0;
 }
@@ -122,7 +124,7 @@ int DiskDrive::Unmount()
 {
 	if (file == NULL)
 		return 1;
-	SDL_Log("Unmounting diskette...");
+	SDL_Log(GetString(62)); //"Unmounting diskette..."
 	fclose(file);
 	file = NULL;
 	return 0;
