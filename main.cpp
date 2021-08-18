@@ -9,7 +9,7 @@ extern "C" {
 bool fpsCap;
 bool quit = 0;
 int line = 0, interrupts = 0;
-int invertButtons = 1;
+int invertButtons = 0;
 extern void Screenshot();
 extern int uiCommand;
 extern char uiString[512];

@@ -1,6 +1,7 @@
 #include "..\ui.h"
 
 extern char* GetString(int);
+extern int invertButtons;
 
 BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -14,7 +15,7 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 		}
 		case WM_INITDIALOG:
 		{
-			for (int i = 10; i < 14; i++)
+			for (int i = 10; i < 15; i++)
 				SendDlgItemMessage(hwndDlg, i, WM_SETFONT, (WPARAM)headerFont, (LPARAM)true);
 
 			CheckDlgButton(hwndDlg, IDC_FPSCAP, fpsCap);
@@ -39,6 +40,8 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 			CheckDlgButton(hwndDlg, IDC_SOUND, ini.GetBoolValue("audio", "sound", true));
 			CheckDlgButton(hwndDlg, IDC_MUSIC, ini.GetBoolValue("audio", "music", true));
 			SendDlgItemMessage(hwndDlg, IDC_MIDIDEV, CB_SETCURSEL, dev, 0);
+
+			CheckDlgButton(hwndDlg, IDC_INVERTBUTTONS, ini.GetBoolValue("media", "invertButtons", false));
 
 			CheckDlgButton(hwndDlg, IDC_RELOAD, reloadROM);
 			CheckDlgButton(hwndDlg, IDC_REMOUNT, reloadIMG);
@@ -65,6 +68,7 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 					case IDC_REMOUNT:
 					case IDC_SOUND:
 					case IDC_MUSIC:
+					case IDC_INVERTBUTTONS:
 					{
 						DrawCheckbox(hwndDlg, nmc);
 						return true;
@@ -130,6 +134,7 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 						stretch200 = (IsDlgButtonChecked(hwndDlg, IDC_ASPECT) == 1);
 						reloadROM = (IsDlgButtonChecked(hwndDlg, IDC_RELOAD) == 1);
 						reloadIMG = (IsDlgButtonChecked(hwndDlg, IDC_REMOUNT) == 1);
+						invertButtons = (IsDlgButtonChecked(hwndDlg, IDC_INVERTBUTTONS) == 1) ? 1 : 0;
 						auto enableSound = (IsDlgButtonChecked(hwndDlg, IDC_SOUND) == 1);
 						auto enableMusic = (IsDlgButtonChecked(hwndDlg, IDC_MUSIC) == 1);
 
@@ -140,6 +145,7 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 						ini.SetBoolValue("audio", "music", enableMusic);
 						ini.SetBoolValue("media", "reloadRom", reloadROM);
 						ini.SetBoolValue("media", "reloadImg", reloadIMG);
+						ini.SetBoolValue("media", "invertButtons", invertButtons == 1);
 						ini.SaveFile("settings.ini");
 						DestroyWindow(hwndDlg);
 						hWndOptions = NULL;
