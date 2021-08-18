@@ -89,11 +89,16 @@ Scroll values for the tile map as `int16`. This repeats for each of the four lay
 
 ### 00043	REG_JOYPAD2
 
-    YXBA RLDU
+First, *write* anything to the joypad register you want to poll.
+
+    First read:  YXBA RLDU   -- the D-pad and action buttons
+    Second read: .... RLSB   -- Back, Start, left and right shoulder buttons
+    Third read:  signed byte -- Analog stick up/down
+    Fourth read: signed btye -- Analog stick left/right
+
+Different connected joypads *may not* have all features. You should always write to reset before reading, or you *will* misinterpret inputs.
 
 The joypads are also available via the `JOYPADS` array and `REG_JOYPAD`.
-
-*I'm considering overhauling the joypad control system to make it more extendible.*
 
 #### 00044	REG_MIDIOUT
 
