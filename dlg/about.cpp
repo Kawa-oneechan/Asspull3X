@@ -1,6 +1,7 @@
 #include "..\ui.h"
 
-HANDLE aboutAnim = NULL;
+HIMAGELIST hDanceIml = NULL;
+//HANDLE aboutAnim = NULL;
 int aboutFrame = 0;
 #define DANCE_X 550
 #define DANCE_Y 80
@@ -31,8 +32,10 @@ BOOL CALLBACK AboutWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPa
 	{
 		case WM_INITDIALOG:
 		{
-			if (aboutAnim == NULL)
-				aboutAnim = LoadImage(hInstance, MAKEINTRESOURCE(IDB_DANCE), IMAGE_BITMAP, 0, 0, LR_LOADTRANSPARENT);
+			hDanceIml = ImageList_Create(DANCE_W, DANCE_H, ILC_COLOR32, DANCE_F, 0);
+			ImageList_Add(hDanceIml, (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_DANCE), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_CREATEDIBSECTION), NULL);
+			//if (aboutAnim == NULL)
+			//	aboutAnim = LoadImage(hInstance, MAKEINTRESOURCE(IDB_DANCE), IMAGE_BITMAP, 0, 0, LR_LOADTRANSPARENT);
 			SendDlgItemMessage(hwndDlg, IDC_HEADER, WM_SETFONT, (WPARAM)headerFont, (LPARAM)true);
 			return true;
 		}
@@ -42,20 +45,9 @@ BOOL CALLBACK AboutWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPa
 			//gotta repeat most of that function so we can do the dance
 			PAINTSTRUCT ps;
 			HDC hdc = BeginPaint(hwndDlg, &ps);
-			RECT rect = { 0 };
-			rect.bottom = 7 + 14 + 7; //margin, button, padding
-			MapDialogRect(hwndDlg, &rect);
-			auto h = rect.bottom;
-			GetClientRect(hwndDlg, &rect);
-			rect.bottom -= h;
-			FillRect(hdc, &ps.rcPaint, hbrStripe);
-			FillRect(hdc, &rect, hbrBack);
-
+			DrawWindowBk(hwndDlg, true, &ps, hdc);
 			auto hdcMem = CreateCompatibleDC(hdc);
-			auto oldBitmap = SelectObject(hdcMem, aboutAnim);
-			BitBlt(hdc, DANCE_X, DANCE_Y, DANCE_W, DANCE_H, hdcMem, DANCE_W * aboutFrame, DANCE_H, SRCAND);
-			BitBlt(hdc, DANCE_X, DANCE_Y, DANCE_W, DANCE_H, hdcMem, DANCE_W * aboutFrame, 0, SRCPAINT);
-			SelectObject(hdcMem, oldBitmap);
+			ImageList_Draw(hDanceIml, aboutFrame, hdc, DANCE_X, DANCE_Y, ILD_NORMAL);
 			DeleteDC(hdcMem);
 			EndPaint(hwndDlg, &ps);
 			return true;
@@ -80,6 +72,7 @@ BOOL CALLBACK AboutWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPa
 		case WM_CLOSE:
 		case WM_COMMAND:
 		{
+			ImageList_Destroy(hDanceIml);
 			DestroyWindow(hwndDlg);
 			hWndAbout = NULL;
 			return true;

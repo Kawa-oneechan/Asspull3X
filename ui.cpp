@@ -38,6 +38,12 @@ void DrawWindowBk(HWND hwndDlg, bool stripe)
 {
 	PAINTSTRUCT ps;
 	HDC hdc = BeginPaint(hwndDlg, &ps);
+	DrawWindowBk(hwndDlg, stripe, &ps, hdc);
+	EndPaint(hwndDlg, &ps);
+}
+
+void DrawWindowBk(HWND hwndDlg, bool stripe, PAINTSTRUCT* ps, HDC hdc)
+{
 	if (stripe)
 	{
 		RECT rect = { 0 };
@@ -46,15 +52,13 @@ void DrawWindowBk(HWND hwndDlg, bool stripe)
 		auto h = rect.bottom;
 		GetClientRect(hwndDlg, &rect);
 		rect.bottom -= h;
-		FillRect(hdc, &ps.rcPaint, hbrStripe);
+		FillRect(hdc, &ps->rcPaint, hbrStripe);
 		FillRect(hdc, &rect, hbrBack);
 	}
 	else
 	{
-		FillRect(hdc, &ps.rcPaint, hbrBack);
-		EndPaint(hwndDlg, &ps);
+		FillRect(hdc, &ps->rcPaint, hbrBack);
 	}
-	EndPaint(hwndDlg, &ps);
 	return;
 }
 

@@ -40,6 +40,7 @@ extern void EjectDisk(int devId);
 extern HBRUSH hbrBack, hbrStripe, hbrList;
 extern COLORREF rgbBack, rgbStripe, rgbText, rgbHeader, rgbList, rgbListBk;
 extern void DrawWindowBk(HWND hwndDlg, bool stripe);
+extern void DrawWindowBk(HWND hwndDlg, bool stripe, PAINTSTRUCT* ps, HDC hdc);
 extern void DrawCheckbox(HWND hwndDlg, LPNMCUSTOMDRAW dis);
 extern bool DrawDarkButton(HWND hwndDlg, LPNMCUSTOMDRAW dis);
 extern bool DrawComboBox(HWND hwndDlg, LPDRAWITEMSTRUCT dis);
