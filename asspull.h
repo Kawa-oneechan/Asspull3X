@@ -19,7 +19,9 @@ extern unsigned char* ramInternal;
 
 extern SDL_Window* sdlWindow;
 
-extern int keyScan, joypad[2];
+extern int keyScan;
+extern char joypad[4];
+extern char joyaxes[4];
 
 extern int gfxFade;
 extern long ticks;

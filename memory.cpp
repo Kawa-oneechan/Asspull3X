@@ -21,7 +21,10 @@ unsigned char* ramVideo = NULL;
 
 unsigned int biosSize = 0, romSize = 0;
 
-int keyScan, joypad[2];
+int keyScan;
+char joypad[4];
+char joyaxes[4];
+int joylatch[2];
 
 int dmaSource, dmaTarget;
 unsigned int dmaLength;
@@ -113,7 +116,21 @@ unsigned int m68k_read_memory_8(unsigned int address)
 				//TODO: add mapEnabled[2] and [3].
 			case 0x42: //Joypad
 			case 0x43:
-				return joypad[reg - 0x42];
+				switch (joylatch[reg - 0x42])
+				{
+				case 0:
+					joylatch[reg - 0x42]++;
+					return joypad[reg - 0x42];
+				case 1:
+					joylatch[reg - 0x42]++;
+					return joypad[(reg - 0x42) + 2];
+				case 2:
+					joylatch[reg - 0x42]++;
+					return joyaxes[(reg - 0x42) * 2 + 0];
+				case 3:
+					joylatch[reg - 0x42] = 0;//++;
+					return joyaxes[(reg - 0x42) * 2 + 1];
+				}
 		}
 		return 0;
 	}
@@ -263,6 +280,11 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				mapBlend[1] = ((u8 >> 1) & 1) | (((u8 >> 5) & 1) << 1);
 				mapBlend[2] = ((u8 >> 2) & 1) | (((u8 >> 6) & 1) << 1);
 				mapBlend[3] = ((u8 >> 3) & 1) | (((u8 >> 7) & 1) << 1);
+				break;
+			case 0x42: //Joypads
+			case 0x43:
+				//TODO: decide on a poll value?
+				joylatch[reg - 0x42] = 0;
 				break;
 			case 0x48: //Sound out
 				BufferAudioSample((signed char)value);

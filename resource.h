@@ -1,9 +1,12 @@
 #define IDOK 1
 #define IDCANCEL 2
+
 #define IDR_MAINMENU 101
+
 #define IDB_ABOUT 103
 #define IDB_DANCE 104
-#define IDI_APP 107
+#define IDB_ICONS 105
+
 #define IDS_FULLTITLE 1
 #define IDS_DDFILTER 2
 #define IDS_HDFILTER 3
@@ -46,6 +49,7 @@
 #define IDS_DEVICES2 250
 #define IDS_REGIONS 300
 
+#define IDI_APP 1
 #define IDI_BLANK 108
 #define IDI_DISKDRIVE 109
 #define IDI_HARDDRIVE 110
@@ -88,7 +92,7 @@
 #define IDC_HEADER 1015
 #define IDC_DEVTYPE 1016
 #define IDC_DEVNONE 1017
-#define IDC_DECO 1018
+
 #define IDC_LINK 1019
 #define IDC_PRIMARYDEVICE 1020
 #define IDC_THEME 1021

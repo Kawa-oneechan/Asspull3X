@@ -2,6 +2,8 @@
 
 extern char* GetString(int);
 
+extern HIMAGELIST hIml;
+
 void UpdateDevicePage(HWND hwndDlg)
 {
 	int devNum = SendDlgItemMessage(hwndDlg, IDC_DEVLIST, LB_GETCURSEL, 0, 0);
@@ -23,7 +25,6 @@ void UpdateDevicePage(HWND hwndDlg)
 		ShowWindow(GetDlgItem(hwndDlg, IDC_DEVNONE), SW_SHOW);
 		SetDlgItemText(hwndDlg, IDC_HEADER, GetString(IDS_DEVICES2+0)); //"No device"
 		SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, CB_SETCURSEL, 0, 0);
-		SendDlgItemMessage(hwndDlg, IDC_DECO, STM_SETICON, (WPARAM)LoadImage(hInstance, MAKEINTRESOURCE(IDI_BLANK), IMAGE_ICON, 0, 0, 0), 0);
 	}
 	else
 	{
@@ -41,7 +42,6 @@ void UpdateDevicePage(HWND hwndDlg)
 				SetDlgItemText(hwndDlg, IDC_DDFILE, val);
 				EnableWindow(GetDlgItem(hwndDlg, IDC_DDINSERT), val[0] == 0);
 				EnableWindow(GetDlgItem(hwndDlg, IDC_DDEJECT), val[0] != 0);
-				SendDlgItemMessage(hwndDlg, IDC_DECO, STM_SETICON, (WPARAM)LoadImage(hInstance, MAKEINTRESOURCE((((DiskDrive*)device)->GetType() == ddHardDisk) ? IDI_HARDDRIVE :IDI_DISKDRIVE), IMAGE_ICON, 0, 0, 0), 0);
 				break;
 			}
 			case 0x4C50:
@@ -49,7 +49,6 @@ void UpdateDevicePage(HWND hwndDlg)
 				ShowWindow(GetDlgItem(hwndDlg, IDC_DEVNONE), SW_SHOW);
 				SetDlgItemText(hwndDlg, IDC_HEADER, GetString(IDS_DEVICES2+3)); //"Line printer"
 				SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, CB_SETCURSEL, 3, 0);
-				SendDlgItemMessage(hwndDlg, IDC_DECO, STM_SETICON, (WPARAM)LoadImage(hInstance, MAKEINTRESOURCE(IDI_PRINTER), IMAGE_ICON, 0, 0, 0), 0);
 				break;
 			}
 		}
@@ -156,9 +155,7 @@ BOOL CALLBACK DevicesWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 		case WM_INITDIALOG:
 		{
 			SendDlgItemMessage(hwndDlg, IDC_HEADER, WM_SETFONT, (WPARAM)headerFont, (LPARAM)true);
-			//LPCSTR devices[] = { "Nothing", "Diskette drive", "Hard drive", "Line printer" };
 			for (int i = 0; i < 4; i++)
-				//SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, CB_ADDSTRING, 0, (LPARAM)devices[i]);
 				SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, CB_ADDSTRING, 0, (LPARAM)GetString(IDS_DEVICES1 + i));
 			UpdateDeviceList(hwndDlg);
 			return true;
@@ -209,6 +206,35 @@ BOOL CALLBACK DevicesWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 		case WM_CTLCOLORBTN:
 		{
 			return (INT_PTR)hbrBack;
+		}
+		case WM_MEASUREITEM:
+		{
+			auto mis = (LPMEASUREITEMSTRUCT)lParam;
+			if (mis->itemHeight < 18)
+				mis->itemHeight = 18;
+			break;
+		}
+		case WM_DRAWITEM:
+		{
+			auto dis = (LPDRAWITEMSTRUCT)lParam;
+       
+			if (dis->itemID == -1)
+				break;
+
+			SetTextColor(dis->hDC, dis->itemState & ODS_SELECTED ? GetSysColor(COLOR_HIGHLIGHTTEXT) : rgbList);
+			SetBkColor(dis->hDC, dis->itemState & ODS_SELECTED ? GetSysColor(COLOR_HIGHLIGHT) : rgbListBk);
+
+			TEXTMETRIC tm;
+			GetTextMetrics(dis->hDC, &tm);
+			int y = (dis->rcItem.bottom + dis->rcItem.top - tm.tmHeight) / 2;
+			int x = LOWORD(GetDialogBaseUnits()) / 4;
+
+			char text[256];
+			SendMessage(dis->hwndItem, CB_GETLBTEXT, dis->itemID, (LPARAM)text);
+			ExtTextOut(dis->hDC, 24, y, ETO_CLIPPED | ETO_OPAQUE, &dis->rcItem, text, (UINT)strlen(text), NULL);
+
+			ImageList_Draw(hIml, dis->itemID, dis->hDC, dis->rcItem.left + 1, dis->rcItem.top + 1, ILD_NORMAL);
+			return true;
 		}
 		case WM_COMMAND:
 		{

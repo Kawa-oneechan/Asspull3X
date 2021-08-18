@@ -150,6 +150,7 @@ void MainLoop()
 				quit = true;
 				break;
 
+			//TODO: add start, select, and two triggers in joypad[2] and [3].
 			case SDL_JOYBUTTONDOWN:
 				if (ev.jbutton.which < 2)
 					joypad[ev.jbutton.which] |= 16 << (ev.jbutton.button ^ invertButtons);
@@ -161,6 +162,10 @@ void MainLoop()
 			case SDL_JOYHATMOTION:
 				if (ev.jhat.which < 2 && ev.jhat.hat == 0)
 					joypad[ev.jbutton.which] = (joypad[ev.jbutton.which] & ~15) | ev.jhat.value;
+				break;
+			case SDL_JOYAXISMOTION:
+				if (ev.jaxis.which < 2)
+					joyaxes[(ev.jaxis.which * 2) + ev.jaxis.axis] = ev.jaxis.value >> 8;
 				break;
 			case SDL_KEYUP:
 			{

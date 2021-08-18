@@ -203,6 +203,8 @@ BOOL CALLBACK MemViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM
 				MemViewerDraw((DRAWITEMSTRUCT*)lParam);
 				return true;
 			}
+			else if (wParam == IDC_MEMVIEWERDROP)
+				return DrawComboBox(hwndDlg, (LPDRAWITEMSTRUCT)lParam);
 			return false;
 		}
 		case WM_PAINT:

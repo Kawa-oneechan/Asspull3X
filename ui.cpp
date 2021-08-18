@@ -30,6 +30,7 @@ HFONT headerFont = NULL, monoFont = NULL, statusFont = NULL;
 HBRUSH hbrBack = NULL, hbrStripe = NULL, hbrList = NULL;
 HPEN hpnStripe = NULL;
 COLORREF rgbBack = NULL, rgbStripe = NULL, rgbText = NULL, rgbHeader = NULL, rgbList = NULL, rgbListBk = NULL;
+HIMAGELIST hIml = NULL;
 
 bool ShowFileDlg(bool toSave, char* target, size_t max, const char* filter);
 
@@ -151,6 +152,27 @@ bool DrawDarkButton(HWND hwndDlg, LPNMCUSTOMDRAW nmc)
 	return true;
 }
 
+bool DrawComboBox(HWND hwndDlg, LPDRAWITEMSTRUCT dis)
+{
+	if (dis->itemID == -1)
+		return false;
+
+	SetTextColor(dis->hDC, dis->itemState & ODS_SELECTED ? GetSysColor(COLOR_HIGHLIGHTTEXT) : rgbList);
+	SetBkColor(dis->hDC, dis->itemState & ODS_SELECTED ? GetSysColor(COLOR_HIGHLIGHT) : rgbListBk);
+
+	TEXTMETRIC tm;
+	GetTextMetrics(dis->hDC, &tm);
+	int y = (dis->rcItem.bottom + dis->rcItem.top - tm.tmHeight) / 2;
+	int x = LOWORD(GetDialogBaseUnits()) / 4;
+	if (dis->itemState & ODS_COMBOBOXEDIT)
+		x += 2;
+
+	char text[256];
+	SendMessage(dis->hwndItem, CB_GETLBTEXT, dis->itemID, (LPARAM)text);
+	ExtTextOut(dis->hDC, x, y, ETO_CLIPPED | ETO_OPAQUE, &dis->rcItem, text, (UINT)strlen(text), NULL);
+	return true;
+}
+
 typedef void (WINAPI * fnRtlGetNtVersionNumbers) (LPDWORD major, LPDWORD minor, LPDWORD build);
 bool IsWin10()
 {
@@ -223,6 +245,28 @@ void SetThemeColors()
 	if (hWndMemViewer != NULL) RedrawWindow(hWndMemViewer, NULL, NULL, RDW_INVALIDATE);
 	//Being called right before the options window is closed, we don't need to bother with it.
 	//if (hWndOptions != NULL) RedrawWindow(hWndOptions, NULL, NULL, RDW_INVALIDATE);
+}
+
+HBITMAP GetImageListImage(int index)
+{
+	//Step one, prepare a canvas.
+	auto scrDC = GetDC(0);
+	BITMAPINFO bmi = { 0 };
+	bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+	bmi.bmiHeader.biCompression = BI_RGB;
+	bmi.bmiHeader.biBitCount = 32;
+	bmi.bmiHeader.biPlanes = 1;
+	bmi.bmiHeader.biWidth = bmi.bmiHeader.biHeight = 16;
+	auto hbm = CreateDIBSection(scrDC, &bmi, DIB_RGB_COLORS, NULL, NULL, 0);
+	ReleaseDC(0, scrDC);
+	//Step two, draw on it.
+	auto dc = CreateCompatibleDC(0);
+	auto oldBm = SelectObject(dc, hbm);
+	ImageList_Draw(hIml, index, dc, 0, 0, ILD_NORMAL);
+	SelectObject(dc, oldBm);
+	ReleaseDC(0, dc);
+
+	return hbm;
 }
 
 WNDPROC SDLWinProc = NULL;
@@ -357,6 +401,9 @@ void InitializeUI()
 
 		InitCommonControls();
 
+		hIml = ImageList_Create(16, 16, ILC_COLOR32, 32, 0);
+		ImageList_Add(hIml, (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_ICONS), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_CREATEDIBSECTION), NULL);
+
 		HMENU menuBar = LoadMenu(hInstance, MAKEINTRESOURCE(IDR_MAINMENU));
 
 		MENUINFO mainInfo =
@@ -374,7 +421,8 @@ void InitializeUI()
 		MENUITEMINFO miInfo = { sizeof(MENUITEMINFO), MIIM_BITMAP };
 		for (int i = 0; i < 20; i++)
 		{
-			auto hBmp = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(1000 + i), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
+			//auto hBmp = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(1000 + i), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
+			auto hBmp = GetImageListImage(20 + i);
 			if (hBmp == NULL)
 				continue;
 			miInfo.hbmpItem = hBmp;
