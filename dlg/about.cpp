@@ -1,7 +1,6 @@
 #include "..\ui.h"
 
 HIMAGELIST hDanceIml = NULL;
-//HANDLE aboutAnim = NULL;
 int aboutFrame = 0;
 #define DANCE_X 550
 #define DANCE_Y 80
@@ -34,8 +33,6 @@ BOOL CALLBACK AboutWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPa
 		{
 			hDanceIml = ImageList_Create(DANCE_W, DANCE_H, ILC_COLOR32, DANCE_F, 0);
 			ImageList_Add(hDanceIml, (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_DANCE), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_CREATEDIBSECTION), NULL);
-			//if (aboutAnim == NULL)
-			//	aboutAnim = LoadImage(hInstance, MAKEINTRESOURCE(IDB_DANCE), IMAGE_BITMAP, 0, 0, LR_LOADTRANSPARENT);
 			SendDlgItemMessage(hwndDlg, IDC_HEADER, WM_SETFONT, (WPARAM)headerFont, (LPARAM)true);
 			return true;
 		}

@@ -1,0 +1,148 @@
+#pragma code_page(1252)
+
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+
+STRINGTABLE
+{
+	IDS_FULLTITLE, "Clunibus - Asspull IIIx Emulator"
+	IDS_DDFILTER, "Disk images (*.img)|*.img"
+	IDS_HDFILTER, "Disk images (*.vhd)|*.vhd"
+	IDS_CARTFILTER, "Asspull IIIx ROMS (*.ap3)|*.ap3"
+	IDS_CLICKTORELEASE, "Middle-click or RCtrl-P to pause emulation."
+	IDS_SYSTEMRESET, "System reset."
+	IDS_OLDSDL, "You are trying to run with an outdated version of SDL.\n\nYou have version %d.%d.%d.\nYou need version 2.0.4 or later."
+	IDS_SHORTTITLE, "Clunibus"
+	IDS_NOTPLAYING, "Not playing"
+
+	IDS_EJECTFIRST, "Eject the diskette first, with Ctrl-Shift-U."
+	IDS_DISKEJECTED, "Disk ejected."
+	IDS_TEMPLATETITLE, "Clunibus - %s"
+	IDS_NODISKDRIVE, "No disk drive."
+	IDS_UNMOUNTFIRST, "Unmount the medium first."
+	IDS_CARTEJECTED, "Cart pulled."
+
+	IDS_VHDBADBITS, "Invalid VHD: bad feature bits (must be 2)"
+	IDS_VHDBADVERSION, "Invalid VHD: bad version (must be 1.00)."
+	IDS_VHDBADTYPE, "Invalid VHD: bad disk type (must be FIXED)."
+
+	IDS_BADSIZE, "File size is not a power of two: is %d (0x%08X), should be %d (0x%08X)."
+	IDS_BADCHECKSUM, "Checksum mismatch: is 0x%08X, should be 0x%08X."
+	IDS_RESETTING, "Resetting Musashi..."
+	IDS_ASSPULLISREADY, "\nAsspull IIIx is ready.\nPress RCtrl-L to load a ROM, RCtrl-Shift-L to load a diskette.\nPress RCtrl-U to unload ROM, RCtrl-Shift-U to unload diskette.\nPress RCtrl-R to reset, RCtrl-Shift-R to unload and reset.\nPress RCtrl-D to dump RAM, RCtrl-S to take a screenshot.\n\n"
+
+	IDS_LOADINGROM, "Loading ROM, %s ..."
+	IDS_UNLOADINGROM, "Unloading ROM..."
+	IDS_UNMOUNTINGDISK, "Unmounting diskette..."
+	IDS_MOUNTINGDISK, "Mounting disk image, %s ..."
+	IDS_MOUNTEDVHD, "Mounted VHD. %d * %d * %d * 512 = %d, should be ~%d."
+	IDS_SHADERERROR, "Error compiling shader: %d"
+	IDS_TOOMANYSHADERS, "Too many shaders specified: can only do %d but %d were requested."
+	IDS_WINDOWFAILED, "Could not create window: %s"
+	IDS_RENDERERFAILED, "Could not create renderer: %s"
+	IDS_TSK, "Nice."
+	IDS_TEXTUREFAILED, "Could not create texture: %s"
+	IDS_PNGFAILED, "Failed to write PNG."
+	IDS_SCREENSHOT, "Snap! %s saved."
+	IDS_DISCORDDLL, "Discord is enabled but the DLL isn't here."
+	IDS_NOTHINGINZIP, "No single AP3 file found in archive."
+
+	(IDS_THEMES+0), "Light"
+	(IDS_THEMES+1), "Dark"
+	(IDS_THEMES+2), "Match"
+
+	(IDS_DEVICES1+0), "Nothing"
+	(IDS_DEVICES1+1), "Diskette drive"
+	(IDS_DEVICES1+2), "Hard drive"
+	(IDS_DEVICES1+3), "Line printer"
+	(IDS_DEVICES2+0), "No device"
+	(IDS_DEVICES2+1), "Diskette drive"
+	(IDS_DEVICES2+2), "Hard drive"
+	(IDS_DEVICES2+3), "Line printer"
+
+	(IDS_REGIONS+0), "BIOS"
+	(IDS_REGIONS+1), "Cart"
+	(IDS_REGIONS+2), "WRAM"
+	(IDS_REGIONS+3), "Devices"
+	(IDS_REGIONS+4), "Registers"
+	(IDS_REGIONS+5), "WRAM"
+}
+
+IDR_MAINMENU MENU
+BEGIN
+	POPUP "File"
+	BEGIN
+		MENUITEM "Load ROM\x85\tRCtrl+L", 1001
+		MENUITEM "Unload ROM\tRCtrl+U", 1002
+		MENUITEM "Reset\tRCtrl+R", 1003
+		MENUITEM SEPARATOR
+		MENUITEM "Quit", 1006
+	END
+	POPUP "Tools"
+	BEGIN
+		MENUITEM "Options", 1010
+		MENUITEM "Shaders", 1011
+		MENUITEM SEPARATOR
+		MENUITEM "Devices", 1012
+		MENUITEM "Memory viewer", 1007
+		MENUITEM "Palette viewer", 1008
+		MENUITEM "Dump RAM\tRCtrl+D", 1005
+		MENUITEM "Screenshot\tRCtrl+S", 1004
+	END
+	POPUP "Help"
+	BEGIN
+		MENUITEM "About", 1009
+	END
+END
+
+//------------------------//
+
+#define COMMON_OK "OK"
+#define COMMON_CANCEL "Cancel"
+#define COMMON_APPLY "Apply"
+#define COMMON_CLOSE "Close"
+#define COMMON_REFRESH "Refresh"
+#define COMMON_AUTOUPDATE "Auto-update"
+
+#define ABOUT_TITLE "E Clunibus Tractum"
+#define ABOUT_OKAY "Cool"
+#define ABOUT_HEADER "Clunibus \x97 Asspull IIIx Fantasy Computer Emulator"
+#define ABOUT_BODY "System design and emulator by Kawa.\n\nThanks and shoutouts to all of the people on the bcord."
+#define ABOUT_GITLINK "<a>GitHub page</a>"
+
+#define DEVICES_TITLE "Devices"
+#define DEVICES_NONE "A swirling void howls before you." //poetry about nothingness
+#define DEVICES_INSERTDISK "Insert"
+#define DEVICES_EJECTDISK "Eject"
+#define DEVICES_MUSTBEDISKDRIVE "The primary device can only be a diskette drive."
+
+//Only COMMON_xxx labels for these two
+#define MEMORY_TITLE "Memory viewer"
+#define PALETTE_TITLE "Palette viewer"
+
+#define OPTIONS_TITLE "Options"
+#define OPTIONS_FRAMERATE "Framerate"
+	#define OPTIONS_SHOWFPS "Show FPS"
+	#define OPTIONS_LIMITFPS "Limit to 60 FPS"
+#define OPTIONS_VISUALS "Visuals"
+	#define OPTIONS_ASPECT "Aspect correction"
+	#define OPTIONS_THEME "Theme"
+#define OPTIONS_AUDIO "Audio"
+	#define OPTIONS_SOUND "Sound"
+	#define OPTIONS_MUSIC "Music"
+	#define OPTIONS_MIDIDEVICE "MIDI device"
+#define OPTIONS_INPUT "Input"
+	#define OPTIONS_SWITCH "Switch ABXY to BAYX"
+#define OPTIONS_MEDIA "Media"
+	#define OPTIONS_RELOADROM "Reload ROM"
+	#define OPTIONS_RELOADDISK "Reload disk image"
+	#define OPTIONS_BIOS "BIOS file"
+
+#define SHADERS_TITLE "Shaders"
+#define SHADERS_AVAILABLE "Available"
+#define SHADERS_INUSE "In use"
+#define SHADERS_ADD "Add"
+#define SHADERS_REMOVE "Remove"
+#define SHADERS_MOVEUP "Move up"
+#define SHADERS_MOVEDOWN "Move down"
+
+#include "dialogs.rc"

@@ -65,6 +65,9 @@
       <AdditionalDependencies>opengl32.lib;SDL2.lib;SDL2main.lib;kernel32.lib;user32.lib;gdi32.lib;winmm.lib;uxtheme.lib;advapi32.lib;comctl32.lib;comdlg32.lib;shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
+    <Manifest>
+      <AdditionalManifestFiles>$(ProjectDir)res\dpi.xml %(AdditionalManifestFiles)</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -84,6 +87,9 @@
       <AdditionalDependencies>opengl32.lib;SDL2.lib;SDL2main.lib;kernel32.lib;user32.lib;gdi32.lib;winmm.lib;uxtheme.lib;advapi32.lib;comctl32.lib;comdlg32.lib;shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
+    <Manifest>
+      <AdditionalManifestFiles>$(ProjectDir)res\dpi.xml %(AdditionalManifestFiles)</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="asspull.h" />
@@ -120,6 +126,15 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="clunibus.rc" />
+    <ResourceCompile Include="res\dialogs.rc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ResourceCompile>
+    <ResourceCompile Include="res\dutch.rc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ResourceCompile>
+    <ResourceCompile Include="res\english.rc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\printer.ico" />
@@ -131,6 +146,7 @@
   <ItemGroup>
     <None Include="res\about.bmp" />
     <None Include="res\dance.bmp" />
+    <None Include="res\dpi.xml" />
     <None Include="res\imglist.bmp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
