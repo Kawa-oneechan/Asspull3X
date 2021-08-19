@@ -135,6 +135,9 @@
     <ResourceCompile Include="res\english.rc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ResourceCompile>
+    <ResourceCompile Include="res\french.rc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\printer.ico" />

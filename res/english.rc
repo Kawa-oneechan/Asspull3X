@@ -2,34 +2,43 @@
 
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 
+//Note: "RCtrl" is the Control key on the *right* of the keyboard.
+//The left is visible to the A3X, the right controls the emulator.
+
 STRINGTABLE
 {
 	IDS_FULLTITLE, "Clunibus - Asspull IIIx Emulator"
-	IDS_DDFILTER, "Disk images (*.img)|*.img"
-	IDS_HDFILTER, "Disk images (*.vhd)|*.vhd"
-	IDS_CARTFILTER, "Asspull IIIx ROMS (*.ap3)|*.ap3"
+	IDS_SHORTTITLE, "Clunibus" //used for messageboxes
+	IDS_TEMPLATETITLE, "Clunibus - %s" //currently not used, would show the loaded game's name.
+
+	//File dialog filters. Format is "<description>|<pattern>|<desc>|<pat>" etc
+	IDS_DDFILTER, "Disk images (*.img)|*.img" //floppy diskettes
+	IDS_HDFILTER, "Disk images (*.vhd)|*.vhd" //hard disks
+	IDS_CARTFILTER, "Asspull IIIx ROMS (*.ap3)|*.ap3" //game cartridges
+
 	IDS_CLICKTORELEASE, "Middle-click or RCtrl-P to pause emulation."
 	IDS_SYSTEMRESET, "System reset."
-	IDS_OLDSDL, "You are trying to run with an outdated version of SDL.\n\nYou have version %d.%d.%d.\nYou need version 2.0.4 or later."
-	IDS_SHORTTITLE, "Clunibus"
-	IDS_NOTPLAYING, "Not playing"
 
-	IDS_EJECTFIRST, "Eject the diskette first, with Ctrl-Shift-U."
+	IDS_OLDSDL, "You are trying to run with an outdated version of SDL.\n\nYou have version %d.%d.%d.\nYou need version 2.0.4 or later."
+	IDS_NOTPLAYING, "Not playing" //Discord integration: you're running the thing but don't have a game loaded
+
+	IDS_EJECTFIRST, "Eject the diskette first, with RCtrl-Shift-U."
 	IDS_DISKEJECTED, "Disk ejected."
-	IDS_TEMPLATETITLE, "Clunibus - %s"
 	IDS_NODISKDRIVE, "No disk drive."
 	IDS_UNMOUNTFIRST, "Unmount the medium first."
-	IDS_CARTEJECTED, "Cart pulled."
+	IDS_CARTEJECTED, "Cart pulled." //as in taken out of the cartridge slot
 
-	IDS_VHDBADBITS, "Invalid VHD: bad feature bits (must be 2)"
+	IDS_VHDBADBITS, "Invalid VHD: bad feature bits (must be 2)" //a bit technical maybe, but rare
 	IDS_VHDBADVERSION, "Invalid VHD: bad version (must be 1.00)."
-	IDS_VHDBADTYPE, "Invalid VHD: bad disk type (must be FIXED)."
+	IDS_VHDBADTYPE, "Invalid VHD: bad disk type (must be FIXED)." //slightly less rare perhaps
 
+	//Debug stuff, doesn't appear in release builds
 	IDS_BADSIZE, "File size is not a power of two: is %d (0x%08X), should be %d (0x%08X)."
 	IDS_BADCHECKSUM, "Checksum mismatch: is 0x%08X, should be 0x%08X."
-	IDS_RESETTING, "Resetting Musashi..."
+	IDS_RESETTING, "Resetting Musashi..." //Musashi is the 68020 emulator core
 	IDS_ASSPULLISREADY, "\nAsspull IIIx is ready.\nPress RCtrl-L to load a ROM, RCtrl-Shift-L to load a diskette.\nPress RCtrl-U to unload ROM, RCtrl-Shift-U to unload diskette.\nPress RCtrl-R to reset, RCtrl-Shift-R to unload and reset.\nPress RCtrl-D to dump RAM, RCtrl-S to take a screenshot.\n\n"
 
+	//More debug-only stuff
 	IDS_LOADINGROM, "Loading ROM, %s ..."
 	IDS_UNLOADINGROM, "Unloading ROM..."
 	IDS_UNMOUNTINGDISK, "Unmounting diskette..."
@@ -39,11 +48,13 @@ STRINGTABLE
 	IDS_TOOMANYSHADERS, "Too many shaders specified: can only do %d but %d were requested."
 	IDS_WINDOWFAILED, "Could not create window: %s"
 	IDS_RENDERERFAILED, "Could not create renderer: %s"
-	IDS_TSK, "Nice."
+	IDS_TSK, "Nice." //ignore, IDS_TSK is #69.
 	IDS_TEXTUREFAILED, "Could not create texture: %s"
 	IDS_PNGFAILED, "Failed to write PNG."
 	IDS_SCREENSHOT, "Snap! %s saved."
-	IDS_DISCORDDLL, "Discord is enabled but the DLL isn't here."
+	IDS_DISCORDDLL, "Discord is enabled but the DLL isn't here." //missing discord-rpc.dll
+
+	//Status bar message -- you tried to open a ZIP file but there was no ROM in there
 	IDS_NOTHINGINZIP, "No single AP3 file found in archive."
 
 	(IDS_THEMES+0), "Light"
@@ -53,7 +64,7 @@ STRINGTABLE
 	(IDS_DEVICES1+0), "Nothing"
 	(IDS_DEVICES1+1), "Diskette drive"
 	(IDS_DEVICES1+2), "Hard drive"
-	(IDS_DEVICES1+3), "Line printer"
+	(IDS_DEVICES1+3), "Line printer" //as in the "automated typewriter" kind of yore
 	(IDS_DEVICES2+0), "No device"
 	(IDS_DEVICES2+1), "Diskette drive"
 	(IDS_DEVICES2+2), "Hard drive"
@@ -64,7 +75,7 @@ STRINGTABLE
 	(IDS_REGIONS+2), "WRAM"
 	(IDS_REGIONS+3), "Devices"
 	(IDS_REGIONS+4), "Registers"
-	(IDS_REGIONS+5), "WRAM"
+	(IDS_REGIONS+5), "VRAM"
 }
 
 IDR_MAINMENU MENU
@@ -85,7 +96,7 @@ BEGIN
 		MENUITEM "Devices", 1012
 		MENUITEM "Memory viewer", 1007
 		MENUITEM "Palette viewer", 1008
-		MENUITEM "Dump RAM\tRCtrl+D", 1005
+		MENUITEM "Dump RAM\tRCtrl+D", 1005 //as in write the whole thing to file
 		MENUITEM "Screenshot\tRCtrl+S", 1004
 	END
 	POPUP "Help"
@@ -103,14 +114,14 @@ END
 #define COMMON_REFRESH "Refresh"
 #define COMMON_AUTOUPDATE "Auto-update"
 
-#define ABOUT_TITLE "E Clunibus Tractum"
+#define ABOUT_TITLE "E Clunibus Tractum" //"Pulled out of the arse" in Latin, Kawa's pretentious motto
 #define ABOUT_OKAY "Cool"
-#define ABOUT_HEADER "Clunibus \x97 Asspull IIIx Fantasy Computer Emulator"
-#define ABOUT_BODY "System design and emulator by Kawa.\n\nThanks and shoutouts to all of the people on the bcord."
-#define ABOUT_GITLINK "<a>GitHub page</a>"
+#define ABOUT_HEADER "Clunibus \x97 Asspull IIIx Fantasy Computer Emulator" //\x97 is an em-dash
+#define ABOUT_BODY "System design and emulator by Kawa.\n\nThanks and shoutouts to all of the people on the bcord." //Feel free to add "\n\nLANG translation by YOU."
+#define ABOUT_GITLINK "<a>GitHub page</a>" //Keep the <a></a> to make it look like the clickable link it is
 
 #define DEVICES_TITLE "Devices"
-#define DEVICES_NONE "A swirling void howls before you." //poetry about nothingness
+#define DEVICES_NONE "A swirling void howls before you." //poetry about nothingness, there's nothing to change here
 #define DEVICES_INSERTDISK "Insert"
 #define DEVICES_EJECTDISK "Eject"
 #define DEVICES_MUSTBEDISKDRIVE "The primary device can only be a diskette drive."
@@ -124,7 +135,7 @@ END
 	#define OPTIONS_SHOWFPS "Show FPS"
 	#define OPTIONS_LIMITFPS "Limit to 60 FPS"
 #define OPTIONS_VISUALS "Visuals"
-	#define OPTIONS_ASPECT "Aspect correction"
+	#define OPTIONS_ASPECT "Aspect correction" //as in stretching 320x200 to 320x240
 	#define OPTIONS_THEME "Theme"
 #define OPTIONS_AUDIO "Audio"
 	#define OPTIONS_SOUND "Sound"

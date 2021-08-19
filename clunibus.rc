@@ -9,6 +9,7 @@ IDB_DANCE BITMAP ".\\res\\dance.bmp"
 IDB_ICONS BITMAP ".\\res\\imglist.bmp"
 
 #include ".\\res\\english.rc"
+#include ".\\res\\french.rc"
 //#include ".\\res\\dutch.rc"
 //#include ".\\res\\hungarian.rc"
 

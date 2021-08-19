@@ -1,0 +1,159 @@
+#pragma code_page(1252)
+
+LANGUAGE LANG_FRENCH, SUBLANG_FRENCH
+	
+//Note: "RCtrl" is the Control key on the *right* of the keyboard.
+//The left is visible to the A3X, the right controls the emulator.
+
+STRINGTABLE
+{
+	IDS_FULLTITLE, "Clunibus - Emulateur Asspull IIIx"
+	IDS_SHORTTITLE, "Clunibus" //used for messageboxes
+	IDS_TEMPLATETITLE, "Clunibus - %s" //currently not used, would show the loaded game's name
+
+	//File dialog filters. Format is "<description>|<pattern>|<desc>|<pat>" etc
+	IDS_DDFILTER, "Image disque (*.img)|*.img" //floppy diskettes
+	IDS_HDFILTER, "Image disque (*.vhd)|*.vhd" //hard disks
+	IDS_CARTFILTER, "Asspull IIIx ROMS (*.ap3)|*.ap3" //game cartridges
+
+	IDS_CLICKTORELEASE, "Pour mettre en pause l'émulation utiliser le bouton central de la souries ou RCtrl-P."
+	IDS_SYSTEMRESET, "Réinitialisation du systeme."
+
+	IDS_OLDSDL, "Vous essayez de lancer Asspull IIIx avec une version SDL dépreciée.\n\nVotre version %d.%d.%d.\nVous devez avoir la version 2.0.4 ou superieur."
+	IDS_NOTPLAYING, "Ne joue pas actuellement" //Discord integration: you're running the thing but don't have a game loaded
+
+	IDS_EJECTFIRST, "Retirer la disquette en premier avec RCtrl-Shift-U."
+	IDS_DISKEJECTED, "Disque ejecté."
+	IDS_NODISKDRIVE, "Aucun lecteur de disque."
+	IDS_UNMOUNTFIRST, "Veuillez ejecter le pépriphique."
+	IDS_CARTEJECTED, "Cartouche retirée." //as in taken out of the cartridge slot
+
+	IDS_VHDBADBITS, "VHD Invalide: bad feature bits (must be 2)" //a bit technical maybe, but rare
+	IDS_VHDBADVERSION, "VHD Invalide: mauvaise version (version 1.00 requise)."
+	IDS_VHDBADTYPE, "VHD Invalide: Type de disque invalide." //slightly less rare perhaps
+
+	//Debug stuff, doesn't appear in release builds
+	IDS_BADSIZE, "La taille du fichier n'est pas un multiple de 2: est %d (0x%08X), devrait être %d (0x%08X)."
+	IDS_BADCHECKSUM, "La somme de controle est invalide: est 0x%08X, devrait être 0x%08X."
+	IDS_RESETTING, "Redemarrage de Musashi..." //Musashi is the 68020 emulator core
+	IDS_ASSPULLISREADY, "\nAsspull IIIx est prêt.\nAppuyez sur RCtrl-L pour charger la ROM, RCtrl-Shift-L pour charger une disquette.\nAppuyez sur RCtrl-U to pour décharger la ROM, RCtrl-Shift-U pour retirer la disquette.\nAppuyez sur RCtrl-R pour redemmarer, RCtrl-Shift-R pour décharger et redemmarer.\nAppuyez sur RCtrl-D pour sauvegarder la RAM, RCtrl-S pour effectuer une capture d'écran.\n\n"
+
+	//More debug-only stuff
+	IDS_LOADINGROM, "Chargement de la ROM, %s ..."
+	IDS_UNLOADINGROM, "Déchargement de la ROM..."
+	IDS_UNMOUNTINGDISK, "Ejection de la disquette..."
+	IDS_MOUNTINGDISK, "Mountage de l'image disque, %s ..."
+	IDS_MOUNTEDVHD, "VHD Cargé. %d * %d * %d * 512 = %d, devrait être ~%d."
+	IDS_SHADERERROR, "Erreur lors de la compilation des shaders: %d"
+	IDS_TOOMANYSHADERS, "Trop de shaders specifiés: %d possible(s) mais %d ont été demandés."
+	IDS_WINDOWFAILED, "Création de la fenêtre impossible: %s"
+	IDS_RENDERERFAILED, "Création du moteur de rendu impossible: %s"
+	IDS_TSK, "Parfait..." //ignore, IDS_TSK is #69.
+	IDS_TEXTUREFAILED, "Creation de la texture impossible: %s"
+	IDS_PNGFAILED, "Impossible d'écrire le PNG."
+	IDS_SCREENSHOT, "Clic-clac! %s sauvegardé."
+	IDS_DISCORDDLL, "Discord est actif mais aucune DLL n'a été trouvée."
+
+	//Status bar message -- you tried to open a ZIP file but there was no ROM in there
+	IDS_NOTHINGINZIP, "Aucun fichier AP3 trouvé dans l'archive."
+
+	(IDS_THEMES+0), "Claire"
+	(IDS_THEMES+1), "Sombre"
+	(IDS_THEMES+2), "Système"
+
+	(IDS_DEVICES1+0), "Aucun"
+	(IDS_DEVICES1+1), "Lecteur disquette"
+	(IDS_DEVICES1+2), "Disque dur"
+	(IDS_DEVICES1+3), "Imprimante" //as in the "automated typewriter" kind of yore
+	(IDS_DEVICES2+0), "Aucun périphérique"
+	(IDS_DEVICES2+1), "Lecteur disquette"
+	(IDS_DEVICES2+2), "Disque dur"
+	(IDS_DEVICES2+3), "Imprimante"
+
+	(IDS_REGIONS+0), "BIOS"
+	(IDS_REGIONS+1), "Cartouche"
+	(IDS_REGIONS+2), "WRAM"
+	(IDS_REGIONS+3), "Périphérique"
+	(IDS_REGIONS+4), "Registres"
+	(IDS_REGIONS+5), "VRAM"
+}
+
+IDR_MAINMENU MENU
+BEGIN
+	POPUP "Fichier"
+	BEGIN
+		MENUITEM "Charger une ROM\x85\tRCtrl+L", 1001
+		MENUITEM "Décharger la ROM\tRCtrl+U", 1002
+		MENUITEM "Redémarrer\tRCtrl+R", 1003
+		MENUITEM SEPARATOR
+		MENUITEM "Quitter", 1006
+	END
+	POPUP "Outils"
+	BEGIN
+		MENUITEM "Options", 1010
+		MENUITEM "Shaders", 1011
+		MENUITEM SEPARATOR
+		MENUITEM "Péripheriques", 1012
+		MENUITEM "Visionneuse Mémoire", 1007
+		MENUITEM "Visionneuse Palette", 1008
+		MENUITEM "Sauvegarder RAM\tRCtrl+D", 1005 //as in write the whole thing to file
+		MENUITEM "Capture d écran\tRCtrl+S", 1004
+	END
+	POPUP "Aide"
+	BEGIN
+		MENUITEM "A propos", 1009
+	END
+END
+
+//------------------------//
+
+#define COMMON_OK "OK"
+#define COMMON_CANCEL "Annuler"
+#define COMMON_APPLY "Appliquer"
+#define COMMON_CLOSE "Fermer"
+#define COMMON_REFRESH "Rafraichir"
+#define COMMON_AUTOUPDATE "Rafraichissement auto."
+
+#define ABOUT_TITLE "E Clunibus Tractum" //"Pulled out of the arse" in Latin, Kawa's pretentious motto
+#define ABOUT_OKAY "Cool"
+#define ABOUT_HEADER "Clunibus \x97 Emulateur de l'ordinateur fantasiste Asspull IIIx" //\x97 is an em-dash
+#define ABOUT_BODY "Concéption et émulateur par Kawa.\n\nDédicace à toutes les personnes du bcord.\n\nTraduction française par Thomas." //Feel free to add "\n\nLANG translation by YOU."
+#define ABOUT_GITLINK "<a>Page GitHub</a>" //Keep the <a></a> to make it look like the clickable link it is
+
+#define DEVICES_TITLE "Péripheriques"
+#define DEVICES_NONE "Le vide tourbillonant hurle avant vous." //poetry about nothingness, there's nothing to change here
+#define DEVICES_INSERTDISK "Inserer"
+#define DEVICES_EJECTDISK "Ejecter"
+#define DEVICES_MUSTBEDISKDRIVE "Le premier péripherique doit être un lecteur disquette."
+
+//Only COMMON_xxx labels for these two
+#define MEMORY_TITLE "Visionneuse Mémoire"
+#define PALETTE_TITLE "Visionneuse Palette"
+
+#define OPTIONS_TITLE "Options"
+#define OPTIONS_FRAMERATE "Fréquence"
+	#define OPTIONS_SHOWFPS "Afficher les FPS"
+	#define OPTIONS_LIMITFPS "Limiter à 60 FPS"
+#define OPTIONS_VISUALS "Visuelles"
+	#define OPTIONS_ASPECT "Correction de l'aspect visuel" //as in stretching 320x200 to 320x240
+	#define OPTIONS_THEME "Theme"
+#define OPTIONS_AUDIO "Audio"
+	#define OPTIONS_SOUND "Son"
+	#define OPTIONS_MUSIC "Musique"
+	#define OPTIONS_MIDIDEVICE "Péripherique MIDI"
+#define OPTIONS_INPUT "Entrées"
+	#define OPTIONS_SWITCH "Basculer ABXY en BAYX"
+#define OPTIONS_MEDIA "Média"
+	#define OPTIONS_RELOADROM "Recharger la ROM"
+	#define OPTIONS_RELOADDISK "Recharger l'image disque"
+	#define OPTIONS_BIOS "Fichier BIOS"
+
+#define SHADERS_TITLE "Shaders"
+#define SHADERS_AVAILABLE "Disponible"
+#define SHADERS_INUSE "En cours d'utilisation"
+#define SHADERS_ADD "Ajouter"
+#define SHADERS_REMOVE "Supprimer"
+#define SHADERS_MOVEUP "Haut"
+#define SHADERS_MOVEDOWN "Bas"
+
+#include "dialogs.rc"
