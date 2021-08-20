@@ -268,7 +268,7 @@ void MainLoop()
 					ResetPath();
 					ini.SaveFile("settings.ini");
 				}
-				SDL_Log(GetString(IDS_BADCHECKSUM)); //"Resetting Musashi..."
+				SDL_Log(GetString(IDS_SYSTEMRESET)); //"Resetting Musashi..."
 				SetStatus(IDS_SYSTEMRESET); //"System reset."
 				m68k_pulse_reset();
 			}
