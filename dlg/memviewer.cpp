@@ -42,17 +42,17 @@ void MemViewerDraw(DRAWITEMSTRUCT* dis)
 	for (int row = 0; row < LINES; row++)
 	{
 		r.left = 3;
-		sprintf(buf, "%08X", offset);
+		sprintf_s(buf, 256, "%08X", offset);
 		DrawText(hdc, buf, -1, &r, DT_TOP | DT_LEFT | DT_NOPREFIX);
 
 		for (int col = 0; col < BYTES; col++)
 		{
 			auto here = m68k_read_memory_8(offset++);
 			r.left = 3 + 80 + (col * 22);
-			sprintf(buf, "%c%c", hex[(here & 0xF0) >> 4], hex[here & 0x0F]);
+			sprintf_s(buf, 256, "%c%c", hex[(here & 0xF0) >> 4], hex[here & 0x0F]);
 			DrawText(hdc, buf, -1, &r, DT_TOP | DT_LEFT | DT_NOPREFIX);
 			r.left = 3 + 442 + (col * fontSize.cx);
-			//sprintf(buf, "%c", here);
+			//sprintf_s(buf, 256, "%c", here);
 			//DrawText(hdc, buf, -1, &r, DT_TOP | DT_LEFT | DT_NOPREFIX);
 
 			unsigned char* glyph = (ramVideo + FONT_ADDR + 0x1000) + (here * 16);

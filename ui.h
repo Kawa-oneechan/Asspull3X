@@ -6,8 +6,6 @@
 #include <commctrl.h>
 #include <Uxtheme.h>
 #include <vsstyle.h>
-#include <direct.h>
-#include <io.h>
 
 extern int pauseState;
 extern bool stretch200, fpsCap, reloadROM, reloadIMG;
@@ -22,7 +20,6 @@ extern HWND hWnd;
 extern HINSTANCE hInstance;
 extern HWND hWndStatusBar;
 extern int statusBarHeight;
-extern int idStatus;
 
 extern int statusTimer;
 extern std::string uiStatus;
@@ -30,7 +27,6 @@ extern bool fpsVisible;
 extern bool wasPaused;
 extern bool autoUpdateMemViewer, autoUpdatePalViewer;
 extern bool fpsCap, stretch200;
-
 
 extern bool ShowFileDlg(bool toSave, char* target, size_t max, const char* filter);
 

@@ -37,7 +37,7 @@ BOOL CALLBACK ShadersWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 			for (int i = 0; i < numShaders; i++)
 			{
 				char key[16] = { 0 };
-				sprintf(key, "shader%d", i + 1);
+				sprintf_s(key, 16, "shader%d", i + 1);
 				SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_ADDSTRING, 0, (LPARAM)ini.GetValue("video", key, ""));
 			}
 
@@ -113,7 +113,7 @@ BOOL CALLBACK ShadersWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 						for (int i = 0; i < MAXSHADERS; i++)
 						{
 							char key[16] = { 0 };
-							sprintf(key, "shader%d", i + 1);
+							sprintf_s(key, 16, "shader%d", i + 1);
 							if (i < cnt)
 							{
 								char val[256];

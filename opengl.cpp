@@ -325,7 +325,7 @@ void InitShaders()
 		for (int i = 0; i < numShaders; i++)
 		{
 			char key[16] = { 0 };
-			sprintf(key, "shader%d", i + 1);
+			sprintf_s(key, 16, "shader%d", i + 1);
 			programIds[i] = compileProgram(ini.GetValue("video", key, ""));
 		}
 	}
@@ -343,7 +343,7 @@ int InitVideo()
 		{
 			//https://www.youtube.com/watch?v=5FjWe31S_0g
 			char msg[512];
-			sprintf(msg, GetString(IDS_OLDSDL), linked.major, linked.minor, linked.patch); //"You are trying to run with an outdated version of SDL.\n\nYou have version %d.%d.%d.\nYou need version 2.0.4 or later."
+			sprintf_s(msg, 512, GetString(IDS_OLDSDL), linked.major, linked.minor, linked.patch); //"You are trying to run with an outdated version of SDL.\n\nYou have version %d.%d.%d.\nYou need version 2.0.4 or later."
 			//SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Clunibus",  msg, NULL);
 			MessageBox(hWnd, msg, GetString(IDS_SHORTTITLE), 0); //"Clunibus"
 			return -3;
@@ -417,7 +417,7 @@ void Screenshot()
 	char snap[128];
 	__time64_t now;
 	_time64(&now);
-	sprintf(snap, "%llu.png", now);
+	sprintf_s(snap, 128, "%llu.png", now);
 
 	int size = scrWidth * scrHeight * 3;
 

@@ -4,14 +4,13 @@ processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
 #include "ui.h"
 
-char startingPath[FILENAME_MAX];
-char lastPath[FILENAME_MAX];
+static char startingPath[FILENAME_MAX];
+static char lastPath[FILENAME_MAX];
 
 HWND hWnd;
 HINSTANCE hInstance;
 HWND hWndStatusBar;
 int statusBarHeight = 0;
-int idStatus;
 
 int uiCommand;
 char uiString[512];
@@ -386,9 +385,9 @@ void HandleUI()
 
 void InitializeUI()
 {
-	SetProcessDPIAware();
+	//SetProcessDPIAware();
 
-	_getcwd(startingPath, FILENAME_MAX);
+	GetCurrentDirectory(FILENAME_MAX, startingPath);
 
 	SDL_SysWMinfo info;
 	SDL_VERSION(&info.version);
@@ -571,7 +570,7 @@ void LetItSnow()
 
 void ResetPath()
 {
-	chdir(startingPath);
+	SetCurrentDirectory(startingPath);
 }
 
 void ShowOpenFileDialog(int command, int data, std::string pattern)
@@ -612,7 +611,7 @@ void InsertDisk(int devId)
 	if (uiCommand == 0)
 		return;
 	char key[16];
-	sprintf(key, "%d", devId);
+	sprintf_s(key, 16, "%d", devId);
 	auto ret = ((DiskDrive*)devices[devId])->Mount(uiString);
 	if (ret == -1)
 		SetStatus(IDS_EJECTFIRST); //"Eject the diskette first, with Ctrl-Shift-U."
@@ -633,7 +632,8 @@ void InsertDisk(int devId)
 void EjectDisk(int devId)
 {
 	((DiskDrive*)devices[devId])->Unmount();
-	char key[16]; sprintf(key, "%d", devId);
+	char key[16];
+	sprintf_s(key, 16, "%d", devId);
 	if (((DiskDrive*)devices[devId])->GetType() == ddDiskette)
 		ini.SetValue("devices/diskDrive", key, "");
 	else
