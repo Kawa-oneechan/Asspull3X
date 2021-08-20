@@ -52,7 +52,7 @@ void LoadROM(const WCHAR* path)
 		mz_zip_archive zip;
 		memset(&zip, 0, sizeof(zip));
 		char zipPath[512] = { 0 };
-		wcstombs(zipPath, path, 512);
+		wcstombs_s(NULL, zipPath, path, 512);
 		mz_zip_reader_init_file(&zip, zipPath, 0);
 
 		bool foundSomething = false;
@@ -69,7 +69,7 @@ void LoadROM(const WCHAR* path)
 				continue;
 
 			auto ext2 = strrchr(fs.m_filename, '.') + 1;
-			if (!strcmpi(ext2, "ap3"))
+			if (!_stricmp(ext2, "ap3"))
 			{
 				foundSomething = true;
 				romSize = (unsigned int)fs.m_uncomp_size;
@@ -257,7 +257,7 @@ void MainLoop()
 				gfxFade = 31;
 				SetStatus(IDS_CARTEJECTED); //"Cart pulled."
 				char b[256] = { 0 };
-				wcstombs(b, GetString(IDS_NOTPLAYING), 256);
+				wcstombs_s(NULL, b, GetString(IDS_NOTPLAYING), 256);
 				Discord::UpdateDiscordPresence(b);
 			}
 			else if (uiCommand == cmdEjectDisk)

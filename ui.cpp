@@ -509,7 +509,7 @@ void SetStatus(int stab)
 void SetFPS(int fps)
 {
 	if (fpsVisible)
-		_itow(fps, statusFPS, 10);
+		_itow_s(fps, statusFPS, 16, 10);
 	else
 		wcscpy_s(statusFPS, 16, L"     ");
 }
@@ -575,14 +575,15 @@ void ResetPath()
 
 void ShowOpenFileDialog(int command, int data, const WCHAR* pattern)
 {
-	WCHAR* thing = (WCHAR*)ini.GetValue(L"media", L"lastRom", L"");
+	WCHAR thing[FILENAME_MAX] = { 0 };
+	wcscpy_s(thing, FILENAME_MAX, (WCHAR*)ini.GetValue(L"media", L"lastRom", L""));
 	if (thing[0] == 0)
 	{
-		thing = lastPath;
+		wcscpy_s(thing, FILENAME_MAX, lastPath);
 		if (thing[0] == 0)
-			thing = startingPath;
+			wcscpy_s(thing, FILENAME_MAX, startingPath);
 		if (thing[wcslen(thing)] != L'\\')
-			wcscat(thing, L"\\");
+			wcscat_s(thing, FILENAME_MAX, L"\\");
 	}
 	if (thing[0] != 0)
 	{
@@ -595,9 +596,9 @@ void ShowOpenFileDialog(int command, int data, const WCHAR* pattern)
 
 	WCHAR thePath[FILENAME_MAX] = { 0 };
 	wcscpy_s(thePath, FILENAME_MAX, thing);
-	if (ShowFileDlg(false, thePath, 256, pattern))
+	if (ShowFileDlg(false, thePath, FILENAME_MAX, pattern))
 	{
-		wcscpy_s(uiString, 512, thePath);
+		wcscpy_s(uiString, FILENAME_MAX, thePath);
 		uiCommand = command;
 	}
 
@@ -611,7 +612,7 @@ void InsertDisk(int devId)
 	if (uiCommand == 0)
 		return;
 	WCHAR key[16];
-	_itow(devId, key, 10);
+	_itow_s(devId, key, 16, 10);
 	auto ret = ((DiskDrive*)devices[devId])->Mount(uiString);
 	if (ret == -1)
 		SetStatus(IDS_EJECTFIRST); //"Eject the diskette first, with Ctrl-Shift-U."
@@ -635,7 +636,7 @@ void EjectDisk(int devId)
 {
 	((DiskDrive*)devices[devId])->Unmount();
 	WCHAR key[16];
-	_itow(devId, key, 10);
+	_itow_s(devId, key, 16, 10);
 	if (((DiskDrive*)devices[devId])->GetType() == ddDiskette)
 		ini.SetValue(L"devices/diskDrive", key, L"");
 	else

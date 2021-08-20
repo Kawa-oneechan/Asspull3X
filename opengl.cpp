@@ -108,8 +108,9 @@ GLuint compileShader(const char* source, GLuint shaderType)
 
 char* ReadTextFile(const WCHAR* filePath)
 {
-	FILE* file = _wfopen(filePath, L"rb");
-	if (!file) return NULL;
+	FILE* file = NULL;
+	if (_wfopen_s(&file, filePath, L"r+b"))
+		return NULL;
 	fseek(file, 0, SEEK_END);
 	long size = ftell(file);
 	fseek(file, 0, SEEK_SET);
@@ -354,7 +355,7 @@ int InitVideo()
 	auto winWidth = ini.GetLongValue(L"video", L"width", 640);
 	auto winHeight = ini.GetLongValue(L"video", L"height", 480);
 	char title[256] = { 0 };
-	wcstombs(title, GetString(IDS_FULLTITLE), 256);
+	wcstombs_s(NULL, title, GetString(IDS_FULLTITLE), 256);
 	if ((sdlWindow = SDL_CreateWindow(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, winWidth, winHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE)) == NULL)
 	{
 		SDL_LogW(GetString(IDS_WINDOWFAILED), SDL_GetError()); //"Could not create window: %s"
@@ -416,10 +417,10 @@ int UninitVideo()
 
 void Screenshot()
 {
-	char snap[128];
+	WCHAR snap[128];
 	__time64_t now;
 	_time64(&now);
-	sprintf_s(snap, 128, "%llu.png", now);
+	wsprintf(snap, L"%llu.png", now);
 
 	int size = scrWidth * scrHeight * 3;
 
@@ -434,7 +435,9 @@ void Screenshot()
 	}
 	else
 	{
-		FILE *pFile = fopen(snap, "wb");
+		FILE* pFile = NULL;
+		if (_wfopen_s(&pFile, snap, L"wb"))
+			return;
 		fwrite(pPNG_data, 1, png_data_size, pFile);
 		fclose(pFile);
 		SDL_LogW(GetString(IDS_SCREENSHOT), snap); //"Snap! %s saved."

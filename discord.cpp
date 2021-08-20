@@ -1,4 +1,3 @@
-#define _CRT_SECURE_NO_WARNINGS
 #include <discord_rpc.h>
 #include <time.h>
 #include <stdio.h>
@@ -47,7 +46,7 @@ namespace Discord
 		DiscordEventHandlers handlers = {};
 		__Discord_Initialize(ApplicationId, &handlers, 1, nullptr);
 		char b[256] = { 0 };
-		wcstombs(b, GetString(IDS_NOTPLAYING), 256);
+		wcstombs_s(NULL, b, GetString(IDS_NOTPLAYING), 256);
 		UpdateDiscordPresence(b); //"Not playing"
 	}
 
@@ -56,7 +55,7 @@ namespace Discord
 		if (!enabled)
 			return;
 		WCHAR wName[64] = { 0 };
-		mbstowcs(wName, gameName, 64);
+		mbstowcs_s(NULL, wName, gameName, 64);
 		SDL_LogW(L"Discord: \"%s\"", wName);
 		DiscordRichPresence discord_presence = {};
 		discord_presence.details = gameName;

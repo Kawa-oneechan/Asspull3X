@@ -70,8 +70,7 @@ int DiskDrive::Mount(const WCHAR* filename)
 	if (file != NULL)
 		return -1;
 	SDL_LogW(GetString(IDS_MOUNTINGDISK), filename); //"Mounting disk image, %s ..."
-	file = _wfopen(filename, L"r+b");
-	if (file == 0)
+	if (_wfopen_s(&file, filename, L"r+b"))
 		return errno;
 	fseek(file, 0, SEEK_END);
 	capacity = ftell(file);
