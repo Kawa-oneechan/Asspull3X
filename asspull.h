@@ -1,6 +1,5 @@
 #pragma once
 #define _CRT_SECURE_NO_WARNINGS
-#define _CRT_NONSTDC_NO_WARNINGS
 #include <stdint.h>
 #include <stdio.h>
 #include <string>
@@ -11,7 +10,8 @@ extern int Lerp(int a, int b, float f);
 extern unsigned int RoundUp(unsigned int v);
 extern int Slurp(unsigned char* dest, const WCHAR* filePath, unsigned int* size);
 extern int Dump(const WCHAR* filePath, unsigned char* source, unsigned long size);
-extern void SDL_LogW(WCHAR* message, ...);
+//extern void SDL_LogW(WCHAR* message, ...);
+#define SDL_LogW(M, ...) { wprintf(M, __VA_ARGS__); wprintf(L"\n"); }
 
 extern unsigned char* romBIOS;
 extern unsigned char* romCartridge;

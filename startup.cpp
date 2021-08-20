@@ -31,7 +31,7 @@ void GetSettings(int argc, char** argv)
 	ini.SetSpaces(false);
 	ini.SetMultiKey(false);
 	ini.SetMultiLine(false);
-	ini.SetUnicode(false);
+	ini.SetUnicode(true);
 	ini.LoadFile(L"settings.ini");
 	fpsCap = ini.GetBoolValue(L"video", L"fpsCap", false);
 	fpsVisible = ini.GetBoolValue(L"video", L"showFps", true);

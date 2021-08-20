@@ -1,11 +1,13 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <discord_rpc.h>
 #include <time.h>
-#include <SDL.h>
+#include <stdio.h>
 #include <Windows.h>
 #include "resource.h"
 
 extern WCHAR* GetString(int);
-extern void SDL_LogW(WCHAR* message, ...);
+//extern void SDL_LogW(WCHAR* message, ...);
+#define SDL_LogW(M, ...) wprintf(M, __VA_ARGS__)
 
 namespace Discord
 {

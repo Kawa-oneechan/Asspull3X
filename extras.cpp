@@ -39,6 +39,7 @@ int Dump(const WCHAR* filePath, unsigned char* source, unsigned long size)
 	return 0;
 }
 
+/*
 void SDL_LogW(WCHAR* message, ...)
 {
 	va_list args;
@@ -50,3 +51,4 @@ void SDL_LogW(WCHAR* message, ...)
 	wcstombs(mbcs, wcs, 1024);
 	SDL_Log(mbcs);
 }
+*/

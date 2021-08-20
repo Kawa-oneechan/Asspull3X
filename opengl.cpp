@@ -429,7 +429,9 @@ void Screenshot()
 	size_t png_data_size = 0;
 	void *pPNG_data = tdefl_write_image_to_png_file_in_memory_ex(shot, scrWidth, scrHeight, 3, &png_data_size, MZ_DEFAULT_LEVEL, MZ_TRUE);
 	if (!pPNG_data)
+	{
 		SDL_LogW(GetString(IDS_PNGFAILED)); //"Failed to write PNG."
+	}
 	else
 	{
 		FILE *pFile = fopen(snap, "wb");
