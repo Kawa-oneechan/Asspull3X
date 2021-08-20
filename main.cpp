@@ -14,12 +14,12 @@ extern void Screenshot();
 extern int uiCommand;
 extern char uiString[512];
 extern void InitializeUI();
-extern void SetStatus(std::string);
+extern void SetStatus(const char*);
 extern void SetStatus(int);
 extern char* GetString(int);
 extern void SetFPS(int fps);
 extern void _devUpdateDiskette(int);
-extern void ShowOpenFileDialog(int, int, std::string);
+extern void ShowOpenFileDialog(int, int, const char*);
 extern bool ShowFileDlg(bool, char*, size_t, const char*);
 extern void LetItSnow();
 extern void InsertDisk(int);
@@ -29,24 +29,30 @@ extern void ResizeStatusBar();
 extern unsigned int biosSize, romSize;
 extern long rtcOffset;
 
-void LoadROM(std::string path)
+void LoadROM(const char* path)
 {
 	unsigned int fileSize = 0;
 
-	auto lpath = std::string(path);
-	std::transform(lpath.begin(), lpath.end(), lpath.begin(), [](unsigned char c) { return tolower(c); });
+	char lpath[512];
+	//std::transform(lpath.begin(), lpath.end(), lpath.begin(), [](unsigned char c) { return tolower(c); });
+	for (int i = 0; i < 512; i++)
+	{
+		lpath[i] = tolower(path[i]);
+		if (path[i] == 0)
+			break;
+	}
 
-	auto ext = lpath.rfind('.') + 1;
-	if (lpath.compare(ext, 3, "ap3") == 0)
+	auto ext = strrchr(lpath, '.') + 1;
+	if (!strcmpi(ext, "ap3"))
 	{
 		memset(romCartridge, 0, CART_SIZE);
 		Slurp(romCartridge, path, &romSize);
 	}
-	else if (lpath.compare(ext, 3, "a3z") == 0)
+	else if (!strcmpi(ext, "a3z"))
 	{
 		mz_zip_archive zip;
 		memset(&zip, 0, sizeof(zip));
-		mz_zip_reader_init_file(&zip, path.c_str(), 0);
+		mz_zip_reader_init_file(&zip, path, 0);
 
 		bool foundSomething = false;
 		for (int i = 0; i < (int)mz_zip_reader_get_num_files(&zip); i++)
@@ -62,7 +68,7 @@ void LoadROM(std::string path)
 				continue;
 
 			auto ext2 = strrchr(fs.m_filename, '.') + 1;
-			if (SDL_strncasecmp(ext2, "ap3", 3) == 0)
+			if (!strcmpi(ext2, "ap3"))
 			{
 				foundSomething = true;
 				romSize = (unsigned int)fs.m_uncomp_size;
@@ -95,7 +101,7 @@ void LoadROM(std::string path)
 	if (c1 != c2)
 		SDL_Log(GetString(IDS_BADCHECKSUM), c2, c1); //"Checksum mismatch: is 0x%08X, should be 0x%08X."
 
-	ini.SetValue("media", "lastROM", path.c_str());
+	ini.SetValue("media", "lastROM", path);
 	ResetPath();
 	ini.SaveFile("settings.ini");
 

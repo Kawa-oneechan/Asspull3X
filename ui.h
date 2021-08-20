@@ -22,7 +22,7 @@ extern HWND hWndStatusBar;
 extern int statusBarHeight;
 
 extern int statusTimer;
-extern std::string uiStatus;
+extern char uiStatus[512];
 extern bool fpsVisible;
 extern bool wasPaused;
 extern bool autoUpdateMemViewer, autoUpdatePalViewer;

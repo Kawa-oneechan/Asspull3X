@@ -9,8 +9,8 @@
 
 int Lerp(int a, int b, float f);
 unsigned int RoundUp(unsigned int v);
-int Slurp(unsigned char* dest, std::string filePath, unsigned int* size);
-int Dump(std::string filePath, unsigned char* source, unsigned long size);
+int Slurp(unsigned char* dest, const char* filePath, unsigned int* size);
+int Dump(const char* filePath, unsigned char* source, unsigned long size);
 
 extern unsigned char* romBIOS;
 extern unsigned char* romCartridge;
@@ -180,7 +180,7 @@ private:
 public:
 	DiskDrive(int newType);
 	~DiskDrive(void);
-	int Mount(std::string filename);
+	int Mount(const char* filename);
 	int Unmount();
 	unsigned int Read(unsigned int address);
 	void Write(unsigned int address, unsigned int value);

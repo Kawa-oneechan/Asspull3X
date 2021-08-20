@@ -1,6 +1,6 @@
 #include "asspull.h"
 #include "resource.h"
-extern void SetStatus(std::string);
+extern void SetStatus(const char*);
 extern void SetStatus(int);
 extern char* GetString(int);
 
@@ -65,12 +65,12 @@ void WriteMoto32(FILE* file, uint32_t v)
 }
 */
 
-int DiskDrive::Mount(std::string filename)
+int DiskDrive::Mount(const char* filename)
 {
 	if (file != NULL)
 		return -1;
-	SDL_Log(GetString(IDS_MOUNTINGDISK), filename.c_str()); //"Mounting disk image, %s ..."
-	file = fopen(filename.c_str(), "r+b");
+	SDL_Log(GetString(IDS_MOUNTINGDISK), filename); //"Mounting disk image, %s ..."
+	file = fopen(filename, "r+b");
 	if (file == 0)
 		return errno;
 	fseek(file, 0, SEEK_END);

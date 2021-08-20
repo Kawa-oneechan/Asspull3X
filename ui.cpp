@@ -17,7 +17,7 @@ char uiString[512];
 
 int mouseTimer = -1;
 int statusTimer = 0;
-std::string uiStatus;
+char uiStatus[512];
 bool fpsVisible = false;
 bool wasPaused = false;
 bool autoUpdateMemViewer = false;
@@ -301,7 +301,7 @@ LRESULT WndProc(HWND hWnd, unsigned int message, WPARAM wParam, LPARAM lParam)
 	}
 }
 
-std::string statusFPS, statusText;
+char statusFPS[16], statusText[512];
 
 HDC statusRealDC = NULL;
 HDC statusDC = NULL;
@@ -343,10 +343,10 @@ void DrawStatusBar()
 	SetBkColor(hdc, rgbBack);
 	SetTextColor(hdc, rgbText);
 	RECT sbText = { 4, 4, 40, sbRect.bottom - 4 };
-	DrawText(hdc, statusFPS.c_str(), statusFPS.length(), &sbText, DT_RIGHT);
+	DrawText(hdc, statusFPS, strlen(statusFPS), &sbText, DT_RIGHT);
 	sbText.left = 48;
 	sbText.right = sbRect.right - 48;
-	DrawText(hdc, statusText.c_str(), statusText.length(), &sbText, DT_END_ELLIPSIS); 
+	DrawText(hdc, statusText, strlen(statusText), &sbText, DT_END_ELLIPSIS); 
 
 	BitBlt(statusRealDC, 0, 0, sbRect.right, sbRect.bottom, hdc, 0, 0, SRCCOPY);
 }
@@ -358,7 +358,7 @@ void HandleUI()
 	if (statusTimer)
 		statusTimer--;
 	else
-		statusText = "";
+		statusText[0] = 0;
 
 	if (mouseTimer > 0)
 	{
@@ -435,7 +435,7 @@ void InitializeUI()
 
 		hWndStatusBar = CreateWindowEx(0, "STATIC", NULL, WS_CHILD | WS_VISIBLE | SS_OWNERDRAW, 0, 0, 0, 0, hWnd, 0, hInstance, NULL);
 		statusBarHeight = 23;
-		statusFPS = "     ";
+		strcpy_s(statusFPS, 16, "     ");
 
 		auto scrDC = GetDC(0);
 		auto dpiY = GetDeviceCaps(scrDC, LOGPIXELSY);
@@ -493,10 +493,10 @@ bool ShowFileDlg(bool toSave, char* target, size_t max, const char* filter)
 	return false;
 }
 
-void SetStatus(std::string text)
+void SetStatus(const char* text)
 {
-	statusText = text;
-	statusTimer = 4 * text.length();
+	strcpy_s(statusText, 512, text);
+	statusTimer = 4 * strlen(text);
 }
 
 void SetStatus(int stab)
@@ -509,9 +509,9 @@ void SetStatus(int stab)
 void SetFPS(int fps)
 {
 	if (fpsVisible)
-		itoa(fps, &statusFPS[0], 10); //I too like to live dangerously.
+		itoa(fps, statusFPS, 10);
 	else
-		statusFPS = "     ";
+		strcpy_s(statusFPS, 16, "     ");
 }
 
 static char getStringBuffer[512];
@@ -573,7 +573,7 @@ void ResetPath()
 	SetCurrentDirectory(startingPath);
 }
 
-void ShowOpenFileDialog(int command, int data, std::string pattern)
+void ShowOpenFileDialog(int command, int data, const char* pattern)
 {
 	char* thing = (char*)ini.GetValue("media", "lastRom", "");
 	if (thing[0] == 0)
@@ -595,7 +595,7 @@ void ShowOpenFileDialog(int command, int data, std::string pattern)
 
 	char thePath[FILENAME_MAX] = { 0 };
 	strcpy_s(thePath, FILENAME_MAX, thing);
-	if (ShowFileDlg(false, thePath, 256, pattern.c_str()))
+	if (ShowFileDlg(false, thePath, 256, pattern))
 	{
 		strcpy_s(uiString, 512, thePath);
 		uiCommand = command;
