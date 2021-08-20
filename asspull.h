@@ -136,7 +136,7 @@ enum uiCommands
 #error MAP4 encroaches on TILES.
 #endif
 #if (BMP_ADDR + BITMAP_SIZE) > TILES_ADDR
-#error 640x480 Bitmap mode will overwrite the tilemap.
+#error 640x480 Bitmap mode will overwrite the tileset.
 #endif
 #if (BMP_ADDR + BITMAP_SIZE) > PAL_ADDR
 #error 640x480 Bitmap mode will overwrite the palette.
