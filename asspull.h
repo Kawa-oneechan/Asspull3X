@@ -7,10 +7,11 @@
 #include <SDL.h>
 #include "SimpleIni.h"
 
-int Lerp(int a, int b, float f);
-unsigned int RoundUp(unsigned int v);
-int Slurp(unsigned char* dest, const char* filePath, unsigned int* size);
-int Dump(const char* filePath, unsigned char* source, unsigned long size);
+extern int Lerp(int a, int b, float f);
+extern unsigned int RoundUp(unsigned int v);
+extern int Slurp(unsigned char* dest, const WCHAR* filePath, unsigned int* size);
+extern int Dump(const WCHAR* filePath, unsigned char* source, unsigned long size);
+extern void SDL_LogW(WCHAR* message, ...);
 
 extern unsigned char* romBIOS;
 extern unsigned char* romCartridge;
@@ -43,7 +44,7 @@ extern void BufferAudioSample(signed char);
 extern void HandleUI();
 extern void ResetPath();
 
-extern CSimpleIniA ini;
+extern CSimpleIni ini;
 
 extern const unsigned char keyMap[];
 
@@ -180,7 +181,7 @@ private:
 public:
 	DiskDrive(int newType);
 	~DiskDrive(void);
-	int Mount(const char* filename);
+	int Mount(const WCHAR* filename);
 	int Unmount();
 	unsigned int Read(unsigned int address);
 	void Write(unsigned int address, unsigned int value);

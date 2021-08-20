@@ -1,8 +1,8 @@
 #include "asspull.h"
 #include "resource.h"
-extern void SetStatus(const char*);
+extern void SetStatus(const WCHAR*);
 extern void SetStatus(int);
-extern char* GetString(int);
+extern WCHAR* GetString(int);
 
 Device* devices[MAXDEVS] = { 0 };
 
@@ -65,12 +65,12 @@ void WriteMoto32(FILE* file, uint32_t v)
 }
 */
 
-int DiskDrive::Mount(const char* filename)
+int DiskDrive::Mount(const WCHAR* filename)
 {
 	if (file != NULL)
 		return -1;
-	SDL_Log(GetString(IDS_MOUNTINGDISK), filename); //"Mounting disk image, %s ..."
-	file = fopen(filename, "r+b");
+	SDL_LogW(GetString(IDS_MOUNTINGDISK), filename); //"Mounting disk image, %s ..."
+	file = _wfopen(filename, L"r+b");
 	if (file == 0)
 		return errno;
 	fseek(file, 0, SEEK_END);
@@ -116,7 +116,7 @@ int DiskDrive::Mount(const char* filename)
 			return 1;
 		}
 		fseek(file, 0, SEEK_SET);
-		SDL_Log(GetString(IDS_MOUNTEDVHD), tracks, heads, sectors, tracks * heads * sectors * 512, capacity); //"Mounted VHD. %d * %d * %d * 512 = %d, should be ~%d."
+		SDL_LogW(GetString(IDS_MOUNTEDVHD), tracks, heads, sectors, tracks * heads * sectors * 512, capacity); //"Mounted VHD. %d * %d * %d * 512 = %d, should be ~%d."
 	}
 	return 0;
 }
@@ -125,7 +125,7 @@ int DiskDrive::Unmount()
 {
 	if (file == NULL)
 		return 1;
-	SDL_Log(GetString(IDS_UNMOUNTINGDISK)); //"Unmounting diskette..."
+	SDL_LogW(GetString(IDS_UNMOUNTINGDISK)); //"Unmounting diskette..."
 	fclose(file);
 	file = NULL;
 	return 0;

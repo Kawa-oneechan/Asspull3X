@@ -41,18 +41,18 @@ int InitSound()
 {
 	UninitSound();
 
-	if (ini.GetBoolValue("audio", "music", true))
+	if (ini.GetBoolValue(L"audio", L"music", true))
 	{
-		int devID = (int)ini.GetLongValue("audio", "midiDevice", 0);
+		int devID = (int)ini.GetLongValue(L"audio", L"midiDevice", 0);
 		auto res = midiOutOpen(&midiDevice, devID, NULL, NULL, 0);
 		if (res == MMSYSERR_BADDEVICEID)
 		{
-			SDL_Log("Could not open MIDI device #%d: bad device ID.", devID);
+			SDL_LogW(L"Could not open MIDI device #%d: bad device ID.", devID);
 			return 1; //Negative would mean to stop loading but who cares?
 		}
 		else if (res == MMSYSERR_BADDEVICEID)
 		{
-			SDL_Log("Could not open MIDI device #%d: device already allocated.", devID);
+			SDL_LogW(L"Could not open MIDI device #%d: device already allocated.", devID);
 			return 2; //If we *do* fail to open a device, we'll just run silent, pffft.
 		}
 
@@ -66,7 +66,7 @@ int InitSound()
 		}
 	}
 
-	if (ini.GetBoolValue("audio", "sound", true))
+	if (ini.GetBoolValue(L"audio", L"sound", true))
 	{
 		WAVEFORMATEX format = {};
 		format.wFormatTag = WAVE_FORMAT_PCM;
@@ -79,7 +79,7 @@ int InitSound()
 		auto res = waveOutOpen(&soundHandle, WAVE_MAPPER, &format, 0, 0, CALLBACK_NULL);
 		if (res != MMSYSERR_NOERROR)
 		{
-			SDL_Log("Could not open audio device: error %d", res);
+			SDL_LogW(L"Could not open audio device: error %d", res);
 			return 3;
 		}
 

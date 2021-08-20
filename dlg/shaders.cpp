@@ -31,14 +31,14 @@ BOOL CALLBACK ShadersWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 		}
 		case WM_INITDIALOG:
 		{
-			SendDlgItemMessage(hwndDlg, IDC_SHADERSAVAILABLE, LB_DIR, DDL_READWRITE, (LPARAM)"*.fs");
+			SendDlgItemMessage(hwndDlg, IDC_SHADERSAVAILABLE, LB_DIR, DDL_READWRITE, (LPARAM)L"*.fs");
 
-			auto numShaders = ini.GetLongValue("video", "shaders", -1);
+			auto numShaders = ini.GetLongValue(L"video", L"shaders", -1);
 			for (int i = 0; i < numShaders; i++)
 			{
-				char key[16] = { 0 };
-				sprintf_s(key, 16, "shader%d", i + 1);
-				SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_ADDSTRING, 0, (LPARAM)ini.GetValue("video", key, ""));
+				WCHAR key[16] = { 0 };
+				wsprintf(key, L"shader%d", i + 1);
+				SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_ADDSTRING, 0, (LPARAM)ini.GetValue(L"video", key, L""));
 			}
 
 			EnableShaderButtons(hwndDlg);
@@ -109,23 +109,23 @@ BOOL CALLBACK ShadersWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 					{
 						auto cnt = SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETCOUNT, 0, 0);
 
-						ini.SetLongValue("video", "shaders", cnt);
+						ini.SetLongValue(L"video", L"shaders", cnt);
 						for (int i = 0; i < MAXSHADERS; i++)
 						{
-							char key[16] = { 0 };
-							sprintf_s(key, 16, "shader%d", i + 1);
+							WCHAR key[16] = { 0 };
+							wsprintf(key, L"shader%d", i + 1);
 							if (i < cnt)
 							{
-								char val[256];
+								WCHAR val[256];
 								SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETTEXT, i, (LPARAM)val);
-								ini.SetValue("video", key, val);
+								ini.SetValue(L"video", key, val);
 							}
 							else
 							{
-								ini.Delete("video", key, true);
+								ini.Delete(L"video", key, true);
 							}
 						}
-						ini.SaveFile("settings.ini");
+						ini.SaveFile(L"settings.ini", false);
 
 						//DestroyWindow(hwndDlg);
 						//hWndShaders = NULL;

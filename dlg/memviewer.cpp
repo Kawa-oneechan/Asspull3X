@@ -7,7 +7,7 @@
 
 unsigned long memViewerOffset;
 extern "C" unsigned int m68k_read_memory_8(unsigned int address);
-extern char* GetString(int);
+extern WCHAR* GetString(int);
 
 extern unsigned char* ramVideo;
 
@@ -25,7 +25,7 @@ void MemViewerDraw(DRAWITEMSTRUCT* dis)
 	FillRect(hdc, &dis->rcItem, hbrList);
 	auto oldFont = SelectObject(hdc, monoFont);
 	SIZE fontSize;
-	GetTextExtentPoint(hdc, "0", 1, &fontSize);
+	GetTextExtentPoint(hdc, L"0", 1, &fontSize);
 	SetTextColor(hdc, rgbList);
 	SetBkColor(hdc, rgbListBk);
 
@@ -35,21 +35,21 @@ void MemViewerDraw(DRAWITEMSTRUCT* dis)
 	r.bottom = r.top + fontSize.cy;
 	r.right = rect.right - 3;
 
-	char buf[256] = { 0 };
+	WCHAR buf[256] = { 0 };
 
-	const char hex[] = "0123456789ABCDEF";
+	const WCHAR hex[] = L"0123456789ABCDEF";
 	unsigned int offset = memViewerOffset;
 	for (int row = 0; row < LINES; row++)
 	{
 		r.left = 3;
-		sprintf_s(buf, 256, "%08X", offset);
+		wsprintf(buf, L"%08X", offset);
 		DrawText(hdc, buf, -1, &r, DT_TOP | DT_LEFT | DT_NOPREFIX);
 
 		for (int col = 0; col < BYTES; col++)
 		{
 			auto here = m68k_read_memory_8(offset++);
 			r.left = 3 + 80 + (col * 22);
-			sprintf_s(buf, 256, "%c%c", hex[(here & 0xF0) >> 4], hex[here & 0x0F]);
+			wsprintf(buf, L"%c%c", hex[(here & 0xF0) >> 4], hex[here & 0x0F]);
 			DrawText(hdc, buf, -1, &r, DT_TOP | DT_LEFT | DT_NOPREFIX);
 			r.left = 3 + 442 + (col * fontSize.cx);
 			//sprintf_s(buf, 256, "%c", here);
@@ -83,8 +83,8 @@ void SetMemViewer(HWND hwndDlg, int to)
 	if (to < 0) to = 0;
 	if (to > MAXRANGE) to = MAXRANGE;
 	memViewerOffset = to;
-	char asText[64] = { 0 };
-	sprintf_s(asText, 64, "%08X", memViewerOffset);
+	WCHAR asText[64] = { 0 };
+	wsprintf(asText, L"%08X", memViewerOffset);
 	SetDlgItemText(hwndDlg, IDC_MEMVIEWEROFFSET, asText);
 	InvalidateRect(GetDlgItem(hwndDlg, IDC_MEMVIEWERGRID), NULL, true);
 	SetScrollPos(GetDlgItem(hwndDlg, IDC_MEMVIEWERSCROLL), SB_CTL, to / BYTES, true);
@@ -141,9 +141,9 @@ BOOL CALLBACK MemViewerEditProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam
 			switch (wParam)
 			{
 				case VK_RETURN:
-					char thing[16] = { 0 };
+					WCHAR thing[16] = { 0 };
 					GetWindowText(wnd, thing, 16);
-					SetMemViewer(hWndMemViewer, strtol(thing, NULL, 16));
+					SetMemViewer(hWndMemViewer, wcstol(thing, NULL, 16));
 					return 0;
 			}
 		default:

@@ -13,8 +13,8 @@ extern bool stretch200, fpsCap, reloadROM, reloadIMG;
 extern HWND hWndAbout, hWndMemViewer, hWndOptions, hWndDevices, hWndPalViewer, hWndShaders;
 extern HFONT headerFont, monoFont;
 
-extern char startingPath[FILENAME_MAX];
-extern char lastPath[FILENAME_MAX];
+extern WCHAR startingPath[FILENAME_MAX];
+extern WCHAR lastPath[FILENAME_MAX];
 
 extern HWND hWnd;
 extern HINSTANCE hInstance;
@@ -22,13 +22,13 @@ extern HWND hWndStatusBar;
 extern int statusBarHeight;
 
 extern int statusTimer;
-extern char uiStatus[512];
+extern WCHAR uiStatus[512];
 extern bool fpsVisible;
 extern bool wasPaused;
 extern bool autoUpdateMemViewer, autoUpdatePalViewer;
 extern bool fpsCap, stretch200;
 
-extern bool ShowFileDlg(bool toSave, char* target, size_t max, const char* filter);
+extern bool ShowFileDlg(bool toSave, WCHAR* target, size_t max, const WCHAR* filter);
 
 extern void InsertDisk(int devId);
 extern void EjectDisk(int devId);

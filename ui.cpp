@@ -4,8 +4,8 @@ processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
 #include "ui.h"
 
-static char startingPath[FILENAME_MAX];
-static char lastPath[FILENAME_MAX];
+static WCHAR startingPath[FILENAME_MAX];
+static WCHAR lastPath[FILENAME_MAX];
 
 HWND hWnd;
 HINSTANCE hInstance;
@@ -13,11 +13,11 @@ HWND hWndStatusBar;
 int statusBarHeight = 0;
 
 int uiCommand;
-char uiString[512];
+WCHAR uiString[512];
 
 int mouseTimer = -1;
 int statusTimer = 0;
-char uiStatus[512];
+WCHAR uiStatus[512];
 bool fpsVisible = false;
 bool wasPaused = false;
 bool autoUpdateMemViewer = false;
@@ -31,7 +31,7 @@ HPEN hpnStripe = NULL;
 COLORREF rgbBack = NULL, rgbStripe = NULL, rgbText = NULL, rgbHeader = NULL, rgbList = NULL, rgbListBk = NULL;
 HIMAGELIST hIml = NULL;
 
-bool ShowFileDlg(bool toSave, char* target, size_t max, const char* filter);
+bool ShowFileDlg(bool toSave, WCHAR* target, size_t max, const WCHAR* filter);
 
 void DrawWindowBk(HWND hwndDlg, bool stripe)
 {
@@ -102,7 +102,7 @@ void DrawCheckbox(HWND hwndDlg, LPNMCUSTOMDRAW nmc)
 
 			nmc->rc.left +=  3 + s.cx;
 
-			char text[256];
+			WCHAR text[256];
 			GetDlgItemText(hwndDlg, idFrom, text, 255);
 			DrawText(nmc->hdc, text, -1, &nmc->rc, DT_SINGLELINE | DT_VCENTER);
 
@@ -146,7 +146,7 @@ bool DrawDarkButton(HWND hwndDlg, LPNMCUSTOMDRAW nmc)
 			DeleteObject(border);
 
 			SetBkColor(nmc->hdc, (nmc->uItemState & CDIS_SELECTED) ? rgbListBk : rgbBack);
-			char text[256];
+			WCHAR text[256];
 			GetDlgItemText(hwndDlg, idFrom, text, 255);
 			DrawText(nmc->hdc, text, -1, &nmc->rc, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
 			SetWindowLongPtr(hwndDlg, DWLP_MSGRESULT, (LONG_PTR)CDRF_SKIPDEFAULT);
@@ -170,9 +170,9 @@ bool DrawComboBox(HWND hwndDlg, LPDRAWITEMSTRUCT dis)
 	if (dis->itemState & ODS_COMBOBOXEDIT)
 		x += 2;
 
-	char text[256];
+	WCHAR text[256];
 	SendMessage(dis->hwndItem, CB_GETLBTEXT, dis->itemID, (LPARAM)text);
-	ExtTextOut(dis->hDC, x, y, ETO_CLIPPED | ETO_OPAQUE, &dis->rcItem, text, (UINT)strlen(text), NULL);
+	ExtTextOut(dis->hDC, x, y, ETO_CLIPPED | ETO_OPAQUE, &dis->rcItem, text, (UINT)wcslen(text), NULL);
 	return true;
 }
 
@@ -196,9 +196,9 @@ int MatchTheme()
 	if (!IsWin10()) return 0;
 	DWORD nResult;
 	HKEY key;
-	if (RegOpenKeyEx(HKEY_CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", 0, KEY_READ, &key)) return 0;
+	if (RegOpenKeyEx(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", 0, KEY_READ, &key)) return 0;
 	DWORD dwBufferSize = sizeof(DWORD);
-	RegQueryValueEx(key, "AppsUseLightTheme", 0, NULL, (LPBYTE)&nResult, &dwBufferSize);
+	RegQueryValueEx(key, L"AppsUseLightTheme", 0, NULL, (LPBYTE)&nResult, &dwBufferSize);
 	RegCloseKey(key);
 	//AppsUseLightTheme == 0 means light, and that's the inverse of our list.
 	return !nResult;
@@ -206,7 +206,7 @@ int MatchTheme()
 
 void SetThemeColors()
 {
-	theme = ini.GetLongValue("media", "theme", 0);
+	theme = ini.GetLongValue(L"media", L"theme", 0);
 
 	if (theme == 2) //match
 		theme = MatchTheme();
@@ -301,7 +301,7 @@ LRESULT WndProc(HWND hWnd, unsigned int message, WPARAM wParam, LPARAM lParam)
 	}
 }
 
-char statusFPS[16], statusText[512];
+WCHAR statusFPS[16], statusText[512];
 
 HDC statusRealDC = NULL;
 HDC statusDC = NULL;
@@ -342,11 +342,11 @@ void DrawStatusBar()
 
 	SetBkColor(hdc, rgbBack);
 	SetTextColor(hdc, rgbText);
-	RECT sbText = { 4, 4, 40, sbRect.bottom - 4 };
-	DrawText(hdc, statusFPS, strlen(statusFPS), &sbText, DT_RIGHT);
+	RECT sbText = { 4, 4, 32, sbRect.bottom - 4 };
+	DrawText(hdc, statusFPS, wcslen(statusFPS), &sbText, DT_RIGHT);
 	sbText.left = 48;
 	sbText.right = sbRect.right - 48;
-	DrawText(hdc, statusText, strlen(statusText), &sbText, DT_END_ELLIPSIS); 
+	DrawText(hdc, statusText, wcslen(statusText), &sbText, DT_END_ELLIPSIS); 
 
 	BitBlt(statusRealDC, 0, 0, sbRect.right, sbRect.bottom, hdc, 0, 0, SRCCOPY);
 }
@@ -433,33 +433,33 @@ void InitializeUI()
 		}
 		SetMenu(hWnd, menuBar);
 
-		hWndStatusBar = CreateWindowEx(0, "STATIC", NULL, WS_CHILD | WS_VISIBLE | SS_OWNERDRAW, 0, 0, 0, 0, hWnd, 0, hInstance, NULL);
+		hWndStatusBar = CreateWindowEx(0, L"STATIC", NULL, WS_CHILD | WS_VISIBLE | SS_OWNERDRAW, 0, 0, 0, 0, hWnd, 0, hInstance, NULL);
 		statusBarHeight = 23;
-		strcpy_s(statusFPS, 16, "     ");
+		wcscpy_s(statusFPS, 16, L"     ");
 
 		auto scrDC = GetDC(0);
 		auto dpiY = GetDeviceCaps(scrDC, LOGPIXELSY);
 		auto headerSize = MulDiv(13, dpiY, 72);
 		ReleaseDC(0, scrDC);
 
-		headerFont = CreateFont(headerSize, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Segoe UI");
-		monoFont = CreateFont(16, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Courier New");
-		statusFont = CreateFont(14, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Segoe UI");
+		headerFont = CreateFont(headerSize, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, L"Segoe UI");
+		monoFont = CreateFont(16, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, L"Courier New");
+		statusFont = CreateFont(14, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, L"Segoe UI");
 
 		SetThemeColors();
 	}
 	return;
 }
 
-bool ShowFileDlg(bool toSave, char* target, size_t max, const char* filter)
+bool ShowFileDlg(bool toSave, WCHAR* target, size_t max, const WCHAR* filter)
 {
 	OPENFILENAME ofn;
-	char sFilter[512];
-	strcpy_s(sFilter, 512, filter);
-	char* f = sFilter;
+	WCHAR sFilter[512];
+	wcscpy_s(sFilter, 512, filter);
+	WCHAR* f = sFilter;
 	while (*f)
 	{
-		if (*f == '|')
+		if (*f == L'|')
 			*f = 0;
 		f++;
 	}
@@ -479,13 +479,13 @@ bool ShowFileDlg(bool toSave, char* target, size_t max, const char* filter)
 	ofn.lpstrInitialDir = NULL;
 	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 
-	char cwd[MAX_PATH];
+	WCHAR cwd[MAX_PATH];
 	GetCurrentDirectory(MAX_PATH, cwd);
 
 	if ((!toSave && (GetOpenFileName(&ofn) == TRUE)) || (toSave && (GetSaveFileName(&ofn) == TRUE)))
 	{
 		SetCurrentDirectory(cwd);
-		strcpy_s(target, max, ofn.lpstrFile);
+		wcscpy_s(target, max, ofn.lpstrFile);
 		return true;
 	}
 
@@ -493,15 +493,15 @@ bool ShowFileDlg(bool toSave, char* target, size_t max, const char* filter)
 	return false;
 }
 
-void SetStatus(const char* text)
+void SetStatus(const WCHAR* text)
 {
-	strcpy_s(statusText, 512, text);
-	statusTimer = 4 * strlen(text);
+	wcscpy_s(statusText, 512, text);
+	statusTimer = 4 * wcslen(text);
 }
 
 void SetStatus(int stab)
 {
-	char b[256];
+	WCHAR b[256];
 	LoadString(hInstance, stab, b, 256);
 	SetStatus(b);
 }
@@ -509,13 +509,13 @@ void SetStatus(int stab)
 void SetFPS(int fps)
 {
 	if (fpsVisible)
-		itoa(fps, statusFPS, 10);
+		_itow(fps, statusFPS, 10);
 	else
-		strcpy_s(statusFPS, 16, "     ");
+		wcscpy_s(statusFPS, 16, L"     ");
 }
 
-static char getStringBuffer[512];
-char* GetString(int stab)
+static WCHAR getStringBuffer[512];
+WCHAR* GetString(int stab)
 {
 	LoadString(hInstance, stab, getStringBuffer, 512);
 	return getStringBuffer;
@@ -573,31 +573,31 @@ void ResetPath()
 	SetCurrentDirectory(startingPath);
 }
 
-void ShowOpenFileDialog(int command, int data, const char* pattern)
+void ShowOpenFileDialog(int command, int data, const WCHAR* pattern)
 {
-	char* thing = (char*)ini.GetValue("media", "lastRom", "");
+	WCHAR* thing = (WCHAR*)ini.GetValue(L"media", L"lastRom", L"");
 	if (thing[0] == 0)
 	{
 		thing = lastPath;
 		if (thing[0] == 0)
 			thing = startingPath;
-		if (thing[strlen(thing)] != '\\')
-			strcat(thing, "\\");
+		if (thing[wcslen(thing)] != L'\\')
+			wcscat(thing, L"\\");
 	}
 	if (thing[0] != 0)
 	{
-		auto lastSlash = (char*)strrchr(thing, '\\');
+		auto lastSlash = (WCHAR*)wcsrchr(thing, L'\\');
 		if (lastSlash)
 			*(lastSlash + 1) = 0;
 	}
 
 	uiCommand = 0;
 
-	char thePath[FILENAME_MAX] = { 0 };
-	strcpy_s(thePath, FILENAME_MAX, thing);
+	WCHAR thePath[FILENAME_MAX] = { 0 };
+	wcscpy_s(thePath, FILENAME_MAX, thing);
 	if (ShowFileDlg(false, thePath, 256, pattern))
 	{
-		strcpy_s(uiString, 512, thePath);
+		wcscpy_s(uiString, 512, thePath);
 		uiCommand = command;
 	}
 
@@ -610,21 +610,21 @@ void InsertDisk(int devId)
 	ShowOpenFileDialog(cmdInsertDisk, devId, (((DiskDrive*)devices[devId])->GetType() == ddDiskette ? GetString(IDS_DDFILTER) : GetString(IDS_HDFILTER)));
 	if (uiCommand == 0)
 		return;
-	char key[16];
-	sprintf_s(key, 16, "%d", devId);
+	WCHAR key[16];
+	_itow(devId, key, 10);
 	auto ret = ((DiskDrive*)devices[devId])->Mount(uiString);
 	if (ret == -1)
 		SetStatus(IDS_EJECTFIRST); //"Eject the diskette first, with Ctrl-Shift-U."
 	else if (ret != 0)
-		SDL_Log("Error %d trying to open disk image.", ret);
+		SDL_LogW(L"Error %d trying to open disk image.", ret);
 	else
 	{
 		if (((DiskDrive*)devices[devId])->GetType() == ddDiskette)
-			ini.SetValue("devices/diskDrive", key, uiString);
+			ini.SetValue(L"devices/diskDrive", key, uiString);
 		else
-			ini.SetValue("devices/hardDrive", key, uiString);
+			ini.SetValue(L"devices/hardDrive", key, uiString);
 		ResetPath();
-		ini.SaveFile("settings.ini");
+		ini.SaveFile(L"settings.ini", false);
 		if (hWndDevices != NULL) UpdateDevicePage(hWndDevices);
 	}
 }
@@ -632,14 +632,14 @@ void InsertDisk(int devId)
 void EjectDisk(int devId)
 {
 	((DiskDrive*)devices[devId])->Unmount();
-	char key[16];
-	sprintf_s(key, 16, "%d", devId);
+	WCHAR key[16];
+	_itow(devId, key, 10);
 	if (((DiskDrive*)devices[devId])->GetType() == ddDiskette)
-		ini.SetValue("devices/diskDrive", key, "");
+		ini.SetValue(L"devices/diskDrive", key, L"");
 	else
-		ini.SetValue("devices/hardDrive", key, "");
+		ini.SetValue(L"devices/hardDrive", key, L"");
 	ResetPath();
-	ini.SaveFile("settings.ini");
+	ini.SaveFile(L"settings.ini", false);
 	SetStatus(IDS_DISKEJECTED); //"Disk ejected."
 	if (hWndDevices != NULL) UpdateDevicePage(hWndDevices);
 }

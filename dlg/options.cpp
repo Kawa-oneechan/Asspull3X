@@ -1,6 +1,6 @@
 #include "..\ui.h"
 
-extern char* GetString(int);
+extern WCHAR* GetString(int);
 extern int invertButtons;
 
 BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam)
@@ -26,7 +26,7 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 				SendDlgItemMessage(hwndDlg, IDC_THEME, CB_ADDSTRING, 0, (LPARAM)GetString(IDS_THEMES + i));
 			if (IsWin10())
 				SendDlgItemMessage(hwndDlg, IDC_THEME, CB_ADDSTRING, 0, (LPARAM)GetString(IDS_THEMES + 2)); 
-			SendDlgItemMessage(hwndDlg, IDC_THEME, CB_SETCURSEL, ini.GetLongValue("media", "theme", 0), 0);
+			SendDlgItemMessage(hwndDlg, IDC_THEME, CB_SETCURSEL, ini.GetLongValue(L"media", L"theme", 0), 0);
 
 			int midiDevs = midiOutGetNumDevs();
 			MIDIOUTCAPS caps = { 0 };
@@ -35,17 +35,17 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 				midiOutGetDevCaps(i, &caps, sizeof(MIDIOUTCAPS));
 				SendDlgItemMessage(hwndDlg, IDC_MIDIDEV, CB_ADDSTRING, 0, (LPARAM)caps.szPname);
 			}
-			int dev = ini.GetLongValue("audio", "midiDevice", 0);
+			int dev = ini.GetLongValue(L"audio", L"midiDevice", 0);
 			if (dev >= midiDevs) dev = 0;
-			CheckDlgButton(hwndDlg, IDC_SOUND, ini.GetBoolValue("audio", "sound", true));
-			CheckDlgButton(hwndDlg, IDC_MUSIC, ini.GetBoolValue("audio", "music", true));
+			CheckDlgButton(hwndDlg, IDC_SOUND, ini.GetBoolValue(L"audio", L"sound", true));
+			CheckDlgButton(hwndDlg, IDC_MUSIC, ini.GetBoolValue(L"audio", L"music", true));
 			SendDlgItemMessage(hwndDlg, IDC_MIDIDEV, CB_SETCURSEL, dev, 0);
 
-			CheckDlgButton(hwndDlg, IDC_INVERTBUTTONS, ini.GetBoolValue("media", "invertButtons", false));
+			CheckDlgButton(hwndDlg, IDC_INVERTBUTTONS, ini.GetBoolValue(L"media", L"invertButtons", false));
 
 			CheckDlgButton(hwndDlg, IDC_RELOAD, reloadROM);
 			CheckDlgButton(hwndDlg, IDC_REMOUNT, reloadIMG);
-			SetDlgItemText(hwndDlg, IDC_BIOSPATH, ini.GetValue("media", "bios", ""));
+			SetDlgItemText(hwndDlg, IDC_BIOSPATH, ini.GetValue(L"media", L"bios", L""));
 			return true;
 		}
 		case WM_PAINT:
@@ -115,19 +115,19 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 				{
 					case IDC_BIOSBROWSE:
 					{
-						char thePath[FILENAME_MAX] = { 0 };
+						WCHAR thePath[FILENAME_MAX] = { 0 };
 						GetWindowText(GetDlgItem(hwndDlg, IDC_BIOSPATH), thePath, FILENAME_MAX);
-						if (ShowFileDlg(false, thePath, 256, "A3X BIOS files (*.apb)|*.apb"))
+						if (ShowFileDlg(false, thePath, 256, L"A3X BIOS files (*.apb)|*.apb"))
 							SetWindowText(GetDlgItem(hwndDlg, IDC_BIOSPATH), thePath);
 						return false;
 					}
 					case IDOK:
 					{
-						char thePath[FILENAME_MAX] = { 0 };
+						WCHAR thePath[FILENAME_MAX] = { 0 };
 						GetWindowText(GetDlgItem(hwndDlg, IDC_BIOSPATH), thePath, FILENAME_MAX);
-						ini.SetValue("media", "bios", thePath);
-						ini.SetLongValue("media", "theme", SendDlgItemMessage(hwndDlg, IDC_THEME, CB_GETCURSEL, 0, 0));
-						ini.SetLongValue("audio", "midiDevice", SendDlgItemMessage(hwndDlg, IDC_MIDIDEV, CB_GETCURSEL, 0, 0));
+						ini.SetValue(L"media", L"bios", thePath);
+						ini.SetLongValue(L"media", L"theme", SendDlgItemMessage(hwndDlg, IDC_THEME, CB_GETCURSEL, 0, 0));
+						ini.SetLongValue(L"audio", L"midiDevice", SendDlgItemMessage(hwndDlg, IDC_MIDIDEV, CB_GETCURSEL, 0, 0));
 
 						fpsVisible = (IsDlgButtonChecked(hwndDlg, IDC_SHOWFPS) == 1);
 						fpsCap = (IsDlgButtonChecked(hwndDlg, IDC_FPSCAP) == 1);
@@ -138,15 +138,15 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 						auto enableSound = (IsDlgButtonChecked(hwndDlg, IDC_SOUND) == 1);
 						auto enableMusic = (IsDlgButtonChecked(hwndDlg, IDC_MUSIC) == 1);
 
-						ini.SetBoolValue("video", "fpsCap", fpsCap);
-						ini.SetBoolValue("video", "showFps", fpsVisible);
-						ini.SetBoolValue("video", "stretch200", stretch200);
-						ini.SetBoolValue("audio", "sound", enableSound);
-						ini.SetBoolValue("audio", "music", enableMusic);
-						ini.SetBoolValue("media", "reloadRom", reloadROM);
-						ini.SetBoolValue("media", "reloadImg", reloadIMG);
-						ini.SetBoolValue("media", "invertButtons", invertButtons == 1);
-						ini.SaveFile("settings.ini");
+						ini.SetBoolValue(L"video", L"fpsCap", fpsCap);
+						ini.SetBoolValue(L"video", L"showFps", fpsVisible);
+						ini.SetBoolValue(L"video", L"stretch200", stretch200);
+						ini.SetBoolValue(L"audio", L"sound", enableSound);
+						ini.SetBoolValue(L"audio", L"music", enableMusic);
+						ini.SetBoolValue(L"media", L"reloadRom", reloadROM);
+						ini.SetBoolValue(L"media", L"reloadImg", reloadIMG);
+						ini.SetBoolValue(L"media", L"invertButtons", invertButtons == 1);
+						ini.SaveFile(L"settings.ini", false);
 						DestroyWindow(hwndDlg);
 						hWndOptions = NULL;
 

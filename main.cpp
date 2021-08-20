@@ -12,15 +12,15 @@ int line = 0, interrupts = 0;
 int invertButtons = 0;
 extern void Screenshot();
 extern int uiCommand;
-extern char uiString[512];
+extern WCHAR uiString[512];
 extern void InitializeUI();
-extern void SetStatus(const char*);
+extern void SetStatus(const WCHAR*);
 extern void SetStatus(int);
-extern char* GetString(int);
+extern WCHAR* GetString(int);
 extern void SetFPS(int fps);
 extern void _devUpdateDiskette(int);
-extern void ShowOpenFileDialog(int, int, const char*);
-extern bool ShowFileDlg(bool, char*, size_t, const char*);
+extern void ShowOpenFileDialog(int, int, const WCHAR*);
+extern bool ShowFileDlg(bool, WCHAR*, size_t, const WCHAR*);
 extern void LetItSnow();
 extern void InsertDisk(int);
 extern void EjectDisk(int);
@@ -29,30 +29,31 @@ extern void ResizeStatusBar();
 extern unsigned int biosSize, romSize;
 extern long rtcOffset;
 
-void LoadROM(const char* path)
+void LoadROM(const WCHAR* path)
 {
 	unsigned int fileSize = 0;
 
-	char lpath[512];
-	//std::transform(lpath.begin(), lpath.end(), lpath.begin(), [](unsigned char c) { return tolower(c); });
+	WCHAR lpath[512];
 	for (int i = 0; i < 512; i++)
 	{
-		lpath[i] = tolower(path[i]);
+		lpath[i] =  towlower(path[i]);
 		if (path[i] == 0)
 			break;
 	}
 
-	auto ext = strrchr(lpath, '.') + 1;
-	if (!strcmpi(ext, "ap3"))
+	auto ext = wcsrchr(lpath, L'.') + 1;
+	if (!wcscmp(ext, L"ap3"))
 	{
 		memset(romCartridge, 0, CART_SIZE);
 		Slurp(romCartridge, path, &romSize);
 	}
-	else if (!strcmpi(ext, "a3z"))
+	else if (!wcscmp(ext, L"a3z"))
 	{
 		mz_zip_archive zip;
 		memset(&zip, 0, sizeof(zip));
-		mz_zip_reader_init_file(&zip, path, 0);
+		char zipPath[512] = { 0 };
+		wcstombs(zipPath, path, 512);
+		mz_zip_reader_init_file(&zip, zipPath, 0);
 
 		bool foundSomething = false;
 		for (int i = 0; i < (int)mz_zip_reader_get_num_files(&zip); i++)
@@ -88,7 +89,7 @@ void LoadROM(const char* path)
 	fileSize = romSize;
 	romSize = RoundUp(romSize);
 	if (romSize != fileSize)
-		SDL_Log(GetString(IDS_BADSIZE), fileSize, fileSize, romSize, romSize); //"File size is not a power of two: is %d (0x%08X), should be %d (0x%08X)."
+		SDL_LogW(GetString(IDS_BADSIZE), fileSize, fileSize, romSize, romSize); //"File size is not a power of two: is %d (0x%08X), should be %d (0x%08X)."
 
 	unsigned int c1 = 0;
 	unsigned int c2 = (romCartridge[0x20] << 24) | (romCartridge[0x21] << 16) | (romCartridge[0x22] << 8) | (romCartridge[0x23] << 0);
@@ -99,11 +100,11 @@ void LoadROM(const char* path)
 		c1 += romCartridge[i];
 	}
 	if (c1 != c2)
-		SDL_Log(GetString(IDS_BADCHECKSUM), c2, c1); //"Checksum mismatch: is 0x%08X, should be 0x%08X."
+		SDL_LogW(GetString(IDS_BADCHECKSUM), c2, c1); //"Checksum mismatch: is 0x%08X, should be 0x%08X."
 
-	ini.SetValue("media", "lastROM", path);
+	ini.SetValue(L"media", L"lastROM", path);
 	ResetPath();
-	ini.SaveFile("settings.ini");
+	ini.SaveFile(L"settings.ini", false);
 
 	char romName[32] = { 0 };
 	memcpy(romName, romCartridge + 8, 24);
@@ -118,12 +119,12 @@ void MainLoop()
 {
 	pauseScreen = (unsigned char*)malloc(640 * 480 * 4);
 
-	SDL_Log(GetString(IDS_RESETTING));
+	SDL_LogW(GetString(IDS_RESETTING));
 	m68k_init();
 	m68k_set_cpu_type(M68K_CPU_TYPE_68020);
 	m68k_pulse_reset();
 
-	printf(GetString(IDS_ASSPULLISREADY)); //"Asspull IIIx is ready."...
+	wprintf(GetString(IDS_ASSPULLISREADY)); //"Asspull IIIx is ready."...
 
 	SDL_Event ev;
 
@@ -233,7 +234,7 @@ void MainLoop()
 			{
 				ShowOpenFileDialog(cmdLoadRom, 0, GetString(IDS_CARTFILTER)); //"Asspull IIIx ROMS (*.ap3)|*.ap3"
 				if (uiCommand == 0) continue;
-				SDL_Log(GetString(IDS_LOADINGROM), uiString); //"Loading ROM, %s ..."
+				SDL_LogW(GetString(IDS_LOADINGROM), uiString); //"Loading ROM, %s ..."
 				auto gottaReset = (*(uint32_t*)romCartridge == 0x21535341);
 				LoadROM(uiString);
 			}
@@ -248,14 +249,16 @@ void MainLoop()
 			}
 			else if (uiCommand == cmdUnloadRom)
 			{
-				SDL_Log(GetString(IDS_UNLOADINGROM)); //"Unloading ROM..."
+				SDL_LogW(GetString(IDS_UNLOADINGROM)); //"Unloading ROM..."
 				memset(romCartridge, 0, CART_SIZE);
-				ini.SetValue("media", "lastROM", "");
+				ini.SetValue(L"media", L"lastROM", L"");
 				ResetPath();
-				ini.SaveFile("settings.ini");
+				ini.SaveFile(L"settings.ini", false);
 				gfxFade = 31;
 				SetStatus(IDS_CARTEJECTED); //"Cart pulled."
-				Discord::UpdateDiscordPresence(GetString(IDS_NOTPLAYING));
+				char b[256] = { 0 };
+				wcstombs(b, GetString(IDS_NOTPLAYING), 256);
+				Discord::UpdateDiscordPresence(b);
 			}
 			else if (uiCommand == cmdEjectDisk)
 			{
@@ -268,13 +271,13 @@ void MainLoop()
 			{
 				if (SDL_GetModState() & KMOD_SHIFT)
 				{
-					SDL_Log(GetString(IDS_UNLOADINGROM)); //"Unloading ROM..."
+					SDL_LogW(GetString(IDS_UNLOADINGROM)); //"Unloading ROM..."
 					memset(romCartridge, 0, CART_SIZE);
-					ini.SetValue("media", "lastROM", "");
+					ini.SetValue(L"media", L"lastROM", L"");
 					ResetPath();
-					ini.SaveFile("settings.ini");
+					ini.SaveFile(L"settings.ini", true);
 				}
-				SDL_Log(GetString(IDS_SYSTEMRESET)); //"Resetting Musashi..."
+				SDL_LogW(GetString(IDS_SYSTEMRESET)); //"Resetting Musashi..."
 				SetStatus(IDS_SYSTEMRESET); //"System reset."
 				m68k_pulse_reset();
 			}
@@ -284,9 +287,9 @@ void MainLoop()
 			}
 			else if (uiCommand == cmdDump)
 			{
-				SDL_Log(GetString(IDS_UNMOUNTINGDISK)); //"Dumping core..."
-				Dump("wram.bin", ramInternal, WRAM_SIZE);
-				Dump("vram.bin", ramVideo, VRAM_SIZE);
+				SDL_LogW(GetString(IDS_UNMOUNTINGDISK)); //"Dumping core..."
+				Dump(L"wram.bin", ramInternal, WRAM_SIZE);
+				Dump(L"vram.bin", ramVideo, VRAM_SIZE);
 			}
 			else if (uiCommand == cmdScreenshot)
 			{

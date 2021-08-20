@@ -1,6 +1,6 @@
 #include "..\ui.h"
 
-extern char* GetString(int);
+extern WCHAR* GetString(int);
 
 extern HIMAGELIST hIml;
 
@@ -36,9 +36,9 @@ void UpdateDevicePage(HWND hwndDlg)
 					ShowWindow(GetDlgItem(hwndDlg, everything[i]), SW_SHOW);
 				SetDlgItemText(hwndDlg, IDC_HEADER, (((DiskDrive*)device)->GetType() == ddHardDisk) ? GetString(IDS_DEVICES2+2) : GetString(IDS_DEVICES2+1) ); //"Diskette drive" "Hard drive"
 				SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, CB_SETCURSEL, (((DiskDrive*)device)->GetType() == ddHardDisk) ? 2 : 1, 0);
-				char key[8] = { 0 };
-				SDL_itoa(devNum, key, 10);
-				auto val = ini.GetValue("devices/diskDrive", key, "");
+				WCHAR key[8] = { 0 };
+				_itow(devNum, key, 10);
+				auto val = ini.GetValue(L"devices/diskDrive", key, L"");
 				SetDlgItemText(hwndDlg, IDC_DDFILE, val);
 				EnableWindow(GetDlgItem(hwndDlg, IDC_DDINSERT), val[0] == 0);
 				EnableWindow(GetDlgItem(hwndDlg, IDC_DDEJECT), val[0] != 0);
@@ -114,8 +114,8 @@ void SwitchDevice(HWND hwndDlg)
 	if (newType == oldType)
 		return;
 
-	char key[8] = { 0 };
-	SDL_itoa(devNum, key, 10);
+	WCHAR key[8] = { 0 };
+	_itow(devNum, key, 10);
 
 	if (devices[devNum] != NULL) delete devices[devNum];
 	switch (newType)
@@ -123,19 +123,19 @@ void SwitchDevice(HWND hwndDlg)
 		case 0:
 			devices[devNum] = NULL;
 			//ini.SetValue("devices", key, "");
-			ini.Delete("devices", key, true);
+			ini.Delete(L"devices", key, true);
 			break;
 		case 1:
 			devices[devNum] = (Device*)(new DiskDrive(0));
-			ini.SetValue("devices", key, "diskDrive");
+			ini.SetValue(L"devices", key, L"diskDrive");
 			break;
 		case 2:
 			devices[devNum] = (Device*)(new DiskDrive(1));
-			ini.SetValue("devices", key, "hardDrive");
+			ini.SetValue(L"devices", key, L"hardDrive");
 			break;
 		case 3:
 			devices[devNum] = (Device*)(new LinePrinter());
-			ini.SetValue("devices", key, "linePrinter");
+			ini.SetValue(L"devices", key, L"linePrinter");
 			break;
 	}
 	UpdateDeviceList(hwndDlg);
@@ -229,9 +229,9 @@ BOOL CALLBACK DevicesWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 			int y = (dis->rcItem.bottom + dis->rcItem.top - tm.tmHeight) / 2;
 			int x = LOWORD(GetDialogBaseUnits()) / 4;
 
-			char text[256];
+			WCHAR text[256];
 			SendMessage(dis->hwndItem, CB_GETLBTEXT, dis->itemID, (LPARAM)text);
-			ExtTextOut(dis->hDC, 24, y, ETO_CLIPPED | ETO_OPAQUE, &dis->rcItem, text, (UINT)strlen(text), NULL);
+			ExtTextOut(dis->hDC, 24, y, ETO_CLIPPED | ETO_OPAQUE, &dis->rcItem, text, (UINT)wcslen(text), NULL);
 
 			ImageList_Draw(hIml, dis->itemID, dis->hDC, dis->rcItem.left + 1, dis->rcItem.top + 1, ILD_NORMAL);
 			return true;

@@ -4,7 +4,8 @@
 #include <Windows.h>
 #include "resource.h"
 
-extern char* GetString(int);
+extern WCHAR* GetString(int);
+extern void SDL_LogW(WCHAR* message, ...);
 
 namespace Discord
 {
@@ -32,7 +33,7 @@ namespace Discord
 		discordDLL = LoadLibraryExA("discord-rpc.dll", NULL, 0);
 		if (discordDLL == NULL)
 		{
-			SDL_Log(GetString(IDS_DISCORDDLL)); //"Discord is enabled but the DLL isn't here."
+			SDL_LogW(GetString(IDS_DISCORDDLL)); //"Discord is enabled but the DLL isn't here."
 			enabled = false;
 			return;
 		}
@@ -43,14 +44,18 @@ namespace Discord
 
 		DiscordEventHandlers handlers = {};
 		__Discord_Initialize(ApplicationId, &handlers, 1, nullptr);
-		UpdateDiscordPresence(GetString(IDS_NOTPLAYING)); //"Not playing"
+		char b[256] = { 0 };
+		wcstombs(b, GetString(IDS_NOTPLAYING), 256);
+		UpdateDiscordPresence(b); //"Not playing"
 	}
 
 	void UpdateDiscordPresence(char* gameName)
 	{
 		if (!enabled)
 			return;
-		SDL_Log("Discord: \"%s\"", gameName);
+		WCHAR wName[64] = { 0 };
+		mbstowcs(wName, gameName, 64);
+		SDL_LogW(L"Discord: \"%s\"", wName);
 		DiscordRichPresence discord_presence = {};
 		discord_presence.details = gameName;
 		discord_presence.startTimestamp = time(NULL);

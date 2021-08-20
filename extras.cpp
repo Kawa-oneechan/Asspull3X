@@ -17,9 +17,9 @@ unsigned int RoundUp(unsigned int v)
 	return v;
 }
 
-int Slurp(unsigned char* dest, const char* filePath, unsigned int* size)
+int Slurp(unsigned char* dest, const WCHAR* filePath, unsigned int* size)
 {
-	FILE* file = fopen(filePath, "rb");
+	FILE* file = _wfopen(filePath, L"rb");
 	if (!file) return errno;
 	fseek(file, 0, SEEK_END);
 	long fs = ftell(file);
@@ -30,11 +30,23 @@ int Slurp(unsigned char* dest, const char* filePath, unsigned int* size)
 	return 0;
 }
 
-int Dump(const char* filePath, unsigned char* source, unsigned long size)
+int Dump(const WCHAR* filePath, unsigned char* source, unsigned long size)
 {
-	FILE* file = fopen(filePath, "wb");
+	FILE* file = _wfopen(filePath, L"wb");
 	if (!file) return errno;
 	fwrite(source, size, 1, file);
 	fclose(file);
 	return 0;
+}
+
+void SDL_LogW(WCHAR* message, ...)
+{
+	va_list args;
+	WCHAR wcs[1024];
+	char mbcs[1024];
+	va_start(args, message);
+	wvsprintf(wcs, message, args);
+	va_end(args);
+	wcstombs(mbcs, wcs, 1024);
+	SDL_Log(mbcs);
 }
