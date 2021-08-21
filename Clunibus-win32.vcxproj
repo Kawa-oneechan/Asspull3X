@@ -155,6 +155,7 @@
     <None Include="res\dance.bmp" />
     <None Include="res\dpi.xml" />
     <None Include="res\imglist.bmp" />
+    <None Include="res\shrug.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

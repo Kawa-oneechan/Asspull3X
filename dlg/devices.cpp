@@ -13,8 +13,8 @@ void UpdateDevicePage(HWND hwndDlg)
 	EnableWindow(GetDlgItem(hwndDlg, IDC_DEVTYPE), (devNum > 0));
 
 	//Hide everything regardless at first.
-	int everything[] = { IDC_DEVNONE, IDC_DDFILE, IDC_DDINSERT, IDC_DDEJECT, IDC_PRIMARYDEVICE };
-	for (int i = 0; i < 5; i++)
+	int everything[] = { IDC_DEVNONE, IDC_SHRUG, IDC_DDFILE, IDC_DDINSERT, IDC_DDEJECT, IDC_PRIMARYDEVICE };
+	for (int i = 0; i < ARRAYSIZE(everything); i++)
 		ShowWindow(GetDlgItem(hwndDlg, everything[i]), SW_HIDE);
 
 	if (devNum == 0)
@@ -23,6 +23,7 @@ void UpdateDevicePage(HWND hwndDlg)
 	if (device == NULL)
 	{
 		ShowWindow(GetDlgItem(hwndDlg, IDC_DEVNONE), SW_SHOW);
+		ShowWindow(GetDlgItem(hwndDlg, IDC_SHRUG), SW_SHOW);
 		SetDlgItemText(hwndDlg, IDC_HEADER, GetString(IDS_DEVICES2+0)); //"No device"
 		SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, CB_SETCURSEL, 0, 0);
 	}
@@ -32,7 +33,7 @@ void UpdateDevicePage(HWND hwndDlg)
 		{
 			case 0x0144:
 			{
-				for (int i = 1; i < 4; i++)
+				for (int i = 2; i < 5; i++)
 					ShowWindow(GetDlgItem(hwndDlg, everything[i]), SW_SHOW);
 				SetDlgItemText(hwndDlg, IDC_HEADER, (((DiskDrive*)device)->GetType() == ddHardDisk) ? GetString(IDS_DEVICES2+2) : GetString(IDS_DEVICES2+1) ); //"Diskette drive" "Hard drive"
 				SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, CB_SETCURSEL, (((DiskDrive*)device)->GetType() == ddHardDisk) ? 2 : 1, 0);
@@ -47,6 +48,7 @@ void UpdateDevicePage(HWND hwndDlg)
 			case 0x4C50:
 			{
 				ShowWindow(GetDlgItem(hwndDlg, IDC_DEVNONE), SW_SHOW);
+				ShowWindow(GetDlgItem(hwndDlg, IDC_SHRUG), SW_SHOW);
 				SetDlgItemText(hwndDlg, IDC_HEADER, GetString(IDS_DEVICES2+3)); //"Line printer"
 				SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, CB_SETCURSEL, 3, 0);
 				break;

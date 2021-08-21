@@ -6,6 +6,7 @@
 #define IDB_ABOUT 103
 #define IDB_DANCE 104
 #define IDB_ICONS 105
+#define IDB_SHRUG 106
 
 #define IDS_FULLTITLE 1
 #define IDS_DDFILTER 2
@@ -52,18 +53,6 @@
 #define IDS_REGIONS 300
 
 #define IDI_APP 1
-#define IDI_BLANK 108
-#define IDI_DISKDRIVE 109
-#define IDI_HARDDRIVE 110
-#define IDI_PRINTER 111
-#define IDI_CDROM 112
-#define IDI_CONTROLLER 113
-#define IDI_KEYBOARD 114
-#define IDI_DISPLAY 115
-#define IDI_SPEAKER 116
-#define IDI_MIDI 117
-#define IDI_DISKETTE 118
-#define IDI_RAM 119
 
 #define IDD_ABOUT 201
 #define IDD_DEVICES 202
@@ -110,5 +99,6 @@
 #define IDC_REMOVESHADER 1031
 #define IDC_MOVESHADERUP 1032
 #define IDC_MOVESHADERDOWN 1033
+#define IDC_SHRUG 1034
 
 #define IDC_STATIC -1

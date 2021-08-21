@@ -7,6 +7,7 @@ IDI_APP ICON ".\\res\\app.ico"
 IDB_ABOUT BITMAP ".\\res\\about.bmp"
 IDB_DANCE BITMAP ".\\res\\dance.bmp"
 IDB_ICONS BITMAP ".\\res\\imglist.bmp"
+IDB_SHRUG BITMAP ".\\res\\shrug.bmp"
 
 #include ".\\res\\english.rc"
 #include ".\\res\\french.rc"
