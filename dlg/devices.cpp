@@ -60,13 +60,13 @@ void UpdateDeviceList(HWND hwndDlg)
 	int selection = 0;
 	if (SendDlgItemMessage(hwndDlg, IDC_DEVLIST, LB_GETCOUNT, 0, 0))
 		selection = SendDlgItemMessage(hwndDlg, IDC_DEVLIST, LB_GETCURSEL, 0, 0);
-	char item[64] = { 0 };
+	WCHAR item[64] = { 0 };
 	SendDlgItemMessage(hwndDlg, IDC_DEVLIST, LB_RESETCONTENT, 0, 0);
 	for (int i = 0; i < MAXDEVS; i++)
 	{
 		if (devices[i] == NULL)
 		{
-			sprintf_s(item, 64, "%d. %s", i + 1, GetString(IDS_DEVICES1+0)); //"Nothing"
+			wsprintf(item, L"%d. %s", i + 1, GetString(IDS_DEVICES1+0)); //"Nothing"
 		}
 		else
 		{
@@ -74,12 +74,12 @@ void UpdateDeviceList(HWND hwndDlg)
 			{
 			case 0x0144:
 				if (((DiskDrive*)devices[i])->GetType() == ddDiskette)
-					sprintf_s(item, 64, "%d. %s", i + 1, GetString(IDS_DEVICES1+1)); //"Diskette drive"
+					wsprintf(item, L"%d. %s", i + 1, GetString(IDS_DEVICES1+1)); //"Diskette drive"
 				else
-					sprintf_s(item, 64, "%d. %s", i + 1, GetString(IDS_DEVICES1+2)); //"Hard drive"
+					wsprintf(item, L"%d. %s", i + 1, GetString(IDS_DEVICES1+2)); //"Hard drive"
 				break;
 			case 0x4C50:
-				sprintf_s(item, 64, "%d. %s", i + 1, GetString(IDS_DEVICES1+3)); //"Line printer"
+				wsprintf(item, L"%d. %s", i + 1, GetString(IDS_DEVICES1+3)); //"Line printer"
 				break;
 			}
 		}
