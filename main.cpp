@@ -46,7 +46,15 @@ void LoadROM(const WCHAR* path)
 	if (!wcscmp(ext, L"ap3"))
 	{
 		memset(romCartridge, 0, CART_SIZE);
-		Slurp(romCartridge, path, &romSize);
+		auto err = Slurp(romCartridge, path, &romSize);
+		if (err)
+		{
+ 			WCHAR b[1024] = { 0 };
+			WCHAR e[1024] = { 0 };
+			_wcserror_s(e, 1024, err);
+			wsprintf(b, GetString(IDS_ROMLOADERROR), path, e);
+			MessageBox(NULL, b, GetString(IDS_SHORTTITLE), MB_ICONWARNING);
+		}
 	}
 	else if (!wcscmp(ext, L"a3z"))
 	{
@@ -87,6 +95,7 @@ void LoadROM(const WCHAR* path)
 		}
 	}
 
+#if _CONSOLE
 	fileSize = romSize;
 	romSize = RoundUp(romSize);
 	if (romSize != fileSize)
@@ -102,6 +111,7 @@ void LoadROM(const WCHAR* path)
 	}
 	if (c1 != c2)
 		SDL_LogW(GetString(IDS_BADCHECKSUM), c2, c1); //"Checksum mismatch: is 0x%08X, should be 0x%08X."
+#endif
 
 	ini.SetValue(L"media", L"lastROM", path);
 	ResetPath();
@@ -126,7 +136,9 @@ void MainLoop()
 	m68k_set_cpu_type(M68K_CPU_TYPE_68020);
 	m68k_pulse_reset();
 
+#if _CONSOLE
 	wprintf(GetString(IDS_ASSPULLISREADY)); //"Asspull IIIx is ready."...
+#endif
 
 	SDL_Event ev;
 

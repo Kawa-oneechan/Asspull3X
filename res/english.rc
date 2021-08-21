@@ -22,7 +22,7 @@ STRINGTABLE
 	IDS_OLDSDL, "You are trying to run with an outdated version of SDL.\n\nYou have version %d.%d.%d.\nYou need version 2.0.4 or later."
 	IDS_NOTPLAYING, "Not playing" //Discord integration: you're running the thing but don't have a game loaded
 
-	IDS_EJECTFIRST, "Eject the diskette first, with RCtrl-Shift-U."
+	IDS_EJECTFIRST, "Eject the diskette first, with RCtrl+Shift+U."
 	IDS_DISKEJECTED, "Disk ejected."
 	IDS_NODISKDRIVE, "No disk drive."
 	IDS_UNMOUNTFIRST, "Unmount the medium first."
@@ -36,7 +36,7 @@ STRINGTABLE
 	IDS_BADSIZE, "File size is not a power of two: is %d (0x%08X), should be %d (0x%08X)."
 	IDS_BADCHECKSUM, "Checksum mismatch: is 0x%08X, should be 0x%08X."
 	IDS_RESETTING, "Resetting Musashi..." //Musashi is the 68020 emulator core
-	IDS_ASSPULLISREADY, "\nAsspull IIIx is ready.\nPress RCtrl-L to load a ROM, RCtrl-Shift-L to load a diskette.\nPress RCtrl-U to unload ROM, RCtrl-Shift-U to unload diskette.\nPress RCtrl-R to reset, RCtrl-Shift-R to unload and reset.\nPress RCtrl-D to dump RAM, RCtrl-S to take a screenshot.\n\n"
+	IDS_ASSPULLISREADY, "\nAsspull IIIx is ready.\nPress RCtrl+L to load a ROM, RCtrl+Shift+L to load a diskette.\nPress RCtrl+U to unload ROM, RCtrl+Shift+U to unload diskette.\nPress RCtrl+R to reset, RCtrl+Shift+R to unload and reset.\nPress RCtrl+D to dump RAM, RCtrl+S to take a screenshot.\n\n"
 
 	//More debug-only stuff
 	IDS_LOADINGROM, "Loading ROM, %s ..."
@@ -56,6 +56,8 @@ STRINGTABLE
 
 	//Status bar message -- you tried to open a ZIP file but there was no ROM in there
 	IDS_NOTHINGINZIP, "No single AP3 file found in archive."
+	IDS_DISKIMAGEERROR "Could not open disk image ""%s"" for device #%d:\n\n%s"
+	IDS_ROMLOADERROR "Could not open ROM file ""%s"":\n\n%s"
 
 	(IDS_THEMES+0), "Light"
 	(IDS_THEMES+1), "Dark"
@@ -86,7 +88,7 @@ BEGIN
 		MENUITEM "Unload ROM\tRCtrl+U", 1002
 		MENUITEM "Reset\tRCtrl+R", 1003
 		MENUITEM SEPARATOR
-		MENUITEM "Quit", 1006
+		MENUITEM "Exit", 1006
 	END
 	POPUP "Tools"
 	BEGIN
@@ -101,7 +103,7 @@ BEGIN
 	END
 	POPUP "Help"
 	BEGIN
-		MENUITEM "About", 1009
+		MENUITEM "About Clunibus", 1009
 	END
 END
 

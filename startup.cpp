@@ -1,4 +1,5 @@
 #include "asspull.h"
+#include "resource.h"
 #include "miniz.h"
 #include <io.h>
 #include <fcntl.h>
@@ -21,6 +22,7 @@ extern void ShowOpenFileDialog(int, int, const WCHAR*);
 extern bool ShowFileDlg(bool, WCHAR*, size_t, const WCHAR*);
 extern void LoadROM(const WCHAR* path);
 extern void MainLoop();
+extern WCHAR* GetString(int);
 
 WCHAR* paramLoad = NULL;
 
@@ -48,7 +50,7 @@ void GetSettings(int argc, char** argv)
 		WCHAR* thisArg = argv[i];
 #else
 		WCHAR thisArg[512] = { 0 };
-		mbstowcs(thisArg, argv[i], 512);
+		mbstowcs_s(NULL, thisArg, argv[i], 512);
 #endif
 		if (thisArg[0] == L'-')
 		{
@@ -93,7 +95,13 @@ void InitializeDevices()
 			{
 				auto err = ((DiskDrive*)devices[i])->Mount(thing);
 				if (err)
-					SDL_LogW(L"Error %d trying to open disk image \"%s\" for device #%d.", err, thing, i);
+				{
+ 					WCHAR b[1024] = { 0 };
+					WCHAR e[1024] = { 0 };
+					_wcserror_s(e, 1024, err);
+					wsprintf(b, GetString(IDS_DISKIMAGEERROR), thing, i, e);
+					MessageBox(NULL, b, GetString(IDS_SHORTTITLE), MB_ICONWARNING);
+				}
 			}
 		}
 		else if (!wcscmp(thing, L"hardDrive"))
@@ -105,7 +113,13 @@ void InitializeDevices()
 			{
 				auto err = ((DiskDrive*)devices[i])->Mount(thing);
 				if (err)
-					SDL_LogW(L"Error %d trying to open disk image \"%s\" for device #%d.", err, thing, i);
+				{
+ 					WCHAR b[1024] = { 0 };
+					WCHAR e[1024] = { 0 };
+					_wcserror_s(e, 1024, err);
+					wsprintf(b, GetString(IDS_DISKIMAGEERROR), thing, i, e);
+					MessageBox(NULL, b, GetString(IDS_SHORTTITLE), MB_ICONWARNING);
+				}
 			}
 		}
 		else if (!wcscmp(thing, L"linePrinter"))

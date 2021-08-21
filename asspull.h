@@ -10,7 +10,11 @@ extern unsigned int RoundUp(unsigned int v);
 extern int Slurp(unsigned char* dest, const WCHAR* filePath, unsigned int* size);
 extern int Dump(const WCHAR* filePath, unsigned char* source, unsigned long size);
 //extern void SDL_LogW(WCHAR* message, ...);
+#if _CONSOLE
 #define SDL_LogW(M, ...) { wprintf(M, __VA_ARGS__); wprintf(L"\n"); }
+#else
+#define SDL_LogW(M, ...)
+#endif
 
 extern unsigned char* romBIOS;
 extern unsigned char* romCartridge;
