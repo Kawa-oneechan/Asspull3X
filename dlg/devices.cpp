@@ -64,9 +64,11 @@ void UpdateDeviceList(HWND hwndDlg)
 	SendDlgItemMessage(hwndDlg, IDC_DEVLIST, LB_RESETCONTENT, 0, 0);
 	for (int i = 0; i < MAXDEVS; i++)
 	{
+		int icon = 0;
 		if (devices[i] == NULL)
 		{
 			wsprintf(item, L"%d. %s", i + 1, GetString(IDS_DEVICES1+0)); //"Nothing"
+			icon = 0;
 		}
 		else
 		{
@@ -74,16 +76,24 @@ void UpdateDeviceList(HWND hwndDlg)
 			{
 			case 0x0144:
 				if (((DiskDrive*)devices[i])->GetType() == ddDiskette)
+				{
 					wsprintf(item, L"%d. %s", i + 1, GetString(IDS_DEVICES1+1)); //"Diskette drive"
+					icon = 1;
+				}
 				else
+				{
 					wsprintf(item, L"%d. %s", i + 1, GetString(IDS_DEVICES1+2)); //"Hard drive"
+					icon = 2;
+				}
 				break;
 			case 0x4C50:
 				wsprintf(item, L"%d. %s", i + 1, GetString(IDS_DEVICES1+3)); //"Line printer"
+				icon = 3;
 				break;
 			}
 		}
 		SendDlgItemMessage(hwndDlg, IDC_DEVLIST, LB_ADDSTRING, 0, (LPARAM)item);
+		SendDlgItemMessage(hwndDlg, IDC_DEVLIST, LB_SETITEMDATA, i, (LPARAM)icon);
 	}
 
 	SendDlgItemMessage(hwndDlg, IDC_DEVLIST, LB_SETCURSEL, selection, 0);
@@ -156,7 +166,10 @@ BOOL CALLBACK DevicesWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 		{
 			SendDlgItemMessage(hwndDlg, IDC_HEADER, WM_SETFONT, (WPARAM)headerFont, (LPARAM)true);
 			for (int i = 0; i < 4; i++)
+			{
 				SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, CB_ADDSTRING, 0, (LPARAM)GetString(IDS_DEVICES1 + i));
+				SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, CB_SETITEMDATA, i, i);
+			}
 			UpdateDeviceList(hwndDlg);
 			return true;
 		}
@@ -217,10 +230,8 @@ BOOL CALLBACK DevicesWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 		case WM_DRAWITEM:
 		{
 			auto dis = (LPDRAWITEMSTRUCT)lParam;
-       
 			if (dis->itemID == -1)
 				break;
-
 			SetTextColor(dis->hDC, dis->itemState & ODS_SELECTED ? GetSysColor(COLOR_HIGHLIGHTTEXT) : rgbList);
 			SetBkColor(dis->hDC, dis->itemState & ODS_SELECTED ? GetSysColor(COLOR_HIGHLIGHT) : rgbListBk);
 
@@ -230,10 +241,14 @@ BOOL CALLBACK DevicesWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 			int x = LOWORD(GetDialogBaseUnits()) / 4;
 
 			WCHAR text[256];
-			SendMessage(dis->hwndItem, CB_GETLBTEXT, dis->itemID, (LPARAM)text);
-			ExtTextOut(dis->hDC, 24, y, ETO_CLIPPED | ETO_OPAQUE, &dis->rcItem, text, (UINT)wcslen(text), NULL);
 
-			ImageList_Draw(hIml, dis->itemID, dis->hDC, dis->rcItem.left + 1, dis->rcItem.top + 1, ILD_NORMAL);
+			if (dis->CtlID == IDC_DEVTYPE)
+				SendMessage(dis->hwndItem, CB_GETLBTEXT, dis->itemID, (LPARAM)text);
+			else if (dis->CtlID == IDC_DEVLIST)
+				SendMessage(dis->hwndItem, LB_GETTEXT, dis->itemID, (LPARAM)text);
+
+			ExtTextOut(dis->hDC, 24, y, ETO_CLIPPED | ETO_OPAQUE, &dis->rcItem, text, (UINT)wcslen(text), NULL);
+			ImageList_Draw(hIml, dis->itemData, dis->hDC, dis->rcItem.left + 1, dis->rcItem.top + 1, ILD_NORMAL);
 			return true;
 		}
 		case WM_COMMAND:
