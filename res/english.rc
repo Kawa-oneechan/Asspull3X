@@ -16,7 +16,7 @@ STRINGTABLE
 	IDS_HDFILTER, "Disk images (*.vhd)|*.vhd" //hard disks
 	IDS_CARTFILTER, "Asspull IIIx ROMS (*.ap3)|*.ap3" //game cartridges
 
-	IDS_CLICKTORELEASE, "Middle-click or RCtrl-P to pause emulation."
+	IDS_CLICKTORELEASE, "Middle-click or RCtrl+P to pause emulation."
 	IDS_SYSTEMRESET, "System reset."
 
 	IDS_OLDSDL, "You are trying to run with an outdated version of SDL.\n\nYou have version %d.%d.%d.\nYou need version 2.0.4 or later."
@@ -61,7 +61,7 @@ STRINGTABLE
 
 	(IDS_THEMES+0), "Light"
 	(IDS_THEMES+1), "Dark"
-	(IDS_THEMES+2), "Match"
+	(IDS_THEMES+2), "Match system"
 
 	(IDS_DEVICES1+0), "Nothing"
 	(IDS_DEVICES1+1), "Diskette drive"
