@@ -32,6 +32,7 @@ STRINGTABLE
 	IDS_VHDBADVERSION, "Invalid VHD: bad version (must be 1.00)."
 	IDS_VHDBADTYPE, "Invalid VHD: bad disk type (must be FIXED)." //slightly less rare perhaps
 
+#ifdef _CONSOLE
 	//Debug stuff, doesn't appear in release builds
 	IDS_BADSIZE, "File size is not a power of two: is %d (0x%08X), should be %d (0x%08X)."
 	IDS_BADCHECKSUM, "Checksum mismatch: is 0x%08X, should be 0x%08X."
@@ -51,14 +52,15 @@ STRINGTABLE
 	IDS_TSK, "Nice." //ignore, IDS_TSK is #69.
 	IDS_TEXTUREFAILED, "Could not create texture: %s"
 	IDS_PNGFAILED, "Failed to write PNG."
-	IDS_SCREENSHOT, "Snap! %s saved."
 	IDS_DISCORDDLL, "Discord is enabled but the DLL isn't here." //missing discord-rpc.dll
+#endif
+	IDS_SCREENSHOT, "Snap! %s saved."
 
 	//Status bar message -- you tried to open a ZIP file but there was no ROM in there
 	IDS_NOTHINGINZIP, "No single AP3 file found in archive."
 
-	IDS_DISKIMAGEERROR "Could not open disk image ""%s"" for device #%d:\n\n%s"
-	IDS_ROMLOADERROR "Could not open ROM file ""%s"":\n\n%s"
+	IDS_DISKIMAGEERROR "Could not open disk image ""%s"" for device #%d."
+	IDS_ROMLOADERROR "Could not open ROM file ""%s""."
 
 	(IDS_THEMES+0), "Light"
 	(IDS_THEMES+1), "Dark"

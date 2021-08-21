@@ -32,6 +32,7 @@ STRINGTABLE
 	IDS_VHDBADVERSION, "VHD Invalide: mauvaise version (version 1.00 requise)."
 	IDS_VHDBADTYPE, "VHD Invalide: Type de disque invalide." //slightly less rare perhaps
 
+#ifdef _CONSOLE
 	//Debug stuff, doesn't appear in release builds
 	IDS_BADSIZE, "La taille du fichier n'est pas un multiple de 2: est %d (0x%08X), devrait être %d (0x%08X)."
 	IDS_BADCHECKSUM, "La somme de controle est invalide: est 0x%08X, devrait être 0x%08X."
@@ -51,14 +52,15 @@ STRINGTABLE
 	IDS_TSK, "Parfait..." //ignore, IDS_TSK is #69.
 	IDS_TEXTUREFAILED, "Creation de la texture impossible: %s"
 	IDS_PNGFAILED, "Impossible d'écrire le PNG."
-	IDS_SCREENSHOT, "Clic-clac! %s sauvegardé."
 	IDS_DISCORDDLL, "Discord est actif mais aucune DLL n'a été trouvée."
+#endif
+	IDS_SCREENSHOT, "Clic-clac! %s sauvegardé."
 
 	//Status bar message -- you tried to open a ZIP file but there was no ROM in there
 	IDS_NOTHINGINZIP, "Aucun fichier AP3 trouvé dans l'archive."
 
-	IDS_DISKIMAGEERROR "Impossible d'ouvrir l'image disque ""%s"" pour le périphérique #%d:\n\n%s"
-	IDS_ROMLOADERROR "Impossible de charger la ROM ""%s"":\n\n%s"
+	IDS_DISKIMAGEERROR "Impossible d'ouvrir l'image disque ""%s"" pour le périphérique #%d."
+	IDS_ROMLOADERROR "Impossible de charger la ROM ""%s""."
 
 	(IDS_THEMES+0), "Claire"
 	(IDS_THEMES+1), "Sombre"

@@ -26,6 +26,7 @@ extern void InsertDisk(int);
 extern void EjectDisk(int);
 extern void ResizeStatusBar();
 extern void SetTitle(const char*);
+extern void ReportLoadingFail(int messageId, int err, int device, const WCHAR* fileName);
 
 extern unsigned int biosSize, romSize;
 extern long rtcOffset;
@@ -48,13 +49,7 @@ void LoadROM(const WCHAR* path)
 		memset(romCartridge, 0, CART_SIZE);
 		auto err = Slurp(romCartridge, path, &romSize);
 		if (err)
-		{
- 			WCHAR b[1024] = { 0 };
-			WCHAR e[1024] = { 0 };
-			_wcserror_s(e, 1024, err);
-			wsprintf(b, GetString(IDS_ROMLOADERROR), path, e);
-			MessageBox(NULL, b, GetString(IDS_SHORTTITLE), MB_ICONWARNING);
-		}
+			ReportLoadingFail(IDS_ROMLOADERROR, err, -1, path);
 	}
 	else if (!wcscmp(ext, L"a3z"))
 	{

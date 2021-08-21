@@ -3,6 +3,7 @@
 #include "miniz.h"
 #include <io.h>
 #include <fcntl.h>
+#include <commctrl.h>
 
 extern "C" {
 #include "musashi/m68k.h"
@@ -72,6 +73,18 @@ void GetSettings(int argc, char** argv)
 	rtcOffset = ini.GetLongValue(L"media", L"rtcOffset", 0xDEADC70C);
 }
 
+void ReportLoadingFail(int messageId, int err, int device, const WCHAR* fileName)
+{
+ 	WCHAR b[1024] = { 0 };
+	WCHAR e[1024] = { 0 };
+	WCHAR f[1024] = { 0 };
+	_wsplitpath_s(fileName, NULL, 0, NULL, 0, f, 1024, e, 1024);
+	wcscat_s(f, 1024, e);
+	_wcserror_s(e, 1024, err);
+	wsprintf(b, GetString(messageId), f, device);
+	TaskDialog(NULL, NULL, GetString(IDS_SHORTTITLE), b, e, TDCBF_OK_BUTTON, TD_WARNING_ICON, NULL);
+}
+
 void InitializeDevices()
 {
 	//Absolutely always load a disk drive as #0
@@ -95,13 +108,7 @@ void InitializeDevices()
 			{
 				auto err = ((DiskDrive*)devices[i])->Mount(thing);
 				if (err)
-				{
- 					WCHAR b[1024] = { 0 };
-					WCHAR e[1024] = { 0 };
-					_wcserror_s(e, 1024, err);
-					wsprintf(b, GetString(IDS_DISKIMAGEERROR), thing, i, e);
-					MessageBox(NULL, b, GetString(IDS_SHORTTITLE), MB_ICONWARNING);
-				}
+					ReportLoadingFail(IDS_DISKIMAGEERROR, err, i, thing);
 			}
 		}
 		else if (!wcscmp(thing, L"hardDrive"))
@@ -113,13 +120,7 @@ void InitializeDevices()
 			{
 				auto err = ((DiskDrive*)devices[i])->Mount(thing);
 				if (err)
-				{
- 					WCHAR b[1024] = { 0 };
-					WCHAR e[1024] = { 0 };
-					_wcserror_s(e, 1024, err);
-					wsprintf(b, GetString(IDS_DISKIMAGEERROR), thing, i, e);
-					MessageBox(NULL, b, GetString(IDS_SHORTTITLE), MB_ICONWARNING);
-				}
+					ReportLoadingFail(IDS_DISKIMAGEERROR, err, i, thing);
 			}
 		}
 		else if (!wcscmp(thing, L"linePrinter"))
