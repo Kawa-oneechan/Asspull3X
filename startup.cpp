@@ -160,8 +160,11 @@ int _tmain(int argc, _TCHAR* argv[])
 int main(int argc, char** argv)
 #endif
 {
+
+#if _CONSOLE
 	SetConsoleCP(CP_UTF8);
 	_setmode(_fileno(stdout), _O_U16TEXT);
+#endif
 
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_VIDEO_OPENGL | SDL_INIT_GAMECONTROLLER) < 0)
 		return 0;

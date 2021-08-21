@@ -45,17 +45,18 @@ namespace Discord
 
 		DiscordEventHandlers handlers = {};
 		__Discord_Initialize(ApplicationId, &handlers, 1, nullptr);
-		char b[256] = { 0 };
-		wcstombs_s(NULL, b, GetString(IDS_NOTPLAYING), 256);
-		UpdateDiscordPresence(b); //"Not playing"
+		UpdateDiscordPresence(NULL);
 	}
 
 	void UpdateDiscordPresence(char* gameName)
 	{
 		if (!enabled)
 			return;
-		WCHAR wName[64] = { 0 };
-		mbstowcs_s(NULL, wName, gameName, 64);
+		WCHAR wName[128] = { 0 };
+		if (gameName == NULL)
+			wcscpy_s(wName, 128, GetString(IDS_NOTPLAYING));
+		else
+			mbstowcs_s(NULL, wName, gameName, 128);
 		SDL_LogW(L"Discord: \"%s\"", wName);
 		DiscordRichPresence discord_presence = {};
 		discord_presence.details = gameName;

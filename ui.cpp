@@ -646,3 +646,19 @@ void EjectDisk(int devId)
 	SetStatus(IDS_DISKEJECTED); //"Disk ejected."
 	if (hWndDevices != NULL) UpdateDevicePage(hWndDevices);
 }
+
+void SetTitle(const char* subtitle)
+{
+	char title[256] = { 0 };
+	if (subtitle == NULL)
+		wcstombs_s(NULL, title, GetString(IDS_FULLTITLE), 256);
+	else
+	{
+		WCHAR wTitle[256] = { 0 };
+		WCHAR wSub[128] = { 0 };
+		mbstowcs_s(NULL, wSub, subtitle, 128);
+		wsprintf(wTitle, GetString(IDS_TEMPLATETITLE), wSub);
+		wcstombs_s(NULL, title, wTitle, 256);
+	}
+	SDL_SetWindowTitle(sdlWindow, title);
+}

@@ -25,6 +25,7 @@ extern void LetItSnow();
 extern void InsertDisk(int);
 extern void EjectDisk(int);
 extern void ResizeStatusBar();
+extern void SetTitle(const char*);
 
 extern unsigned int biosSize, romSize;
 extern long rtcOffset;
@@ -109,6 +110,7 @@ void LoadROM(const WCHAR* path)
 	char romName[32] = { 0 };
 	memcpy(romName, romCartridge + 8, 24);
 	Discord::UpdateDiscordPresence(romName);
+	SetTitle(romName);
 }
 
 int pauseState = 0;
@@ -256,9 +258,8 @@ void MainLoop()
 				ini.SaveFile(L"settings.ini", false);
 				gfxFade = 31;
 				SetStatus(IDS_CARTEJECTED); //"Cart pulled."
-				char b[256] = { 0 };
-				wcstombs_s(NULL, b, GetString(IDS_NOTPLAYING), 256);
-				Discord::UpdateDiscordPresence(b);
+				Discord::UpdateDiscordPresence(NULL);
+				SetTitle(NULL);
 			}
 			else if (uiCommand == cmdEjectDisk)
 			{
@@ -276,6 +277,8 @@ void MainLoop()
 					ini.SetValue(L"media", L"lastROM", L"");
 					ResetPath();
 					ini.SaveFile(L"settings.ini", true);
+					Discord::UpdateDiscordPresence(NULL);
+					SetTitle(NULL);
 				}
 				SDL_LogW(GetString(IDS_SYSTEMRESET)); //"Resetting Musashi..."
 				SetStatus(IDS_SYSTEMRESET); //"System reset."

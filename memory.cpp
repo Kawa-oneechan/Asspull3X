@@ -293,7 +293,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				//printf("%c", (char)value);
 				{
 					char chr[1] = { (char)value };
-					WCHAR wchr[6];
+					WCHAR wchr[6] = { 0 };
 					mbrtowc(wchr, chr, 1, NULL);
 					wprintf(wchr);
 				}
