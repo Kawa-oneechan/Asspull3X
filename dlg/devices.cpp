@@ -166,7 +166,7 @@ BOOL CALLBACK DevicesWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 		}
 		case WM_INITDIALOG:
 		{
-			SendDlgItemMessage(hwndDlg, IDC_HEADER, WM_SETFONT, (WPARAM)headerFont, (LPARAM)true);
+			SendDlgItemMessage(hwndDlg, IDC_DEVNONE, WM_SETFONT, (WPARAM)headerFont, (LPARAM)true);
 			for (int i = 0; i < 4; i++)
 			{
 				SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, CB_ADDSTRING, 0, (LPARAM)GetString(IDS_DEVICES1 + i));
@@ -193,7 +193,7 @@ BOOL CALLBACK DevicesWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 				}
 			}
 		}
-		case WM_PAINT:
+		case WM_ERASEBKGND:
 		{
 			DrawWindowBk(hwndDlg, false);
 			return true;
@@ -207,7 +207,7 @@ BOOL CALLBACK DevicesWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 		case WM_CTLCOLORSTATIC:
 		{
 			SetTextColor((HDC)wParam, rgbText);
-			if (lParam == (LPARAM)GetDlgItem(hwndDlg, IDC_HEADER))
+			if (lParam == (LPARAM)GetDlgItem(hwndDlg, IDC_DEVNONE))
 				SetTextColor((HDC)wParam, rgbHeader);
 			SetBkColor((HDC)wParam, rgbBack);
 			if (lParam == (LPARAM)GetDlgItem(hwndDlg, IDC_DDFILE))
