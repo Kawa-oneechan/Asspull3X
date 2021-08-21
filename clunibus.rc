@@ -11,6 +11,7 @@ IDB_SHRUG BITMAP ".\\res\\shrug.bmp"
 
 #include ".\\res\\english.rc"
 #include ".\\res\\french.rc"
+#include ".\\res\\japanese.rc"
 //#include ".\\res\\dutch.rc"
 //#include ".\\res\\hungarian.rc"
 
