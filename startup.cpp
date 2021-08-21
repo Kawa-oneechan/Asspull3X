@@ -1,5 +1,7 @@
 #include "asspull.h"
 #include "miniz.h"
+#include <io.h>
+#include <fcntl.h>
 
 extern "C" {
 #include "musashi/m68k.h"
@@ -158,6 +160,9 @@ int _tmain(int argc, _TCHAR* argv[])
 int main(int argc, char** argv)
 #endif
 {
+	SetConsoleCP(CP_UTF8);
+	_setmode(_fileno(stdout), _O_U16TEXT);
+
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_VIDEO_OPENGL | SDL_INIT_GAMECONTROLLER) < 0)
 		return 0;
 

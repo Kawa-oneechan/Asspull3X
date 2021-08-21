@@ -290,7 +290,13 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				BufferAudioSample((signed char)value);
 				return;
 			case 0x80: //Debug
-				printf("%c", (char)value);
+				//printf("%c", (char)value);
+				{
+					char chr[1] = { (char)value };
+					WCHAR wchr[6];
+					mbrtowc(wchr, chr, 1, NULL);
+					wprintf(wchr);
+				}
 				break;
 			case 0x10A: //DMA Control
 				{
