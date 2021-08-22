@@ -101,32 +101,36 @@ void InitializeDevices()
 		if (!wcslen(thing)) continue;
 		if (!wcscmp(thing, L"diskDrive"))
 		{
-			SDL_LogW(L"Attached a diskette drive as device #%d.", i);
 			devices[i] = (Device*)(new DiskDrive(0));
+			SDL_LogW(L"Attached a diskette drive as device #%d.", i);
 			thing = ini.GetValue(L"devices/diskDrive", key, L"");
 			if (reloadIMG && wcslen(thing))
 			{
 				auto err = ((DiskDrive*)devices[i])->Mount(thing);
 				if (err)
 					ReportLoadingFail(IDS_DISKIMAGEERROR, err, i, thing);
+				else
+					SDL_LogW(L"Loaded \"%s\" into device #%d.", thing, i);
 			}
 		}
 		else if (!wcscmp(thing, L"hardDrive"))
 		{
-			SDL_LogW(L"Attached a hard disk drive as device #%d.", i);
 			devices[i] = (Device*)(new DiskDrive(1));
+			SDL_LogW(L"Attached a hard disk drive as device #%d.", i);
 			thing = ini.GetValue(L"devices/hardDrive", key, L"");
 			if (reloadIMG && wcslen(thing))
 			{
 				auto err = ((DiskDrive*)devices[i])->Mount(thing);
 				if (err)
 					ReportLoadingFail(IDS_DISKIMAGEERROR, err, i, thing);
+				else
+					SDL_LogW(L"Loaded \"%s\" into device #%d.", thing, i);
 			}
 		}
 		else if (!wcscmp(thing, L"linePrinter"))
 		{
-			SDL_LogW(L"Attached a line printer as device #%d.", i);
 			devices[i] = (Device*)(new LinePrinter());
+			SDL_LogW(L"Attached a line printer as device #%d.", i);
 		}
 		else SDL_LogW(L"Don't know what a \"%s\" is to connect as device #%d.", thing, i);
 	}
