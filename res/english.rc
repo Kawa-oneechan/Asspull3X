@@ -58,9 +58,10 @@ STRINGTABLE
 
 	//Status bar message -- you tried to open a ZIP file but there was no ROM in there
 	IDS_NOTHINGINZIP, "No single AP3 file found in archive."
+	IDS_DUMPEDRAM, "RAM dumped."
 
-	IDS_DISKIMAGEERROR "Could not open disk image ""%s"" for device #%d."
-	IDS_ROMLOADERROR "Could not open ROM file ""%s""."
+	IDS_DISKIMAGEERROR, "Could not open disk image ""%s"" for device #%d."
+	IDS_ROMLOADERROR, "Could not open ROM file ""%s""."
 
 	(IDS_THEMES+0), "Light"
 	(IDS_THEMES+1), "Dark"

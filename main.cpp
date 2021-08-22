@@ -297,9 +297,9 @@ void MainLoop()
 			}
 			else if (uiCommand == cmdDump)
 			{
-				SDL_LogW(GetString(IDS_UNMOUNTINGDISK)); //"Dumping core..."
 				Dump(L"wram.bin", ramInternal, WRAM_SIZE);
 				Dump(L"vram.bin", ramVideo, VRAM_SIZE);
+				SetStatus(IDS_DUMPEDRAM); //"Dumping core..."
 			}
 			else if (uiCommand == cmdScreenshot)
 			{

@@ -58,9 +58,10 @@ STRINGTABLE
 
 	//Status bar message -- you tried to open a ZIP file but there was no ROM in there
 	IDS_NOTHINGINZIP, "Aucun fichier AP3 trouvé dans l'archive."
+	IDS_DUMPEDRAM, "RAM sauvegardée."
 
-	IDS_DISKIMAGEERROR "Impossible d'ouvrir l'image disque ""%s"" pour le périphérique #%d."
-	IDS_ROMLOADERROR "Impossible de charger la ROM ""%s""."
+	IDS_DISKIMAGEERROR, "Impossible d'ouvrir l'image disque ""%s"" pour le périphérique #%d."
+	IDS_ROMLOADERROR, "Impossible de charger la ROM ""%s""."
 
 	(IDS_THEMES+0), "Claire"
 	(IDS_THEMES+1), "Sombre"

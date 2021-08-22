@@ -414,13 +414,15 @@ int UninitVideo()
 }
 
 #include "miniz.h"
+extern void SetStatus(const WCHAR*);
+extern void SetStatus(int);
 
 void Screenshot()
 {
 	WCHAR snap[128];
 	__time64_t now;
 	_time64(&now);
-	wsprintf(snap, L"%llu.png", now);
+	wsprintf(snap, L"%lu.png", now);
 
 	int size = scrWidth * scrHeight * 3;
 
@@ -431,7 +433,7 @@ void Screenshot()
 	void *pPNG_data = tdefl_write_image_to_png_file_in_memory_ex(shot, scrWidth, scrHeight, 3, &png_data_size, MZ_DEFAULT_LEVEL, MZ_TRUE);
 	if (!pPNG_data)
 	{
-		SDL_LogW(GetString(IDS_PNGFAILED)); //"Failed to write PNG."
+		SetStatus(IDS_PNGFAILED); //"Failed to write PNG."
 	}
 	else
 	{
@@ -440,7 +442,9 @@ void Screenshot()
 			return;
 		fwrite(pPNG_data, 1, png_data_size, pFile);
 		fclose(pFile);
-		SDL_LogW(GetString(IDS_SCREENSHOT), snap); //"Snap! %s saved."
+		WCHAR m[512] = { 0 };
+		wsprintf(m, GetString(IDS_SCREENSHOT), snap);
+		SetStatus(m); //"Snap! %s saved."
 	}
 	mz_free(pPNG_data);
 }

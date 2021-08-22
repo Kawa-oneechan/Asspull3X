@@ -10,15 +10,15 @@ Address space on the Motorola 68020 is 32-bits, but the *Asspull IIIx* only uses
 
 This address space is divided into the following regions:
 
-| address  | size     | name|
-| -------- | -------- | --------|
-| 00000000 | 00020000 | BIOS|
-| 00020000 | 00FE0000 | ROM|
-| 01000000 | 00400000 | RAM|
-| 013F0000 | 000FFFFF | STACK|
-| 02000000 | 00080000 | DEV|
-| 0D000000 |          | REGS|
-| 0E000000 | 00080000 | VRAM|
+| address  | size     | name  |
+| -------- | -------- | ----- |
+| 00000000 | 00020000 | BIOS  |
+| 00020000 | 00FE0000 | ROM   |
+| 01000000 | 00400000 | RAM   |
+| 013F0000 | 000FFFFF | STACK |
+| 02000000 | 00080000 | DEV   |
+| 0D000000 |          | REGS  |
+| 0E000000 | 00080000 | VRAM  |
 
 For the memory-mapped registers, please refer to the [Registers guide](registers.md).
 
