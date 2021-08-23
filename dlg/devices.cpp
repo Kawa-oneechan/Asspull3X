@@ -1,8 +1,9 @@
 #include "..\ui.h"
 
 extern WCHAR* GetString(int);
-
 extern HIMAGELIST hIml;
+static RECT warningIcon;
+static int numDrives;
 
 void UpdateDevicePage(HWND hwndDlg)
 {
@@ -13,7 +14,7 @@ void UpdateDevicePage(HWND hwndDlg)
 	EnableWindow(GetDlgItem(hwndDlg, IDC_DEVTYPE), (devNum > 0));
 
 	//Hide everything regardless at first.
-	int everything[] = { IDC_DEVNONE, IDC_SHRUG, IDC_DDFILE, IDC_DDINSERT, IDC_DDEJECT, IDC_PRIMARYDEVICE };
+	int everything[] = { IDC_DEVNONE, IDC_SHRUG, IDC_DDFILE, IDC_DDINSERT, IDC_DDEJECT, IDC_PRIMARYDEVICE, IDC_ONLYFOURDRIVES };
 	for (int i = 0; i < ARRAYSIZE(everything); i++)
 		ShowWindow(GetDlgItem(hwndDlg, everything[i]), SW_HIDE);
 
@@ -43,6 +44,10 @@ void UpdateDevicePage(HWND hwndDlg)
 				SetDlgItemText(hwndDlg, IDC_DDFILE, val);
 				EnableWindow(GetDlgItem(hwndDlg, IDC_DDINSERT), val[0] == 0);
 				EnableWindow(GetDlgItem(hwndDlg, IDC_DDEJECT), val[0] != 0);
+
+				ShowWindow(GetDlgItem(hwndDlg, IDC_ONLYFOURDRIVES), (numDrives > 4) ? SW_SHOW : SW_HIDE);
+				InvalidateRect(hwndDlg, NULL, true);
+
 				break;
 			}
 			case 0x4C50:
@@ -55,6 +60,8 @@ void UpdateDevicePage(HWND hwndDlg)
 			}
 		}
 	}
+
+	//if (IsWindowVisible(GetDlgItem(hwndDlg, IDC_ONLYFOURDRIVES)))
 }
 
 void UpdateDeviceList(HWND hwndDlg)
@@ -64,6 +71,7 @@ void UpdateDeviceList(HWND hwndDlg)
 		selection = SendDlgItemMessage(hwndDlg, IDC_DEVLIST, LB_GETCURSEL, 0, 0);
 	WCHAR item[64] = { 0 };
 	SendDlgItemMessage(hwndDlg, IDC_DEVLIST, LB_RESETCONTENT, 0, 0);
+	numDrives = 0;
 	for (int i = 0; i < MAXDEVS; i++)
 	{
 		int icon = 0;
@@ -81,11 +89,13 @@ void UpdateDeviceList(HWND hwndDlg)
 				{
 					wsprintf(item, L"%d. %s", i + 1, GetString(IDS_DEVICES1+1)); //"Diskette drive"
 					icon = 1;
+					numDrives++;
 				}
 				else
 				{
 					wsprintf(item, L"%d. %s", i + 1, GetString(IDS_DEVICES1+2)); //"Hard drive"
 					icon = 2;
+					numDrives++;
 				}
 				break;
 			case 0x4C50:
@@ -173,6 +183,13 @@ BOOL CALLBACK DevicesWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 				SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, CB_ADDSTRING, 0, (LPARAM)GetString(IDS_DEVICES1 + i));
 				SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, CB_SETITEMDATA, i, i);
 			}
+			POINT t;
+			GetWindowRect(GetDlgItem(hwndDlg, IDC_ONLYFOURDRIVES), &warningIcon);
+			t.x = warningIcon.left;
+			t.y = warningIcon.top;
+			ScreenToClient(hwndDlg, &t);
+			warningIcon.left = t.x - 24;
+			warningIcon.top = t.y;
 			UpdateDeviceList(hwndDlg);
 			return true;
 		}
@@ -196,7 +213,16 @@ BOOL CALLBACK DevicesWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 		}
 		case WM_ERASEBKGND:
 		{
-			DrawWindowBk(hwndDlg, false);
+			PAINTSTRUCT ps;
+			HDC hdc = BeginPaint(hwndDlg, &ps);
+			FillRect(hdc, &ps.rcPaint, hbrBack);
+			if (numDrives > 4)
+			{
+				auto hdcMem = CreateCompatibleDC(hdc);
+				ImageList_Draw(hIml, 15, hdc, warningIcon.left, warningIcon.top, ILD_NORMAL);
+				DeleteDC(hdcMem);
+			}
+			EndPaint(hwndDlg, &ps);
 			return true;
 		}
 		case WM_CTLCOLORLISTBOX:

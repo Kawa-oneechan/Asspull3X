@@ -131,6 +131,7 @@ END
 #define DEVICES_INSERTDISK "Inserer"
 #define DEVICES_EJECTDISK "Ejecter"
 #define DEVICES_MUSTBEDISKDRIVE "Le premier péripherique doit être un lecteur disquette."
+#define DEVICES_ONLYFOURDRIVES "Le système ne reconnaîtra que les quatre premiers lecteurs de disque."
 
 //Only COMMON_xxx labels for these two
 #define MEMORY_TITLE "Visionneuse Mémoire"
