@@ -2,7 +2,7 @@
 
 extern WCHAR* GetString(int);
 extern HIMAGELIST hIml;
-static RECT warningIcon;
+static RECT primaryIcon, warningIcon;
 static int numDrives;
 
 void UpdateDevicePage(HWND hwndDlg)
@@ -46,7 +46,6 @@ void UpdateDevicePage(HWND hwndDlg)
 				EnableWindow(GetDlgItem(hwndDlg, IDC_DDEJECT), val[0] != 0);
 
 				ShowWindow(GetDlgItem(hwndDlg, IDC_ONLYFOURDRIVES), (numDrives > 4) ? SW_SHOW : SW_HIDE);
-				InvalidateRect(hwndDlg, NULL, true);
 
 				break;
 			}
@@ -61,7 +60,8 @@ void UpdateDevicePage(HWND hwndDlg)
 		}
 	}
 
-	//if (IsWindowVisible(GetDlgItem(hwndDlg, IDC_ONLYFOURDRIVES)))
+	//if (numDrives > 4 || firstDev)
+	InvalidateRect(hwndDlg, NULL, true);
 }
 
 void UpdateDeviceList(HWND hwndDlg)
@@ -78,7 +78,7 @@ void UpdateDeviceList(HWND hwndDlg)
 		if (devices[i] == NULL)
 		{
 			wsprintf(item, L"%d. %s", i + 1, GetString(IDS_DEVICES1+0)); //"Nothing"
-			icon = 0;
+			icon = IML_CROSS;
 		}
 		else
 		{
@@ -88,19 +88,19 @@ void UpdateDeviceList(HWND hwndDlg)
 				if (((DiskDrive*)devices[i])->GetType() == ddDiskette)
 				{
 					wsprintf(item, L"%d. %s", i + 1, GetString(IDS_DEVICES1+1)); //"Diskette drive"
-					icon = 1;
+					icon = IML_DISKDRIVE;
 					numDrives++;
 				}
 				else
 				{
 					wsprintf(item, L"%d. %s", i + 1, GetString(IDS_DEVICES1+2)); //"Hard drive"
-					icon = 2;
+					icon = IML_HARDDRIVE;
 					numDrives++;
 				}
 				break;
 			case 0x4C50:
 				wsprintf(item, L"%d. %s", i + 1, GetString(IDS_DEVICES1+3)); //"Line printer"
-				icon = 3;
+				icon = IML_PRINTER;
 				break;
 			}
 		}
@@ -164,6 +164,19 @@ void SwitchDevice(HWND hwndDlg)
 	UpdateDeviceList(hwndDlg);
 }
 
+void GetIconPos(HWND hwndDlg, int ctlID, RECT* iconRect)
+{
+	POINT t;
+	GetWindowRect(GetDlgItem(hwndDlg, ctlID), iconRect);
+	t.x = iconRect->left;
+	t.y = iconRect->top;
+	ScreenToClient(hwndDlg, &t);
+	iconRect->left = t.x - 24;
+	iconRect->top = t.y;
+	iconRect->right = iconRect->left + 16;
+	iconRect->bottom = iconRect->top + 16;
+}
+
 BOOL CALLBACK DevicesWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
@@ -177,19 +190,15 @@ BOOL CALLBACK DevicesWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 		}
 		case WM_INITDIALOG:
 		{
+			const int deviceIcons[] = { IML_CROSS, IML_DISKDRIVE, IML_HARDDRIVE, IML_PRINTER };
 			SendDlgItemMessage(hwndDlg, IDC_DEVNONE, WM_SETFONT, (WPARAM)headerFont, (LPARAM)true);
 			for (int i = 0; i < 4; i++)
 			{
 				SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, CB_ADDSTRING, 0, (LPARAM)GetString(IDS_DEVICES1 + i));
-				SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, CB_SETITEMDATA, i, i);
+				SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, CB_SETITEMDATA, i, deviceIcons[i]);
 			}
-			POINT t;
-			GetWindowRect(GetDlgItem(hwndDlg, IDC_ONLYFOURDRIVES), &warningIcon);
-			t.x = warningIcon.left;
-			t.y = warningIcon.top;
-			ScreenToClient(hwndDlg, &t);
-			warningIcon.left = t.x - 24;
-			warningIcon.top = t.y;
+			GetIconPos(hwndDlg, IDC_PRIMARYDEVICE, &primaryIcon);
+			GetIconPos(hwndDlg, IDC_ONLYFOURDRIVES, &warningIcon);
 			UpdateDeviceList(hwndDlg);
 			return true;
 		}
@@ -212,16 +221,18 @@ BOOL CALLBACK DevicesWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 			}
 		}
 		case WM_ERASEBKGND:
+			return false;
+		case WM_PAINT:
 		{
 			PAINTSTRUCT ps;
 			HDC hdc = BeginPaint(hwndDlg, &ps);
 			FillRect(hdc, &ps.rcPaint, hbrBack);
+			auto hdcMem = CreateCompatibleDC(hdc);
+			if (SendDlgItemMessage(hwndDlg, IDC_DEVLIST, LB_GETCURSEL, 0, 0) == 0)
+				ImageList_Draw(hIml, IML_INFO, hdc, primaryIcon.left, primaryIcon.top, ILD_NORMAL);
 			if (numDrives > 4)
-			{
-				auto hdcMem = CreateCompatibleDC(hdc);
-				ImageList_Draw(hIml, 15, hdc, warningIcon.left, warningIcon.top, ILD_NORMAL);
-				DeleteDC(hdcMem);
-			}
+				ImageList_Draw(hIml, IML_WARNING, hdc, warningIcon.left, warningIcon.top, ILD_NORMAL);
+			DeleteDC(hdcMem);
 			EndPaint(hwndDlg, &ps);
 			return true;
 		}

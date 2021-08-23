@@ -4,12 +4,15 @@ processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
 #include "ui.h"
 
+extern WCHAR* GetString(int);
+
 static WCHAR startingPath[FILENAME_MAX];
 static WCHAR lastPath[FILENAME_MAX];
 
 HWND hWnd;
 HINSTANCE hInstance;
 HWND hWndStatusBar;
+HMENU menuBar;
 int statusBarHeight = 0;
 
 int uiCommand;
@@ -405,7 +408,7 @@ void InitializeUI()
 		hIml = ImageList_Create(16, 16, ILC_COLOR32, 32, 0);
 		ImageList_Add(hIml, (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_ICONS), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_CREATEDIBSECTION), NULL);
 
-		HMENU menuBar = LoadMenu(hInstance, MAKEINTRESOURCE(IDR_MAINMENU));
+		menuBar = LoadMenu(hInstance, MAKEINTRESOURCE(IDR_MAINMENU));
 
 		MENUINFO mainInfo =
 		{
@@ -423,7 +426,7 @@ void InitializeUI()
 		for (int i = 0; i < 20; i++)
 		{
 			//auto hBmp = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(1000 + i), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
-			auto hBmp = GetImageListImage(20 + i);
+			auto hBmp = GetImageListImage(IML_MENUSTART + i);
 			if (hBmp == NULL)
 				continue;
 			miInfo.hbmpItem = hBmp;
