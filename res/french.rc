@@ -1,7 +1,7 @@
 #pragma code_page(1252)
 
 LANGUAGE LANG_FRENCH, SUBLANG_FRENCH
-	
+
 //Note: "RCtrl" is the Control key on the *right* of the keyboard.
 //The left is visible to the A3X, the right controls the emulator.
 
@@ -90,6 +90,10 @@ BEGIN
 	BEGIN
 		MENUITEM "Charger une ROM\x85\tRCtrl+L", 1001
 		MENUITEM "Décharger la ROM\tRCtrl+U", 1002
+		MENUITEM SEPARATOR
+		MENUITEM "Charger une disquette\x85\tRCtrl+Shift+L", 1013
+		MENUITEM "Retirer la ROM\tRCtrl+Shift+U", 1014
+		MENUITEM SEPARATOR
 		MENUITEM "Redémarrer\tRCtrl+R", 1003
 		MENUITEM SEPARATOR
 		MENUITEM "Quitter", 1006

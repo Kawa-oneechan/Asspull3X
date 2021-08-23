@@ -68,6 +68,9 @@
     <Manifest>
       <AdditionalManifestFiles>$(ProjectDir)res\dpi.xml %(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_CONSOLE;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
