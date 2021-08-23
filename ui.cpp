@@ -379,8 +379,6 @@ void HandleUI()
 	if (autoUpdatePalViewer && hWndPalViewer != NULL && IsWindowVisible(hWndPalViewer))
 		InvalidateRect(GetDlgItem(hWndPalViewer, IDC_MEMVIEWERGRID), NULL, true);
 
-	if (hWndAbout != NULL)
-		AnimateAbout();
 }
 
 void InitializeUI()

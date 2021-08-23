@@ -9,15 +9,8 @@ int aboutFrame = 0;
 #define DANCE_F 8
 RECT aboutRect = { DANCE_X, DANCE_Y, DANCE_X + DANCE_W, DANCE_Y + DANCE_H };
 
-void AnimateAbout()
+void CALLBACK AnimateAbout(HWND a, UINT b, UINT_PTR c, DWORD d)
 {
-	static int lastTick = 0;
-
-	int ticksNow = GetTickCount();
-	if (ticksNow - lastTick < 100)
-		return;
-	lastTick = ticksNow;
-
 	aboutFrame++;
 	if (aboutFrame == DANCE_F)
 		aboutFrame = 0;
@@ -34,6 +27,7 @@ BOOL CALLBACK AboutWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPa
 			hDanceIml = ImageList_Create(DANCE_W, DANCE_H, ILC_COLOR32, DANCE_F, 0);
 			ImageList_Add(hDanceIml, (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_DANCE), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_CREATEDIBSECTION), NULL);
 			SendDlgItemMessage(hwndDlg, IDC_HEADER, WM_SETFONT, (WPARAM)headerFont, (LPARAM)true);
+			SetTimer(hwndDlg, 1, 100, AnimateAbout);
 			return true;
 		}
 		case WM_PAINT:
@@ -42,7 +36,10 @@ BOOL CALLBACK AboutWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPa
 			//gotta repeat most of that function so we can do the dance
 			PAINTSTRUCT ps;
 			HDC hdc = BeginPaint(hwndDlg, &ps);
-			DrawWindowBk(hwndDlg, true, &ps, hdc);
+			if (ps.rcPaint.left != aboutRect.left)
+				DrawWindowBk(hwndDlg, true, &ps, hdc);
+			else
+				FillRect(hdc, &ps.rcPaint, hbrBack);
 			auto hdcMem = CreateCompatibleDC(hdc);
 			ImageList_Draw(hDanceIml, aboutFrame, hdc, DANCE_X, DANCE_Y, ILD_NORMAL);
 			DeleteDC(hdcMem);
@@ -70,6 +67,7 @@ BOOL CALLBACK AboutWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPa
 		case WM_COMMAND:
 		{
 			ImageList_Destroy(hDanceIml);
+			KillTimer(hwndDlg, 1);
 			DestroyWindow(hwndDlg);
 			hWndAbout = NULL;
 			return true;
