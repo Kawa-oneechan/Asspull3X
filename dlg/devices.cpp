@@ -39,7 +39,7 @@ void UpdateDevicePage(HWND hwndDlg)
 				SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, CB_SETCURSEL, (((DiskDrive*)device)->GetType() == ddHardDisk) ? 2 : 1, 0);
 				WCHAR key[8] = { 0 };
 				_itow_s(devNum, key, 8, 10);
-				auto val = ini.GetValue(L"devices/diskDrive", key, L"");
+				auto val = ini.GetValue((((DiskDrive*)device)->GetType() == ddDiskette) ? L"devices/diskDrive" : L"devices/hardDrive", key, L"");
 				SetDlgItemText(hwndDlg, IDC_DDFILE, val);
 				EnableWindow(GetDlgItem(hwndDlg, IDC_DDINSERT), val[0] == 0);
 				EnableWindow(GetDlgItem(hwndDlg, IDC_DDEJECT), val[0] != 0);

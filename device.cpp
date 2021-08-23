@@ -51,20 +51,6 @@ uint32_t ReadMoto32(FILE* file)
 	return ret;
 }
 
-/*
-void WriteMoto32(FILE* file, uint32_t v)
-{
-	unsigned char x = (v >> 24) && 0xFF;
-	fwrite(&x, 1, 1, file);
-	x = (v >> 16) && 0xFF;
-	fwrite(&x, 1, 1, file);
-	x = (v >> 8) && 0xFF;
-	fwrite(&x, 1, 1, file);
-	x = (v >> 0) && 0xFF;
-	fwrite(&x, 1, 1, file);
-}
-*/
-
 int DiskDrive::Mount(const WCHAR* filename)
 {
 	if (file != NULL)
