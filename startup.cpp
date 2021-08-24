@@ -27,11 +27,7 @@ extern WCHAR* GetString(int);
 
 WCHAR* paramLoad = NULL;
 
-#if _CONSOLE
-void GetSettings(int argc, WCHAR** argv)
-#else
-void GetSettings(int argc, char** argv)
-#endif
+void GetSettings()
 {
 	ini.SetSpaces(false);
 	ini.SetMultiKey(false);
@@ -45,28 +41,24 @@ void GetSettings(int argc, char** argv)
 	invertButtons = (int)ini.GetBoolValue(L"media", L"invertButtons", false);
 	Discord::enabled = ini.GetBoolValue(L"media", L"discord", false);
 
+	int argc = 0;
+	auto argv = CommandLineToArgvW(GetCommandLine(), &argc);
 	for (int i = 1; i < argc; i++)
 	{
-#if _CONSOLE
-		WCHAR* thisArg = argv[i];
-#else
-		WCHAR thisArg[512] = { 0 };
-		mbstowcs_s(NULL, thisArg, argv[i], 512);
-#endif
-		if (thisArg[0] == L'-')
+		if (argv[i][0] == L'-')
 		{
-			if (!wcscmp(thisArg, L"--fpscap"))
+			if (!wcscmp(argv[i], L"--fpscap"))
 				fpsCap = false;
-			else if (!wcscmp(thisArg, L"--noreload"))
+			else if (!wcscmp(argv[i], L"--noreload"))
 				reloadROM = false;
-			else if (!wcscmp(thisArg, L"--noremount"))
+			else if (!wcscmp(argv[i], L"--noremount"))
 				reloadIMG = false;
-			else if (!wcscmp(thisArg, L"--nodiscord"))
+			else if (!wcscmp(argv[i], L"--nodiscord"))
 				Discord::enabled = false;
 		}
 		else if (i == 1)
 		{
-			paramLoad = thisArg;
+			paramLoad = argv[i];
 		}
 	}
 
@@ -188,7 +180,7 @@ int main(int argc, char** argv)
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_VIDEO_OPENGL | SDL_INIT_GAMECONTROLLER) < 0)
 		return 0;
 
-	GetSettings(argc, argv);
+	GetSettings();
 
 	if (InitVideo() < 0)
 		return 0;
