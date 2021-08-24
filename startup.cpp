@@ -61,6 +61,7 @@ void GetSettings()
 			paramLoad = argv[i];
 		}
 	}
+	LocalFree(argv);
 
 	rtcOffset = ini.GetLongValue(L"media", L"rtcOffset", 0xDEADC70C);
 }
