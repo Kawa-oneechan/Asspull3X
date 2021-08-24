@@ -42,6 +42,7 @@ extern bool DrawDarkButton(HWND hwndDlg, LPNMCUSTOMDRAW dis);
 extern bool DrawComboBox(HWND hwndDlg, LPDRAWITEMSTRUCT dis);
 extern void SetThemeColors();
 extern bool IsWin10();
+extern HBITMAP LoadImageFromPNG(int);
 
 extern void ShowAbout();
 extern void ShowMemViewer();

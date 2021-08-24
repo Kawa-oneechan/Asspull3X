@@ -4,10 +4,11 @@
 
 IDI_APP ICON ".\\res\\app.ico"
 
-IDB_ABOUT BITMAP ".\\res\\about.bmp"
-IDB_DANCE BITMAP ".\\res\\dance.bmp"
-IDB_ICONS BITMAP ".\\res\\imglist.bmp"
-IDB_SHRUG BITMAP ".\\res\\shrug.bmp"
+IDB_ABOUT PNG ".\\res\\about.png"
+IDB_DANCE PNG ".\\res\\dance.png"
+IDB_ICONS PNG ".\\res\\imglist.png"
+IDB_SHRUG PNG ".\\res\\shrug.png"
+
 
 #include ".\\res\\english.rc"
 #include ".\\res\\french.rc"

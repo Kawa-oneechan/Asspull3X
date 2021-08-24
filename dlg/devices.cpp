@@ -2,7 +2,8 @@
 
 extern WCHAR* GetString(int);
 extern HIMAGELIST hIml;
-static RECT primaryIcon, warningIcon;
+static RECT primaryIcon, warningIcon, shrugIcon;
+static HBITMAP hShrugImage;
 static int numDrives;
 
 void UpdateDevicePage(HWND hwndDlg)
@@ -14,7 +15,7 @@ void UpdateDevicePage(HWND hwndDlg)
 	EnableWindow(GetDlgItem(hwndDlg, IDC_DEVTYPE), (devNum > 0));
 
 	//Hide everything regardless at first.
-	int everything[] = { IDC_DEVNONE, IDC_SHRUG, IDC_DDFILE, IDC_DDINSERT, IDC_DDEJECT, IDC_PRIMARYDEVICE, IDC_ONLYFOURDRIVES };
+	int everything[] = { IDC_DEVNONE, IDC_DDFILE, IDC_DDINSERT, IDC_DDEJECT, IDC_PRIMARYDEVICE, IDC_ONLYFOURDRIVES };
 	for (int i = 0; i < ARRAYSIZE(everything); i++)
 		ShowWindow(GetDlgItem(hwndDlg, everything[i]), SW_HIDE);
 
@@ -24,7 +25,7 @@ void UpdateDevicePage(HWND hwndDlg)
 	if (device == NULL)
 	{
 		ShowWindow(GetDlgItem(hwndDlg, IDC_DEVNONE), SW_SHOW);
-		ShowWindow(GetDlgItem(hwndDlg, IDC_SHRUG), SW_SHOW);
+		//ShowWindow(GetDlgItem(hwndDlg, IDC_SHRUG), SW_SHOW);
 		SetDlgItemText(hwndDlg, IDC_HEADER, GetString(IDS_DEVICES2+0)); //"No device"
 		SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, CB_SETCURSEL, 0, 0);
 	}
@@ -52,7 +53,7 @@ void UpdateDevicePage(HWND hwndDlg)
 			case 0x4C50:
 			{
 				ShowWindow(GetDlgItem(hwndDlg, IDC_DEVNONE), SW_SHOW);
-				ShowWindow(GetDlgItem(hwndDlg, IDC_SHRUG), SW_SHOW);
+				//ShowWindow(GetDlgItem(hwndDlg, IDC_SHRUG), SW_SHOW);
 				SetDlgItemText(hwndDlg, IDC_HEADER, GetString(IDS_DEVICES2+3)); //"Line printer"
 				SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, CB_SETCURSEL, 3, 0);
 				break;
@@ -164,15 +165,15 @@ void SwitchDevice(HWND hwndDlg)
 	UpdateDeviceList(hwndDlg);
 }
 
-void GetIconPos(HWND hwndDlg, int ctlID, RECT* iconRect)
+void GetIconPos(HWND hwndDlg, int ctlID, RECT* iconRect, int leftOffset, int topOffset)
 {
 	POINT t;
 	GetWindowRect(GetDlgItem(hwndDlg, ctlID), iconRect);
 	t.x = iconRect->left;
 	t.y = iconRect->top;
 	ScreenToClient(hwndDlg, &t);
-	iconRect->left = t.x - 24;
-	iconRect->top = t.y;
+	iconRect->left = t.x + leftOffset;
+	iconRect->top = t.y + topOffset;
 	iconRect->right = iconRect->left + 16;
 	iconRect->bottom = iconRect->top + 16;
 }
@@ -184,6 +185,7 @@ BOOL CALLBACK DevicesWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 		case WM_CLOSE:
 		{
 			DestroyWindow(hwndDlg);
+			DeleteObject(hShrugImage);
 			hWndDevices = NULL;
 			if (!wasPaused) pauseState = 0;
 			return true;
@@ -197,8 +199,10 @@ BOOL CALLBACK DevicesWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 				SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, CB_ADDSTRING, 0, (LPARAM)GetString(IDS_DEVICES1 + i));
 				SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, CB_SETITEMDATA, i, deviceIcons[i]);
 			}
-			GetIconPos(hwndDlg, IDC_PRIMARYDEVICE, &primaryIcon);
-			GetIconPos(hwndDlg, IDC_ONLYFOURDRIVES, &warningIcon);
+			GetIconPos(hwndDlg, IDC_PRIMARYDEVICE, &primaryIcon, -24, 0);
+			GetIconPos(hwndDlg, IDC_ONLYFOURDRIVES, &warningIcon, -24, 0);
+			GetIconPos(hwndDlg, IDC_SHRUG, &shrugIcon, 0, 0);
+			hShrugImage = LoadImageFromPNG(IDB_SHRUG);
 			UpdateDeviceList(hwndDlg);
 			return true;
 		}
@@ -232,6 +236,15 @@ BOOL CALLBACK DevicesWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 				ImageList_Draw(hIml, IML_INFO, hdc, primaryIcon.left, primaryIcon.top, ILD_NORMAL);
 			if (numDrives > 4)
 				ImageList_Draw(hIml, IML_WARNING, hdc, warningIcon.left, warningIcon.top, ILD_NORMAL);
+			if (IsWindowVisible(GetDlgItem(hwndDlg, IDC_DEVNONE)))
+			{
+				auto hdcMem = CreateCompatibleDC(hdc);
+				auto oldBitmap = SelectObject(hdcMem, hShrugImage);
+				BLENDFUNCTION ftn = { AC_SRC_OVER, 0, 255, AC_SRC_ALPHA };
+				AlphaBlend(hdc, shrugIcon.left, shrugIcon.top, 64, 64, hdcMem, 0, 0, 64, 64, ftn);
+				SelectObject(hdcMem, oldBitmap);
+				DeleteDC(hdcMem);
+			}
 			DeleteDC(hdcMem);
 			EndPaint(hwndDlg, &ps);
 			return true;

@@ -1,5 +1,8 @@
 #include "..\ui.h"
 
+HBITMAP hPromoImage = NULL;
+#define PROMO_W 280
+#define PROMO_H 160
 HIMAGELIST hDanceIml = NULL;
 int aboutFrame = 0;
 #define DANCE_X 550
@@ -24,25 +27,30 @@ BOOL CALLBACK AboutWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPa
 	{
 		case WM_INITDIALOG:
 		{
+			hPromoImage = LoadImageFromPNG(IDB_ABOUT);
 			hDanceIml = ImageList_Create(DANCE_W, DANCE_H, ILC_COLOR32, DANCE_F, 0);
-			ImageList_Add(hDanceIml, (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_DANCE), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_CREATEDIBSECTION), NULL);
+			ImageList_Add(hDanceIml, LoadImageFromPNG(IDB_DANCE), NULL);
 			SendDlgItemMessage(hwndDlg, IDC_HEADER, WM_SETFONT, (WPARAM)headerFont, (LPARAM)true);
 			SetTimer(hwndDlg, 1, 100, AnimateAbout);
 			return true;
 		}
 		case WM_PAINT:
 		{
-			//DrawWindowBk(hwndDlg, true);
-			//gotta repeat most of that function so we can do the dance
 			PAINTSTRUCT ps;
 			HDC hdc = BeginPaint(hwndDlg, &ps);
 			if (ps.rcPaint.left != aboutRect.left)
+			{
 				DrawWindowBk(hwndDlg, true, &ps, hdc);
+				auto hdcMem = CreateCompatibleDC(hdc);
+				auto oldBitmap = SelectObject(hdcMem, hPromoImage);
+				BitBlt(hdc, 0, 0, PROMO_W, PROMO_H, hdcMem, 0, 0, SRCCOPY);
+				SelectObject(hdcMem, oldBitmap);
+				DeleteDC(hdcMem);
+			}
 			else
 				FillRect(hdc, &ps.rcPaint, hbrBack);
-			auto hdcMem = CreateCompatibleDC(hdc);
+
 			ImageList_Draw(hDanceIml, aboutFrame, hdc, DANCE_X, DANCE_Y, ILD_NORMAL);
-			DeleteDC(hdcMem);
 			EndPaint(hwndDlg, &ps);
 			return true;
 		}
@@ -66,6 +74,7 @@ BOOL CALLBACK AboutWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPa
 		case WM_CLOSE:
 		case WM_COMMAND:
 		{
+			DeleteObject(hPromoImage);
 			ImageList_Destroy(hDanceIml);
 			KillTimer(hwndDlg, 1);
 			DestroyWindow(hwndDlg);

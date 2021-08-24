@@ -275,6 +275,33 @@ HBITMAP GetImageListImage(int index)
 	return hbm;
 }
 
+#include <vector>
+extern int decodePNG(std::vector<unsigned char>& out_image, unsigned long& image_width, unsigned long& image_height, const unsigned char* in_png, size_t in_size, bool convert_to_rgba32 = true);
+HBITMAP LoadImageFromPNG(int id)
+{
+	unsigned long size, width, height;
+
+	auto find = FindResource(NULL, MAKEINTRESOURCE(id), L"PNG");
+	auto res = LoadResource(NULL, find);
+	auto lock = LockResource(res);
+	size = SizeofResource(NULL, find);
+	
+	std::vector<unsigned char> image;
+	decodePNG(image, width, height, (const unsigned char*)lock, size);
+	
+	for (unsigned long i = 0; i < (width * height * 4); i += 4)
+	{
+		auto r = image[i + 0];
+		auto b = image[i + 2];
+		image[i + 0] = b;
+		image[i + 2] = r;
+	}
+
+	auto bitmap = CreateBitmap(width, height, 1, 32, &image[0]);
+	
+	return bitmap;
+}
+
 WNDPROC SDLWinProc = NULL;
 LRESULT WndProc(HWND hWnd, unsigned int message, WPARAM wParam, LPARAM lParam)
 {
@@ -406,7 +433,7 @@ void InitializeUI()
 		InitCommonControls();
 
 		hIml = ImageList_Create(16, 16, ILC_COLOR32, 32, 0);
-		ImageList_Add(hIml, (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(IDB_ICONS), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_CREATEDIBSECTION), NULL);
+		ImageList_Add(hIml, LoadImageFromPNG(IDB_ICONS), NULL);
 
 		menuBar = LoadMenu(hInstance, MAKEINTRESOURCE(IDR_MAINMENU));
 
