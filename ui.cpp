@@ -26,6 +26,7 @@ bool wasPaused = false;
 bool autoUpdateMemViewer = false;
 bool autoUpdatePalViewer = false;
 int theme = 0;
+int diskIconTimer = 0, hddIconTimer = 0;
 
 HWND hWndAbout = NULL, hWndMemViewer = NULL, hWndOptions = NULL, hWndDevices = NULL, hWndPalViewer = NULL, hWndShaders = NULL;
 HFONT headerFont = NULL, monoFont = NULL, statusFont = NULL;
@@ -375,8 +376,11 @@ void DrawStatusBar()
 	RECT sbText = { 4, 4, 32, sbRect.bottom - 4 };
 	DrawText(hdc, statusFPS, wcslen(statusFPS), &sbText, DT_RIGHT);
 	sbText.left = 48;
-	sbText.right = sbRect.right - 48;
-	DrawText(hdc, statusText, wcslen(statusText), &sbText, DT_END_ELLIPSIS); 
+	DrawText(hdc, statusText, wcslen(statusText), &sbText, DT_END_ELLIPSIS);
+
+	ImageList_Draw(hIml, pauseState == 0 ? IML_PLAY : IML_PAUSE, hdc, sbRect.right - 24, 3, ILD_NORMAL);
+	if (hddIconTimer) ImageList_Draw(hIml, IML_HARDDRIVE, hdc, sbRect.right - 24 - 20, 3, ILD_NORMAL);
+	if (diskIconTimer) ImageList_Draw(hIml, IML_DISKETTE, hdc, sbRect.right - 24 - (hddIconTimer ? 40 : 20), 3, ILD_NORMAL);
 
 	BitBlt(statusRealDC, 0, 0, sbRect.right, sbRect.bottom, hdc, 0, 0, SRCCOPY);
 }
@@ -389,6 +393,11 @@ void HandleUI()
 		statusTimer--;
 	else
 		statusText[0] = 0;
+
+	if (diskIconTimer)
+		diskIconTimer--;
+	if (hddIconTimer)
+		hddIconTimer--;
 
 	if (mouseTimer > 0)
 	{

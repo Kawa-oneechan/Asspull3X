@@ -35,7 +35,7 @@ void UpdateDevicePage(HWND hwndDlg)
 		{
 			case 0x0144:
 			{
-				for (int i = 2; i < 5; i++)
+				for (int i = 1; i < 4; i++)
 					ShowWindow(GetDlgItem(hwndDlg, everything[i]), SW_SHOW);
 				SetDlgItemText(hwndDlg, IDC_HEADER, (((DiskDrive*)device)->GetType() == ddHardDisk) ? GetString(IDS_DEVICES2+2) : GetString(IDS_DEVICES2+1) ); //"Diskette drive" "Hard drive"
 				SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, CB_SETCURSEL, (((DiskDrive*)device)->GetType() == ddHardDisk) ? 2 : 1, 0);

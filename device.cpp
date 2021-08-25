@@ -4,6 +4,8 @@ extern void SetStatus(const WCHAR*);
 extern void SetStatus(int);
 extern WCHAR* GetString(int);
 
+extern int diskIconTimer, hddIconTimer;
+
 Device* devices[MAXDEVS] = { 0 };
 
 Device::Device(void) { }
@@ -144,6 +146,11 @@ unsigned int DiskDrive::Read(unsigned int address)
 
 void DiskDrive::Write(unsigned int address, unsigned int value)
 {
+	if (type == ddDiskette)
+		diskIconTimer = 20;
+	else
+		hddIconTimer = 20;
+
 	switch (address)
 	{
 		case 0x02: sector = (sector & 0xFF00) | (value << 8); return;
