@@ -129,7 +129,7 @@
     <ClCompile Include="video.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="clunibus.rc" />
+    <ResourceCompile Include="res\clunibus.rc" />
     <ResourceCompile Include="res\dialogs.rc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -150,13 +150,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="res\printer.ico" />
-    <Image Include="res\diskdrive.ico" />
-    <Image Include="res\blank.ico" />
-    <Image Include="res\about.bmp" />
-    <Image Include="res\Asspull3X.ico" />
   </ItemGroup>
   <ItemGroup>
     <None Include="res\about.png" />
