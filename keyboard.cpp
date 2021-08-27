@@ -5,44 +5,6 @@
 static unsigned int lastPollTime = 0;
 static int lastPollResult = 0;
 
-unsigned int PollKeyboard(bool force)
-{
-	auto newPollTime = SDL_GetTicks();
-	if (!force && newPollTime < lastPollTime + POLLDELAY)
-		return lastPollResult;
-	SDL_PumpEvents();
-	const unsigned char *keys = SDL_GetKeyboardState(0);
-	lastPollResult = 0;
-	for (auto i = 0; i < 100; i++)
-	{
-		if (keys[i] == 1)
-		{
-			lastPollResult = keyMap[i];
-			break;
-		}
-	}
-	auto mods = SDL_GetModState();
-	if (mods & KMOD_SHIFT) lastPollResult |= 0x100;
-	if (mods & KMOD_ALT) lastPollResult |= 0x200;
-	if (mods & KMOD_LCTRL) lastPollResult |= 0x400;
-	if (mods & KMOD_RCTRL) lastPollResult = 0; //reserved for the UI
-	/*
-	if (lastPollResult & 0x0400)
-	{
-		if ((lastPollResult & 0xFF) == 0x26 ||
-			(lastPollResult & 0xFF) == 0x16 ||
-			(lastPollResult & 0xFF) == 0x26 ||
-			(lastPollResult & 0xFF) == 0x20 ||
-			(lastPollResult & 0xFF) == 0x13 ||
-			(lastPollResult & 0xFF) == 0x19 ||
-			(lastPollResult & 0xFF) == 0x1F)
-			lastPollResult = 0; //eat any special controls
-	}
-	*/
-	lastPollTime = newPollTime;
-	return lastPollResult;
-}
-
 const unsigned char keyMap[] =
 {
 	0x00,
@@ -146,3 +108,28 @@ const unsigned char keyMap[] =
 	0x52, //kp0
 	0x53, //kp.
 };
+
+unsigned int PollKeyboard(bool force)
+{
+	auto newPollTime = SDL_GetTicks();
+	if (!force && newPollTime < lastPollTime + POLLDELAY)
+		return lastPollResult;
+	SDL_PumpEvents();
+	const unsigned char *keys = SDL_GetKeyboardState(0);
+	lastPollResult = 0;
+	for (auto i = 0; i < 100; i++)
+	{
+		if (keys[i] == 1)
+		{
+			lastPollResult = keyMap[i];
+			break;
+		}
+	}
+	auto mods = SDL_GetModState();
+	if (mods & KMOD_SHIFT) lastPollResult |= 0x100;
+	if (mods & KMOD_ALT) lastPollResult |= 0x200;
+	if (mods & KMOD_LCTRL) lastPollResult |= 0x400;
+	if (mods & KMOD_RCTRL) lastPollResult = 0; //reserved for the UI
+	lastPollTime = newPollTime;
+	return lastPollResult;
+}

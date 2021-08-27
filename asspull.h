@@ -49,8 +49,6 @@ extern void ResetPath();
 
 extern CSimpleIni ini;
 
-extern const unsigned char keyMap[];
-
 enum uiCommands
 {
 	cmdNone,

@@ -197,10 +197,6 @@ void MainLoop()
 				break;
 			case SDL_KEYUP:
 			{
-				auto uiKey = keyMap[ev.key.keysym.scancode];
-				if (ev.key.keysym.mod & KMOD_SHIFT) uiKey |= 0x100;
-				if (ev.key.keysym.mod & KMOD_ALT) uiKey |= 0x200;
-				if (ev.key.keysym.mod & KMOD_LCTRL) uiKey |= 0x400;
 				if (ev.key.keysym.mod & KMOD_RCTRL)
 				{
 					if (ev.key.keysym.sym == SDLK_l)
