@@ -655,7 +655,7 @@ void InsertDisk(int devId)
 		SetStatus(IDS_EJECTFIRST); //"Eject the diskette first, with Ctrl-Shift-U."
 	else if (ret != 0)
 	{
-		SDL_LogW(L"Error %d trying to open disk image.", ret);
+		Log(L"Error %d trying to open disk image.", ret);
 	}
 	else
 	{

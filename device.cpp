@@ -57,7 +57,7 @@ int DiskDrive::Mount(const WCHAR* filename)
 {
 	if (file != NULL)
 		return -1;
-	SDL_LogW(GetString(IDS_MOUNTINGDISK), filename); //"Mounting disk image, %s ..."
+	Log(GetString(IDS_MOUNTINGDISK), filename); //"Mounting disk image, %s ..."
 	if (_wfopen_s(&file, filename, L"r+b"))
 		return errno;
 	fseek(file, 0, SEEK_END);
@@ -103,7 +103,7 @@ int DiskDrive::Mount(const WCHAR* filename)
 			return 1;
 		}
 		fseek(file, 0, SEEK_SET);
-		SDL_LogW(GetString(IDS_MOUNTEDVHD), tracks, heads, sectors, tracks * heads * sectors * 512, capacity); //"Mounted VHD. %d * %d * %d * 512 = %d, should be ~%d."
+		Log(GetString(IDS_MOUNTEDVHD), tracks, heads, sectors, tracks * heads * sectors * 512, capacity); //"Mounted VHD. %d * %d * %d * 512 = %d, should be ~%d."
 	}
 	return 0;
 }
@@ -112,7 +112,7 @@ int DiskDrive::Unmount()
 {
 	if (file == NULL)
 		return 1;
-	SDL_LogW(GetString(IDS_UNMOUNTINGDISK)); //"Unmounting diskette..."
+	Log(GetString(IDS_UNMOUNTINGDISK)); //"Unmounting diskette..."
 	fclose(file);
 	file = NULL;
 	return 0;

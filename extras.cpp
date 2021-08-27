@@ -42,7 +42,7 @@ int Dump(const WCHAR* filePath, unsigned char* source, unsigned long size)
 }
 
 /*
-void SDL_LogW(WCHAR* message, ...)
+void Log(WCHAR* message, ...)
 {
 	va_list args;
 	WCHAR wcs[1024];

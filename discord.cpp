@@ -5,8 +5,8 @@
 #include "resource.h"
 
 extern WCHAR* GetString(int);
-//extern void SDL_LogW(WCHAR* message, ...);
-#define SDL_LogW(M, ...) wprintf(M, __VA_ARGS__)
+//extern void Log(WCHAR* message, ...);
+#define Log(M, ...) wprintf(M, __VA_ARGS__)
 
 namespace Discord
 {
@@ -34,7 +34,7 @@ namespace Discord
 		discordDLL = LoadLibraryExA("discord-rpc.dll", NULL, 0);
 		if (discordDLL == NULL)
 		{
-			SDL_LogW(GetString(IDS_DISCORDDLL)); //"Discord is enabled but the DLL isn't here."
+			Log(GetString(IDS_DISCORDDLL)); //"Discord is enabled but the DLL isn't here."
 			enabled = false;
 			return;
 		}
@@ -57,7 +57,7 @@ namespace Discord
 			wcscpy_s(wName, 128, GetString(IDS_NOTPLAYING));
 		else
 			mbstowcs_s(NULL, wName, gameName, 128);
-		SDL_LogW(L"Discord: \"%s\"", wName);
+		Log(L"Discord: \"%s\"", wName);
 		DiscordRichPresence discord_presence = {};
 		discord_presence.details = gameName;
 		discord_presence.startTimestamp = time(NULL);

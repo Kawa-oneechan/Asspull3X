@@ -95,7 +95,7 @@ void InitializeDevices()
 		if (!wcscmp(thing, L"diskDrive"))
 		{
 			devices[i] = (Device*)(new DiskDrive(0));
-			SDL_LogW(L"Attached a diskette drive as device #%d.", i);
+			Log(L"Attached a diskette drive as device #%d.", i);
 			thing = ini.GetValue(L"devices/diskDrive", key, L"");
 			if (reloadIMG && wcslen(thing))
 			{
@@ -103,13 +103,13 @@ void InitializeDevices()
 				if (err)
 					ReportLoadingFail(IDS_DISKIMAGEERROR, err, i, thing);
 				else
-					SDL_LogW(L"Loaded \"%s\" into device #%d.", thing, i);
+					Log(L"Loaded \"%s\" into device #%d.", thing, i);
 			}
 		}
 		else if (!wcscmp(thing, L"hardDrive"))
 		{
 			devices[i] = (Device*)(new DiskDrive(1));
-			SDL_LogW(L"Attached a hard disk drive as device #%d.", i);
+			Log(L"Attached a hard disk drive as device #%d.", i);
 			thing = ini.GetValue(L"devices/hardDrive", key, L"");
 			if (reloadIMG && wcslen(thing))
 			{
@@ -117,15 +117,15 @@ void InitializeDevices()
 				if (err)
 					ReportLoadingFail(IDS_DISKIMAGEERROR, err, i, thing);
 				else
-					SDL_LogW(L"Loaded \"%s\" into device #%d.", thing, i);
+					Log(L"Loaded \"%s\" into device #%d.", thing, i);
 			}
 		}
 		else if (!wcscmp(thing, L"linePrinter"))
 		{
 			devices[i] = (Device*)(new LinePrinter());
-			SDL_LogW(L"Attached a line printer as device #%d.", i);
+			Log(L"Attached a line printer as device #%d.", i);
 		}
-		else SDL_LogW(L"Don't know what a \"%s\" is to connect as device #%d.", thing, i);
+		else Log(L"Don't know what a \"%s\" is to connect as device #%d.", thing, i);
 	}
 }
 
@@ -147,19 +147,19 @@ void Preload()
 			return;
 		}
 	}
-	SDL_LogW(L"Loading BIOS, %s ...", thing);
+	Log(L"Loading BIOS, %s ...", thing);
 	Slurp(romBIOS, thing, &biosSize);
 	biosSize = RoundUp(biosSize);
 	thing = ini.GetValue(L"media", L"lastROM", L"");
 	if (reloadROM && wcslen(thing) && paramLoad == NULL)
 	{
-		SDL_LogW(L"Loading ROM, %s ...", thing);
+		Log(L"Loading ROM, %s ...", thing);
 		LoadROM(thing);
 		pauseState = 0;
 	}
 	else if (paramLoad != NULL)
 	{
-		SDL_LogW(L"Command-line loading ROM, %s ...", paramLoad);
+		Log(L"Command-line loading ROM, %s ...", paramLoad);
 		LoadROM((const WCHAR*)paramLoad);
 		pauseState = 0;
 	}
@@ -198,7 +198,7 @@ int main(int argc, char** argv)
 	SDL_Joystick *controller[2] = { NULL , NULL };
 	if (SDL_NumJoysticks() > 0)
 	{
-		SDL_LogW(L"Trying to hook up joystick...");
+		Log(L"Trying to hook up joystick...");
 		controller[0] = SDL_JoystickOpen(0);
 		if (SDL_NumJoysticks() > 1)
 			controller[1] = SDL_JoystickOpen(1);

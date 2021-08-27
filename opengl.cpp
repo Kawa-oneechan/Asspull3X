@@ -74,10 +74,10 @@ GLuint compileShader(const char* source, GLuint shaderType)
 {
 	if (source == NULL)
 	{
-		SDL_LogW(GetString(IDS_MOUNTINGDISK)); //"Mounting disk image, %s ..."
+		Log(GetString(IDS_MOUNTINGDISK)); //"Mounting disk image, %s ..."
 		return 0;
 	}
-	//SDL_LogW("Compiling shader: %s", source);
+	//Log("Compiling shader: %s", source);
 	// Create ID for shader
 	GLuint result = glCreateShader(shaderType);
 	// Define shader text
@@ -90,14 +90,14 @@ GLuint compileShader(const char* source, GLuint shaderType)
 	glGetShaderiv( result, GL_COMPILE_STATUS, &shaderCompiled );
 	if( shaderCompiled != GL_TRUE )
 	{
-		SDL_LogW(GetString(IDS_SHADERERROR), result); //"Error compiling shader: %d"
+		Log(GetString(IDS_SHADERERROR), result); //"Error compiling shader: %d"
 		GLint logLength;
 		glGetShaderiv(result, GL_INFO_LOG_LENGTH, &logLength);
 		if (logLength > 0)
 		{
 			GLchar *log = (GLchar*)malloc(logLength);
 			glGetShaderInfoLog(result, logLength, &logLength, log);
-			SDL_LogW(L"%s", log);
+			Log(L"%s", log);
 			free(log);
 		}
 		glDeleteShader(result);
@@ -153,7 +153,7 @@ GLuint compileProgram(const WCHAR* fragFile)
 			char* log = (char*) malloc(logLen * sizeof(char));
 			// Show any errors as appropriate
 			glGetProgramInfoLog(programId, logLen, &logLen, log);
-			SDL_LogW(L"Prog Info Log: %s", log);
+			Log(L"Prog Info Log: %s", log);
 			free(log);
 		}
 	}
@@ -320,7 +320,7 @@ void InitShaders()
 	{
 		if (numShaders >= MAXSHADERS)
 		{
-			SDL_LogW(GetString(IDS_TOOMANYSHADERS), MAXSHADERS, numShaders); //"Too many shaders specified: can only do %d but %d were requested."
+			Log(GetString(IDS_TOOMANYSHADERS), MAXSHADERS, numShaders); //"Too many shaders specified: can only do %d but %d were requested."
 			numShaders = MAXSHADERS;
 		}
 		for (int i = 0; i < numShaders; i++)
@@ -351,14 +351,14 @@ int InitVideo()
 		}
 	}
 
-	//SDL_LogW("Creating window...");
+	//Log("Creating window...");
 	auto winWidth = ini.GetLongValue(L"video", L"width", 640);
 	auto winHeight = ini.GetLongValue(L"video", L"height", 480);
 	char title[256] = { 0 };
 	wcstombs_s(NULL, title, GetString(IDS_FULLTITLE), 256);
 	if ((sdlWindow = SDL_CreateWindow(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, winWidth, winHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE)) == NULL)
 	{
-		SDL_LogW(GetString(IDS_WINDOWFAILED), SDL_GetError()); //"Could not create window: %s"
+		Log(GetString(IDS_WINDOWFAILED), SDL_GetError()); //"Could not create window: %s"
 		return -1;
 	}
 
@@ -366,7 +366,7 @@ int InitVideo()
 
 	if ((sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE)) == NULL)
 	{
-		SDL_LogW(GetString(IDS_RENDERERFAILED), SDL_GetError()); //"Could not create renderer: %s"
+		Log(GetString(IDS_RENDERERFAILED), SDL_GetError()); //"Could not create renderer: %s"
 		return -2;
 	}
 
@@ -389,13 +389,13 @@ int InitVideo()
 
 	if ((sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_TARGET, 640, 480)) == NULL)
 	{
-		SDL_LogW(GetString(IDS_TEXTUREFAILED), SDL_GetError()); //"Could not create texture: %s"
+		Log(GetString(IDS_TEXTUREFAILED), SDL_GetError()); //"Could not create texture: %s"
 		return -2;
 	}
 
 	if ((sdlShader = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_TARGET, 640, 480)) == NULL)
 	{
-		SDL_LogW(GetString(IDS_TEXTUREFAILED), SDL_GetError()); //"Could not create texture: %s"
+		Log(GetString(IDS_TEXTUREFAILED), SDL_GetError()); //"Could not create texture: %s"
 		return -2;
 	}
 

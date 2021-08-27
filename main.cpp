@@ -94,7 +94,7 @@ void LoadROM(const WCHAR* path)
 	fileSize = romSize;
 	romSize = RoundUp(romSize);
 	if (romSize != fileSize)
-		SDL_LogW(GetString(IDS_BADSIZE), fileSize, fileSize, romSize, romSize); //"File size is not a power of two: is %d (0x%08X), should be %d (0x%08X)."
+		Log(GetString(IDS_BADSIZE), fileSize, fileSize, romSize, romSize); //"File size is not a power of two: is %d (0x%08X), should be %d (0x%08X)."
 
 	unsigned int c1 = 0;
 	unsigned int c2 = (romCartridge[0x20] << 24) | (romCartridge[0x21] << 16) | (romCartridge[0x22] << 8) | (romCartridge[0x23] << 0);
@@ -105,7 +105,7 @@ void LoadROM(const WCHAR* path)
 		c1 += romCartridge[i];
 	}
 	if (c1 != c2)
-		SDL_LogW(GetString(IDS_BADCHECKSUM), c2, c1); //"Checksum mismatch: is 0x%08X, should be 0x%08X."
+		Log(GetString(IDS_BADCHECKSUM), c2, c1); //"Checksum mismatch: is 0x%08X, should be 0x%08X."
 #endif
 
 	ini.SetValue(L"media", L"lastROM", path);
@@ -126,7 +126,7 @@ void MainLoop()
 {
 	pauseScreen = (unsigned char*)malloc(640 * 480 * 4);
 
-	SDL_LogW(GetString(IDS_RESETTING));
+	Log(GetString(IDS_RESETTING));
 	m68k_init();
 	m68k_set_cpu_type(M68K_CPU_TYPE_68020);
 	m68k_pulse_reset();
@@ -239,7 +239,7 @@ void MainLoop()
 			{
 				ShowOpenFileDialog(cmdLoadRom, 0, GetString(IDS_CARTFILTER)); //"Asspull IIIx ROMS (*.ap3)|*.ap3"
 				if (uiCommand == 0) continue;
-				SDL_LogW(GetString(IDS_LOADINGROM), uiString); //"Loading ROM, %s ..."
+				Log(GetString(IDS_LOADINGROM), uiString); //"Loading ROM, %s ..."
 				auto gottaReset = (*(uint32_t*)romCartridge == 0x21535341);
 				LoadROM(uiString);
 			}
@@ -254,7 +254,7 @@ void MainLoop()
 			}
 			else if (uiCommand == cmdUnloadRom)
 			{
-				SDL_LogW(GetString(IDS_UNLOADINGROM)); //"Unloading ROM..."
+				Log(GetString(IDS_UNLOADINGROM)); //"Unloading ROM..."
 				memset(romCartridge, 0, CART_SIZE);
 				ini.SetValue(L"media", L"lastROM", L"");
 				ResetPath();
@@ -275,7 +275,7 @@ void MainLoop()
 			{
 				if (SDL_GetModState() & KMOD_SHIFT)
 				{
-					SDL_LogW(GetString(IDS_UNLOADINGROM)); //"Unloading ROM..."
+					Log(GetString(IDS_UNLOADINGROM)); //"Unloading ROM..."
 					memset(romCartridge, 0, CART_SIZE);
 					ini.SetValue(L"media", L"lastROM", L"");
 					ResetPath();
@@ -283,7 +283,7 @@ void MainLoop()
 					Discord::UpdateDiscordPresence(NULL);
 					SetTitle(NULL);
 				}
-				SDL_LogW(GetString(IDS_SYSTEMRESET)); //"Resetting Musashi..."
+				Log(GetString(IDS_SYSTEMRESET)); //"Resetting Musashi..."
 				SetStatus(IDS_SYSTEMRESET); //"System reset."
 				m68k_pulse_reset();
 			}
