@@ -45,6 +45,8 @@ extern bool gfx320, gfx240, gfxTextBold, gfxTextBlink;
 extern int gfxMode, gfxFade, scrollX[4], scrollY[4], tileShift[4], mapEnabled[4], mapBlend[4];
 extern int caret;
 
+int lastMouseX = -1000, lastMouseY;
+
 extern int scale, offsetX, offsetY, statusBarHeight;
 
 extern int line, interrupts;
@@ -183,6 +185,29 @@ unsigned int m68k_read_memory_16(unsigned int address)
 			case 0x40: //Keyscan
 				keyScan = PollKeyboard(false);
 				return keyScan;
+			case 0x50: //Mouse
+				{
+					if (lastMouseX == -1000)
+						SDL_GetMouseState(&lastMouseX, &lastMouseY);
+
+					int newX, newY, b;
+					b = SDL_GetMouseState(&newX, &newY);
+
+					int x = newX - lastMouseX;
+					int y = newY - lastMouseY;
+					int dx = x < 0;
+					int dy = y < 0;
+					if (x < 0) x = -x;
+					if (y < 0) y = -y;
+
+					lastMouseX = newX;
+					lastMouseY = newY;
+
+					if (mouseTimer == -1)
+						mouseTimer = 3 * 60;
+
+					return ((b & 1) << 14) | ((b & 4) << 13) | (dy << 13) | (y << 7) | (dx << 6) | x;
+				}
 			case 0x54:
 				return caret;
 		}
@@ -202,28 +227,6 @@ unsigned int m68k_read_memory_32(unsigned int address)
 		{
 			case 0x04: //Ticks
 				return (int)ticks;
-			case 0x50: //Mouse
-				{
-					int x, y, b;
-					b = SDL_GetMouseState(&x, &y);
-					
-					int uX = x, uY = y;
-					int nX = x, nY = y;
-					
-					nX = (nX - offsetX) / scale;
-					nY = (nY - offsetY + statusBarHeight) / scale;
-
-					if (nX < 0) nX = 0;
-					if (nY < 0) nY = 0;
-					if (nX >= 640) nX = 639;
-					if (nY >= 480) nY = 479;
-					x = nX;
-					y = nY;
-
-					if (mouseTimer == -1)
-						mouseTimer = 3 * 60;
-					return ((b & 1) << 30) | (y << 16) | ((b & 4) << 29) | x;
-				}
 			case 0x60: //Time_T (top half)
 				timelatch = (rtcOffset == 0xDEADC70C) ? 0 : (time(NULL) + rtcOffset);
 				return (int)(timelatch >> 32);

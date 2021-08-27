@@ -110,10 +110,12 @@ Sends raw 8-bit 11025 Hz unsigned PCM audio through the audio port.
 
 ### 00050	REG_MOUSE
 
-    RL.. ...Y YYYY YYYY   .... ..XX XXXX XXXX
-    ||      |                    |______________ Horizontal position (0-639)
-    ||      |___________________________________ Vertical position (0-479)
-    ||__________________________________________ Buttons
+    RLyY YYYY YxXX XXXX
+    |||       ||      |__ Horizontal displacement
+    |||       ||_________ Horizontal sign
+    |||       |__________ Vertical displacement
+    |||__________________ Vertical sign
+    ||___________________ Buttons
 
 ### 00054	REG_CARET
 
