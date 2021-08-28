@@ -376,6 +376,7 @@ void DrawStatusBar()
 	RECT sbText = { 4, 4, 32, sbRect.bottom - 4 };
 	DrawText(hdc, statusFPS, wcslen(statusFPS), &sbText, DT_RIGHT);
 	sbText.left = 48;
+	sbText.right = sbRect.right - 48;
 	DrawText(hdc, statusText, wcslen(statusText), &sbText, DT_END_ELLIPSIS);
 
 	ImageList_Draw(hIml, pauseState == 0 ? IML_PLAY : IML_PAUSE, hdc, sbRect.right - 24, 3, ILD_NORMAL);
