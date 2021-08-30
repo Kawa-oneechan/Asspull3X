@@ -1,15 +1,15 @@
 # ROM
 A3X ROM files have the extension `.ap3`.
 
-| Offset | Type       | Name              | Description                           |
-| ------ | ---------- | ----------------- | ------------------------------------- |
-| 0      | `char[4]`  | Magic marker      | The string "ASS!" in plain ASCII.     |
-| 4      | code       | `JMP` instruction | Entry point for the BIOS to use.      |
-| 8      | `char[24]` | Internal name     | The name of the program.              |
-| 0x20   | `uint32`   | Checksum          | Sum of all bytes *except* these four. |
-| 0x24   | `char[4]`  | Game ID code      | See below.                            |
-| 0x25   | `uint8`    | SRAM size         | How much battery-backed RAM there is. |
-| 0x2A   | code       | CRT0              | What the `JMP` jumps to.              |
+| Offset | Type       | Name              | Description                          |
+| ------ | ---------- | ----------------- | ------------------------------------ |
+| 0      | `char[4]`  | Magic marker      | The string "ASS!" in plain ASCII     |
+| 4      | code       | `JMP` instruction | Entry point for the BIOS to use      |
+| 8      | `char[24]` | Internal name     | The name of the program              |
+| 0x20   | `uint32`   | Checksum          | Sum of all bytes *except* these four |
+| 0x24   | `char[4]`  | Game ID code      | See below                            |
+| 0x28   |            |                   | Reserved                             |
+| 0x2A   | code       | CRT0              | What the `JMP` jumps to              |
 
 The CRT0 code ends up calling your `main` function.
 
