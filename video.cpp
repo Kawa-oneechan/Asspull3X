@@ -35,9 +35,9 @@ static inline void RenderPixel(int row, int column, int color)
 	auto g = (snes >> 5) & 0x1F;
 	auto b = (snes >> 10) & 0x1F;
 	FADECODE;
-	pixels[target + 0] = (b << 3) + (b >> 2);
-	pixels[target + 1] = (g << 3) + (g >> 2);
-	pixels[target + 2] = (r << 3) + (r >> 2);
+	pixels[target + 0] = (unsigned char)((b << 3) + (b >> 2));
+	pixels[target + 1] = (unsigned char)((g << 3) + (g >> 2));
+	pixels[target + 2] = (unsigned char)((r << 3) + (r >> 2));
 }
 
 static inline void RenderBlended(int row, int column, int color, bool subtractive)
@@ -53,24 +53,23 @@ static inline void RenderBlended(int row, int column, int color, bool subtractiv
 		b = (pixels[target + 0] + ((b << 3) + (b >> 2))) / 2;
 		g = (pixels[target + 1] + ((g << 3) + (g >> 2))) / 2;
 		r = (pixels[target + 2] + ((r << 3) + (r >> 2))) / 2;
-		pixels[target + 0] = (b > 255) ? 255 : b;
-		pixels[target + 1] = (g > 255) ? 255 : g;
-		pixels[target + 2] = (r > 255) ? 255 : r;
+		pixels[target + 0] = (unsigned char)((b > 255) ? 255 : b);
+		pixels[target + 1] = (unsigned char)((g > 255) ? 255 : g);
+		pixels[target + 2] = (unsigned char)((r > 255) ? 255 : r);
 	}
 	else
 	{
 		b = (((b << 3) + (b >> 2)) - pixels[target + 0]) / 2;
 		g = (((g << 3) + (g >> 2)) - pixels[target + 1]) / 2;
 		r = (((r << 3) + (r >> 2)) - pixels[target + 2]) / 2;
-		pixels[target + 0] = (b < 0) ? 0 : b;
-		pixels[target + 1] = (g < 0) ? 0 : g;
-		pixels[target + 2] = (r < 0) ? 0 : r;
+		pixels[target + 0] = (unsigned char)((b < 0) ? 0 : b);
+		pixels[target + 1] = (unsigned char)((g < 0) ? 0 : g);
+		pixels[target + 2] = (unsigned char)((r < 0) ? 0 : r);
 	}
 }
 
 void RenderSprites(int line, int withPriority)
 {
-	auto imgWidth = gfx320 ? 320 : 640;
 	auto step = gfx320 ? 4 : 2;
 	for (auto i = 0; i < 256; i++)
 	{
@@ -109,22 +108,22 @@ void RenderSprites(int line, int withPriority)
 		auto vFlip = ((spriteB >> 27) & 1) == 1;
 		auto doubleSize = ((spriteB >> 28) & 1) == 1;
 
-		auto tileHeight = 1;
+		short tileHeight = 1;
 		if (doubleHeight) tileHeight *= 2;
 		if (doubleSize) tileHeight *= 2;
 
-		auto tileWidth = 1;
+		short tileWidth = 1;
 		if (doubleWidth) tileWidth *= 2;
 		if (doubleSize) tileWidth *= 2;
 
-		auto effectiveHeight = tileHeight * 8;
-		auto effectiveWidth = tileWidth * 8;
+		short effectiveHeight = tileHeight * 8;
+		short effectiveWidth = tileWidth * 8;
 		effectiveHeight *= ((gfx240 && gfxMode > 0) ? 2 : 1);
 
 		if (line < vPos || line >= vPos + effectiveHeight)
 			continue;
 
-		auto renderWidth = (gfx320 ? 16 : 8);
+		short renderWidth = (gfx320 ? 16 : 8);
 		if (hPos + (effectiveWidth * (gfx320 ? 2 : 1)) <= 0 || hPos > 640)
 			continue;
 

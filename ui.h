@@ -39,7 +39,7 @@ extern void DrawWindowBk(HWND hwndDlg, bool stripe);
 extern void DrawWindowBk(HWND hwndDlg, bool stripe, PAINTSTRUCT* ps, HDC hdc);
 extern void DrawCheckbox(HWND hwndDlg, LPNMCUSTOMDRAW dis);
 extern bool DrawDarkButton(HWND hwndDlg, LPNMCUSTOMDRAW dis);
-extern bool DrawComboBox(HWND hwndDlg, LPDRAWITEMSTRUCT dis);
+extern bool DrawComboBox(LPDRAWITEMSTRUCT dis);
 extern void SetThemeColors();
 extern bool IsWin10();
 extern HBITMAP LoadImageFromPNG(int);

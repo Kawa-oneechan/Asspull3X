@@ -26,11 +26,11 @@ void BufferAudioSample(signed char sample)
 	if(++frameIndex >= frameCount)
 	{
 		frameIndex = 0;
-		while(true)
+		//while(true)
 		{
 			auto result = waveOutWrite(soundHandle, &headers[blockIndex], sizeof(WAVEHDR));
-			if(result != WAVERR_STILLPLAYING)
-				break;
+			//if(result != WAVERR_STILLPLAYING)
+			//	break;
 		}
 		if(++blockIndex >= blockCount)
 			blockIndex = 0;

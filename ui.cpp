@@ -6,8 +6,8 @@ processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
 extern WCHAR* GetString(int);
 
-static WCHAR startingPath[FILENAME_MAX];
-static WCHAR lastPath[FILENAME_MAX];
+WCHAR startingPath[FILENAME_MAX];
+WCHAR lastPath[FILENAME_MAX];
 
 HWND hWnd;
 HINSTANCE hInstance;
@@ -83,8 +83,6 @@ void DrawCheckbox(HWND hwndDlg, LPNMCUSTOMDRAW nmc)
 				return;
 			}
 
-			LRESULT state = SendMessage(nmc->hdr.hwndFrom, BM_GETSTATE, 0, 0 );
-
 			auto checked = IsDlgButtonChecked(hwndDlg, idFrom);
 			int stateID = checked ? CBS_CHECKEDNORMAL : CBS_UNCHECKEDNORMAL;
 			if (nmc->uItemState & CDIS_SELECTED)
@@ -159,7 +157,7 @@ bool DrawDarkButton(HWND hwndDlg, LPNMCUSTOMDRAW nmc)
 	return true;
 }
 
-bool DrawComboBox(HWND hwndDlg, LPDRAWITEMSTRUCT dis)
+bool DrawComboBox(LPDRAWITEMSTRUCT dis)
 {
 	if (dis->itemID == -1)
 		return false;
@@ -611,7 +609,7 @@ void ResetPath()
 	SetCurrentDirectory(startingPath);
 }
 
-void ShowOpenFileDialog(int command, int data, const WCHAR* pattern)
+void ShowOpenFileDialog(int command, const WCHAR* pattern)
 {
 	WCHAR thing[FILENAME_MAX] = { 0 };
 	wcscpy_s(thing, FILENAME_MAX, (WCHAR*)ini.GetValue(L"media", L"lastRom", L""));
@@ -646,7 +644,7 @@ void ShowOpenFileDialog(int command, int data, const WCHAR* pattern)
 
 void InsertDisk(int devId)
 {
-	ShowOpenFileDialog(cmdInsertDisk, devId, (((DiskDrive*)devices[devId])->GetType() == ddDiskette ? GetString(IDS_DDFILTER) : GetString(IDS_HDFILTER)));
+	ShowOpenFileDialog(cmdInsertDisk, (((DiskDrive*)devices[devId])->GetType() == ddDiskette ? GetString(IDS_DDFILTER) : GetString(IDS_HDFILTER)));
 	if (uiCommand == 0)
 		return;
 	WCHAR key[16];

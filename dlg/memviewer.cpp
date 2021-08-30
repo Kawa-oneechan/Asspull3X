@@ -92,6 +92,7 @@ void SetMemViewer(HWND hwndDlg, int to)
 
 void MemViewerScroll(HWND hwndDlg, int message, int position)
 {
+	position;
 	switch (message)
 	{
 		case SB_BOTTOM:
@@ -149,7 +150,6 @@ BOOL CALLBACK MemViewerEditProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam
 		default:
 			return CallWindowProc(oldTextProc, wnd, msg, wParam, lParam);
 	}
-	return 0;
 }
 
 BOOL CALLBACK MemViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam)
@@ -204,7 +204,7 @@ BOOL CALLBACK MemViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM
 				return true;
 			}
 			else if (wParam == IDC_MEMVIEWERDROP)
-				return DrawComboBox(hwndDlg, (LPDRAWITEMSTRUCT)lParam);
+				return DrawComboBox((LPDRAWITEMSTRUCT)lParam);
 			return false;
 		}
 		case WM_PAINT:

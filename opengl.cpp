@@ -164,7 +164,7 @@ GLuint compileProgram(const WCHAR* fragFile)
 
 void presentBackBuffer(SDL_Renderer *renderer, SDL_Window* win)
 {
-	GLint oldProgramId;
+	GLint oldProgramId = -1;
 	SDL_Texture* source = sdlTexture;
 	SDL_Texture* target = sdlShader;
 
@@ -424,8 +424,6 @@ void Screenshot()
 	__time64_t now;
 	_time64(&now);
 	wsprintf(snap, L"%lu.png", now);
-
-	int size = scrWidth * scrHeight * 3;
 
 	char* shot = (char*)malloc(4 * scrWidth * scrHeight);
 	glReadPixels(offsetX, offsetY, scrWidth, scrHeight, GL_RGB, GL_UNSIGNED_BYTE, shot);

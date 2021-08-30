@@ -19,7 +19,7 @@ extern void SetStatus(int);
 extern WCHAR* GetString(int);
 extern void SetFPS(int fps);
 extern void _devUpdateDiskette(int);
-extern void ShowOpenFileDialog(int, int, const WCHAR*);
+extern void ShowOpenFileDialog(int, const WCHAR*);
 extern bool ShowFileDlg(bool, WCHAR*, size_t, const WCHAR*);
 extern void LetItSnow();
 extern void InsertDisk(int);
@@ -245,7 +245,7 @@ void MainLoop()
 		{
 			if (uiCommand == cmdLoadRom)
 			{
-				ShowOpenFileDialog(cmdLoadRom, 0, GetString(IDS_CARTFILTER)); //"Asspull IIIx ROMS (*.ap3)|*.ap3"
+				ShowOpenFileDialog(cmdLoadRom, GetString(IDS_CARTFILTER)); //"Asspull IIIx ROMS (*.ap3)|*.ap3"
 				if (uiCommand == 0) continue;
 				Log(GetString(IDS_LOADINGROM), uiString); //"Loading ROM, %s ..."
 				gottaReset = (*(uint32_t*)romCartridge == 0x21535341);

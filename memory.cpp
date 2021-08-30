@@ -601,11 +601,11 @@ void HandleBlitter(unsigned int function)
 			unsigned char data = 0;
 			while (blitLength) //hack
 			{
-				data = m68k_read_memory_8(blitAddrA++);
+				data = (unsigned char)m68k_read_memory_8(blitAddrA++);
 				if ((data & 0xC0) == 0xC0)
 				{
 					auto len = data & 0x3F;
-					data = m68k_read_memory_8(blitAddrA++);
+					data = (unsigned char)m68k_read_memory_8(blitAddrA++);
 					blitLength--;
 					if (data == 0xC0 && len == 0)
 						break;

@@ -291,7 +291,7 @@ BOOL CALLBACK DevicesWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 			TEXTMETRIC tm;
 			GetTextMetrics(dis->hDC, &tm);
 			int y = (dis->rcItem.bottom + dis->rcItem.top - tm.tmHeight) / 2;
-			int x = LOWORD(GetDialogBaseUnits()) / 4;
+			//int x = LOWORD(GetDialogBaseUnits()) / 4;
 
 			WCHAR text[256];
 

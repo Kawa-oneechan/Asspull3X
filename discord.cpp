@@ -65,7 +65,7 @@ namespace Discord
 		discord_presence.largeImageText = gameName;
 		char key[32] = {};
 		for (auto i = 0; i < 32 && gameName[i] != 0; i++)
-			key[i] = tolower(gameName[i]);
+			key[i] = (char)tolower(gameName[i]);
 		discord_presence.largeImageKey = key;
 		__Discord_UpdatePresence(&discord_presence);
 	}

@@ -10,8 +10,8 @@ Device* devices[MAXDEVS] = { 0 };
 
 Device::Device(void) { }
 Device::~Device(void) { }
-unsigned int Device::Read(unsigned int address) { return (unsigned int)-1; }
-void Device::Write(unsigned int address, unsigned int value) { }
+unsigned int Device::Read(unsigned int address) { address; return (unsigned int)-1; }
+void Device::Write(unsigned int address, unsigned int value) { address, value; }
 int Device::GetID() { return 0; }
 
 DiskDrive::DiskDrive(int newType)
@@ -153,8 +153,8 @@ void DiskDrive::Write(unsigned int address, unsigned int value)
 
 	switch (address)
 	{
-		case 0x02: sector = (sector & 0xFF00) | (value << 8); return;
-		case 0x03: sector = (sector & 0x00FF) | value; return;
+		case 0x02: sector = (unsigned short)((sector & 0xFF00) | (value << 8)); return;
+		case 0x03: sector = (unsigned short)((sector & 0x00FF) | value); return;
 		case 0x04:
 		{
 			if (file == NULL)

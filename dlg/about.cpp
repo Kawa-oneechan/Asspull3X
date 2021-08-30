@@ -14,6 +14,7 @@ RECT aboutRect = { DANCE_X, DANCE_Y, DANCE_X + DANCE_W, DANCE_Y + DANCE_H };
 
 void CALLBACK AnimateAbout(HWND a, UINT b, UINT_PTR c, DWORD d)
 {
+	a, b, c, d;
 	aboutFrame++;
 	if (aboutFrame == DANCE_F)
 		aboutFrame = 0;

@@ -104,7 +104,7 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 		case WM_DRAWITEM:
 		{
 			if (wParam == IDC_THEME || wParam == IDC_MIDIDEV)
-				return DrawComboBox(hwndDlg, (LPDRAWITEMSTRUCT)lParam);
+				return DrawComboBox((LPDRAWITEMSTRUCT)lParam);
 		}
 		case WM_COMMAND:
 		{

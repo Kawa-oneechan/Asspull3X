@@ -19,7 +19,7 @@ extern int invertButtons;
 extern int pauseState;
 
 extern void InitializeUI();
-extern void ShowOpenFileDialog(int, int, const WCHAR*);
+extern void ShowOpenFileDialog(int, const WCHAR*);
 extern bool ShowFileDlg(bool, WCHAR*, size_t, const WCHAR*);
 extern void LoadROM(const WCHAR* path);
 extern void MainLoop();
@@ -172,7 +172,7 @@ int _tmain(int argc, _TCHAR* argv[])
 int main(int argc, char** argv)
 #endif
 {
-
+	argc, argv;
 #if _CONSOLE
 	SetConsoleCP(CP_UTF8);
 	_setmode(_fileno(stdout), _O_U16TEXT);
