@@ -369,4 +369,12 @@ void MainLoop()
 			line = 0;
 		}
 	}
+
+	for (int i = 0; i < MAXDEVS; i++)
+		if (devices[i] != NULL) delete devices[i];
+	free(pauseScreen);
+	free(romBIOS);
+	free(romCartridge);
+	free(ramInternal);
+	free(ramVideo);
 }

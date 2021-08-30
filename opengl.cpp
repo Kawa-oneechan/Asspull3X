@@ -406,6 +406,7 @@ int InitVideo()
 
 int UninitVideo()
 {
+	free(pixels);
 	SDL_DestroyRenderer(sdlRenderer);
 	SDL_DestroyTexture(sdlTexture);
 	SDL_DestroyTexture(sdlShader);
