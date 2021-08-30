@@ -154,6 +154,8 @@ void MainLoop()
 	auto delta = 0;
 	auto frames = 0;
 
+	bool gottaReset = false;
+
 	SetStatus(IDS_CLICKTORELEASE); //"Middle-click or RCtrl-P to pause emulation."
 
 	while (!quit)
@@ -233,6 +235,12 @@ void MainLoop()
 			}
 		}
 
+		if (gottaReset)
+		{
+			uiCommand = cmdReset;
+			gottaReset = false;
+		}
+
 		if (uiCommand != cmdNone)
 		{
 			if (uiCommand == cmdLoadRom)
@@ -240,7 +248,7 @@ void MainLoop()
 				ShowOpenFileDialog(cmdLoadRom, 0, GetString(IDS_CARTFILTER)); //"Asspull IIIx ROMS (*.ap3)|*.ap3"
 				if (uiCommand == 0) continue;
 				Log(GetString(IDS_LOADINGROM), uiString); //"Loading ROM, %s ..."
-				auto gottaReset = (*(uint32_t*)romCartridge == 0x21535341);
+				gottaReset = (*(uint32_t*)romCartridge == 0x21535341);
 				LoadROM(uiString);
 			}
 			else if (uiCommand == cmdInsertDisk)
