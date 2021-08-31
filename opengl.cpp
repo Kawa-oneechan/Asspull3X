@@ -47,8 +47,6 @@ const char* vertexShader = "varying vec4 v_color;"
 "v_texCoord = vec2(gl_MultiTexCoord0);"
 "}";
 
-bool sdl2oh10 = false;
-
 bool initGLExtensions() {
 	glCreateShader = (PFNGLCREATESHADERPROC)SDL_GL_GetProcAddress("glCreateShader");
 	glShaderSource = (PFNGLSHADERSOURCEPROC)SDL_GL_GetProcAddress("glShaderSource");
@@ -215,69 +213,35 @@ void presentBackBuffer(SDL_Renderer *renderer, SDL_Window* win)
 			offsetX = (int)floorf((winWidth - scrWidth) * 0.5f);
 			offsetY = (int)floorf((winHeight - scrHeight) * 0.5f);
 
-			if (sdl2oh10)
-			{
-				offsetY += statusBarHeight;
+			offsetY += statusBarHeight;
 
-				glViewport(offsetX, offsetY, scrWidth, scrHeight);
+			glViewport(offsetX, offsetY, scrWidth, scrHeight);
 
-				glBegin(GL_TRIANGLE_STRIP);
-					glTexCoord2f(0.0f, 0.0f);
-					glVertex2f(0.0f, 0.0f);
-					glTexCoord2f(1.0f, 0.0f);
-					glVertex2f(640.0f, 0.0f);
-					glTexCoord2f(0.0f, 1.0f);
-					glVertex2f(0.0f, 480.0f);
-					glTexCoord2f(1.0f, 1.0f);
-					glVertex2f(640.0f, 480.0f);
-				glEnd();
-			}
-			else
-			{
-				//Do NOT add the status bar height here, we work the other way up.
-
-				glBegin(GL_TRIANGLE_STRIP);
-					glTexCoord2f(0.0f, 0.0f);
-					glVertex2f((GLfloat)offsetX, (GLfloat)offsetY);
-					glTexCoord2f(1.0f, 0.0f);
-					glVertex2f((GLfloat)offsetX + scrWidth, (GLfloat)offsetY);
-					glTexCoord2f(0.0f, 1.0f);
-					glVertex2f((GLfloat)offsetX, (GLfloat)offsetY + scrHeight);
-					glTexCoord2f(1.0f, 1.0f);
-					glVertex2f((GLfloat)offsetX + scrWidth, (GLfloat)offsetY + scrHeight);
-				glEnd();
-			}
+			glBegin(GL_TRIANGLE_STRIP);
+				glTexCoord2f(0.0f, 0.0f);
+				glVertex2f(0.0f, 0.0f);
+				glTexCoord2f(1.0f, 0.0f);
+				glVertex2f(640.0f, 0.0f);
+				glTexCoord2f(0.0f, 1.0f);
+				glVertex2f(0.0f, 480.0f);
+				glTexCoord2f(1.0f, 1.0f);
+				glVertex2f(640.0f, 480.0f);
+			glEnd();
 		}
 		else
 		{
 			glViewport(0, 0, 640, 480);
 
-			if (sdl2oh10)
-			{
-				glBegin(GL_TRIANGLE_STRIP);
-					glTexCoord2f(0.0f, 0.0f);
-					glVertex2f(0.0f, 480.0f);
-					glTexCoord2f(1.0f, 0.0f);
-					glVertex2f(640.0f, 480.0f);
-					glTexCoord2f(0.0f, 1.0f);
-					glVertex2f(0.0f, 0.0f);
-					glTexCoord2f(1.0f, 1.0f);
-					glVertex2f(640.0f, 0.0f);
-				glEnd();
-			}
-			else
-			{
-				glBegin(GL_TRIANGLE_STRIP);
-					glTexCoord2f(0.0f, 0.0f);
-					glVertex2f(0.0f, 0.0f);
-					glTexCoord2f(1.0f, 0.0f);
-					glVertex2f(640.0f, 0.0f);
-					glTexCoord2f(0.0f, 1.0f);
-					glVertex2f(0.0f, 480.0f);
-					glTexCoord2f(1.0f, 1.0f);
-					glVertex2f(640.0f, 480.0f);
-				glEnd();
-			}
+			glBegin(GL_TRIANGLE_STRIP);
+				glTexCoord2f(0.0f, 0.0f);
+				glVertex2f(0.0f, 480.0f);
+				glTexCoord2f(1.0f, 0.0f);
+				glVertex2f(640.0f, 480.0f);
+				glTexCoord2f(0.0f, 1.0f);
+				glVertex2f(0.0f, 0.0f);
+				glTexCoord2f(1.0f, 1.0f);
+				glVertex2f(640.0f, 0.0f);
+			glEnd();
 		}
 
 		if (source == sdlTexture)
@@ -345,35 +309,6 @@ HRESULT CALLBACK OpenSDLPage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, 
 
 int InitVideo()
 {
-	SDL_version linked;
-	SDL_GetVersion(&linked);
-	if (linked.major == 2 && linked.minor == 0)
-	{
-		if (linked.patch > 7)
-			sdl2oh10 = true;
-		else if(linked.patch < 4)
-		{
-			//https://www.youtube.com/watch?v=5FjWe31S_0g
-			WCHAR hdr[512];
-			WCHAR msg[512];
-			wsprintf(hdr, GetString(IDS_OLDSDL_A)); //"You are trying to run with an outdated version of SDL."
-			wsprintf(msg, GetString(IDS_OLDSDL_B), linked.major, linked.minor, linked.patch); //"You have version %d.%d.%d.\nYou need version 2.0.4 or later."
-			//TaskDialog(hWnd, NULL, GetString(IDS_SHORTTITLE), hdr, msg, TDCBF_CLOSE_BUTTON, TD_ERROR_ICON, NULL);
-			TASKDIALOGCONFIG td = {
-				sizeof(TASKDIALOGCONFIG), hWnd, NULL,
-				TDF_ENABLE_HYPERLINKS, TDCBF_CLOSE_BUTTON,
-				GetString(IDS_SHORTTITLE),
-				NULL,
-				hdr,
-				msg
-			};
-			td.pszMainIcon = TD_ERROR_ICON;
-			td.pfCallback = OpenSDLPage;
-			TaskDialogIndirect(&td, NULL, NULL, NULL);
-			return -3;
-		}
-	}
-
 	//Log("Creating window...");
 	auto winWidth = ini.GetLongValue(L"video", L"width", 640);
 	auto winHeight = ini.GetLongValue(L"video", L"height", 480);
@@ -399,16 +334,13 @@ int InitVideo()
 
 	InitShaders();
 
-	if (sdl2oh10)
-	{
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glOrtho(0, 640, 480, 0, -1, 1);
-		glMatrixMode(GL_TEXTURE);
-		glLoadIdentity();
-	}
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0, 640, 480, 0, -1, 1);
+	glMatrixMode(GL_TEXTURE);
+	glLoadIdentity();
 
 	if ((sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_TARGET, 640, 480)) == NULL)
 	{

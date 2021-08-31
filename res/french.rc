@@ -19,8 +19,6 @@ STRINGTABLE
 	IDS_CLICKTORELEASE, "Pour mettre en pause l'émulation utiliser le bouton central de la souries ou RCtrl+P."
 	IDS_SYSTEMRESET, "Réinitialisation du systeme."
 
-	IDS_OLDSDL_A, "Vous essayez de lancer Asspull IIIx avec une version SDL dépreciée."
-	IDS_OLDSDL_B, "Votre version %d.%d.%d.\nVous devez avoir la version 2.0.4 ou superieur."
 	IDS_NOTPLAYING, "Ne joue pas actuellement" //Discord integration: you're running the thing but don't have a game loaded
 
 	IDS_EJECTFIRST, "Retirer la disquette en premier avec RCtrl-Shift-U."
