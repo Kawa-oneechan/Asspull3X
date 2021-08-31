@@ -3,7 +3,9 @@
 #include <math.h>
 #include <SDL_opengl.h>
 #include <SDL_opengl_glext.h>
+#include <commctrl.h>
 #include "resource.h"
+
 
 SDL_Window* sdlWindow = NULL;
 SDL_Renderer* sdlRenderer = NULL;
@@ -332,6 +334,15 @@ void InitShaders()
 	}
 }
 
+HRESULT CALLBACK OpenSDLPage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, LONG_PTR lpRefData)
+{
+	if (msg == TDN_HYPERLINK_CLICKED)
+		ShellExecute(NULL, L"open", L"https://www.libsdl.org/release/", NULL, NULL, 0);
+	else if (msg == TDN_BUTTON_CLICKED)
+		return S_OK;
+	return S_FALSE;
+}
+
 int InitVideo()
 {
 	SDL_version linked;
@@ -343,10 +354,22 @@ int InitVideo()
 		else if(linked.patch < 4)
 		{
 			//https://www.youtube.com/watch?v=5FjWe31S_0g
+			WCHAR hdr[512];
 			WCHAR msg[512];
-			wsprintf(msg, GetString(IDS_OLDSDL), linked.major, linked.minor, linked.patch); //"You are trying to run with an outdated version of SDL.\n\nYou have version %d.%d.%d.\nYou need version 2.0.4 or later."
-			//SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Clunibus",  msg, NULL);
-			MessageBox(hWnd, msg, GetString(IDS_SHORTTITLE), 0); //"Clunibus"
+			wsprintf(hdr, GetString(IDS_OLDSDL_A)); //"You are trying to run with an outdated version of SDL."
+			wsprintf(msg, GetString(IDS_OLDSDL_B), linked.major, linked.minor, linked.patch); //"You have version %d.%d.%d.\nYou need version 2.0.4 or later."
+			//TaskDialog(hWnd, NULL, GetString(IDS_SHORTTITLE), hdr, msg, TDCBF_CLOSE_BUTTON, TD_ERROR_ICON, NULL);
+			TASKDIALOGCONFIG td = {
+				sizeof(TASKDIALOGCONFIG), hWnd, NULL,
+				TDF_ENABLE_HYPERLINKS, TDCBF_CLOSE_BUTTON,
+				GetString(IDS_SHORTTITLE),
+				NULL,
+				hdr,
+				msg
+			};
+			td.pszMainIcon = TD_ERROR_ICON;
+			td.pfCallback = OpenSDLPage;
+			TaskDialogIndirect(&td, NULL, NULL, NULL);
 			return -3;
 		}
 	}

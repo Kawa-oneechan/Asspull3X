@@ -19,7 +19,8 @@ STRINGTABLE
 	IDS_CLICKTORELEASE, "Middle-click or RCtrl+P to pause emulation."
 	IDS_SYSTEMRESET, "System reset."
 
-	IDS_OLDSDL, "You are trying to run with an outdated version of SDL.\n\nYou have version %d.%d.%d.\nYou need version 2.0.4 or later."
+	IDS_OLDSDL_A, "You are trying to run with an outdated version of SDL."
+	IDS_OLDSDL_B, "You have version %d.%d.%d.\nYou need version 2.0.4 or later.\n\n<A HREF=""download"">Visit the SDL homepage</A> to download a newer version."
 	IDS_NOTPLAYING, "Not playing" //Discord integration: you're running the thing but don't have a game loaded
 
 	IDS_EJECTFIRST, "Eject the diskette first, with RCtrl+Shift+U."
