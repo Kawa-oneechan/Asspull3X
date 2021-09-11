@@ -95,10 +95,13 @@ GLuint compileShader(const char* source, GLuint shaderType)
 		glGetShaderiv(result, GL_INFO_LOG_LENGTH, &logLength);
 		if (logLength > 0)
 		{
-			GLchar *log = (GLchar*)malloc(logLength);
+			GLchar *log = (GLchar*)malloc(logLength + 4);
 			glGetShaderInfoLog(result, logLength, &logLength, log);
-			Log(L"%s", log);
+			WCHAR *wLog = (WCHAR*)malloc((logLength + 4) * 2);
+			mbstowcs_s(NULL, wLog, logLength, log, _TRUNCATE);
 			free(log);
+			Log(L"%s", wLog);
+			free(wLog);
 		}
 		glDeleteShader(result);
 		result = 0;
@@ -146,15 +149,18 @@ GLuint compileProgram(const WCHAR* fragFile)
 		glValidateProgram(programId);
 
 		// Check the status of the compile/link
-		GLint logLen;
-		glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &logLen);
-		if(logLen > 0)
+		GLint logLength;
+		glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &logLength);
+		if(logLength > 0)
 		{
-			char* log = (char*) malloc(logLen * sizeof(char));
+			char* log = (char*) malloc(logLength + 4);
 			// Show any errors as appropriate
-			glGetProgramInfoLog(programId, logLen, &logLen, log);
-			Log(L"Prog Info Log: %s", log);
+			glGetProgramInfoLog(programId, logLength, &logLength, log);
+			WCHAR *wLog = (WCHAR*)malloc((logLength + 4) * 2);
+			mbstowcs_s(NULL, wLog, logLength, log, _TRUNCATE);
 			free(log);
+			Log(L"Prog Info Log: %s", wLog);
+			free(wLog);
 		}
 	}
 	if(vtxShaderId) glDeleteShader(vtxShaderId);
@@ -362,9 +368,9 @@ int InitVideo()
 int UninitVideo()
 {
 	free(pixels);
-	SDL_DestroyRenderer(sdlRenderer);
 	SDL_DestroyTexture(sdlTexture);
 	SDL_DestroyTexture(sdlShader);
+	SDL_DestroyRenderer(sdlRenderer);
 	SDL_DestroyWindow(sdlWindow);
 	return 0;
 }
