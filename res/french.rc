@@ -14,7 +14,7 @@ STRINGTABLE
 	//File dialog filters. Format is "<description>|<pattern>|<desc>|<pat>" etc
 	IDS_DDFILTER, "Image disque (*.img)|*.img" //floppy diskettes
 	IDS_HDFILTER, "Image disque (*.vhd)|*.vhd" //hard disks
-	IDS_CARTFILTER, "Asspull IIIx ROMS (*.ap3)|*.ap3" //game cartridges
+	IDS_CARTFILTER, "Asspull IIIx ROMs (*.ap3)|*.ap3" //game cartridges
 
 	IDS_CLICKTORELEASE, "Pour mettre en pause l'émulation utiliser le bouton central de la souries ou RCtrl+P."
 	IDS_SYSTEMRESET, "Réinitialisation du systeme."
@@ -39,10 +39,10 @@ STRINGTABLE
 	IDS_ASSPULLISREADY, "\nAsspull IIIx est prêt.\nAppuyez sur RCtrl+L pour charger la ROM, RCtrl+Shift+L pour charger une disquette.\nAppuyez sur RCtrl+U to pour décharger la ROM, RCtrl+Shift+U pour retirer la disquette.\nAppuyez sur RCtrl+R pour redemmarer, RCtrl+Shift+R pour décharger et redemmarer.\nAppuyez sur RCtrl+D pour sauvegarder la RAM, RCtrl+S pour effectuer une capture d'écran.\n\n"
 
 	//More debug-only stuff
-	IDS_LOADINGROM, "Chargement de la ROM, %s ..."
+	IDS_LOADINGROM, "Chargement de la ROM %s..."
 	IDS_UNLOADINGROM, "Déchargement de la ROM..."
 	IDS_UNMOUNTINGDISK, "Ejection de la disquette..."
-	IDS_MOUNTINGDISK, "Mountage de l'image disque, %s ..."
+	IDS_MOUNTINGDISK, "Mountage de l'image disque %s..."
 	IDS_MOUNTEDVHD, "VHD Cargé. %d * %d * %d * 512 = %d, devrait être ~%d."
 	IDS_SHADERERROR, "Erreur lors de la compilation des shaders: %d"
 	IDS_TOOMANYSHADERS, "Trop de shaders specifiés: %d possible(s) mais %d ont été demandés."

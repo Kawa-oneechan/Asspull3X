@@ -13,7 +13,7 @@ IDB_SHRUG PNG ".\\res\\shrug.png"
 #include ".\\res\\english.rc"
 #include ".\\res\\french.rc"
 #include ".\\res\\japanese.rc"
-//#include ".\\res\\dutch.rc"
+#include ".\\res\\dutch.rc"
 //#include ".\\res\\hungarian.rc"
 
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US

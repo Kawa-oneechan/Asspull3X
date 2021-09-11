@@ -1,0 +1,169 @@
+#pragma code_page(1252)
+
+LANGUAGE LANG_DUTCH, SUBLANG_DUTCH
+
+//Note: "RCtrl" is the Control key on the *right* of the keyboard.
+//The left is visible to the A3X, the right controls the emulator.
+
+STRINGTABLE
+{
+	IDS_FULLTITLE, "Clunibus - Asspull IIIx Emulator"
+	IDS_SHORTTITLE, "Clunibus" //used for messageboxes
+	IDS_TEMPLATETITLE, "Clunibus - %s" //currently not used, would show the loaded game's name.
+
+	//File dialog filters. Format is "<description>|<pattern>|<desc>|<pat>" etc
+	IDS_DDFILTER, "Schijfkopieën (*.img)|*.img" //floppy diskettes
+	IDS_HDFILTER, "Schijfkopieën (*.vhd)|*.vhd" //hard disks
+	IDS_CARTFILTER, "Asspull IIIx ROMs (*.ap3)|*.ap3" //game cartridges
+
+	IDS_CLICKTORELEASE, "Middelklik of RCtrl-P om de emulatie te pauzeren."
+	IDS_SYSTEMRESET, "Systeem is gereset."
+
+	IDS_NOTPLAYING, "Niet aan het spelen" //Discord integration: you're running the thing but don't have a game loaded
+
+	IDS_EJECTFIRST, "Werp eerst de diskette uit met RCtrl-Shift-U."
+	IDS_DISKEJECTED, "Schijf uitgeworpen."
+	IDS_NODISKDRIVE, "Geen schijfstation."
+	IDS_UNMOUNTFIRST, "Ontkoppel eerst het medium."
+	IDS_CARTEJECTED, "Cassette ontkoppelt." //as in taken out of the cartridge slot
+
+	IDS_VHDBADBITS, "Ongeldige VHD: verkeerde feature-bits (moet 2 zijn)" //a bit technical maybe, but rare
+	IDS_VHDBADVERSION, "Ongeldige VHD: verkeerde versie (moet 1.00 zijn)."
+	IDS_VHDBADTYPE, "Ongeldige VHD: verkeerde schijftype (moet FIXED zijn)." //slightly less rare perhaps
+
+#ifdef _CONSOLE
+	//Debug stuff, doesn't appear in release builds
+	IDS_BADSIZE, "Bestandsgrootte is geen macht van twee: is %d (0x%08X), moet %d (0x%08X) zijn."
+	IDS_BADCHECKSUM, "Controlesom komt niet overeen: is 0x%08X, moet 0x%08X zijn."
+	IDS_RESETTING, "Musashi resetten..." //Musashi is the 68020 emulator core
+	IDS_ASSPULLISREADY, "\nAsspull IIIx is klaar.\nDruk op RCtrl+L om een ROM te laden, RCtrl-Shift+L om een diskette te laden.\nDruk op RCtrl+U om ROM te ontkoppelen, RCtrl+Shift+U om diskette uit te werpen.\nDruk op RCtrl+R om te resetten, RCtrl+Shift+R om eerst te onkoppelen.\nDruk op RCtrl+D om RAM te dumpen, RCtrl+S om een schermfoto te maken.\n\n"
+
+	//More debug-only stuff
+	IDS_LOADINGROM, "ROM %s laden..."
+	IDS_UNLOADINGROM, "ROM ontladen..."
+	IDS_UNMOUNTINGDISK, "Diskette uitwerpen..."
+	IDS_MOUNTINGDISK, "Schijfkopie %s koppelen..."
+	IDS_MOUNTEDVHD, "VHD gekoppelt. %d * %d * %d * 512 = %d, zou ~%d moeten zijn."
+	IDS_SHADERERROR, "Fout bij compileren van shader: %d"
+	IDS_TOOMANYSHADERS, "Te veel shaders opgegeven: kan maar %d aan, maar %d is aangevraagd."
+	IDS_WINDOWFAILED, "Kon venster niet maken: %s"
+	IDS_RENDERERFAILED, "Kon renderer niet maken: %s"
+	IDS_TSK, "Fijn." //ignore, IDS_TSK is #69.
+	IDS_TEXTUREFAILED, "Kon geen textuur maken: %s"
+	IDS_PNGFAILED, "Kan PNG niet schrijven."
+	IDS_DISCORDDLL, "Discord is ingeschakeld, maar de DLL is er niet." //missing discord-rpc.dll
+#endif
+	IDS_SCREENSHOT, "Klik! %s opgeslagen."
+
+	//Status bar message -- you tried to open a ZIP file but there was no ROM in there
+	IDS_NOTHINGINZIP, "Geen enkel AP3-bestand gevonden in archief."
+	IDS_DUMPEDRAM, "RAM gedumpt."
+
+	IDS_DISKIMAGEERROR, "Kon schijfkopie ""%s"" niet openen voor apparaat #%d."
+	IDS_ROMLOADERROR, "Kon ROM-bestand ""%s"" niet openen."
+
+	(IDS_THEMES+0), "Licht"
+	(IDS_THEMES+1), "Donker"
+	(IDS_THEMES+2), "Volgens systeem"
+
+	(IDS_DEVICES1+0), "Niets"
+	(IDS_DEVICES1+1), "Diskettestation"
+	(IDS_DEVICES1+2), "Harde schijf"
+	(IDS_DEVICES1+3), "Printer" //as in the "automated typewriter" kind of yore
+	(IDS_DEVICES2+0), "Geen apparaat"
+	(IDS_DEVICES2+1), "Diskettestation"
+	(IDS_DEVICES2+2), "Harde schijf"
+	(IDS_DEVICES2+3), "Printer"
+
+	(IDS_REGIONS+0), "BIOS"
+	(IDS_REGIONS+1), "Cassette"
+	(IDS_REGIONS+2), "WRAM"
+	(IDS_REGIONS+3), "Apparaten"
+	(IDS_REGIONS+4), "Registers"
+	(IDS_REGIONS+5), "VRAM"
+}
+
+IDR_MAINMENU MENU
+BEGIN
+	POPUP "Bestand"
+	BEGIN
+		MENUITEM "Laad ROM\x85\tRCtrl+L", 1001
+		MENUITEM "Ontlaad ROM\tRCtrl+U", 1002
+		MENUITEM SEPARATOR
+		MENUITEM "Voer diskette in\x85\tRCtrl+Shift+L", 1013
+		MENUITEM "Werp diskette uit\tRCtrl+Shift+U", 1014
+		MENUITEM SEPARATOR
+		MENUITEM "Herstart\tRCtrl+R", 1003
+		MENUITEM SEPARATOR
+		MENUITEM "Afsluiten", 1006
+	END
+	POPUP "Gereedschap"
+	BEGIN
+		MENUITEM "Opties", 1010
+		MENUITEM "Shaders", 1011
+		MENUITEM SEPARATOR
+		MENUITEM "Apparaten", 1012
+		MENUITEM "Geheugen", 1007
+		MENUITEM "Kleurenpalet", 1008
+		MENUITEM "Dump RAM\tRCtrl+D", 1005
+		MENUITEM "Schermfoto\tRCtrl+S", 1004
+	END
+	POPUP "Hulp"
+	BEGIN
+		MENUITEM "Over Clunibus", 1009
+	END
+END
+
+//------------------------//
+
+#define COMMON_OK "OK"
+#define COMMON_CANCEL "Annuleren"
+#define COMMON_APPLY "Toepassen"
+#define COMMON_CLOSE "Sluiten"
+#define COMMON_REFRESH "Ververs"
+#define COMMON_AUTOUPDATE "Auto-ververs"
+
+#define ABOUT_TITLE "E Clunibus Tractum" //"Pulled out of the arse" in Latin, Kawa's pretentious motto
+#define ABOUT_OKAY "Cool"
+#define ABOUT_HEADER "Clunibus \x97 Asspull IIIx Fantasy Computer Emulator" //\x97 is an em-dash
+#define ABOUT_BODY "Systeemontwerp en emulator door Kawa.\n\nMet dank een groeten aan iedereen op de bcord." //Feel free to add "\n\nLANG translation by YOU."
+#define ABOUT_GITLINK "<a>GitHub pagina</a>" //Keep the <a></a> to make it look like the clickable link it is
+
+#define DEVICES_TITLE "Apparaten"
+#define DEVICES_NONE "Een kolkende leegte huilt voor je." //poetry about nothingness, there's nothing to change here
+#define DEVICES_INSERTDISK "Voer in"
+#define DEVICES_EJECTDISK "Werp uit"
+#define DEVICES_MUSTBEDISKDRIVE "Het primaire apparaat kan alleen een diskettestation zijn."
+#define DEVICES_ONLYFOURDRIVES "Het systeem herkent alleen de eerste vier schijven."
+
+//Only COMMON_xxx labels for these two
+#define MEMORY_TITLE "Geheugeninzage"
+#define PALETTE_TITLE "Kleurenpaletinzage"
+
+#define OPTIONS_TITLE "Opties"
+#define OPTIONS_FRAMERATE "Framerate"
+	#define OPTIONS_SHOWFPS "Toon FPS"
+	#define OPTIONS_LIMITFPS "Beperk tot 60 FPS"
+#define OPTIONS_VISUALS "Beeld"
+	#define OPTIONS_ASPECT "Aspect correctie" //as in stretching 320x200 to 320x240
+	#define OPTIONS_THEME "Thema"
+#define OPTIONS_AUDIO "Audio"
+	#define OPTIONS_SOUND "Geluid"
+	#define OPTIONS_MUSIC "Muziek"
+	#define OPTIONS_MIDIDEVICE "MIDI apparaat"
+#define OPTIONS_INPUT "Invoer"
+	#define OPTIONS_SWITCH "Spiegel ABXY naar BAYX"
+#define OPTIONS_MEDIA "Media"
+	#define OPTIONS_RELOADROM "Herlaad ROM"
+	#define OPTIONS_RELOADDISK "Herlaad schijfkopie"
+	#define OPTIONS_BIOS "BIOS bestand"
+
+#define SHADERS_TITLE "Shaders"
+#define SHADERS_AVAILABLE "Beschikbaar"
+#define SHADERS_INUSE "In gebruik"
+#define SHADERS_ADD "Voeg toe"
+#define SHADERS_REMOVE "Verwijder"
+#define SHADERS_MOVEUP "Omhoog"
+#define SHADERS_MOVEDOWN "Omlaag"
+
+#include "dialogs.rc"
