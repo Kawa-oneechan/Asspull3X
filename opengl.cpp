@@ -304,15 +304,6 @@ void InitShaders()
 	}
 }
 
-HRESULT CALLBACK OpenSDLPage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, LONG_PTR lpRefData)
-{
-	if (msg == TDN_HYPERLINK_CLICKED)
-		ShellExecute(NULL, L"open", L"https://www.libsdl.org/release/", NULL, NULL, 0);
-	else if (msg == TDN_BUTTON_CLICKED)
-		return S_OK;
-	return S_FALSE;
-}
-
 int InitVideo()
 {
 	//Log("Creating window...");
