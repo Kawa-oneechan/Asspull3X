@@ -9,11 +9,14 @@ extern int Lerp(int a, int b, float f);
 extern unsigned int RoundUp(unsigned int v);
 extern int Slurp(unsigned char* dest, const WCHAR* filePath, unsigned int* size);
 extern int Dump(const WCHAR* filePath, unsigned char* source, unsigned long size);
+extern void Log(WCHAR* message, ...);
+/*
 #if _CONSOLE
 #define Log(M, ...) { wprintf(M, __VA_ARGS__); wprintf(L"\n"); }
 #else
 #define Log(M, ...)
 #endif
+*/
 
 extern unsigned char* romBIOS;
 extern unsigned char* romCartridge;

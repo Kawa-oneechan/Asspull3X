@@ -1,5 +1,7 @@
 #include "asspull.h"
 
+FILE* logFile = NULL;
+
 int Lerp(int a, int b, float f)
 {
 	return (int)((b - a) * f + a);
@@ -41,16 +43,23 @@ int Dump(const WCHAR* filePath, unsigned char* source, unsigned long size)
 	return 0;
 }
 
-/*
 void Log(WCHAR* message, ...)
 {
 	va_list args;
-	WCHAR wcs[1024];
-	char mbcs[1024];
 	va_start(args, message);
-	wvsprintf(wcs, message, args);
+	WCHAR buf[1024] = { 0 };
+	vswprintf(buf, 1024, message, args);
 	va_end(args);
-	wcstombs_s(NULL, mbcs, wcs, 1024);
-	SDL_Log(mbcs);
+#if _CONSOLE
+	wprintf(buf);
+	wprintf(L"\n");
+#endif
+	if (logFile == NULL)
+		logFile = _wfsopen(L"clunibus.log", L"w, ccs=UTF-8", _SH_DENYWR);
+	if (logFile)
+	{
+		fwprintf(logFile, buf);
+		fwprintf(logFile, L"\n");
+		fflush(logFile);
+	}
 }
-*/

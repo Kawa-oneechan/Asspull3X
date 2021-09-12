@@ -24,6 +24,7 @@ extern bool ShowFileDlg(bool, WCHAR*, size_t, const WCHAR*);
 extern void LoadROM(const WCHAR* path);
 extern void MainLoop();
 extern WCHAR* GetString(int);
+extern FILE* logFile;
 
 WCHAR* paramLoad = NULL;
 
@@ -147,19 +148,19 @@ void Preload()
 			return;
 		}
 	}
-	Log(L"Loading BIOS, %s ...", thing);
+	Log(L"Loading BIOS %s...", thing);
 	Slurp(romBIOS, thing, &biosSize);
 	biosSize = RoundUp(biosSize);
 	thing = ini.GetValue(L"media", L"lastROM", L"");
 	if (reloadROM && wcslen(thing) && paramLoad == NULL)
 	{
-		Log(L"Loading ROM, %s ...", thing);
+		Log(L"Loading ROM %s...", thing);
 		LoadROM(thing);
 		pauseState = 0;
 	}
 	else if (paramLoad != NULL)
 	{
-		Log(L"Command-line loading ROM, %s ...", paramLoad);
+		Log(L"Command-line loading ROM %s...", paramLoad);
 		LoadROM((const WCHAR*)paramLoad);
 		pauseState = 0;
 	}
@@ -215,5 +216,7 @@ int main(int argc, char** argv)
 	UninitSound();
 	UninitVideo();
 	SDL_Quit();
+	if (logFile != NULL)
+		fclose(logFile);
 	return 0;
 }

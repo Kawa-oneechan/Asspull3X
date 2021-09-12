@@ -28,3 +28,4 @@ ipch
 *.exe
 *.dll
 settings.ini
+*.log
