@@ -1,0 +1,169 @@
+#pragma code_page(1250)
+
+LANGUAGE LANG_HUNGARIAN, SUBLANG_HUNGARIAN_HUNGARY
+
+//Note: "RCtrl" is the Control key on the *right* of the keyboard.
+//The left is visible to the A3X, the right controls the emulator.
+
+STRINGTABLE
+{
+	IDS_FULLTITLE, "Clunibus - Asspull IIIx Emulator"
+	IDS_SHORTTITLE, "Clunibus" //used for messageboxes
+	IDS_TEMPLATETITLE, "Clunibus - %s" //currently not used, would show the loaded game's name.
+
+	//File dialog filters. Format is "<description>|<pattern>|<desc>|<pat>" etc
+	IDS_DDFILTER, "Disk images (*.img)|*.img" //floppy diskettes
+	IDS_HDFILTER, "Disk images (*.vhd)|*.vhd" //hard disks
+	IDS_CARTFILTER, "Asspull IIIx ROMS (*.ap3)|*.ap3" //game cartridges
+
+	IDS_CLICKTORELEASE, "Middle-click or RCtrl+P to pause emulation."
+	IDS_SYSTEMRESET, "System reset."
+
+	IDS_NOTPLAYING, "Not playing" //Discord integration: you're running the thing but don't have a game loaded
+
+	IDS_EJECTFIRST, "Eject the diskette first, with RCtrl+Shift+U."
+	IDS_DISKEJECTED, "Disk ejected."
+	IDS_NODISKDRIVE, "No disk drive."
+	IDS_UNMOUNTFIRST, "Unmount the medium first."
+	IDS_CARTEJECTED, "Cart pulled." //as in taken out of the cartridge slot
+
+	IDS_VHDBADBITS, "Invalid VHD: bad feature bits (must be 2)" //a bit technical maybe, but rare
+	IDS_VHDBADVERSION, "Invalid VHD: bad version (must be 1.00)."
+	IDS_VHDBADTYPE, "Invalid VHD: bad disk type (must be FIXED)." //slightly less rare perhaps
+
+#ifdef _CONSOLE
+	//Debug stuff, doesn't appear in release builds
+	IDS_BADSIZE, "File size is not a power of two: is %d (0x%08X), should be %d (0x%08X)."
+	IDS_BADCHECKSUM, "Checksum mismatch: is 0x%08X, should be 0x%08X."
+	IDS_RESETTING, "Resetting Musashi..." //Musashi is the 68020 emulator core
+	IDS_ASSPULLISREADY, "\nAsspull IIIx is ready.\nPress RCtrl+L to load a ROM, RCtrl+Shift+L to load a diskette.\nPress RCtrl+U to unload ROM, RCtrl+Shift+U to unload diskette.\nPress RCtrl+R to reset, RCtrl+Shift+R to unload and reset.\nPress RCtrl+D to dump RAM, RCtrl+S to take a screenshot.\n\n"
+
+	//More debug-only stuff
+	IDS_LOADINGROM, "Loading ROM, %s ..."
+	IDS_UNLOADINGROM, "Unloading ROM..."
+	IDS_UNMOUNTINGDISK, "Unmounting diskette..."
+	IDS_MOUNTINGDISK, "Mounting disk image, %s ..."
+	IDS_MOUNTEDVHD, "Mounted VHD. %d * %d * %d * 512 = %d, should be ~%d."
+	IDS_SHADERERROR, "Error compiling shader: %d"
+	IDS_TOOMANYSHADERS, "Too many shaders specified: can only do %d but %d were requested."
+	IDS_WINDOWFAILED, "Could not create window: %s"
+	IDS_RENDERERFAILED, "Could not create renderer: %s"
+	IDS_TSK, "Nice." //ignore, IDS_TSK is #69.
+	IDS_TEXTUREFAILED, "Could not create texture: %s"
+	IDS_PNGFAILED, "Failed to write PNG."
+	IDS_DISCORDDLL, "Discord is enabled but the DLL isn't here." //missing discord-rpc.dll
+#endif
+	IDS_SCREENSHOT, "Snap! %s saved."
+
+	//Status bar message -- you tried to open a ZIP file but there was no ROM in there
+	IDS_NOTHINGINZIP, "No single AP3 file found in archive."
+	IDS_DUMPEDRAM, "RAM dumped."
+
+	IDS_DISKIMAGEERROR, "Could not open disk image ""%s"" for device #%d."
+	IDS_ROMLOADERROR, "Could not open ROM file ""%s""."
+
+	(IDS_THEMES+0), "Fény"
+	(IDS_THEMES+1), "Sötét"
+	(IDS_THEMES+2), "Ugyanaz mint rendszer"
+
+	(IDS_DEVICES1+0), "Semmi"
+	(IDS_DEVICES1+1), "Lemezmeghajtó"
+	(IDS_DEVICES1+2), "Merevlemez"
+	(IDS_DEVICES1+3), "Vonalnyomtató" //as in the "automated typewriter" kind of yore
+	(IDS_DEVICES2+0), "Nincs készülék"
+	(IDS_DEVICES2+1), "Lemezmeghajtó"
+	(IDS_DEVICES2+2), "Merevlemez"
+	(IDS_DEVICES2+3), "Vonalnyomtató"
+
+	(IDS_REGIONS+0), "BIOS"
+	(IDS_REGIONS+1), "Kazettát"
+	(IDS_REGIONS+2), "WRAM"
+	(IDS_REGIONS+3), "Eszközök"
+	(IDS_REGIONS+4), "Regiszterek"
+	(IDS_REGIONS+5), "VRAM"
+}
+
+IDR_MAINMENU MENU
+BEGIN
+	POPUP "Fájl"
+	BEGIN
+		MENUITEM "Helyezzen kazettát\x85\tRCtrl+L", 1001
+		MENUITEM "Kiadja kazettát\tRCtrl+U", 1002
+		MENUITEM SEPARATOR		
+		MENUITEM "Helyezzen lemezt\x85\tRCtrl+Shift+L", 1013
+		MENUITEM "Kiadja lemezt\tRCtrl+Shift+U", 1014
+		MENUITEM SEPARATOR
+		MENUITEM "Újrakezd\tRCtrl+R", 1003
+		MENUITEM SEPARATOR
+		MENUITEM "Kilépés", 1006
+	END
+	POPUP "Eszközkészlet"
+	BEGIN
+		MENUITEM "Opciók", 1010
+		MENUITEM "Shaders", 1011
+		MENUITEM SEPARATOR
+		MENUITEM "Eszközök", 1012
+		MENUITEM "Memória nézõ", 1007
+		MENUITEM "Színpaletta nézõ", 1008
+		MENUITEM "Dump RAM\tRCtrl+D", 1005 //as in write the whole thing to file
+		MENUITEM "Képernyõkép\tRCtrl+S", 1004
+	END
+	POPUP "Súgó"
+	BEGIN
+		MENUITEM "Névjegy", 1009
+	END
+END
+
+//------------------------//
+
+#define COMMON_OK "OK"
+#define COMMON_CANCEL "Mégse"
+#define COMMON_APPLY "Apply"
+#define COMMON_CLOSE "Bezárás"
+#define COMMON_REFRESH "Frissítés"
+#define COMMON_AUTOUPDATE "Auto-friss"
+
+#define ABOUT_TITLE "E Clunibus Tractum" //"Pulled out of the arse" in Latin, Kawa's pretentious motto
+#define ABOUT_OKAY "Cool"
+#define ABOUT_HEADER "Clunibus \x97 Asspull IIIx Fantasy Computer Emulator" //\x97 is an em-dash
+#define ABOUT_BODY "System design and emulator by Kawa.\n\nThanks and shoutouts to all of the people on the bcord." //Feel free to add "\n\nLANG translation by YOU."
+#define ABOUT_GITLINK "<a>GitHub page</a>" //Keep the <a></a> to make it look like the clickable link it is
+
+#define DEVICES_TITLE "Eszközök"
+#define DEVICES_NONE "Örvénylõ üresség üvölt eléd." //poetry about nothingness, there's nothing to change here
+#define DEVICES_INSERTDISK "Beszúrás"
+#define DEVICES_EJECTDISK "Kiadás"
+#define DEVICES_MUSTBEDISKDRIVE "Az elsõdleges eszköz csak hajlékonylemez -meghajtó lehet."
+#define DEVICES_ONLYFOURDRIVES "Csak az elsõ négy meghajtót ismeri fel a rendszer."
+
+//Only COMMON_xxx labels for these two
+#define MEMORY_TITLE "Memória nézõ"
+#define PALETTE_TITLE "Színpaletta nézõ"
+
+#define OPTIONS_TITLE "Opciók"
+#define OPTIONS_FRAMERATE "Képkockasebesség"
+	#define OPTIONS_SHOWFPS "KKB megjelenítése"
+	#define OPTIONS_LIMITFPS "Hatvanra korlátozni"
+#define OPTIONS_VISUALS "Vizuális"
+	#define OPTIONS_ASPECT "Képarány korrekció" //as in stretching 320x200 to 320x240
+	#define OPTIONS_THEME "Színösszeállítás"
+#define OPTIONS_AUDIO "Audio"
+	#define OPTIONS_SOUND "Hangzik"
+	#define OPTIONS_MUSIC "Zene"
+	#define OPTIONS_MIDIDEVICE "MIDI eszközök"
+#define OPTIONS_INPUT "Beviteli"
+	#define OPTIONS_SWITCH "Váltás ABXY a BAYX"
+#define OPTIONS_MEDIA "Média"
+	#define OPTIONS_RELOADROM "ROM újratöltése"
+	#define OPTIONS_RELOADDISK "Lemezkép újratöltése"
+	#define OPTIONS_BIOS "BIOS fájl"
+
+#define SHADERS_TITLE "Shaders"
+#define SHADERS_AVAILABLE "Elérhetõ"
+#define SHADERS_INUSE "Használatban"
+#define SHADERS_ADD "Hozzáadás"
+#define SHADERS_REMOVE "Eltávolítás"
+#define SHADERS_MOVEUP "Fel"
+#define SHADERS_MOVEDOWN "Le"
+
+#include "dialogs.rc"
