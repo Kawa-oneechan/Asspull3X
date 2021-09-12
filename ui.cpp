@@ -489,7 +489,6 @@ void InitializeUI()
 
 bool ShowFileDlg(bool toSave, WCHAR* target, size_t max, const WCHAR* filter)
 {
-	OPENFILENAME ofn;
 	WCHAR sFilter[512];
 	wcscpy_s(sFilter, 512, filter);
 	WCHAR* f = sFilter;
@@ -502,18 +501,17 @@ bool ShowFileDlg(bool toSave, WCHAR* target, size_t max, const WCHAR* filter)
 	*f++ = 0;
 	*f++ = 0;
 
-	ZeroMemory(&ofn, sizeof(ofn));
-	ofn.lStructSize = sizeof(ofn);
-	ofn.hwndOwner = hWnd;
-	ofn.lpstrFile = target;
+	OPENFILENAME ofn = {
+		sizeof(OPENFILENAME),
+		hWnd, hInstance,
+		sFilter, NULL, 0, 1,
+		target, max,
+		NULL, 0,
+		NULL,
+		NULL,
+		OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST
+	};
 	ofn.lpstrFile[0] = '\0';
-	ofn.nMaxFile = max;
-	ofn.lpstrFilter = sFilter;
-	ofn.nFilterIndex = 1;
-	ofn.lpstrFileTitle = NULL;
-	ofn.nMaxFileTitle = 0;
-	ofn.lpstrInitialDir = NULL;
-	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 
 	WCHAR cwd[MAX_PATH];
 	GetCurrentDirectory(MAX_PATH, cwd);
