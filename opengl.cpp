@@ -70,7 +70,41 @@ bool initGLExtensions() {
 		glUseProgram && glGetUniformLocation && glUniform1f;
 }
 
-GLuint compileShader(const char* source, GLuint shaderType)
+
+extern HWND hWnd;
+extern FILE* logFile;
+
+void ComplainAboutShaders(const WCHAR* file, char* log, size_t logLength)
+{
+	WCHAR hdr[512];
+	WCHAR msg[512];
+	wsprintf(hdr, L"An error occured while compiling shaders."); //GetString(IDS_OLDSDL_A));
+	wsprintf(msg, L"The file %s contains at least one syntax error, and will be skipped.", file); //GetString(IDS_OLDSDL_B), file);
+
+	WCHAR *wLog = (WCHAR*)malloc((logLength + 4) * 2);
+	mbstowcs_s(NULL, wLog, logLength, log, _TRUNCATE);
+	Log(L"-----------------------");
+	Log(wLog);
+	Log(L"-----------------------");
+
+	TASKDIALOGCONFIG td = {
+		sizeof(TASKDIALOGCONFIG), hWnd, NULL,
+		TDF_EXPAND_FOOTER_AREA, TDCBF_OK_BUTTON,
+		GetString(IDS_SHORTTITLE),
+		NULL,
+		hdr, msg,
+		0, NULL, IDOK,
+		0, NULL, 0,
+		NULL,
+		wLog
+	};
+	td.pszMainIcon = TD_WARNING_ICON;
+	TaskDialogIndirect(&td, NULL, NULL, NULL);
+
+	free(wLog);
+}
+
+GLuint compileShader(const char* source, const WCHAR* file, GLuint shaderType)
 {
 	if (source == NULL)
 	{
@@ -97,11 +131,8 @@ GLuint compileShader(const char* source, GLuint shaderType)
 		{
 			GLchar *log = (GLchar*)malloc(logLength + 4);
 			glGetShaderInfoLog(result, logLength, &logLength, log);
-			WCHAR *wLog = (WCHAR*)malloc((logLength + 4) * 2);
-			mbstowcs_s(NULL, wLog, logLength, log, _TRUNCATE);
+			ComplainAboutShaders(file, log, logLength);
 			free(log);
-			Log(L"%s", wLog);
-			free(wLog);
 		}
 		glDeleteShader(result);
 		result = 0;
@@ -134,10 +165,10 @@ GLuint compileProgram(const WCHAR* fragFile)
 
 	programId = glCreateProgram();
 
-	vtxShaderId = compileShader(vertexShader, GL_VERTEX_SHADER);
+	vtxShaderId = compileShader(vertexShader, fragFile, GL_VERTEX_SHADER);
 
 	auto source = ReadTextFile(fragFile);
-	fragShaderId = compileShader(source, GL_FRAGMENT_SHADER);
+	fragShaderId = compileShader(source, fragFile, GL_FRAGMENT_SHADER);
 	free(source);
 
 	if(vtxShaderId && fragShaderId)
@@ -277,8 +308,6 @@ void VBlank()
 	presentBackBuffer(sdlRenderer, sdlWindow);
 	//SDL_UpdateWindowSurface(sdlWindow);
 }
-
-extern HWND hWnd;
 
 void InitShaders()
 {
