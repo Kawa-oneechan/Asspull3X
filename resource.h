@@ -55,6 +55,7 @@
 #define IDS_REGIONS 300
 
 #define IDI_APP 1
+#define IDI_ROM 2
 
 #define IDD_ABOUT 201
 #define IDD_DEVICES 202

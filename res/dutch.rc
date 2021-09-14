@@ -61,8 +61,8 @@ STRINGTABLE
 	IDS_SHADERCOMPILE_A "Er is een fout opgetreden bij het compileren van shaders."
 	IDS_SHADERCOMPILE_B "Het bestand %s bevat één of meer syntaxfouten en zal worden overgeslagen."
 
-	IDS_DISKIMAGEERROR, "Kon schijfkopie ""%s"" niet openen voor apparaat #%d."
-	IDS_ROMLOADERROR, "Kon ROM-bestand ""%s"" niet openen."
+	IDS_DISKIMAGEERROR, "Kon schijfkopie %s niet openen voor apparaat #%d."
+	IDS_ROMLOADERROR, "Kon ROM-bestand %s niet openen."
 
 	(IDS_THEMES+0), "Licht"
 	(IDS_THEMES+1), "Donker"

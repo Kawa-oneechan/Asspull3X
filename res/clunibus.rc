@@ -2,21 +2,21 @@
 #include "windows.h"
 #pragma code_page(1252)
 
-IDI_APP ICON ".\\res\\app.ico"
-
-IDB_ABOUT PNG ".\\res\\about.png"
-IDB_DANCE PNG ".\\res\\dance.png"
-IDB_ICONS PNG ".\\res\\imglist.png"
-IDB_SHRUG PNG ".\\res\\shrug.png"
-
-
 #include ".\\res\\english.rc"
 #include ".\\res\\french.rc"
 #include ".\\res\\japanese.rc"
 #include ".\\res\\dutch.rc"
 #include ".\\res\\hungarian.rc"
 
-LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
+
+IDI_APP ICON ".\\res\\app.ico"
+IDI_ROM ICON ".\\res\\ap3.ico"
+
+IDB_ABOUT PNG ".\\res\\about.png"
+IDB_DANCE PNG ".\\res\\dance.png"
+IDB_ICONS PNG ".\\res\\imglist.png"
+IDB_SHRUG PNG ".\\res\\shrug.png"
 
 VS_VERSION_INFO VERSIONINFO
 FILEVERSION 1,0,0,1

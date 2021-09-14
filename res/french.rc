@@ -59,8 +59,8 @@ STRINGTABLE
 	IDS_NOTHINGINZIP, "Aucun fichier AP3 trouvé dans l'archive."
 	IDS_DUMPEDRAM, "RAM sauvegardée."
 
-	IDS_DISKIMAGEERROR, "Impossible d'ouvrir l'image disque ""%s"" pour le périphérique #%d."
-	IDS_ROMLOADERROR, "Impossible de charger la ROM ""%s""."
+	IDS_DISKIMAGEERROR, "Impossible d'ouvrir l'image disque %s pour le périphérique #%d."
+	IDS_ROMLOADERROR, "Impossible de charger la ROM %s."
 	IDS_SHADERCOMPILE_A "Une erreur s'est produite lors de la compilation des shaders."
 	IDS_SHADERCOMPILE_B "Le fichier %s contient au moins une erreur de syntaxe et sera ignoré."
 

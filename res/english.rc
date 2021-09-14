@@ -59,8 +59,8 @@ STRINGTABLE
 	IDS_NOTHINGINZIP, "No single AP3 file found in archive."
 	IDS_DUMPEDRAM, "RAM dumped."
 
-	IDS_DISKIMAGEERROR, "Could not open disk image ""%s"" for device #%d."
-	IDS_ROMLOADERROR, "Could not open ROM file ""%s""."
+	IDS_DISKIMAGEERROR, "Could not open disk image %s for device #%d."
+	IDS_ROMLOADERROR, "Could not open ROM file %s."
 	IDS_SHADERCOMPILE_A "An error occured while compiling shaders."
 	IDS_SHADERCOMPILE_B "The file %s contains at least one syntax error, and will be skipped."
 
