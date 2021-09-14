@@ -5,8 +5,7 @@
 #include "resource.h"
 
 extern WCHAR* GetString(int);
-//extern void Log(WCHAR* message, ...);
-#define Log(M, ...) wprintf(M, __VA_ARGS__)
+extern void Log(WCHAR* message, ...);
 
 namespace Discord
 {

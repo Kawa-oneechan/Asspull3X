@@ -78,8 +78,8 @@ void ComplainAboutShaders(const WCHAR* file, char* log, size_t logLength)
 {
 	WCHAR hdr[512];
 	WCHAR msg[512];
-	wsprintf(hdr, L"An error occured while compiling shaders."); //GetString(IDS_OLDSDL_A));
-	wsprintf(msg, L"The file %s contains at least one syntax error, and will be skipped.", file); //GetString(IDS_OLDSDL_B), file);
+	wcscpy_s(hdr, 512, GetString(IDS_SHADERCOMPILE_A)); //"An error occured while compiling shaders."
+	wsprintf(msg, GetString(IDS_SHADERCOMPILE_B), file); //"The file %s contains at least one syntax error, and will be skipped."
 
 	WCHAR *wLog = (WCHAR*)malloc((logLength + 4) * 2);
 	mbstowcs_s(NULL, wLog, logLength, log, _TRUNCATE);
@@ -124,7 +124,7 @@ GLuint compileShader(const char* source, const WCHAR* file, GLuint shaderType)
 	glGetShaderiv( result, GL_COMPILE_STATUS, &shaderCompiled );
 	if( shaderCompiled != GL_TRUE )
 	{
-		Log(GetString(IDS_SHADERERROR), result); //"Error compiling shader: %d"
+		Log(GetString(IDS_SHADERERROR)); //"Error compiling shader!"
 		GLint logLength;
 		glGetShaderiv(result, GL_INFO_LOG_LENGTH, &logLength);
 		if (logLength > 0)

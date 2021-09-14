@@ -9,7 +9,7 @@ STRINGTABLE
 {
 	IDS_FULLTITLE, "Clunibus - Emulateur Asspull IIIx"
 	IDS_SHORTTITLE, "Clunibus" //used for messageboxes
-	IDS_TEMPLATETITLE, "Clunibus - %s" //currently not used, would show the loaded game's name
+	IDS_TEMPLATETITLE, "Clunibus - %s"
 
 	//File dialog filters. Format is "<description>|<pattern>|<desc>|<pat>" etc
 	IDS_DDFILTER, "Image disque (*.img)|*.img" //floppy diskettes
@@ -50,9 +50,9 @@ STRINGTABLE
 	IDS_RENDERERFAILED, "Création du moteur de rendu impossible: %s"
 	IDS_TSK, "Parfait..." //ignore, IDS_TSK is #69.
 	IDS_TEXTUREFAILED, "Creation de la texture impossible: %s"
+#endif
 	IDS_PNGFAILED, "Impossible d'écrire le PNG."
 	IDS_DISCORDDLL, "Discord est actif mais aucune DLL n'a été trouvée."
-#endif
 	IDS_SCREENSHOT, "Clic-clac! %s sauvegardé."
 
 	//Status bar message -- you tried to open a ZIP file but there was no ROM in there
@@ -61,6 +61,8 @@ STRINGTABLE
 
 	IDS_DISKIMAGEERROR, "Impossible d'ouvrir l'image disque ""%s"" pour le périphérique #%d."
 	IDS_ROMLOADERROR, "Impossible de charger la ROM ""%s""."
+	IDS_SHADERCOMPILE_A "Une erreur s'est produite lors de la compilation des shaders."
+	IDS_SHADERCOMPILE_B "Le fichier %s contient au moins une erreur de syntaxe et sera ignoré."
 
 	(IDS_THEMES+0), "Claire"
 	(IDS_THEMES+1), "Sombre"

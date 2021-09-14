@@ -9,7 +9,7 @@ STRINGTABLE
 {
 	IDS_FULLTITLE, "Clunibus - Asspull IIIx Emulator"
 	IDS_SHORTTITLE, "Clunibus" //used for messageboxes
-	IDS_TEMPLATETITLE, "Clunibus - %s" //currently not used, would show the loaded game's name.
+	IDS_TEMPLATETITLE, "Clunibus - %s"
 
 	//File dialog filters. Format is "<description>|<pattern>|<desc>|<pat>" etc
 	IDS_DDFILTER, "Schijfkopieën (*.img)|*.img" //floppy diskettes
@@ -24,7 +24,7 @@ STRINGTABLE
 	IDS_EJECTFIRST, "Werp eerst de diskette uit met RCtrl-Shift-U."
 	IDS_DISKEJECTED, "Schijf uitgeworpen."
 	IDS_NODISKDRIVE, "Geen schijfstation."
-	IDS_UNMOUNTFIRST, "Ontkoppel eerst het medium."
+	IDS_UNMOUNTFIRST, "Werp eerst het medium uit."
 	IDS_CARTEJECTED, "Cassette ontkoppelt." //as in taken out of the cartridge slot
 
 	IDS_VHDBADBITS, "Ongeldige VHD: verkeerde feature-bits (moet 2 zijn)" //a bit technical maybe, but rare
@@ -45,19 +45,21 @@ STRINGTABLE
 	IDS_MOUNTINGDISK, "Schijfkopie %s koppelen..."
 	IDS_MOUNTEDVHD, "VHD gekoppelt. %d * %d * %d * 512 = %d, zou ~%d moeten zijn."
 	IDS_SHADERERROR, "Fout bij compileren van shader: %d"
-	IDS_TOOMANYSHADERS, "Te veel shaders opgegeven: kan maar %d aan, maar %d is aangevraagd."
+	IDS_TOOMANYSHADERS, "Teveel shaders opgegeven: kan maar %d aan, maar %d is aangevraagd."
 	IDS_WINDOWFAILED, "Kon venster niet maken: %s"
 	IDS_RENDERERFAILED, "Kon renderer niet maken: %s"
 	IDS_TSK, "Fijn." //ignore, IDS_TSK is #69.
 	IDS_TEXTUREFAILED, "Kon geen textuur maken: %s"
+#endif
 	IDS_PNGFAILED, "Kan PNG niet schrijven."
 	IDS_DISCORDDLL, "Discord is ingeschakeld, maar de DLL is er niet." //missing discord-rpc.dll
-#endif
 	IDS_SCREENSHOT, "Klik! %s opgeslagen."
 
 	//Status bar message -- you tried to open a ZIP file but there was no ROM in there
 	IDS_NOTHINGINZIP, "Geen enkel AP3-bestand gevonden in archief."
 	IDS_DUMPEDRAM, "RAM gedumpt."
+	IDS_SHADERCOMPILE_A "Er is een fout opgetreden bij het compileren van shaders."
+	IDS_SHADERCOMPILE_B "Het bestand %s bevat één of meer syntaxfouten en zal worden overgeslagen."
 
 	IDS_DISKIMAGEERROR, "Kon schijfkopie ""%s"" niet openen voor apparaat #%d."
 	IDS_ROMLOADERROR, "Kon ROM-bestand ""%s"" niet openen."

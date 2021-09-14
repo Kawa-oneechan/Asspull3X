@@ -9,7 +9,7 @@ STRINGTABLE
 {
 	IDS_FULLTITLE, "Clunibus - Asspull IIIx Emulator"
 	IDS_SHORTTITLE, "Clunibus" //used for messageboxes
-	IDS_TEMPLATETITLE, "Clunibus - %s" //currently not used, would show the loaded game's name.
+	IDS_TEMPLATETITLE, "Clunibus - %s"
 
 	//File dialog filters. Format is "<description>|<pattern>|<desc>|<pat>" etc
 	IDS_DDFILTER, "Disk images (*.img)|*.img" //floppy diskettes
@@ -24,7 +24,7 @@ STRINGTABLE
 	IDS_EJECTFIRST, "Eject the diskette first, with RCtrl+Shift+U."
 	IDS_DISKEJECTED, "Disk ejected."
 	IDS_NODISKDRIVE, "No disk drive."
-	IDS_UNMOUNTFIRST, "Unmount the medium first."
+	IDS_UNMOUNTFIRST, "Eject the media first."
 	IDS_CARTEJECTED, "Cart pulled." //as in taken out of the cartridge slot
 
 	IDS_VHDBADBITS, "Invalid VHD: bad feature bits (must be 2)" //a bit technical maybe, but rare
@@ -44,15 +44,15 @@ STRINGTABLE
 	IDS_UNMOUNTINGDISK, "Unmounting diskette..."
 	IDS_MOUNTINGDISK, "Mounting disk image %s..."
 	IDS_MOUNTEDVHD, "Mounted VHD. %d * %d * %d * 512 = %d, should be ~%d."
-	IDS_SHADERERROR, "Error compiling shader: %d"
+	IDS_SHADERERROR, "Error compiling shader!"
 	IDS_TOOMANYSHADERS, "Too many shaders specified: can only do %d but %d were requested."
 	IDS_WINDOWFAILED, "Could not create window: %s"
 	IDS_RENDERERFAILED, "Could not create renderer: %s"
 	IDS_TSK, "Nice." //ignore, IDS_TSK is #69.
 	IDS_TEXTUREFAILED, "Could not create texture: %s"
 	IDS_PNGFAILED, "Failed to write PNG."
-	IDS_DISCORDDLL, "Discord is enabled but the DLL isn't here." //missing discord-rpc.dll
 #endif
+	IDS_DISCORDDLL, "Discord is enabled but the DLL isn't here." //missing discord-rpc.dll
 	IDS_SCREENSHOT, "Snap! %s saved."
 
 	//Status bar message -- you tried to open a ZIP file but there was no ROM in there
@@ -61,6 +61,8 @@ STRINGTABLE
 
 	IDS_DISKIMAGEERROR, "Could not open disk image ""%s"" for device #%d."
 	IDS_ROMLOADERROR, "Could not open ROM file ""%s""."
+	IDS_SHADERCOMPILE_A "An error occured while compiling shaders."
+	IDS_SHADERCOMPILE_B "The file %s contains at least one syntax error, and will be skipped."
 
 	(IDS_THEMES+0), "Light"
 	(IDS_THEMES+1), "Dark"
