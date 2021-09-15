@@ -1,6 +1,21 @@
 #include "..\ui.h"
 
 extern unsigned char* ramVideo;
+int currentIndex = 0;
+
+void UpdateDetails()
+{
+	auto snes = (ramVideo[PAL_ADDR + (currentIndex * 2) + 0] << 8) + ramVideo[PAL_ADDR + (currentIndex * 2) + 1];
+	auto r = (snes >> 0) & 0x1F;
+	auto g = (snes >> 5) & 0x1F;
+	auto b = (snes >> 10) & 0x1F;
+	auto red = r; red = (red << 3) + (red >> 2);
+	auto grn = g; grn = (grn << 3) + (grn >> 2);
+	auto blu = b; blu = (blu << 3) + (blu >> 2);
+	WCHAR buffer[256] = { 0 };
+	wsprintf(buffer, L"Index %d\n0x%04X\nR: 0x%02X > %d\nG: 0x%02X > %d\nB: 0x%02X > %d", currentIndex, snes, r, red, g, grn, b, blu);
+	SetDlgItemText(hWndPalViewer, IDC_DETAILS, buffer);
+}
 
 void PalViewerDraw(DRAWITEMSTRUCT* dis)
 {
@@ -46,6 +61,8 @@ void PalViewerDraw(DRAWITEMSTRUCT* dis)
 	SelectObject(hdc, oldBmp);
 	DeleteDC(hdc);
 	DeleteObject(bmp);
+
+	UpdateDetails();
 }
 
 BOOL CALLBACK PalViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam)
@@ -87,6 +104,26 @@ BOOL CALLBACK PalViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM
 				return true;
 			}
 		}
+		case WM_LBUTTONUP:
+		{
+			//Log(L"WM_LBUTTONUP in %d by %d", ptlHit.x, ptlHit.y);
+			RECT rctGrid;
+			GetWindowRect(GetDlgItem(hwndDlg, IDC_MEMVIEWERGRID), &rctGrid);
+			POINT offset = { rctGrid.left, rctGrid.top };
+			ScreenToClient(hwndDlg, &offset);
+			GetClientRect(GetDlgItem(hwndDlg, IDC_MEMVIEWERGRID), &rctGrid);
+			OffsetRect(&rctGrid, offset.x, offset.y);
+			//InflateRect(&rctGrid, -2, -2);
+			POINTS ptlHit = MAKEPOINTS(lParam);
+			if (ptlHit.x > rctGrid.left && ptlHit.y > rctGrid.top && ptlHit.x < rctGrid.right && ptlHit.y < rctGrid.bottom)
+			{
+				int x = (ptlHit.x - offset.x) / 16;
+				int y = (ptlHit.y - offset.y) / 16;
+				currentIndex = (y * 16) + x;
+				UpdateDetails();
+			}
+			return true;
+		}
 		case WM_DRAWITEM:
 		{
 			if (wParam == IDC_MEMVIEWERGRID)
@@ -117,6 +154,7 @@ BOOL CALLBACK PalViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM
 		}
 		case WM_CTLCOLORSTATIC:
 		{
+			SetBkColor((HDC)wParam, rgbBack);
 			SetTextColor((HDC)wParam, rgbText);
 			if (lParam == (LPARAM)GetDlgItem(hwndDlg, IDC_MEMVIEWERGRID))
 				return (INT_PTR)hbrList;
