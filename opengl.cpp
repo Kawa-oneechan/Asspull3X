@@ -18,7 +18,8 @@ float iTime = 0;
 int winWidth = 640, winHeight = 480, scrWidth = 640, scrHeight = 480, scale = 1, offsetX = 0, offsetY = 0;
 
 extern unsigned char* pixels;
-extern bool stretch200;
+extern bool stretch200, gfxTextBold;
+extern int gfxMode;
 extern int statusBarHeight;
 
 extern WCHAR* GetString(int);
@@ -252,31 +253,37 @@ void presentBackBuffer(SDL_Renderer *renderer, SDL_Window* win)
 
 			offsetY += statusBarHeight;
 
-			glViewport(offsetX, offsetY, scrWidth, scrHeight);
+			float imgH = 1.0f;
+			if (numShaders == 1 && (stretch200 && (gfxMode == 1 || gfxMode == 2) && gfxTextBold))
+				imgH = 0.830f;
 
+			glViewport(offsetX, offsetY, scrWidth, scrHeight);
 			glBegin(GL_TRIANGLE_STRIP);
 				glTexCoord2f(0.0f, 0.0f);
 				glVertex2f(0.0f, 0.0f);
 				glTexCoord2f(1.0f, 0.0f);
 				glVertex2f(640.0f, 0.0f);
-				glTexCoord2f(0.0f, 1.0f);
+				glTexCoord2f(0.0f, imgH);
 				glVertex2f(0.0f, 480.0f);
-				glTexCoord2f(1.0f, 1.0f);
+				glTexCoord2f(1.0f, imgH);
 				glVertex2f(640.0f, 480.0f);
 			glEnd();
 		}
 		else
 		{
-			glViewport(0, 0, 640, 480);
+			float imgH = 1.0f;
+			if (stretch200 && (gfxMode == 1 || gfxMode == 2) && gfxTextBold)
+				imgH = 0.830f;
 
+			glViewport(0, 0, 640, 480);
 			glBegin(GL_TRIANGLE_STRIP);
 				glTexCoord2f(0.0f, 0.0f);
 				glVertex2f(0.0f, 480.0f);
 				glTexCoord2f(1.0f, 0.0f);
 				glVertex2f(640.0f, 480.0f);
-				glTexCoord2f(0.0f, 1.0f);
+				glTexCoord2f(0.0f, imgH);
 				glVertex2f(0.0f, 0.0f);
-				glTexCoord2f(1.0f, 1.0f);
+				glTexCoord2f(1.0f, imgH);
 				glVertex2f(640.0f, 0.0f);
 			glEnd();
 		}
@@ -368,12 +375,14 @@ int InitVideo()
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
 
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
 	if ((sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_TARGET, 640, 480)) == NULL)
 	{
 		Log(GetString(IDS_TEXTUREFAILED), SDL_GetError()); //"Could not create texture: %s"
 		return -2;
 	}
 
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
 	if ((sdlShader = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_TARGET, 640, 480)) == NULL)
 	{
 		Log(GetString(IDS_TEXTUREFAILED), SDL_GetError()); //"Could not create texture: %s"

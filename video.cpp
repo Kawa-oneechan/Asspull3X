@@ -292,7 +292,7 @@ void RenderTextMode(int line)
 void RenderBitmapMode1(int line)
 {
 	auto imgWidth = gfx320 ? 160 : 320; //image is 160 or 320 bytes wide
-	auto sourceLine = gfxTextBold ? (int)(line * 0.835) : line;
+	auto sourceLine = line; // gfxTextBold ? (int)(line * 0.835) : line;
 	if (gfxTextBold && !stretch200)
 	{
 		if (line < 40 || line > 439)
@@ -330,7 +330,7 @@ void RenderBitmapMode1(int line)
 void RenderBitmapMode2(int line)
 {
 	auto imgWidth = gfx320 ? 320 : 640;
-	auto sourceLine = gfxTextBold ? (int)(line * 0.835) : line;
+	auto sourceLine = line; // gfxTextBold ? (int)(line * 0.835) : line;
 	if (gfxTextBold && !stretch200)
 	{
 		if (line < 40 || line > 439)
