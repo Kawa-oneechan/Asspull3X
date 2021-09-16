@@ -21,25 +21,24 @@ void PalViewerDraw(DRAWITEMSTRUCT* dis)
 {
 	RECT rect;
 	GetClientRect(dis->hwndItem, &rect);
-	int w = 16 * 8;
-
-	HDC hdc = CreateCompatibleDC(dis->hDC);
-	auto bmp = CreateCompatibleBitmap(dis->hDC, w, w);
-	auto oldBmp = SelectObject(hdc, bmp);
-
-	FillRect(hdc, &dis->rcItem, hbrList);
-
+	int w = rect.right - rect.left;
+	int h = rect.bottom - rect.top;
+	w += 2;
+	h += 2;
+	int cellW = w / 16;
+	int cellH = h / 16;
+	
+	HDC hdc = dis->hDC;
+	HBRUSH hbr;
 	RECT r;
 	r.top = 0;
-	r.bottom = 8;
-	HBRUSH hbr;
+	r.bottom = cellH;
 	int c = 0;
-
-	for (auto row = 0; row < 16; row++)
+	for (int row = 0; row < 16; row++)
 	{
 		r.left = 0;
-		r.right = 8;
-		for (auto row = 0; row < 16; row++)
+		r.right = cellW;
+		for (int col = 0; col < 16; col++)
 		{
 			auto snes = (ramVideo[PAL_ADDR + (c * 2) + 0] << 8) + ramVideo[PAL_ADDR + (c * 2) + 1];	
 			auto red = (snes >> 0) & 0x1F; red = (red << 3) + (red >> 2);
@@ -47,20 +46,21 @@ void PalViewerDraw(DRAWITEMSTRUCT* dis)
 			auto blu = (snes >> 10) & 0x1F; blu = (blu << 3) + (blu >> 2);
 			hbr = CreateSolidBrush(RGB(red, grn, blu));
 			FillRect(hdc, &r, hbr);
+			if (c == currentIndex)
+			{
+				InvertRect(hdc, &r);
+				InflateRect(&r, -1, -1);
+				InvertRect(hdc, &r);
+				InflateRect(&r, 1, 1);
+			}
 			DeleteObject(hbr);
-			r.left += 8;
-			r.right += 8;
+			r.left += cellW;
+			r.right += cellW;
 			c++;
 		}
-		r.top += 8;
-		r.bottom += 8;
+		r.top += cellH;
+		r.bottom += cellH;
 	}
-
-	//BitBlt(dis->hDC, 0, 0, w, w, hdc, 0, 0, SRCCOPY);
-	StretchBlt(dis->hDC, 0, 0, rect.right - rect.left, rect.bottom - rect.top, hdc, 0, 0, w, w, SRCCOPY);
-	SelectObject(hdc, oldBmp);
-	DeleteDC(hdc);
-	DeleteObject(bmp);
 
 	UpdateDetails();
 }
@@ -77,13 +77,23 @@ BOOL CALLBACK PalViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM
 		}
 		case WM_INITDIALOG:
 		{
-			//SendDlgItemMessage(hwndDlg, IDC_MEMVIEWEROFFSET, WM_SETFONT, (WPARAM)monoFont, false);
-			LPCSTR areas[] = { "BIOS", "Cart", "WRAM", "Devices", "Registers", "VRAM" };
-			for (int i = 0; i < 6; i++)
-				SendDlgItemMessage(hwndDlg, IDC_MEMVIEWERDROP, CB_ADDSTRING, 0, (LPARAM)areas[i]);
-			SendDlgItemMessage(hwndDlg, IDC_MEMVIEWERDROP, CB_SETCURSEL, 1, 0);
-			SendDlgItemMessage(hwndDlg, IDC_MEMVIEWEROFFSET, EM_SETLIMITTEXT, 8, 0);
 			CheckDlgButton(hwndDlg, IDC_AUTOUPDATE, autoUpdatePalViewer);
+			return true;
+		}
+		case WM_SIZE:
+		{
+			RECT rctGrid;
+			HWND hwndGrid = GetDlgItem(hwndDlg, IDC_MEMVIEWERGRID);
+			GetWindowRect(hwndGrid, &rctGrid);
+			int w = rctGrid.right - rctGrid.left;
+			int h = rctGrid.bottom - rctGrid.top;
+			int cellW = w / 16;
+			int cellH = h / 16;
+			w = cellW * 16;
+			h = cellH * 16;
+			w += 2;
+			h += 2;
+			SetWindowPos(hwndGrid, 0, 0, 0, w, h, SWP_NOMOVE | SWP_NOZORDER);
 			return true;
 		}
 		case WM_SHOWWINDOW:
@@ -104,23 +114,25 @@ BOOL CALLBACK PalViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM
 				return true;
 			}
 		}
-		case WM_LBUTTONUP:
+		case WM_LBUTTONDOWN:
 		{
-			//Log(L"WM_LBUTTONUP in %d by %d", ptlHit.x, ptlHit.y);
+			POINTS ptlHit = MAKEPOINTS(lParam);
 			RECT rctGrid;
 			GetWindowRect(GetDlgItem(hwndDlg, IDC_MEMVIEWERGRID), &rctGrid);
-			POINT offset = { rctGrid.left, rctGrid.top };
-			ScreenToClient(hwndDlg, &offset);
-			GetClientRect(GetDlgItem(hwndDlg, IDC_MEMVIEWERGRID), &rctGrid);
-			OffsetRect(&rctGrid, offset.x, offset.y);
-			//InflateRect(&rctGrid, -2, -2);
-			POINTS ptlHit = MAKEPOINTS(lParam);
-			if (ptlHit.x > rctGrid.left && ptlHit.y > rctGrid.top && ptlHit.x < rctGrid.right && ptlHit.y < rctGrid.bottom)
+			POINT tl = { rctGrid.left, rctGrid.top };
+			ScreenToClient(hwndDlg, &tl);
+			int w = rctGrid.right - rctGrid.left;
+			int h = rctGrid.bottom - rctGrid.top;
+			if (ptlHit.x > tl.x && ptlHit.y > tl.y && ptlHit.x < tl.x + w && ptlHit.y < tl.y + h)
 			{
-				int x = (ptlHit.x - offset.x) / 16;
-				int y = (ptlHit.y - offset.y) / 16;
+				int px = (long)ptlHit.x - tl.x;
+				int py = (long)ptlHit.y - tl.y;
+				int x = px / (w / 16);
+				int y = py / (h / 16);
+				if (x > 15 || y > 15)
+					return true;
 				currentIndex = (y * 16) + x;
-				UpdateDetails();
+				InvalidateRect(GetDlgItem(hWndPalViewer, IDC_MEMVIEWERGRID), NULL, true);
 			}
 			return true;
 		}
