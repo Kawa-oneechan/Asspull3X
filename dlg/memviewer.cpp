@@ -7,7 +7,6 @@
 
 unsigned long memViewerOffset;
 extern "C" unsigned int m68k_read_memory_8(unsigned int address);
-extern WCHAR* GetString(int);
 
 extern unsigned char* ramVideo;
 

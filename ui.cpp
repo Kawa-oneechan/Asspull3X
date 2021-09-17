@@ -4,7 +4,6 @@ processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
 #include "ui.h"
 
-extern WCHAR* GetString(int);
 
 WCHAR startingPath[FILENAME_MAX];
 WCHAR lastPath[FILENAME_MAX];

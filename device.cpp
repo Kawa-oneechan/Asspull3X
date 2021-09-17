@@ -2,7 +2,6 @@
 #include "resource.h"
 extern void SetStatus(const WCHAR*);
 extern void SetStatus(int);
-extern WCHAR* GetString(int);
 
 extern int diskIconTimer, hddIconTimer;
 

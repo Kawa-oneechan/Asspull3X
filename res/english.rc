@@ -50,19 +50,20 @@ STRINGTABLE
 	IDS_RENDERERFAILED, "Could not create renderer: %s"
 	IDS_TSK, "Nice." //ignore, IDS_TSK is #69.
 	IDS_TEXTUREFAILED, "Could not create texture: %s"
-	IDS_PNGFAILED, "Failed to write PNG."
 #endif
+	IDS_PNGFAILED, "Failed to write PNG."
 	IDS_DISCORDDLL, "Discord is enabled but the DLL isn't here." //missing discord-rpc.dll
 	IDS_SCREENSHOT, "Snap! %s saved."
 
 	//Status bar message -- you tried to open a ZIP file but there was no ROM in there
 	IDS_NOTHINGINZIP, "No single AP3 file found in archive."
 	IDS_DUMPEDRAM, "RAM dumped."
+	IDS_SHADERCOMPILE_A "An error occured while compiling shaders."
+	IDS_SHADERCOMPILE_B "The file %s contains at least one syntax error, and will be skipped."
+	IDS_PALDETAILS "Index %d\n0x%04X\nR: 0x%02X > %d\nG: 0x%02X > %d\nB: 0x%02X > %d"
 
 	IDS_DISKIMAGEERROR, "Could not open disk image %s for device #%d."
 	IDS_ROMLOADERROR, "Could not open ROM file %s."
-	IDS_SHADERCOMPILE_A "An error occured while compiling shaders."
-	IDS_SHADERCOMPILE_B "The file %s contains at least one syntax error, and will be skipped."
 
 	(IDS_THEMES+0), "Light"
 	(IDS_THEMES+1), "Dark"

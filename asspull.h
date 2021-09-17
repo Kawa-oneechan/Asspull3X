@@ -10,6 +10,7 @@ extern unsigned int RoundUp(unsigned int v);
 extern int Slurp(unsigned char* dest, const WCHAR* filePath, unsigned int* size);
 extern int Dump(const WCHAR* filePath, unsigned char* source, unsigned long size);
 extern void Log(WCHAR* message, ...);
+extern WCHAR* GetString(int stab);
 /*
 #if _CONSOLE
 #define Log(M, ...) { wprintf(M, __VA_ARGS__); wprintf(L"\n"); }

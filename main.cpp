@@ -16,7 +16,6 @@ extern WCHAR uiString[512];
 extern void InitializeUI();
 extern void SetStatus(const WCHAR*);
 extern void SetStatus(int);
-extern WCHAR* GetString(int);
 extern void SetFPS(int fps);
 extern void _devUpdateDiskette(int);
 extern void ShowOpenFileDialog(int, const WCHAR*);

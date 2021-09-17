@@ -22,8 +22,6 @@ extern bool stretch200, gfxTextBold;
 extern int gfxMode;
 extern int statusBarHeight;
 
-extern WCHAR* GetString(int);
-
 PFNGLCREATESHADERPROC glCreateShader;
 PFNGLSHADERSOURCEPROC glShaderSource;
 PFNGLCOMPILESHADERPROC glCompileShader;

@@ -1,6 +1,5 @@
 #include "..\ui.h"
 
-extern WCHAR* GetString(int);
 extern HIMAGELIST hIml;
 static RECT primaryIcon, warningIcon, shrugIcon;
 static HBITMAP hShrugImage;

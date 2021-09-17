@@ -23,7 +23,6 @@ extern void ShowOpenFileDialog(int, const WCHAR*);
 extern bool ShowFileDlg(bool, WCHAR*, size_t, const WCHAR*);
 extern void LoadROM(const WCHAR* path);
 extern void MainLoop();
-extern WCHAR* GetString(int);
 extern FILE* logFile;
 
 WCHAR* paramLoad = NULL;

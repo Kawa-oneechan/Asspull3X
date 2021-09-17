@@ -1,6 +1,5 @@
 #include "..\ui.h"
 
-extern WCHAR* GetString(int);
 extern int invertButtons;
 
 BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam)

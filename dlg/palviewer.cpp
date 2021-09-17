@@ -13,7 +13,7 @@ void UpdateDetails()
 	auto grn = g; grn = (grn << 3) + (grn >> 2);
 	auto blu = b; blu = (blu << 3) + (blu >> 2);
 	WCHAR buffer[256] = { 0 };
-	wsprintf(buffer, L"Index %d\n0x%04X\nR: 0x%02X > %d\nG: 0x%02X > %d\nB: 0x%02X > %d", currentIndex, snes, r, red, g, grn, b, blu);
+	wsprintf(buffer, GetString(IDS_PALDETAILS), currentIndex, snes, r, red, g, grn, b, blu);
 	SetDlgItemText(hWndPalViewer, IDC_DETAILS, buffer);
 }
 
