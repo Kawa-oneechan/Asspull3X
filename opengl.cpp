@@ -272,7 +272,7 @@ void presentBackBuffer(SDL_Renderer *renderer, SDL_Window* win)
 		else
 		{
 			float imgH = 1.0f;
-			if (stretch200 && (gfxMode == 1 || gfxMode == 2) && gfxTextBold)
+			if (i == 0 && stretch200 && (gfxMode == 1 || gfxMode == 2) && gfxTextBold)
 				imgH = 0.830f;
 
 			glViewport(0, 0, 640, 480);
