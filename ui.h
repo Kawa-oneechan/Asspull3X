@@ -25,7 +25,6 @@ extern int statusTimer;
 extern WCHAR uiStatus[512];
 extern bool fpsVisible;
 extern bool wasPaused;
-extern bool autoUpdateMemViewer, autoUpdatePalViewer;
 extern bool fpsCap, stretch200;
 
 extern bool ShowFileDlg(bool toSave, WCHAR* target, size_t max, const WCHAR* filter);

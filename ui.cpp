@@ -22,8 +22,6 @@ int statusTimer = 0;
 WCHAR uiStatus[512];
 bool fpsVisible = false;
 bool wasPaused = false;
-bool autoUpdateMemViewer = false;
-bool autoUpdatePalViewer = false;
 int theme = 0;
 int diskIconTimer = 0, hddIconTimer = 0;
 
@@ -410,12 +408,6 @@ void HandleUI()
 	}
 
 	DrawStatusBar();
-
-	if (autoUpdateMemViewer && hWndMemViewer != NULL && IsWindowVisible(hWndMemViewer))
-		InvalidateRect(GetDlgItem(hWndMemViewer, IDC_MEMVIEWERGRID), NULL, true);
-	if (autoUpdatePalViewer && hWndPalViewer != NULL && IsWindowVisible(hWndPalViewer))
-		InvalidateRect(GetDlgItem(hWndPalViewer, IDC_MEMVIEWERGRID), NULL, true);
-
 }
 
 void InitializeUI()

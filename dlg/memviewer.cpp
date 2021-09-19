@@ -77,6 +77,12 @@ void MemViewerDraw(DRAWITEMSTRUCT* dis)
 	DeleteObject(bmp);
 }
 
+void CALLBACK MemViewerAutoUpdate(HWND a, UINT b, UINT_PTR c, DWORD d)
+{
+	a, b, c, d;
+	InvalidateRect(GetDlgItem(hWndMemViewer, IDC_MEMVIEWERGRID), NULL, true);
+}
+
 void SetMemViewer(HWND hwndDlg, int to)
 {
 	if (to < 0) to = 0;
@@ -128,7 +134,7 @@ void MemViewerScroll(HWND hwndDlg, int message, int position)
 void MemViewerComboProc(HWND hwndDlg)
 {
 	int index = SendDlgItemMessage(hwndDlg, IDC_MEMVIEWERDROP, CB_GETCURSEL, 0, 0);
-	uint32_t areas[] = { BIOS_ADDR, CART_ADDR, WRAM_ADDR, DEVS_ADDR, REGS_ADDR, VRAM_ADDR };
+	uint32_t areas[] = { BIOS_ADDR, CART_ADDR, WRAM_ADDR + 0x1000, DEVS_ADDR, REGS_ADDR, VRAM_ADDR };
 	SetMemViewer(hwndDlg, areas[index]);
 }
 
@@ -158,6 +164,7 @@ BOOL CALLBACK MemViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM
 		case WM_CLOSE:
 		{
 			DestroyWindow(hwndDlg);
+			KillTimer(hwndDlg, 1);
 			hWndMemViewer = NULL;
 			return true;
 		}
@@ -170,7 +177,6 @@ BOOL CALLBACK MemViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM
 			SendDlgItemMessage(hwndDlg, IDC_MEMVIEWEROFFSET, EM_SETLIMITTEXT, 8, 0);
 			oldTextProc = (WNDPROC)SetWindowLongPtr(GetDlgItem(hwndDlg, IDC_MEMVIEWEROFFSET), GWLP_WNDPROC, (LONG_PTR)MemViewerEditProc);
 			SetScrollRange(GetDlgItem(hwndDlg, IDC_MEMVIEWERSCROLL), SB_CTL, 0, ((VRAM_ADDR + VRAM_SIZE) / BYTES) - LINES, false);
-			CheckDlgButton(hwndDlg, IDC_AUTOUPDATE, autoUpdateMemViewer);
 			MemViewerComboProc(hwndDlg); //force update
 			return true;
 		}
@@ -191,7 +197,10 @@ BOOL CALLBACK MemViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM
 			}
 			else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_AUTOUPDATE)
 			{
-				autoUpdateMemViewer = (IsDlgButtonChecked(hwndDlg, IDC_AUTOUPDATE) == 1);
+				if (IsDlgButtonChecked(hwndDlg, IDC_AUTOUPDATE))
+					SetTimer(hwndDlg, 1, 100, MemViewerAutoUpdate);
+				else
+					KillTimer(hwndDlg, 1);
 				return true;
 			}
 		}

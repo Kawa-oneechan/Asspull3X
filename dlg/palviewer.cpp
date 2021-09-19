@@ -65,6 +65,12 @@ void PalViewerDraw(DRAWITEMSTRUCT* dis)
 	UpdateDetails();
 }
 
+void CALLBACK PalViewerAutoUpdate(HWND a, UINT b, UINT_PTR c, DWORD d)
+{
+	a, b, c, d;
+	InvalidateRect(GetDlgItem(hWndPalViewer, IDC_MEMVIEWERGRID), NULL, true);
+}
+
 BOOL CALLBACK PalViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
@@ -72,12 +78,8 @@ BOOL CALLBACK PalViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM
 		case WM_CLOSE:
 		{
 			DestroyWindow(hwndDlg);
+			KillTimer(hwndDlg, 1);
 			hWndMemViewer = NULL;
-			return true;
-		}
-		case WM_INITDIALOG:
-		{
-			CheckDlgButton(hwndDlg, IDC_AUTOUPDATE, autoUpdatePalViewer);
 			return true;
 		}
 		case WM_SIZE:
@@ -110,7 +112,10 @@ BOOL CALLBACK PalViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM
 			}
 			else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_AUTOUPDATE)
 			{
-				autoUpdatePalViewer = (IsDlgButtonChecked(hwndDlg, IDC_AUTOUPDATE) == 1);
+				if (IsDlgButtonChecked(hwndDlg, IDC_AUTOUPDATE))
+					SetTimer(hwndDlg, 1, 100, PalViewerAutoUpdate);
+				else
+					KillTimer(hwndDlg, 1);
 				return true;
 			}
 		}

@@ -2,11 +2,11 @@
 #include "windows.h"
 #pragma code_page(1252)
 
-//#include ".\\res\\english.rc"
-//#include ".\\res\\french.rc"
+#include ".\\res\\english.rc"
+#include ".\\res\\french.rc"
 #include ".\\res\\japanese.rc"
-//#include ".\\res\\dutch.rc"
-//#include ".\\res\\hungarian.rc"
+#include ".\\res\\dutch.rc"
+#include ".\\res\\hungarian.rc"
 
 LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
 
