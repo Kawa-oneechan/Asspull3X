@@ -332,6 +332,7 @@ WCHAR statusFPS[16], statusText[512];
 HDC statusRealDC = NULL;
 HDC statusDC = NULL;
 HBITMAP statusBmp = NULL;
+void DrawStatusBar();
 void ResizeStatusBar()
 {
 	RECT sbRect;
@@ -348,6 +349,8 @@ void ResizeStatusBar()
 	SelectObject(statusDC, GetStockObject(DC_PEN));
 	SelectObject(statusDC, statusFont);
 	SelectObject(statusDC, statusBmp);
+
+	DrawStatusBar();
 }
 
 void DrawStatusBar()
