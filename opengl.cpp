@@ -317,7 +317,7 @@ void VBlank()
 
 void InitShaders()
 {
-	numShaders = ini.GetLongValue(L"video", L"shaders", -1);
+	numShaders = ini.GetLongValue(L"video", L"shaders", 0);
 	if (numShaders == 0)
 	{
 		programIds[0] = 0;

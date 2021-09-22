@@ -145,7 +145,7 @@ BOOL CALLBACK OptionsWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 						ini.SetBoolValue(L"media", L"reloadRom", reloadROM);
 						ini.SetBoolValue(L"media", L"reloadImg", reloadIMG);
 						ini.SetBoolValue(L"media", L"invertButtons", invertButtons == 1);
-						ini.SaveFile(L"settings.ini", false);
+						ini.SaveFile(settingsFile, false);
 						DestroyWindow(hwndDlg);
 						hWndOptions = NULL;
 

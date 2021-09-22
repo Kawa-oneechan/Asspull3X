@@ -33,7 +33,7 @@ BOOL CALLBACK ShadersWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 		{
 			SendDlgItemMessage(hwndDlg, IDC_SHADERSAVAILABLE, LB_DIR, DDL_READWRITE, (LPARAM)L"*.fs");
 
-			auto numShaders = ini.GetLongValue(L"video", L"shaders", -1);
+			auto numShaders = ini.GetLongValue(L"video", L"shaders", 0);
 			for (int i = 0; i < numShaders; i++)
 			{
 				WCHAR key[16] = { 0 };
@@ -125,7 +125,7 @@ BOOL CALLBACK ShadersWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 								ini.Delete(L"video", key, true);
 							}
 						}
-						ini.SaveFile(L"settings.ini", false);
+						ini.SaveFile(settingsFile, false);
 
 						//DestroyWindow(hwndDlg);
 						//hWndShaders = NULL;

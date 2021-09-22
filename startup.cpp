@@ -4,6 +4,7 @@
 #include <io.h>
 #include <fcntl.h>
 #include <commctrl.h>
+#include <ShlObj.h>
 
 extern "C" {
 #include "musashi/m68k.h"
@@ -26,6 +27,7 @@ extern void MainLoop();
 extern FILE* logFile;
 
 WCHAR* paramLoad = NULL;
+WCHAR settingsFile[512] = { 0 };
 
 void GetSettings()
 {
@@ -33,7 +35,26 @@ void GetSettings()
 	ini.SetMultiKey(false);
 	ini.SetMultiLine(false);
 	ini.SetUnicode(true);
-	ini.LoadFile(L"settings.ini");
+	
+	PWSTR path = NULL;
+	auto res = SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, NULL, &path);
+	wcscpy(settingsFile, path);
+	wcscat(settingsFile, L"\\Clunibus.ini");
+	auto atts = GetFileAttributes(settingsFile);
+	if (atts == INVALID_FILE_ATTRIBUTES)
+	{
+		wcscpy(settingsFile, L"Clunibus.ini");
+		atts = GetFileAttributes(settingsFile);
+		if (atts == INVALID_FILE_ATTRIBUTES)
+		{
+			//Local file doesn't exist? Then revert back to appdata and pretend.
+			wcscpy(settingsFile, path);
+			wcscat(settingsFile, L"\\Clunibus.ini");
+		}
+	}
+	CoTaskMemFree(path);
+
+	ini.LoadFile(settingsFile);
 	fpsCap = ini.GetBoolValue(L"video", L"fpsCap", false);
 	fpsVisible = ini.GetBoolValue(L"video", L"showFps", true);
 	reloadROM = ini.GetBoolValue(L"media", L"reloadRom", false);
@@ -140,7 +161,7 @@ void Preload()
 		{
 			thing = thePath;
 			ini.SetValue(L"media", L"bios", thePath);
-			ini.SaveFile(L"settings.ini", false);
+			ini.SaveFile(settingsFile, false);
 		}
 		else
 		{

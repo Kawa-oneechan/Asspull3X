@@ -109,7 +109,7 @@ void LoadROM(const WCHAR* path)
 
 	ini.SetValue(L"media", L"lastROM", path);
 	ResetPath();
-	ini.SaveFile(L"settings.ini", false);
+	ini.SaveFile(settingsFile, false);
 
 	char romName[32] = { 0 };
 	memcpy(romName, romCartridge + 8, 24);
@@ -265,7 +265,7 @@ void MainLoop()
 				memset(romCartridge, 0, CART_SIZE);
 				ini.SetValue(L"media", L"lastROM", L"");
 				ResetPath();
-				ini.SaveFile(L"settings.ini", false);
+				ini.SaveFile(settingsFile, false);
 				gfxFade = 31;
 				SetStatus(IDS_CARTEJECTED); //"Cart pulled."
 				Discord::UpdateDiscordPresence(NULL);
@@ -286,7 +286,7 @@ void MainLoop()
 					memset(romCartridge, 0, CART_SIZE);
 					ini.SetValue(L"media", L"lastROM", L"");
 					ResetPath();
-					ini.SaveFile(L"settings.ini", true);
+					ini.SaveFile(settingsFile, true);
 					Discord::UpdateDiscordPresence(NULL);
 					SetTitle(NULL);
 				}

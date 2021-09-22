@@ -658,7 +658,7 @@ void InsertDisk(int devId)
 		else
 			ini.SetValue(L"devices/hardDrive", key, uiString);
 		ResetPath();
-		ini.SaveFile(L"settings.ini", false);
+		ini.SaveFile(settingsFile, false);
 		if (hWndDevices != NULL) UpdateDevicePage(hWndDevices);
 	}
 }
@@ -673,7 +673,7 @@ void EjectDisk(int devId)
 	else
 		ini.SetValue(L"devices/hardDrive", key, L"");
 	ResetPath();
-	ini.SaveFile(L"settings.ini", false);
+	ini.SaveFile(settingsFile, false);
 	SetStatus(IDS_DISKEJECTED); //"Disk ejected."
 	if (hWndDevices != NULL) UpdateDevicePage(hWndDevices);
 }

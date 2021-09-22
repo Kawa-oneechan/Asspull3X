@@ -27,5 +27,5 @@ ipch
 *.opensdf
 *.exe
 *.dll
-settings.ini
+*.ini
 *.log

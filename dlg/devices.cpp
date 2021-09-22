@@ -160,7 +160,7 @@ void SwitchDevice(HWND hwndDlg)
 			ini.SetValue(L"devices", key, L"linePrinter");
 			break;
 	}
-	ini.SaveFile(L"settings.ini", false);
+	ini.SaveFile(settingsFile, false);
 	UpdateDeviceList(hwndDlg);
 }
 

@@ -17,6 +17,8 @@ extern unsigned char* romCartridge;
 extern unsigned char* ramVideo;
 extern unsigned char* ramInternal;
 
+extern WCHAR settingsFile[];
+
 extern SDL_Window* sdlWindow;
 
 extern int keyScan;
