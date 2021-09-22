@@ -11,13 +11,6 @@ extern int Slurp(unsigned char* dest, const WCHAR* filePath, unsigned int* size)
 extern int Dump(const WCHAR* filePath, unsigned char* source, unsigned long size);
 extern void Log(WCHAR* message, ...);
 extern WCHAR* GetString(int stab);
-/*
-#if _CONSOLE
-#define Log(M, ...) { wprintf(M, __VA_ARGS__); wprintf(L"\n"); }
-#else
-#define Log(M, ...)
-#endif
-*/
 
 extern unsigned char* romBIOS;
 extern unsigned char* romCartridge;
@@ -32,8 +25,6 @@ extern char joyaxes[4];
 
 extern int gfxFade;
 extern long ticks;
-
-extern FILE* diskFile;
 
 extern void RenderLine(int);
 extern void VBlank();
@@ -115,7 +106,10 @@ enum uiCommands
 #define SPR1_ADDR	0x064000
 #define SPR2_ADDR	0x064200
 
-//Sanity checks!
+#pragma region Sanity checks!
+#if (BIOS_SIZE + CART_SIZE) != 0x1000000
+#error Total ROM size (BIOS + CART) should be exactly 0x1000000 (16 MiB).
+#endif
 #if (BIOS_ADDR + BIOS_SIZE) > CART_ADDR
 #error BIOS encroaches on CART space.
 #endif
@@ -161,6 +155,7 @@ enum uiCommands
 #if (SPR2_ADDR + SPR2_SIZE) > VRAM_SIZE
 #error Insufficient VRAM!
 #endif
+#pragma endregion
 
 class Device
 {

@@ -169,7 +169,7 @@ bool DrawComboBox(LPDRAWITEMSTRUCT dis)
 	if (dis->itemState & ODS_COMBOBOXEDIT)
 		x += 2;
 
-	WCHAR text[256];
+	WCHAR text[256] = { 0 };
 	SendMessage(dis->hwndItem, CB_GETLBTEXT, dis->itemID, (LPARAM)text);
 	ExtTextOut(dis->hDC, x, y, ETO_CLIPPED | ETO_OPAQUE, &dis->rcItem, text, (UINT)wcslen(text), NULL);
 	return true;
@@ -178,7 +178,10 @@ bool DrawComboBox(LPDRAWITEMSTRUCT dis)
 typedef void (WINAPI * fnRtlGetNtVersionNumbers) (LPDWORD major, LPDWORD minor, LPDWORD build);
 bool IsWin10()
 {
-	auto RtlGetNtVersionNumbers = (fnRtlGetNtVersionNumbers)GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "RtlGetNtVersionNumbers");
+	auto mHd = GetModuleHandleW(L"ntdll.dll");
+	//shouldn't happen but let's keep code analysis happy.
+	if (mHd == NULL) return false;
+	auto RtlGetNtVersionNumbers = (fnRtlGetNtVersionNumbers)GetProcAddress(mHd, "RtlGetNtVersionNumbers");
 	if (RtlGetNtVersionNumbers)
 	{
 		DWORD major, minor, build;
@@ -261,6 +264,7 @@ HBITMAP GetImageListImage(int index)
 	bmi.bmiHeader.biWidth = bmi.bmiHeader.biHeight = 16;
 	auto hbm = CreateDIBSection(scrDC, &bmi, DIB_RGB_COLORS, NULL, NULL, 0);
 	ReleaseDC(0, scrDC);
+	if (hbm == NULL) return NULL;
 	//Step two, draw on it.
 	auto dc = CreateCompatibleDC(0);
 	auto oldBm = SelectObject(dc, hbm);
@@ -278,7 +282,9 @@ HBITMAP LoadImageFromPNG(int id)
 	unsigned long size, width, height;
 
 	auto find = FindResource(NULL, MAKEINTRESOURCE(id), L"PNG");
+	if (find == NULL) return NULL;
 	auto res = LoadResource(NULL, find);
+	if (res == NULL) return NULL;
 	auto lock = LockResource(res);
 	size = SizeofResource(NULL, find);
 	
@@ -383,8 +389,6 @@ void DrawStatusBar()
 
 	BitBlt(statusRealDC, 0, 0, sbRect.right, sbRect.bottom, hdc, 0, 0, SRCCOPY);
 }
-
-extern void AnimateAbout();
 
 void HandleUI()
 {

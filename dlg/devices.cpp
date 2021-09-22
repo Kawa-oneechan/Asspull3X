@@ -292,7 +292,7 @@ BOOL CALLBACK DevicesWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 			int y = (dis->rcItem.bottom + dis->rcItem.top - tm.tmHeight) / 2;
 			//int x = LOWORD(GetDialogBaseUnits()) / 4;
 
-			WCHAR text[256];
+			WCHAR text[256] = { 0 };
 
 			if (dis->CtlID == IDC_DEVTYPE)
 				SendMessage(dis->hwndItem, CB_GETLBTEXT, dis->itemID, (LPARAM)text);

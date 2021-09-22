@@ -17,7 +17,7 @@ extern void exit(int);
 static NORETURN void fatalerror(char *format, ...) {
       va_list ap;
       va_start(ap,format);
-      fprintf(stderr,format,ap);
+      vfprintf(stderr,format,ap);
       va_end(ap);
       exit(1);
 }

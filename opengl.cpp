@@ -148,6 +148,7 @@ char* ReadTextFile(const WCHAR* filePath)
 	long size = ftell(file);
 	fseek(file, 0, SEEK_SET);
 	char* dest = (char*)malloc(size + 1);
+	if (dest == NULL) return NULL;
 	fread(dest, 1, size, file);
 	dest[size] = 0;
 	fclose(file);
