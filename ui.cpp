@@ -70,7 +70,7 @@ void DrawCheckbox(HWND hwndDlg, LPNMCUSTOMDRAW nmc)
 		case CDDS_PREERASE:
 		{
 			SetBkColor(nmc->hdc, rgbBack);
-			SetTextColor(nmc->hdc, rgbText);
+			SetTextColor(nmc->hdc, nmc->uItemState & CDIS_DISABLED ? rgbListBk : rgbText);
 
 			HTHEME hTheme = OpenThemeData(nmc->hdr.hwndFrom, L"BUTTON");
 			if(!hTheme)
@@ -82,11 +82,13 @@ void DrawCheckbox(HWND hwndDlg, LPNMCUSTOMDRAW nmc)
 
 			auto checked = IsDlgButtonChecked(hwndDlg, idFrom);
 			int stateID = checked ? CBS_CHECKEDNORMAL : CBS_UNCHECKEDNORMAL;
-			if (nmc->uItemState & CDIS_SELECTED)
+			if (nmc->uItemState & CDIS_DISABLED)
+				stateID = checked ? CBS_CHECKEDDISABLED : CBS_UNCHECKEDDISABLED;
+			else if (nmc->uItemState & CDIS_SELECTED)
 				stateID = checked ? CBS_CHECKEDPRESSED : CBS_UNCHECKEDPRESSED;
 			else if (nmc->uItemState & CDIS_HOT)
 				stateID = checked ? CBS_CHECKEDHOT : CBS_UNCHECKEDHOT;
-                           
+
 			RECT r;
 			SIZE s;
 
@@ -122,10 +124,7 @@ bool DrawDarkButton(HWND hwndDlg, LPNMCUSTOMDRAW nmc)
 		case CDDS_PREPAINT:
 		{
 			SetBkColor(nmc->hdc, rgbBack);
-			SetTextColor(nmc->hdc, rgbText);
-
-			if (nmc->uItemState & CDIS_DISABLED)
-				SetTextColor(nmc->hdc, rgbListBk);
+			SetTextColor(nmc->hdc, nmc->uItemState & CDIS_DISABLED ? rgbListBk : rgbText);
 
 			HBRUSH border = CreateSolidBrush(rgbText);
 

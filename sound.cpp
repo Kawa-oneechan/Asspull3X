@@ -2,39 +2,14 @@
 #include <vector>
 #include <Windows.h>
 
-#define LATENCY 64
-#define BLOCKCOUNT 8
-
 HMIDIOUT midiDevice = 0;
-HWAVEOUT soundHandle = 0;
-std::vector<WAVEHDR> headers;
-int frameCount = 0;
-int blockCount = 0;
-int frameIndex = 0;
-int blockIndex = 0;
 
 int programs[16] = { 0 };
 std::vector<unsigned int> keyOns;
 
 void BufferAudioSample(signed char sample)
 {
-	if (soundHandle == 0)
-		return;
-
-	auto block = (signed char*)headers[blockIndex].lpData;
-	block[frameIndex] = (unsigned char)((int)sample + 128);
-	if(++frameIndex >= frameCount)
-	{
-		frameIndex = 0;
-		//while(true)
-		{
-			auto result = waveOutWrite(soundHandle, &headers[blockIndex], sizeof(WAVEHDR));
-			//if(result != WAVERR_STILLPLAYING)
-			//	break;
-		}
-		if(++blockIndex >= blockCount)
-			blockIndex = 0;
-    }
+	sample;
 }
 
 int InitSound()
@@ -66,42 +41,6 @@ int InitSound()
 		}
 	}
 
-	if (ini.GetBoolValue(L"audio", L"sound", true))
-	{
-		WAVEFORMATEX format = {};
-		format.wFormatTag = WAVE_FORMAT_PCM;
-		format.nChannels = 1;
-		format.nSamplesPerSec = 11025;
-		format.nBlockAlign = 1;
-		format.wBitsPerSample = 8;
-		format.nAvgBytesPerSec = format.nSamplesPerSec * format.nBlockAlign;
-		format.cbSize = 0;
-		auto res = waveOutOpen(&soundHandle, WAVE_MAPPER, &format, 0, 0, CALLBACK_NULL);
-		if (res != MMSYSERR_NOERROR)
-		{
-			Log(L"Could not open audio device: error %d", res);
-			return 3;
-		}
-
-		frameCount = LATENCY;
-		blockCount = BLOCKCOUNT;
-		frameIndex = 0;
-		blockIndex = 0;
-
-		headers.resize(blockCount);
-		for(int i = 0; i < blockCount; i++)
-		{
-			auto& header = headers[i];
-			memset((void*)&header, 0, sizeof(WAVEHDR));
-			header.lpData = (LPSTR)LocalAlloc(LMEM_FIXED, frameCount * 1);
-			header.dwBufferLength = frameCount * 1;
-			waveOutPrepareHeader(soundHandle, &header, sizeof(WAVEHDR));
-		}
-
-		waveOutSetVolume(soundHandle, 0x80008000);
-		waveOutRestart(soundHandle);
-	}
-
 	return 0;
 }
 
@@ -119,8 +58,6 @@ void UninitSound()
 		midiOutReset(midiDevice);
 		midiOutClose(midiDevice);
 	}
-	if (soundHandle)
-		waveOutClose(soundHandle);
 }
 
 void SendMidi(unsigned int message)
