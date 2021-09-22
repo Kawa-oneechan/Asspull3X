@@ -199,7 +199,7 @@ int main(int argc, char** argv)
 	_setmode(_fileno(stdout), _O_U16TEXT);
 #endif
 
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_VIDEO_OPENGL | SDL_INIT_GAMECONTROLLER) < 0)
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_VIDEO_OPENGL | SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER) < 0)
 		return 0;
 
 	GetSettings();
