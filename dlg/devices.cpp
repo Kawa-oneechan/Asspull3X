@@ -39,7 +39,7 @@ void UpdateDevicePage(HWND hwndDlg)
 				SetDlgItemText(hwndDlg, IDC_HEADER, (((DiskDrive*)device)->GetType() == ddHardDisk) ? GetString(IDS_DEVICES2+2) : GetString(IDS_DEVICES2+1) ); //"Diskette drive" "Hard drive"
 				SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, CB_SETCURSEL, (((DiskDrive*)device)->GetType() == ddHardDisk) ? 2 : 1, 0);
 				WCHAR key[8] = { 0 };
-				_itow_s(devNum, key, 8, 10);
+				_itow(devNum, key, 10);
 				auto val = ini.GetValue((((DiskDrive*)device)->GetType() == ddDiskette) ? L"devices/diskDrive" : L"devices/hardDrive", key, L"");
 				SetDlgItemText(hwndDlg, IDC_DDFILE, val);
 				EnableWindow(GetDlgItem(hwndDlg, IDC_DDINSERT), val[0] == 0);
@@ -137,7 +137,7 @@ void SwitchDevice(HWND hwndDlg)
 		return;
 
 	WCHAR key[8] = { 0 };
-	_itow_s(devNum, key, 8, 10);
+	_itow(devNum, key, 10);
 
 	if (devices[devNum] != NULL) delete devices[devNum];
 	switch (newType)

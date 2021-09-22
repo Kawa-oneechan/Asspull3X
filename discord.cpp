@@ -1,8 +1,6 @@
+#include "ui.h"
 #include <discord_rpc.h>
 #include <time.h>
-#include <stdio.h>
-#include <Windows.h>
-#include "resource.h"
 
 extern WCHAR* GetString(int);
 extern void Log(WCHAR* message, ...);
@@ -53,9 +51,9 @@ namespace Discord
 			return;
 		WCHAR wName[128] = { 0 };
 		if (gameName == NULL)
-			wcscpy_s(wName, 128, GetString(IDS_NOTPLAYING));
+			wcscpy(wName, GetString(IDS_NOTPLAYING));
 		else
-			mbstowcs_s(NULL, wName, gameName, 128);
+			mbstowcs(wName, gameName, ARRAYSIZE(wName));
 		Log(L"Discord: \"%s\"", wName);
 		DiscordRichPresence discord_presence = {};
 		discord_presence.details = gameName;

@@ -51,7 +51,7 @@ void MemViewerDraw(DRAWITEMSTRUCT* dis)
 			wsprintf(buf, L"%c%c", hex[(here & 0xF0) >> 4], hex[here & 0x0F]);
 			DrawText(hdc, buf, -1, &r, DT_TOP | DT_LEFT | DT_NOPREFIX);
 			r.left = 3 + 442 + (col * fontSize.cx);
-			//sprintf_s(buf, 256, "%c", here);
+			//sprintf(buf, "%c", here);
 			//DrawText(hdc, buf, -1, &r, DT_TOP | DT_LEFT | DT_NOPREFIX);
 
 			unsigned char* glyph = (ramVideo + FONT_ADDR + 0x1000) + (here * 16);

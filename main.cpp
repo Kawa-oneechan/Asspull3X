@@ -55,7 +55,7 @@ void LoadROM(const WCHAR* path)
 		mz_zip_archive zip;
 		memset(&zip, 0, sizeof(zip));
 		char zipPath[512] = { 0 };
-		wcstombs_s(NULL, zipPath, path, 512);
+		wcstombs(zipPath, path, 512);
 		mz_zip_reader_init_file(&zip, zipPath, 0);
 
 		bool foundSomething = false;

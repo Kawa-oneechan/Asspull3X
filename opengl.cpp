@@ -77,7 +77,7 @@ void ComplainAboutShaders(const WCHAR* file, char* log, size_t logLength)
 {
 	WCHAR hdr[512];
 	WCHAR msg[512];
-	wcscpy_s(hdr, 512, GetString(IDS_SHADERCOMPILE_A)); //"An error occured while compiling shaders."
+	wcscpy(hdr, GetString(IDS_SHADERCOMPILE_A)); //"An error occured while compiling shaders."
 	wsprintf(msg, GetString(IDS_SHADERCOMPILE_B), file); //"The file %s contains at least one syntax error, and will be skipped."
 
 	WCHAR *wLog = (WCHAR*)malloc((logLength + 4) * 2);
@@ -345,7 +345,7 @@ int InitVideo()
 	auto winWidth = ini.GetLongValue(L"video", L"width", 640);
 	auto winHeight = ini.GetLongValue(L"video", L"height", 480);
 	char title[256] = { 0 };
-	wcstombs_s(NULL, title, GetString(IDS_FULLTITLE), 256);
+	wcstombs(title, GetString(IDS_FULLTITLE), 256);
 	if ((sdlWindow = SDL_CreateWindow(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, winWidth, winHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE)) == NULL)
 	{
 		Log(GetString(IDS_WINDOWFAILED), SDL_GetError()); //"Could not create window: %s"

@@ -38,18 +38,18 @@ void GetSettings()
 	
 	PWSTR path = NULL;
 	auto res = SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, NULL, &path);
-	wcscpy_s(settingsFile, 512, path);
-	wcscat_s(settingsFile, 512, L"\\Clunibus.ini");
+	wcscpy(settingsFile, path);
+	wcscat(settingsFile, L"\\Clunibus.ini");
 	auto atts = GetFileAttributes(settingsFile);
 	if (atts == INVALID_FILE_ATTRIBUTES)
 	{
-		wcscpy_s(settingsFile, 512, L"Clunibus.ini");
+		wcscpy(settingsFile, L"Clunibus.ini");
 		atts = GetFileAttributes(settingsFile);
 		if (atts == INVALID_FILE_ATTRIBUTES)
 		{
 			//Local file doesn't exist? Then revert back to appdata and pretend.
-			wcscpy_s(settingsFile, 512, path);
-			wcscat_s(settingsFile, 512, L"\\Clunibus.ini");
+			wcscpy(settingsFile, path);
+			wcscat(settingsFile, L"\\Clunibus.ini");
 		}
 	}
 	CoTaskMemFree(path);
@@ -92,9 +92,9 @@ void ReportLoadingFail(int messageId, int err, int device, const WCHAR* fileName
  	WCHAR b[1024] = { 0 };
 	WCHAR e[1024] = { 0 };
 	WCHAR f[1024] = { 0 };
-	_wsplitpath_s(fileName, NULL, 0, NULL, 0, f, 1024, e, 1024);
-	wcscat_s(f, 1024, e);
-	_wcserror_s(e, 1024, err);
+	_wsplitpath_s(fileName, NULL, 0, NULL, 0, f, ARRAYSIZE(f), e, ARRAYSIZE(e));
+	wcscat(f, e);
+	_wcserror_s(e, ARRAYSIZE(e), err);
 	wsprintf(b, GetString(messageId), f, device);
 	TaskDialog(NULL, NULL, GetString(IDS_SHORTTITLE), b, e, TDCBF_OK_BUTTON, TD_WARNING_ICON, NULL);
 }
@@ -108,8 +108,8 @@ void InitializeDevices()
 		WCHAR dft[64] = { 0 };
 		const WCHAR* thing;
 		//Always load a lineprinter as #1 by default
-		if (i == 1) wcscpy_s(dft, 64, L"linePrinter");
-		_itow_s(i, key, 32, 10);
+		if (i == 1) wcscpy(dft, L"linePrinter");
+		_itow(i, key, 10);
 		thing = ini.GetValue(L"devices", key, dft);
 		if (i == 0) thing = L"diskDrive"; //Enforce a disk drive as #0.
 		if (!wcslen(thing)) continue;
