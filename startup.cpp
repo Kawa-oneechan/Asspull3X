@@ -38,18 +38,18 @@ void GetSettings()
 	
 	PWSTR path = NULL;
 	auto res = SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, NULL, &path);
-	wcscpy(settingsFile, path);
-	wcscat(settingsFile, L"\\Clunibus.ini");
+	wcscpy_s(settingsFile, 512, path);
+	wcscat_s(settingsFile, 512, L"\\Clunibus.ini");
 	auto atts = GetFileAttributes(settingsFile);
 	if (atts == INVALID_FILE_ATTRIBUTES)
 	{
-		wcscpy(settingsFile, L"Clunibus.ini");
+		wcscpy_s(settingsFile, 512, L"Clunibus.ini");
 		atts = GetFileAttributes(settingsFile);
 		if (atts == INVALID_FILE_ATTRIBUTES)
 		{
 			//Local file doesn't exist? Then revert back to appdata and pretend.
-			wcscpy(settingsFile, path);
-			wcscat(settingsFile, L"\\Clunibus.ini");
+			wcscpy_s(settingsFile, 512, path);
+			wcscat_s(settingsFile, 512, L"\\Clunibus.ini");
 		}
 	}
 	CoTaskMemFree(path);
