@@ -261,7 +261,8 @@ HBITMAP GetImageListImage(int index)
 	bmi.bmiHeader.biBitCount = 32;
 	bmi.bmiHeader.biPlanes = 1;
 	bmi.bmiHeader.biWidth = bmi.bmiHeader.biHeight = 16;
-	auto hbm = CreateDIBSection(scrDC, &bmi, DIB_RGB_COLORS, NULL, NULL, 0);
+	void* throwAway; //only here to satisfy code analysis :shrug:
+	auto hbm = CreateDIBSection(scrDC, &bmi, DIB_RGB_COLORS, &throwAway, NULL, 0);
 	ReleaseDC(0, scrDC);
 	if (hbm == NULL) return NULL;
 	//Step two, draw on it.

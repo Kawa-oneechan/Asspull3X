@@ -196,7 +196,7 @@ int main(int argc, char** argv)
 	argc, argv;
 #if _CONSOLE
 	SetConsoleCP(CP_UTF8);
-	_setmode(_fileno(stdout), _O_U16TEXT);
+	auto throwAway = _setmode(_fileno(stdout), _O_U16TEXT);
 #endif
 
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_VIDEO_OPENGL | SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER) < 0)

@@ -148,7 +148,7 @@ unsigned int m68k_read_memory_8(unsigned int address)
 			return ramInternal[addr & (WRAM_SIZE - 1)];
 		case 0x2: //DEV
 			{
-				auto devnum = addr / DEVBLOCK;
+				auto devnum = (addr / DEVBLOCK) % MAXDEVS;
 				if (devices[devnum] != NULL)
 					return devices[devnum]->Read(addr % DEVBLOCK);
 				return 0;
@@ -176,12 +176,12 @@ unsigned int m68k_read_memory_16(unsigned int address)
 			case 0x14:
 			case 0x18:
 			case 0x1C:
-				return scrollX[(reg - 0x10) / 2];
+				return scrollX[min((reg - 0x10) / 4, 4)];
 			case 0x12: //Vertical scroll
 			case 0x16:
 			case 0x1A:
 			case 0x1E:
-				return scrollY[(reg - 0x12) / 2];
+				return scrollY[min((reg - 0x12) / 4, 4)];
 			case 0x40: //Keyscan
 				keyScan = PollKeyboard(false);
 				return keyScan;
@@ -297,7 +297,8 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				{
 					char chr[1] = { (char)value };
 					WCHAR wchr[6] = { 0 };
-					mbrtowc(wchr, chr, 1, NULL);
+					mbstate_t throwAway = { 0 }; //only here to please code analysis :shrug:
+					mbrtowc(wchr, chr, 1, &throwAway);
 					wprintf(wchr);
 				}
 				break;
@@ -354,7 +355,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 			break;
 		case 0x2: //DEV
 			{
-				auto devnum = addr / DEVBLOCK;
+				auto devnum = (addr / DEVBLOCK) % MAXDEVS;
 				if (devices[devnum] != NULL)
 					devices[devnum]->Write(addr % DEVBLOCK, value);
 			}

@@ -144,11 +144,22 @@ char* ReadTextFile(const WCHAR* filePath)
 	FILE* file = NULL;
 	if (_wfopen_s(&file, filePath, L"r+b"))
 		return NULL;
+	if (file == NULL)
+		return NULL;
 	fseek(file, 0, SEEK_END);
 	long size = ftell(file);
+	if (size == 0)
+	{
+		fclose(file);
+		return "";
+	}
 	fseek(file, 0, SEEK_SET);
-	char* dest = (char*)malloc(size + 1);
-	if (dest == NULL) return NULL;
+	char* dest = (char*)malloc(size);
+	if (dest == NULL)
+	{
+		fclose(file);
+		return NULL;
+	}
 	fread(dest, 1, size, file);
 	dest[size] = 0;
 	fclose(file);
@@ -185,13 +196,16 @@ GLuint compileProgram(const WCHAR* fragFile)
 		if(logLength > 0)
 		{
 			char* log = (char*) malloc(logLength + 4);
-			// Show any errors as appropriate
-			glGetProgramInfoLog(programId, logLength, &logLength, log);
-			WCHAR *wLog = (WCHAR*)malloc((logLength + 4) * 2);
-			mbstowcs_s(NULL, wLog, logLength, log, _TRUNCATE);
-			free(log);
-			Log(L"Prog Info Log: %s", wLog);
-			free(wLog);
+			if (log != NULL)
+			{
+				// Show any errors as appropriate
+				glGetProgramInfoLog(programId, logLength, &logLength, log);
+				WCHAR *wLog = (WCHAR*)malloc((logLength + 4) * 2);
+				mbstowcs_s(NULL, wLog, logLength, log, _TRUNCATE);
+				free(log);
+				Log(L"Prog Info Log: %s", wLog);
+				free(wLog);
+			}
 		}
 	}
 	if(vtxShaderId) glDeleteShader(vtxShaderId);
@@ -412,7 +426,7 @@ void Screenshot()
 	WCHAR snap[128];
 	__time64_t now;
 	_time64(&now);
-	wsprintf(snap, L"%lu.png", now);
+	wsprintf(snap, L"%I64u.png", now);
 
 	char* shot = (char*)malloc(4 * scrWidth * scrHeight);
 	glReadPixels(offsetX, offsetY, scrWidth, scrHeight, GL_RGB, GL_UNSIGNED_BYTE, shot);
@@ -427,7 +441,15 @@ void Screenshot()
 	{
 		FILE* pFile = NULL;
 		if (_wfopen_s(&pFile, snap, L"wb"))
+		{
+			SetStatus(IDS_PNGFAILED); //"Failed to write PNG."
 			return;
+		}
+		if (pFile == NULL)
+		{
+			SetStatus(IDS_PNGFAILED); //"Failed to write PNG."
+			return;
+		}
 		fwrite(pPNG_data, 1, png_data_size, pFile);
 		fclose(pFile);
 		WCHAR m[512] = { 0 };

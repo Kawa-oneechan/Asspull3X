@@ -24,6 +24,8 @@ int Slurp(unsigned char* dest, const WCHAR* filePath, unsigned int* size)
 	FILE* file = NULL;
 	if (_wfopen_s(&file, filePath, L"r+b"))
 		return errno;
+	if (file == NULL)
+		return -1;
 	fseek(file, 0, SEEK_END);
 	long fs = ftell(file);
 	if (size != 0) *size = (unsigned int)fs;
@@ -38,6 +40,8 @@ int Dump(const WCHAR* filePath, unsigned char* source, unsigned long size)
 	FILE* file = NULL;
 	if (_wfopen_s(&file, filePath, L"wb"))
 		return errno;
+	if (file == NULL)
+		return -1;
 	fwrite(source, size, 1, file);
 	fclose(file);
 	return 0;
