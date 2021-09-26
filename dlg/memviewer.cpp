@@ -274,7 +274,7 @@ void ShowMemViewer()
 {
 	if (!IsWindow(hWndMemViewer))
 	{
-		hWndMemViewer = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_MEMVIEWER), (HWND)hWnd, (DLGPROC)MemViewerWndProc);
+		hWndMemViewer = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_MEMVIEWER), (HWND)hWndMain, (DLGPROC)MemViewerWndProc);
 		ShowWindow(hWndMemViewer, SW_SHOW);
 	}
 }

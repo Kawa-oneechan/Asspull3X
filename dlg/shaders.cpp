@@ -205,7 +205,7 @@ void ShowShaders()
 {
 	if (!IsWindow(hWndShaders))
 	{
-		hWndShaders = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_SHADERS), (HWND)hWnd, (DLGPROC)ShadersWndProc);
+		hWndShaders = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_SHADERS), (HWND)hWndMain, (DLGPROC)ShadersWndProc);
 		ShowWindow(hWndShaders, SW_SHOW);
 	}
 }

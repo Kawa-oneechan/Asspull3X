@@ -237,12 +237,10 @@ BOOL CALLBACK DevicesWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 				ImageList_Draw(hIml, IML_WARNING, hdc, warningIcon.left, warningIcon.top, ILD_NORMAL);
 			if (IsWindowVisible(GetDlgItem(hwndDlg, IDC_DEVNONE)))
 			{
-				auto hdcMem = CreateCompatibleDC(hdc);
 				auto oldBitmap = SelectObject(hdcMem, hShrugImage);
 				BLENDFUNCTION ftn = { AC_SRC_OVER, 0, 255, AC_SRC_ALPHA };
 				AlphaBlend(hdc, shrugIcon.left, shrugIcon.top, 64, 64, hdcMem, 0, 0, 64, 64, ftn);
 				SelectObject(hdcMem, oldBitmap);
-				DeleteDC(hdcMem);
 			}
 			DeleteDC(hdcMem);
 			EndPaint(hwndDlg, &ps);
@@ -344,7 +342,7 @@ void ShowDevices()
 	{
 		wasPaused = pauseState > 0;
 		if (!wasPaused) pauseState = 1;
-		hWndDevices = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_DEVICES), (HWND)hWnd, (DLGPROC)DevicesWndProc);
+		hWndDevices = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_DEVICES), (HWND)hWndMain, (DLGPROC)DevicesWndProc);
 		ShowWindow(hWndDevices, SW_SHOW);
 	}
 }

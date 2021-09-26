@@ -70,7 +70,7 @@ bool initGLExtensions() {
 }
 
 
-extern HWND hWnd;
+extern HWND hWndMain;
 extern FILE* logFile;
 
 void ComplainAboutShaders(const WCHAR* file, char* log, size_t logLength)
@@ -87,7 +87,7 @@ void ComplainAboutShaders(const WCHAR* file, char* log, size_t logLength)
 	Log(L"-----------------------");
 
 	TASKDIALOGCONFIG td = {
-		sizeof(TASKDIALOGCONFIG), hWnd, NULL,
+		sizeof(TASKDIALOGCONFIG), hWndMain, NULL,
 		TDF_EXPAND_FOOTER_AREA, TDCBF_OK_BUTTON,
 		GetString(IDS_SHORTTITLE),
 		NULL,
@@ -161,7 +161,7 @@ char* ReadTextFile(const WCHAR* filePath)
 		return NULL;
 	}
 	fread(dest, 1, size, file);
-	dest[size] = 0;
+	dest[size - 1] = 0;
 	fclose(file);
 	return dest;
 }
@@ -356,8 +356,8 @@ void InitShaders()
 int InitVideo()
 {
 	//Log("Creating window...");
-	auto winWidth = ini.GetLongValue(L"video", L"width", 640);
-	auto winHeight = ini.GetLongValue(L"video", L"height", 480);
+	winWidth = ini.GetLongValue(L"video", L"width", 640);
+	winHeight = ini.GetLongValue(L"video", L"height", 480);
 	char title[256] = { 0 };
 	wcstombs(title, GetString(IDS_FULLTITLE), 256);
 	if ((sdlWindow = SDL_CreateWindow(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, winWidth, winHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE)) == NULL)

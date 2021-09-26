@@ -8,7 +8,7 @@ processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 WCHAR startingPath[FILENAME_MAX];
 WCHAR lastPath[FILENAME_MAX];
 
-HWND hWnd;
+HWND hWndMain;
 HINSTANCE hInstance;
 HWND hWndStatusBar;
 HMENU menuBar;
@@ -342,10 +342,10 @@ void DrawStatusBar();
 void ResizeStatusBar()
 {
 	RECT sbRect;
-	GetClientRect(hWnd, &sbRect);
+	GetClientRect(hWndMain, &sbRect);
 	SetWindowPos(hWndStatusBar, HWND_NOTOPMOST, 0, sbRect.bottom - statusBarHeight, sbRect.right, statusBarHeight, SWP_NOZORDER);
 
-	if (statusRealDC) ReleaseDC(hWnd, statusRealDC);
+	if (statusRealDC) ReleaseDC(hWndMain, statusRealDC);
 	if (statusDC) DeleteDC(statusDC);
 	if (statusBmp) DeleteObject(statusBmp);
 	statusRealDC = GetDC(hWndStatusBar);
@@ -362,7 +362,7 @@ void ResizeStatusBar()
 void DrawStatusBar()
 {
 	RECT sbRect;
-	GetClientRect(hWnd, &sbRect);
+	GetClientRect(hWndMain, &sbRect);
 	sbRect.bottom = statusBarHeight;
 
 	auto hdc = statusDC;
@@ -430,11 +430,11 @@ void InitializeUI()
 		if (info.subsystem != SDL_SYSWM_WINDOWS)
 			return;
 
-		hWnd = info.info.win.window;
+		hWndMain = info.info.win.window;
 		hInstance = info.info.win.hinstance;
 
-		SDLWinProc = (WNDPROC)GetWindowLongPtr(hWnd, GWLP_WNDPROC);
-		SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG)WndProc);
+		SDLWinProc = (WNDPROC)GetWindowLongPtr(hWndMain, GWLP_WNDPROC);
+		SetWindowLongPtr(hWndMain, GWLP_WNDPROC, (LONG)WndProc);
 
 		InitCommonControls();
 
@@ -465,9 +465,9 @@ void InitializeUI()
 			miInfo.hbmpItem = hBmp;
 			SetMenuItemInfo(menuBar, 1000 + i, FALSE, &miInfo);
 		}
-		SetMenu(hWnd, menuBar);
+		SetMenu(hWndMain, menuBar);
 
-		hWndStatusBar = CreateWindowEx(0, L"STATIC", NULL, WS_CHILD | WS_VISIBLE | SS_OWNERDRAW, 0, 0, 0, 0, hWnd, 0, hInstance, NULL);
+		hWndStatusBar = CreateWindowEx(0, L"STATIC", NULL, WS_CHILD | WS_VISIBLE | SS_OWNERDRAW, 0, 0, 0, 0, hWndMain, 0, hInstance, NULL);
 		statusBarHeight = 23;
 		wcscpy_s(statusFPS, 16, L"     ");
 
@@ -501,7 +501,7 @@ bool ShowFileDlg(bool toSave, WCHAR* target, size_t max, const WCHAR* filter)
 
 	OPENFILENAME ofn = {
 		sizeof(OPENFILENAME),
-		hWnd, hInstance,
+		hWndMain, hInstance,
 		sFilter, NULL, 0, 1,
 		target, max,
 		NULL, 0,

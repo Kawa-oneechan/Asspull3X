@@ -37,7 +37,7 @@ void GetSettings()
 	ini.SetUnicode(true);
 	
 	PWSTR path = NULL;
-	auto res = SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, NULL, &path);
+	auto res = SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, NULL, &path); res;
 	wcscpy(settingsFile, path);
 	wcscat(settingsFile, L"\\Clunibus.ini");
 	auto atts = GetFileAttributes(settingsFile);
@@ -196,7 +196,7 @@ int main(int argc, char** argv)
 	argc, argv;
 #if _CONSOLE
 	SetConsoleCP(CP_UTF8);
-	auto throwAway = _setmode(_fileno(stdout), _O_U16TEXT);
+	auto throwAway = _setmode(_fileno(stdout), _O_U16TEXT); throwAway;
 #endif
 
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_VIDEO_OPENGL | SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER) < 0)

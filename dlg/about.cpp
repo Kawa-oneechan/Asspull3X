@@ -113,7 +113,7 @@ void ShowAbout()
 {
 	if (!IsWindow(hWndAbout))
 	{
-		hWndAbout = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_ABOUT), (HWND)hWnd, (DLGPROC)AboutWndProc);
+		hWndAbout = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_ABOUT), (HWND)hWndMain, (DLGPROC)AboutWndProc);
 		ShowWindow(hWndAbout, SW_SHOW);
 	}
 }

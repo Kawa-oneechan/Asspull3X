@@ -170,7 +170,7 @@ void ShowOptions()
 {
 	if (!IsWindow(hWndOptions))
 	{
-		hWndOptions = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_OPTIONS), (HWND)hWnd, (DLGPROC)OptionsWndProc);
+		hWndOptions = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_OPTIONS), (HWND)hWndMain, (DLGPROC)OptionsWndProc);
 		ShowWindow(hWndOptions, SW_SHOW);
 	}
 }

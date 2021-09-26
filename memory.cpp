@@ -51,18 +51,18 @@ extern int scale, offsetX, offsetY, statusBarHeight;
 
 extern int line, interrupts;
 
-void HandleHdma(int line)
+void HandleHdma(int currentLine)
 {
 	for (auto i = 0; i < 8; i++)
 	{
 		if (!hdmaOn[i])
 			continue;
-		if (line < hdmaStart[i])
+		if (currentLine < hdmaStart[i])
 			continue;
-		if (line > hdmaStart[i] + hdmaCount[i])
+		if (currentLine > hdmaStart[i] + hdmaCount[i])
 			continue;
-		line -= hdmaStart[i];
-		auto l = line / (hdmaDouble[i] ? 2 : 1);
+		currentLine -= hdmaStart[i];
+		auto l = currentLine / (hdmaDouble[i] ? 2 : 1);
 		auto width = hdmaWidth[i];
 		auto target = hdmaTarget[i];
 		auto source = hdmaSource[i];

@@ -189,7 +189,7 @@ void ShowPalViewer()
 {
 	if (!IsWindow(hWndPalViewer))
 	{
-		hWndPalViewer = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_PALVIEWER), (HWND)hWnd, (DLGPROC)PalViewerWndProc);
+		hWndPalViewer = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_PALVIEWER), (HWND)hWndMain, (DLGPROC)PalViewerWndProc);
 		ShowWindow(hWndPalViewer, SW_SHOW);
 	}
 }

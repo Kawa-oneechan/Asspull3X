@@ -16,7 +16,7 @@ extern HFONT headerFont, monoFont;
 extern WCHAR startingPath[FILENAME_MAX];
 extern WCHAR lastPath[FILENAME_MAX];
 
-extern HWND hWnd;
+extern HWND hWndMain;
 extern HINSTANCE hInstance;
 extern HWND hWndStatusBar;
 extern int statusBarHeight;
