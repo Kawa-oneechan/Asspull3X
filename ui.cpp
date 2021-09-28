@@ -205,6 +205,22 @@ int MatchTheme()
 	return !nResult;
 }
 
+COLORREF GetWindows10AccentColor(COLORREF not10)
+{
+	if (!IsWin10())
+		return not10;
+	DWORD nResult;
+	HKEY key;
+	if (RegOpenKeyEx(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\DWM", 0, KEY_READ, &key)) return not10;
+	DWORD dwBufferSize = sizeof(DWORD);
+	RegQueryValueEx(key, L"AccentColor", 0, NULL, (LPBYTE)&nResult, &dwBufferSize);
+	RegCloseKey(key);
+	nResult &= 0xFFFFFF;
+	if (nResult == 0x000000) //you chose black?
+		nResult = not10; //fall back
+	return nResult;
+}
+
 void SetThemeColors()
 {
 	theme = ini.GetLongValue(L"media", L"theme", 0);
@@ -220,7 +236,7 @@ void SetThemeColors()
 			rgbStripe = RGB(240, 240, 240);
 			rgbText = RGB(0, 0, 0);
 			rgbList = RGB(0, 0, 0);
-			rgbHeader = RGB(0x00, 0x33, 0x99);
+			rgbHeader = GetWindows10AccentColor(RGB(0x00, 0x33, 0x99));
 			rgbListBk = RGB(255, 255, 255);
 			break;
 		}
@@ -230,7 +246,7 @@ void SetThemeColors()
 			rgbStripe = RGB(76, 74, 72);
 			rgbText = RGB(255, 255, 255);
 			rgbList = RGB(255, 255, 255);
-			rgbHeader = RGB(0x8E, 0xCA, 0xF8);
+			rgbHeader = GetWindows10AccentColor(RGB(0x8E, 0xCA, 0xF8));
 			rgbListBk = RGB(76, 74, 72);
 		}
 		//this space for rent
