@@ -294,7 +294,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				joylatch[reg - 0x42] = 0;
 				break;
 			case 0x48: //Sound out
-				BufferAudioSample((signed char)value);
+				//BufferAudioSample((signed char)value);
 				return;
 			case 0x80: //Debug
 				//printf("%c", (char)value);

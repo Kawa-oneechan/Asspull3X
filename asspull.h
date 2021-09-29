@@ -40,7 +40,6 @@ extern int InitMemory();
 
 extern int InitSound();
 extern void UninitSound();
-extern void BufferAudioSample(signed char);
 
 extern void HandleUI();
 extern void ResetPath();
