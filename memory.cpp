@@ -2,6 +2,7 @@
 #include <time.h>
 
 extern void SendMidi(unsigned int message);
+extern void SendOPL(unsigned short message);
 extern int mouseTimer;
 
 extern "C"
@@ -391,6 +392,9 @@ void m68k_write_memory_16(unsigned int address, unsigned int value)
 			case 0x1E:
 				scrollY[(reg - 0x12) / 4] = value & 511;
 				break;
+			case 0x48: //OPL3 out
+				SendOPL(value);
+				break;
 			case 0x54:
 				caret = value;
 				break;
@@ -441,7 +445,6 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 				break;
 			case 0x70: //PCM Offset
 				pcmSource = value;
-				Log(L"REG_PCMOFFSET: 0x%X", pcmSource);
 				break;
 			case 0x74: //PCM Length + Repeat
 				if (value == 0)
@@ -458,7 +461,6 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 					pcmStream = (char*)malloc(pcmLength);
 					for (int i = 0; i < pcmLength; i++)
 						pcmStream[i] = m68k_read_memory_8((pcmSource + i));
-					Log(L"REG_PCMLENGTH: 0x%X, %s", pcmLength, pcmRepeat ? L"repeated" : L"one-shot");
 				}
 				break;
 			case 0x180: //HDMA Control

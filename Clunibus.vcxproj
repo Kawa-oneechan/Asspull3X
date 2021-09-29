@@ -101,6 +101,7 @@
     <ClInclude Include="miniz.h" />
     <ClInclude Include="musashi\m68k.h" />
     <ClInclude Include="musashi\m68kconf.h" />
+    <ClInclude Include="opl3.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SimpleIni.h" />
     <ClInclude Include="ui.h" />
@@ -123,6 +124,7 @@
     <ClCompile Include="musashi\m68kops.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="opengl.cpp" />
+    <ClCompile Include="opl3.c" />
     <ClCompile Include="picopng.cpp" />
     <ClCompile Include="sound.cpp" />
     <ClCompile Include="startup.cpp" />

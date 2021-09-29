@@ -1,6 +1,10 @@
 #include "asspull.h"
 #include <vector>
 #include <Windows.h>
+#include "opl3.h"
+
+//#define FREQUENCY 11025
+#define FREQUENCY 44100
 
 HMIDIOUT midiDevice = 0;
 
@@ -12,20 +16,12 @@ extern bool pcmRepeat;
 
 static SDL_AudioDeviceID saDev;
 
-extern "C"
-{
-	unsigned int m68k_read_memory_8(unsigned int address);
-}
-
-extern bool quit;
-
 char *pcmStream = NULL;
+opl3_chip opl3 = { 0 };
+short opl3Stream[2048];
 
 void saCallback(void *userdata, unsigned char* stream, int len)
 {
-	if (quit)
-		return;
-
 	signed short* str = (signed short*)stream;
 	len /= 2;
 
@@ -35,9 +31,12 @@ void saCallback(void *userdata, unsigned char* stream, int len)
 	if (pcmStream != NULL)
 	{
 		len = (len > pcmPlayed ? pcmPlayed : len);
-		for (int i = 0; i < len; i++)
+		for (int i = 0; i < len; i += 4)
 		{
-			str[i] = (signed short)pcmStream[pcmLength - pcmPlayed] - 128;
+			str[i] = ((signed short)pcmStream[pcmLength - pcmPlayed] - 128);
+			str[i + 1] = str[i];
+			str[i + 2] = str[i];
+			str[i + 3] = str[i];
 			pcmPlayed--;
 		}
 
@@ -55,6 +54,17 @@ void saCallback(void *userdata, unsigned char* stream, int len)
 			}
 		}
 	}
+
+	OPL3_GenerateStream(&opl3, opl3Stream, len / 2);
+	for (int i = 0; i < len; i++)
+		opl3Stream[i] = (opl3Stream[i] >> 8) | (opl3Stream[i] << 8);
+
+	SDL_MixAudioFormat(stream, (unsigned char*)opl3Stream, AUDIO_S16MSB, len * 2, SDL_MIX_MAXVOLUME);
+}
+
+void PauseSound(bool state)
+{
+	SDL_PauseAudioDevice(saDev, state);
 }
 
 int InitSound()
@@ -88,14 +98,14 @@ int InitSound()
 
 	SDL_AudioSpec wanted = { 0 };
 	wanted.format = AUDIO_S16MSB;
-	wanted.freq = 11025;
+	wanted.freq = FREQUENCY;
 	wanted.channels = 1;
-	wanted.samples = 4096;
+	wanted.samples = 1024; //4096;
 	wanted.callback = saCallback;
 	SDL_AudioSpec got = { 0 };
 
 	saDev = SDL_OpenAudioDevice(SDL_GetAudioDeviceName(1, 0), 0, &wanted, &got, 0);// SDL_AUDIO_ALLOW_FREQUENCY_CHANGE | SDL_AUDIO_ALLOW_SAMPLES_CHANGE);
-	SDL_PauseAudioDevice(saDev, 0);
+	PauseSound(true);
 
 	return 0;
 }
@@ -145,3 +155,22 @@ void SendMidi(unsigned int message)
 		}
 	}
 }
+
+void SendOPL(unsigned short message)
+{
+//	Log(L"REG_OPLOUT = 0x%04X;", message);
+	OPL3_WriteReg(&opl3, message >> 8, message & 0xFF);
+}
+
+void ResetAudio()
+{
+	if (pcmStream != NULL)
+	{
+		free(pcmStream);
+		pcmStream = NULL;
+	}
+
+	OPL3_Reset(&opl3, FREQUENCY);
+
+}
+
