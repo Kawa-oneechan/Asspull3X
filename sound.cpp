@@ -7,8 +7,54 @@ HMIDIOUT midiDevice = 0;
 int programs[16] = { 0 };
 std::vector<unsigned int> keyOns;
 
-extern int pcmSource, pcmLength;
+extern int pcmSource, pcmLength, pcmPlayed;
 extern bool pcmRepeat;
+
+static SDL_AudioDeviceID saDev;
+
+extern "C"
+{
+	unsigned int m68k_read_memory_8(unsigned int address);
+}
+
+extern bool quit;
+
+char *pcmStream = NULL;
+
+void saCallback(void *userdata, unsigned char* stream, int len)
+{
+	if (quit)
+		return;
+
+	for (int i = 0; i < len; i++)
+		stream[i] = 0;
+
+	if (pcmStream != NULL)
+	{
+		len = (len > pcmPlayed ? pcmPlayed : len);
+		for (int i = 0; i < len; i++)
+		{
+			stream[i] = pcmStream[pcmLength - pcmPlayed]; //m68k_read_memory_8(pcmSource + (pcmLength - pcmPlayed));
+			pcmPlayed--;
+
+			stream[i] /= 2; //to make room for the OPL stream
+		}
+
+		if (pcmPlayed <= 0)
+		{
+			if (pcmRepeat)
+			{
+				//Log(L"saCallback: starting over!");
+				pcmPlayed = pcmLength;
+			}
+			else
+			{
+				free(pcmStream);
+				pcmStream = NULL;
+			}
+		}
+	}
+}
 
 void BufferAudioSample(signed char sample)
 {
@@ -44,6 +90,17 @@ int InitSound()
 		}
 	}
 
+	SDL_AudioSpec wanted = { 0 };
+	wanted.format = AUDIO_S8;
+	wanted.freq = 11025;
+	wanted.channels = 1;
+	wanted.samples = 4096;
+	wanted.callback = saCallback;
+	SDL_AudioSpec got = { 0 };
+
+	saDev = SDL_OpenAudioDevice(SDL_GetAudioDeviceName(1, 0), 0, &wanted, &got, 0);// SDL_AUDIO_ALLOW_FREQUENCY_CHANGE | SDL_AUDIO_ALLOW_SAMPLES_CHANGE);
+	SDL_PauseAudioDevice(saDev, 0);
+
 	return 0;
 }
 
@@ -61,6 +118,8 @@ void UninitSound()
 		midiOutReset(midiDevice);
 		midiOutClose(midiDevice);
 	}
+
+	SDL_CloseAudio();
 }
 
 void SendMidi(unsigned int message)

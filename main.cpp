@@ -17,7 +17,6 @@ extern void InitializeUI();
 extern void SetStatus(const WCHAR*);
 extern void SetStatus(int);
 extern void SetFPS(int fps);
-extern void _devUpdateDiskette(int);
 extern void ShowOpenFileDialog(int, const WCHAR*);
 extern bool ShowFileDlg(bool, WCHAR*, size_t, const WCHAR*);
 extern void LetItSnow();

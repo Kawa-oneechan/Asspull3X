@@ -31,8 +31,9 @@ unsigned int dmaLength;
 bool hdmaOn[8], hdmaDouble[8];
 int hdmaSource[8], hdmaTarget[8], hdmaWidth[8], hdmaStart[8], hdmaCount[8];
 
-int pcmSource, pcmLength;
+int pcmSource, pcmLength, pcmPlayed;
 bool pcmRepeat;
+extern char *pcmStream;
 
 void HandleBlitter(unsigned int function);
 unsigned int blitLength;
@@ -443,9 +444,22 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 				Log(L"REG_PCMOFFSET: 0x%X", pcmSource);
 				break;
 			case 0x74: //PCM Length + Repeat
-				pcmLength = value & 0x7FFFFFFF;
-				pcmRepeat = (value >> 16) != 0;
-				Log(L"REG_PCMLENGTH: 0x%X, %s", pcmLength, pcmRepeat ? L"repeated" : L"one-shot");
+				if (value == 0)
+				{
+					if (pcmStream != NULL)
+						free(pcmStream);
+				}
+				else
+				{
+					pcmPlayed = pcmLength = value & 0x7FFFFFFF;
+					pcmRepeat = (value >> 16) != 0;
+					if (pcmStream != NULL)
+						free(pcmStream);
+					pcmStream = (char*)malloc(pcmLength);
+					for (int i = 0; i < pcmLength; i++)
+						pcmStream[i] = m68k_read_memory_8((pcmSource + i));
+					Log(L"REG_PCMLENGTH: 0x%X, %s", pcmLength, pcmRepeat ? L"repeated" : L"one-shot");
+				}
 				break;
 			case 0x180: //HDMA Control
 			case 0x184:
