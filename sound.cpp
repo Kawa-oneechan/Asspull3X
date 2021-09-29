@@ -7,6 +7,9 @@ HMIDIOUT midiDevice = 0;
 int programs[16] = { 0 };
 std::vector<unsigned int> keyOns;
 
+extern int pcmSource, pcmLength;
+extern bool pcmRepeat;
+
 void BufferAudioSample(signed char sample)
 {
 	sample;

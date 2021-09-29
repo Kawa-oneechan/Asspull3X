@@ -31,6 +31,9 @@ unsigned int dmaLength;
 bool hdmaOn[8], hdmaDouble[8];
 int hdmaSource[8], hdmaTarget[8], hdmaWidth[8], hdmaStart[8], hdmaCount[8];
 
+int pcmSource, pcmLength;
+bool pcmRepeat;
+
 void HandleBlitter(unsigned int function);
 unsigned int blitLength;
 int blitAddrA, blitAddrB, blitKey;
@@ -434,6 +437,15 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 					ini.SaveFile(settingsFile, false);
 				}
 				//return (int)timelatch;
+				break;
+			case 0x70: //PCM Offset
+				pcmSource = value;
+				Log(L"REG_PCMOFFSET: 0x%X", pcmSource);
+				break;
+			case 0x74: //PCM Length + Repeat
+				pcmLength = value & 0x7FFFFFFF;
+				pcmRepeat = (value >> 16) != 0;
+				Log(L"REG_PCMLENGTH: 0x%X, %s", pcmLength, pcmRepeat ? L"repeated" : L"one-shot");
 				break;
 			case 0x180: //HDMA Control
 			case 0x184:
