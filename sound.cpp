@@ -13,6 +13,7 @@ std::vector<unsigned int> keyOns;
 
 extern int pcmSource, pcmLength, pcmPlayed;
 extern bool pcmRepeat;
+extern int pauseState;
 
 static SDL_AudioDeviceID saDev;
 
@@ -27,6 +28,9 @@ void saCallback(void *userdata, unsigned char* stream, int len)
 
 	for (int i = 0; i < len; i++)
 		str[i] = 0;
+
+	if (pauseState != 0)
+		return;
 
 	if (pcmStream != NULL)
 	{
@@ -55,16 +59,14 @@ void saCallback(void *userdata, unsigned char* stream, int len)
 		}
 	}
 
-	OPL3_GenerateStream(&opl3, opl3Stream, len / 2);
-	for (int i = 0; i < len; i++)
-		opl3Stream[i] = (opl3Stream[i] >> 8) | (opl3Stream[i] << 8);
+	if (opl3.rateratio != 0)
+	{
+		OPL3_GenerateStream(&opl3, opl3Stream, len / 2);
+		for (int i = 0; i < len; i++)
+			opl3Stream[i] = (opl3Stream[i] >> 8) | (opl3Stream[i] << 8);
+	}
 
 	SDL_MixAudioFormat(stream, (unsigned char*)opl3Stream, AUDIO_S16MSB, len * 2, SDL_MIX_MAXVOLUME);
-}
-
-void PauseSound(bool state)
-{
-	SDL_PauseAudioDevice(saDev, state);
 }
 
 int InitSound()
@@ -105,7 +107,7 @@ int InitSound()
 	SDL_AudioSpec got = { 0 };
 
 	saDev = SDL_OpenAudioDevice(SDL_GetAudioDeviceName(1, 0), 0, &wanted, &got, 0);// SDL_AUDIO_ALLOW_FREQUENCY_CHANGE | SDL_AUDIO_ALLOW_SAMPLES_CHANGE);
-	PauseSound(true);
+	SDL_PauseAudioDevice(saDev, 0);
 
 	return 0;
 }

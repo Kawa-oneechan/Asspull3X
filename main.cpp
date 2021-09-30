@@ -23,7 +23,6 @@ extern void LetItSnow();
 extern void InsertDisk(int);
 extern void EjectDisk(int);
 extern void ResetAudio();
-extern void PauseSound(bool state);
 extern void ResizeStatusBar();
 extern void SetTitle(const char*);
 extern void ReportLoadingFail(int messageId, int err, int device, const WCHAR* fileName);
@@ -130,7 +129,6 @@ void MainLoop()
 	m68k_init();
 	m68k_set_cpu_type(M68K_CPU_TYPE_68020);
 	ResetAudio();
-	PauseSound(false);
 	m68k_pulse_reset();
 
 #if _CONSOLE
@@ -218,12 +216,10 @@ void MainLoop()
 						if (pauseState == 0)
 						{
 							pauseState = 1;
-							PauseSound(true);
 						}
 						else if (pauseState == 2)
 						{
 							pauseState = 0;
-							PauseSound(false);
 						}
 					}
 				}
