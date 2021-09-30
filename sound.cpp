@@ -98,16 +98,20 @@ int InitSound()
 		}
 	}
 
-	SDL_AudioSpec wanted = { 0 };
-	wanted.format = AUDIO_S16MSB;
-	wanted.freq = FREQUENCY;
-	wanted.channels = 1;
-	wanted.samples = 1024; //4096;
-	wanted.callback = saCallback;
-	SDL_AudioSpec got = { 0 };
+	if (ini.GetBoolValue(L"audio", L"sound", true))
+	{
+		SDL_AudioSpec wanted = { 0 };
+		wanted.format = AUDIO_S16MSB;
+		wanted.freq = FREQUENCY;
+		wanted.channels = 1;
+		wanted.samples = 1024; //4096;
+		wanted.callback = saCallback;
+		SDL_AudioSpec got = { 0 };
 
-	saDev = SDL_OpenAudioDevice(SDL_GetAudioDeviceName(1, 0), 0, &wanted, &got, 0);// SDL_AUDIO_ALLOW_FREQUENCY_CHANGE | SDL_AUDIO_ALLOW_SAMPLES_CHANGE);
-	SDL_PauseAudioDevice(saDev, 0);
+		//TODO: extra setting?
+		saDev = SDL_OpenAudioDevice(0, 0, &wanted, &got, 0);// SDL_AUDIO_ALLOW_FREQUENCY_CHANGE | SDL_AUDIO_ALLOW_SAMPLES_CHANGE);
+		SDL_PauseAudioDevice(saDev, 0);
+	}
 
 	return 0;
 }
@@ -125,6 +129,12 @@ void UninitSound()
 
 		midiOutReset(midiDevice);
 		midiOutClose(midiDevice);
+		midiDevice = NULL;
+	}
+	if (saDev)
+	{
+		SDL_CloseAudioDevice(saDev);
+		saDev = NULL;
 	}
 
 	SDL_CloseAudio();
@@ -171,8 +181,5 @@ void ResetAudio()
 		free(pcmStream);
 		pcmStream = NULL;
 	}
-
 	OPL3_Reset(&opl3, FREQUENCY);
-
 }
-
