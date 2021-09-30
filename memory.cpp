@@ -458,9 +458,9 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 					pcmRepeat = (value >> 16) != 0;
 					if (pcmStream != NULL)
 						free(pcmStream);
-					pcmStream = (char*)malloc(pcmLength);
-					for (int i = 0; i < pcmLength; i++)
-						pcmStream[i] = m68k_read_memory_8((pcmSource + i));
+					if (pcmStream = (char*)malloc(pcmLength))
+						for (int i = 0; i < pcmLength; i++)
+							pcmStream[i] = m68k_read_memory_8((pcmSource + i));
 				}
 				break;
 			case 0x180: //HDMA Control
