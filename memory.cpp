@@ -455,7 +455,7 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 				else
 				{
 					pcmPlayed = pcmLength = value & 0x7FFFFFFF;
-					pcmRepeat = (value >> 16) != 0;
+					pcmRepeat = (value & 0x80000000) != 0;
 					if (pcmStream != NULL)
 						free(pcmStream);
 					if (pcmStream = (char*)malloc(pcmLength))

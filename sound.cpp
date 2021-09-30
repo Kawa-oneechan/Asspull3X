@@ -3,8 +3,8 @@
 #include <Windows.h>
 #include "opl3.h"
 
-//#define FREQUENCY 11025
 #define FREQUENCY 44100
+#define FORMAT AUDIO_S16MSB
 
 HMIDIOUT midiDevice = 0;
 
@@ -34,14 +34,22 @@ void saCallback(void *userdata, unsigned char* stream, int len)
 
 	if (pcmStream != NULL)
 	{
-		len = (len > pcmPlayed ? pcmPlayed : len);
-		for (int i = 0; i < len; i += 4)
+		for (int i = 0; i < len; i += 8)
 		{
-			str[i] = ((signed short)pcmStream[pcmLength - pcmPlayed] - 128);
+			if (pcmPlayed)
+			{
+				str[i] = ((signed short)pcmStream[pcmLength - pcmPlayed] - 128);
+				pcmPlayed--;
+			}
+			else
+				str[i] = 0;
 			str[i + 1] = str[i];
 			str[i + 2] = str[i];
 			str[i + 3] = str[i];
-			pcmPlayed--;
+			str[i + 4] = str[i];
+			str[i + 5] = str[i];
+			str[i + 6] = str[i];
+			str[i + 7] = str[i];
 		}
 
 		if (pcmPlayed <= 0)
@@ -63,10 +71,10 @@ void saCallback(void *userdata, unsigned char* stream, int len)
 	{
 		OPL3_GenerateStream(&opl3, opl3Stream, len / 2);
 		for (int i = 0; i < len; i++)
-			opl3Stream[i] = (opl3Stream[i] >> 8) | (opl3Stream[i] << 8);
+			opl3Stream[i] = ((opl3Stream[i] & 0xFF00) >> 8) | ((opl3Stream[i] & 0xFF) << 8);
 	}
 
-	SDL_MixAudioFormat(stream, (unsigned char*)opl3Stream, AUDIO_S16MSB, len * 2, SDL_MIX_MAXVOLUME);
+	SDL_MixAudioFormat(stream, (unsigned char*)opl3Stream, FORMAT, len * 2, SDL_MIX_MAXVOLUME * 2);
 }
 
 int InitSound()
@@ -101,9 +109,9 @@ int InitSound()
 	if (ini.GetBoolValue(L"audio", L"sound", true))
 	{
 		SDL_AudioSpec wanted = { 0 };
-		wanted.format = AUDIO_S16MSB;
+		wanted.format = FORMAT;
 		wanted.freq = FREQUENCY;
-		wanted.channels = 1;
+		wanted.channels = 2;
 		wanted.samples = 1024; //4096;
 		wanted.callback = saCallback;
 		SDL_AudioSpec got = { 0 };
