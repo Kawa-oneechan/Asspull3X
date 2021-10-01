@@ -102,11 +102,15 @@ The joypads are also available via the `JOYPADS` array and `REG_JOYPAD`.
 
 #### 00044	REG_MIDIOUT
 
-Send a raw 32-bit message through the MIDI OUT port.
+Send a byte through the MIDI OUT port.
 
-### 00048	REG_AUDIOOUT
+### 00048	REG_OPLOUT
 
-Sends raw 8-bit 11025 Hz unsigned PCM audio through the audio port.
+Sends a register-value pair to the OPL3/YMF262.
+
+    RRRR RRRR VVVV VVVV
+    |         |__________ Value
+    |____________________ Register
 
 ### 00050	REG_MOUSE
 
@@ -129,6 +133,14 @@ Only rendered in text mode.
 ### 00060	REG_TIMET
 
 The only 64-bit value in the system. Emulator-wise, reading the first half latches the current host system time so there's no sudden shifts when you read the second half. Writing the first half likewise latches, and the real time clock isn't actually *set* until the second half is written. If reading returns a null value, the RTC hasn't been set and doesn't tick.
+
+### 00070	REG_PCMOFFSET
+
+A pointer to a chunk of 8-bit 11025 Hz unsigned PCM audio. Writing to this register only latches its value, it doesn't actually start playing anything.
+
+### 00074	REG_PCMLENGTH
+
+The first 31 bytes are the length of the PCM audio chunk in `REG_PCMOFFSET`. The most significant specifies if the sound should repeat automatically. Sound playback starts when this register is written to.
 
 ### 00080	REG_DEBUGOUT
 
