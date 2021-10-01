@@ -156,7 +156,7 @@ void SendMidi(unsigned int message)
 	}
 
 	if (midiDevice == 0) return;
-	
+
 	midiOutShortMsg(midiDevice, message);
 	if ((message & 0x0000F0) == 0x90)
 	{
@@ -175,6 +175,115 @@ void SendMidi(unsigned int message)
 		}
 	}
 }
+
+#pragma region MPU-401 stuff
+//Cribbed wholesale from DOSBox-X. Thanks~
+
+#define SYSEX_SIZE 8192
+unsigned char MidiStatus = 0;
+unsigned char MidiCommandLength = 0;
+unsigned char MidiCommandPosition = 0;
+unsigned char MidiCommandBuffer[8] = { 0 };
+unsigned char MidiRealtimeBuffer[8] = { 0 };
+unsigned char MidiSysExBuffer[SYSEX_SIZE] = { 0 };
+unsigned int MidiSysExUsed = 0;
+unsigned int MidiSysExDelay = 0;
+unsigned long MidiSysExStart = 0;
+
+unsigned const char MidiEventLengths[256] = {
+	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0x00
+	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0x10
+	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0x20
+	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0x30
+
+	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0x40
+	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0x50
+	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0x60
+	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0x70
+
+	3,3,3,3, 3,3,3,3, 3,3,3,3, 3,3,3,3,  // 0x80
+	3,3,3,3, 3,3,3,3, 3,3,3,3, 3,3,3,3,  // 0x90
+	3,3,3,3, 3,3,3,3, 3,3,3,3, 3,3,3,3,  // 0xA0
+	3,3,3,3, 3,3,3,3, 3,3,3,3, 3,3,3,3,  // 0xB0
+
+	2,2,2,2, 2,2,2,2, 2,2,2,2, 2,2,2,2,  // 0xC0
+	2,2,2,2, 2,2,2,2, 2,2,2,2, 2,2,2,2,  // 0xD0
+	3,3,3,3, 3,3,3,3, 3,3,3,3, 3,3,3,3,  // 0xE0
+	0,2,3,2, 0,0,1,0, 1,0,1,1, 1,0,1,0   // 0xF0
+};
+
+void SendSysEx(unsigned char* payload, int length)
+{
+	MIDIHDR mHdr = { 0 };
+	midiOutUnprepareHeader(midiDevice, &mHdr, sizeof(mHdr));
+
+	mHdr.lpData = (char*)payload;
+	mHdr.dwBufferLength = (DWORD)length;
+	mHdr.dwBytesRecorded = (DWORD)length;
+	mHdr.dwUser = 0;
+
+	MMRESULT result = midiOutPrepareHeader(midiDevice, &mHdr, sizeof(mHdr));
+	if (result != MMSYSERR_NOERROR) return;
+	result = midiOutLongMsg(midiDevice, &mHdr, sizeof(mHdr));
+	if (result != MMSYSERR_NOERROR)
+		return;
+}
+
+void SendMidiByte(unsigned char data)
+{
+	if (data >= 0xf8)
+	{
+		MidiRealtimeBuffer[0] = data;
+		SendMidi(*(unsigned int*)MidiRealtimeBuffer);
+		return;
+	}
+	if (MidiStatus == 0xF0)
+	{
+		if (!(data & 0x80))
+		{
+			if (MidiSysExUsed < (SYSEX_SIZE - 1))
+				MidiSysExBuffer[MidiSysExUsed++] = data;
+			return;
+		}
+		else {
+			MidiSysExBuffer[MidiSysExUsed++] = 0xf7;
+
+			if ((MidiSysExStart) && (MidiSysExUsed >= 4) && (MidiSysExUsed <= 9) && (MidiSysExBuffer[1] == 0x41) && (MidiSysExBuffer[3] == 0x16))
+				Log(L"MIDI: Skipping invalid MT-32 SysEx midi message -- too short to contain a checksum.");
+			else
+			{
+				SendSysEx(MidiSysExBuffer, MidiSysExUsed);
+				if (MidiSysExStart)
+				{
+					if (MidiSysExBuffer[5] == 0x7F)
+						MidiSysExDelay = 290; // All Parameters reset
+					else
+						MidiSysExDelay = (char)(((float)(MidiSysExUsed) * 1.25f) * 1000.0f / 3125.0f) + 2;
+					MidiSysExStart = GetTickCount();
+				}
+			}
+		}
+	}
+	if (data & 0x80)
+	{
+		MidiStatus = data;
+		MidiCommandPosition = 0;
+		MidiCommandLength = MidiEventLengths[data];
+		if (MidiStatus == 0xF0)
+		{
+			MidiSysExBuffer[0] = 0xF0;
+			MidiSysExUsed = 1;
+		}
+	}
+	if (MidiCommandLength) {
+		MidiCommandBuffer[MidiCommandPosition++] = data;
+		if (MidiCommandPosition >= MidiCommandLength) {
+			SendMidi(*(unsigned int*)MidiCommandBuffer);
+			MidiCommandPosition = 1; //use running status
+		}
+	}
+}
+#pragma endregion
 
 void SendOPL(unsigned short message)
 {

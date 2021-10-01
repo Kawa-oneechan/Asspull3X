@@ -1,7 +1,7 @@
 #include "asspull.h"
 #include <time.h>
 
-extern void SendMidi(unsigned int message);
+extern void SendMidiByte(unsigned char part);
 extern void SendOPL(unsigned short message);
 extern int mouseTimer;
 
@@ -294,9 +294,9 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				//TODO: decide on a poll value?
 				joylatch[reg - 0x42] = 0;
 				break;
-			case 0x48: //Sound out
-				//BufferAudioSample((signed char)value);
-				return;
+			case 0x44: //MIDI Out
+				SendMidiByte(value);
+				break;
 			case 0x80: //Debug
 				//printf("%c", (char)value);
 				{
@@ -421,10 +421,10 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 			case 0x108: //DMA Length
 				dmaLength = value;
 				break;
-			case 0x44: //MIDI Out
-				if (value > 0)
-					SendMidi(value);
-				break;
+//			case 0x44: //MIDI Out
+//				if (value > 0)
+//					SendMidi(value);
+//				break;
 			case 0x60: //Time_T (top half)
 				timelatch = time(NULL);
 				if ((signed int)value == -1)
