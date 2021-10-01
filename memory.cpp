@@ -451,6 +451,7 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 				{
 					if (pcmStream != NULL)
 						free(pcmStream);
+					pcmStream = NULL;
 				}
 				else
 				{
