@@ -38,18 +38,18 @@ void saCallback(void *userdata, unsigned char* stream, int len)
 		{
 			if (pcmPlayed)
 			{
-				str[i] = ((signed short)pcmStream[pcmLength - pcmPlayed] - 128);
+				opl3Stream[i] = (signed short)pcmStream[pcmLength - pcmPlayed] - 128;
 				pcmPlayed--;
 			}
 			else
-				str[i] = 0;
-			str[i + 1] = str[i];
-			str[i + 2] = str[i];
-			str[i + 3] = str[i];
-			str[i + 4] = str[i];
-			str[i + 5] = str[i];
-			str[i + 6] = str[i];
-			str[i + 7] = str[i];
+				opl3Stream[i] = 0;
+			opl3Stream[i + 1] = opl3Stream[i];
+			opl3Stream[i + 2] = opl3Stream[i];
+			opl3Stream[i + 3] = opl3Stream[i];
+			opl3Stream[i + 4] = opl3Stream[i];
+			opl3Stream[i + 5] = opl3Stream[i];
+			opl3Stream[i + 6] = opl3Stream[i];
+			opl3Stream[i + 7] = opl3Stream[i];
 		}
 
 		if (pcmPlayed <= 0)
@@ -67,14 +67,15 @@ void saCallback(void *userdata, unsigned char* stream, int len)
 		}
 	}
 
+	SDL_MixAudioFormat(stream, (unsigned char*)opl3Stream, FORMAT, len * 2, SDL_MIX_MAXVOLUME / 4);
+
 	if (opl3.rateratio != 0)
 	{
 		OPL3_GenerateStream(&opl3, opl3Stream, len / 2);
 		for (int i = 0; i < len; i++)
 			opl3Stream[i] = ((opl3Stream[i] & 0xFF00) >> 8) | ((opl3Stream[i] & 0xFF) << 8);
+		SDL_MixAudioFormat(stream, (unsigned char*)opl3Stream, FORMAT, len * 2, SDL_MIX_MAXVOLUME * 2);
 	}
-
-	SDL_MixAudioFormat(stream, (unsigned char*)opl3Stream, FORMAT, len * 2, SDL_MIX_MAXVOLUME * 2);
 }
 
 int InitSound()
@@ -120,6 +121,8 @@ int InitSound()
 		saDev = SDL_OpenAudioDevice(0, 0, &wanted, &got, 0);// SDL_AUDIO_ALLOW_FREQUENCY_CHANGE | SDL_AUDIO_ALLOW_SAMPLES_CHANGE);
 		SDL_PauseAudioDevice(saDev, 0);
 	}
+
+	OPL3_Reset(&opl3, FREQUENCY);
 
 	return 0;
 }
@@ -298,5 +301,4 @@ void ResetAudio()
 		free(pcmStream);
 		pcmStream = NULL;
 	}
-	OPL3_Reset(&opl3, FREQUENCY);
 }
