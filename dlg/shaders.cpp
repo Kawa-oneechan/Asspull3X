@@ -1,5 +1,7 @@
 #include "..\ui.h"
 
+//TODO: there's a bug in removing the last shader. Needs study.
+
 extern void InitShaders();
 
 static void EnableShaderButtons(HWND hwndDlg)

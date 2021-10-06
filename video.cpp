@@ -473,9 +473,9 @@ void RenderLine(int line)
 {
 	switch (gfxMode)
 	{
-	case 0: RenderTextMode(line); break;
-	case 1: RenderBitmapMode1(line); break;
-	case 2: RenderBitmapMode2(line); break;
-	case 3: RenderTileMode(line); break;
+		case 0: RenderTextMode(line); break;
+		case 1: RenderBitmapMode1(line); break;
+		case 2: RenderBitmapMode2(line); break;
+		case 3: RenderTileMode(line); break;
 	}
 }

@@ -34,7 +34,6 @@ int hdmaSource[8], hdmaTarget[8], hdmaWidth[8], hdmaStart[8], hdmaCount[8];
 
 int pcmSource, pcmLength, pcmPlayed;
 bool pcmRepeat;
-extern char *pcmStream;
 
 void HandleBlitter(unsigned int function);
 unsigned int blitLength;
@@ -152,13 +151,12 @@ unsigned int m68k_read_memory_8(unsigned int address)
 		case 0x1:
 			return ramInternal[addr & (WRAM_SIZE - 1)];
 		case 0x2: //DEV
-			{
-				auto devnum = (addr / DEVBLOCK) % MAXDEVS;
-				if (devices[devnum] != NULL)
-					return devices[devnum]->Read(addr % DEVBLOCK);
-				return 0;
-			}
-			break;
+		{
+			auto devnum = (addr / DEVBLOCK) % MAXDEVS;
+			if (devices[devnum] != NULL)
+				return devices[devnum]->Read(addr % DEVBLOCK);
+			return 0;
+		}
 		case 0xE:
 			addr &= 0x7FFFF;
 			if (addr >= VRAM_SIZE)
@@ -191,28 +189,28 @@ unsigned int m68k_read_memory_16(unsigned int address)
 				keyScan = PollKeyboard(false);
 				return keyScan;
 			case 0x50: //Mouse
-				{
-					if (lastMouseX == -1000)
-						SDL_GetMouseState(&lastMouseX, &lastMouseY);
+			{
+				if (lastMouseX == -1000)
+					SDL_GetMouseState(&lastMouseX, &lastMouseY);
 
-					int newX, newY, b;
-					b = SDL_GetMouseState(&newX, &newY);
+				int newX, newY, b;
+				b = SDL_GetMouseState(&newX, &newY);
 
-					int x = newX - lastMouseX;
-					int y = newY - lastMouseY;
-					int dx = x < 0;
-					int dy = y < 0;
-					if (x < 0) x = -x;
-					if (y < 0) y = -y;
+				int x = newX - lastMouseX;
+				int y = newY - lastMouseY;
+				int dx = x < 0;
+				int dy = y < 0;
+				if (x < 0) x = -x;
+				if (y < 0) y = -y;
 
-					lastMouseX = newX;
-					lastMouseY = newY;
+				lastMouseX = newX;
+				lastMouseY = newY;
 
-					if (mouseTimer == -1)
-						mouseTimer = 3 * 60;
+				if (mouseTimer == -1)
+					mouseTimer = 3 * 60;
 
-					return ((b & 1) << 14) | ((b & 4) << 13) | (dy << 13) | (y << 7) | (dx << 6) | x;
-				}
+				return ((b & 1) << 14) | ((b & 4) << 13) | (dy << 13) | (y << 7) | (dx << 6) | x;
+			}
 			case 0x54:
 				return caret;
 		}
@@ -298,17 +296,16 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				SendMidiByte(value);
 				break;
 			case 0x80: //Debug
-				//printf("%c", (char)value);
-				{
-					char chr[1] = { (char)value };
-					WCHAR wchr[6] = { 0 };
-					mbstate_t throwAway = { 0 }; //only here to please code analysis :shrug:
-					mbrtowc(wchr, chr, 1, &throwAway);
-					wprintf(wchr);
-				}
-				break;
+			{
+				char chr[1] = { (char)value };
+				WCHAR wchr[6] = { 0 };
+				mbstate_t throwAway = { 0 }; //only here to please code analysis :shrug:
+				mbrtowc(wchr, chr, 1, &throwAway);
+				wprintf(wchr);
+			}
+			break;
 			case 0x10A: //DMA Control
-				{
+			{
 				if ((value & 1) == 0) return;
 				auto increaseSource = ((value >> 1) & 1) == 1;
 				auto increaseTarget = ((value >> 2) & 1) == 1;
@@ -342,7 +339,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 					if (increaseTarget) dmaTarget += increaseStep;
 				}
 				break;
-				}
+			}
 			case 0x210: //Blitter key
 				blitKey = value;
 				break;
@@ -421,10 +418,6 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 			case 0x108: //DMA Length
 				dmaLength = value;
 				break;
-//			case 0x44: //MIDI Out
-//				if (value > 0)
-//					SendMidi(value);
-//				break;
 			case 0x60: //Time_T (top half)
 				timelatch = time(NULL);
 				if ((signed int)value == -1)
@@ -447,22 +440,8 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 				pcmSource = value;
 				break;
 			case 0x74: //PCM Length + Repeat
-				if (value == 0)
-				{
-					if (pcmStream != NULL)
-						free(pcmStream);
-					pcmStream = NULL;
-				}
-				else
-				{
-					pcmPlayed = pcmLength = value & 0x7FFFFFFF;
-					pcmRepeat = (value & 0x80000000) != 0;
-					if (pcmStream != NULL)
-						free(pcmStream);
-					if (pcmStream = (char*)malloc(pcmLength))
-						for (int i = 0; i < pcmLength; i++)
-							pcmStream[i] = m68k_read_memory_8((pcmSource + i));
-				}
+				pcmPlayed = pcmLength = value & 0x7FFFFFFF;
+				pcmRepeat = (value & 0x80000000) != 0;
 				break;
 			case 0x180: //HDMA Control
 			case 0x184:
@@ -472,7 +451,7 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 			case 0x194:
 			case 0x198:
 			case 0x19C:
-				{
+			{
 				auto channel = (reg & 0xF) / 4;
 				hdmaWidth[channel] = (value >> 4) & 3;
 				hdmaDouble[channel] = ((value >> 7) & 1) == 1;
@@ -480,7 +459,7 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 				hdmaStart[channel] = (value >> 8) & 0x3FF;
 				hdmaCount[channel] = (value >> 20) & 0x3FF;
 				break;
-				}
+			}
 			case 0x1A0: //HDMA Source
 			case 0x1A4:
 			case 0x1A8:
@@ -489,11 +468,11 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 			case 0x1B4:
 			case 0x1B8:
 			case 0x1BC:
-				{
+			{
 				auto channel = (reg & 0xF) / 4;
 				hdmaSource[channel] = value;
 				break;
-				}
+			}
 			case 0x1C0: //HDMA Target
 			case 0x1C4:
 			case 0x1C8:
@@ -502,12 +481,11 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 			case 0x1D4:
 			case 0x1D8:
 			case 0x1DC:
-				{
+			{
 				auto channel = (reg & 0xF) / 4;
 				hdmaTarget[channel] = value;
 				break;
-				}
-
+			}
 			case 0x200: //Blitter function
 				HandleBlitter(value);
 				break;

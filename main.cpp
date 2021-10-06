@@ -383,6 +383,7 @@ void MainLoop()
 		}
 	}
 
+	ResetAudio();
 	for (int i = 0; i < MAXDEVS; i++)
 		if (devices[i] != NULL) delete devices[i];
 	free(pauseScreen);

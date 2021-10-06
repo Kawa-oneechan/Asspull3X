@@ -17,9 +17,10 @@ extern int pauseState;
 
 static SDL_AudioDeviceID saDev;
 
-char *pcmStream = NULL;
+extern "C" unsigned int m68k_read_memory_8(unsigned int address);
+
 opl3_chip opl3 = { 0 };
-short opl3Stream[2048];
+short mixStream[2048];
 
 void saCallback(void *userdata, unsigned char* stream, int len)
 {
@@ -32,24 +33,24 @@ void saCallback(void *userdata, unsigned char* stream, int len)
 	if (pauseState != 0)
 		return;
 
-	if (pcmStream != NULL)
+	if (pcmSource != NULL && pcmLength != 0)
 	{
 		for (int i = 0; i < len; i += 8)
 		{
 			if (pcmPlayed)
 			{
-				opl3Stream[i] = (signed short)pcmStream[pcmLength - pcmPlayed] - 128;
+				mixStream[i] = (signed short)m68k_read_memory_8(pcmSource + (pcmLength - pcmPlayed)) - 128;
 				pcmPlayed--;
 			}
 			else
-				opl3Stream[i] = 0;
-			opl3Stream[i + 1] = opl3Stream[i];
-			opl3Stream[i + 2] = opl3Stream[i];
-			opl3Stream[i + 3] = opl3Stream[i];
-			opl3Stream[i + 4] = opl3Stream[i];
-			opl3Stream[i + 5] = opl3Stream[i];
-			opl3Stream[i + 6] = opl3Stream[i];
-			opl3Stream[i + 7] = opl3Stream[i];
+				mixStream[i] = 0;
+			mixStream[i + 1] = mixStream[i];
+			mixStream[i + 2] = mixStream[i];
+			mixStream[i + 3] = mixStream[i];
+			mixStream[i + 4] = mixStream[i];
+			mixStream[i + 5] = mixStream[i];
+			mixStream[i + 6] = mixStream[i];
+			mixStream[i + 7] = mixStream[i];
 		}
 
 		if (pcmPlayed <= 0)
@@ -61,20 +62,19 @@ void saCallback(void *userdata, unsigned char* stream, int len)
 			}
 			else
 			{
-				free(pcmStream);
-				pcmStream = NULL;
+				pcmSource = NULL;
 			}
 		}
 	}
 
-	SDL_MixAudioFormat(stream, (unsigned char*)opl3Stream, FORMAT, len * 2, SDL_MIX_MAXVOLUME / 4);
+	SDL_MixAudioFormat(stream, (unsigned char*)mixStream, FORMAT, len * 2, SDL_MIX_MAXVOLUME / 4);
 
 	if (opl3.rateratio != 0)
 	{
-		OPL3_GenerateStream(&opl3, opl3Stream, len / 2);
+		OPL3_GenerateStream(&opl3, mixStream, len / 2);
 		for (int i = 0; i < len; i++)
-			opl3Stream[i] = ((opl3Stream[i] & 0xFF00) >> 8) | ((opl3Stream[i] & 0xFF) << 8);
-		SDL_MixAudioFormat(stream, (unsigned char*)opl3Stream, FORMAT, len * 2, SDL_MIX_MAXVOLUME * 2);
+			mixStream[i] = ((mixStream[i] & 0xFF00) >> 8) | ((mixStream[i] & 0xFF) << 8);
+		SDL_MixAudioFormat(stream, (unsigned char*)mixStream, FORMAT, len * 2, SDL_MIX_MAXVOLUME * 2);
 	}
 }
 
@@ -296,9 +296,6 @@ void SendOPL(unsigned short message)
 
 void ResetAudio()
 {
-	if (pcmStream != NULL)
-	{
-		free(pcmStream);
-		pcmStream = NULL;
-	}
+	pcmSource = NULL;
+	pcmLength = 0;
 }
