@@ -191,7 +191,7 @@ unsigned char MidiRealtimeBuffer[8] = { 0 };
 unsigned char MidiSysExBuffer[SYSEX_SIZE] = { 0 };
 unsigned int MidiSysExUsed = 0;
 unsigned int MidiSysExDelay = 0;
-unsigned long MidiSysExStart = 0;
+unsigned long long MidiSysExStart = 0;
 
 unsigned const char MidiEventLengths[256] = {
 	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0x00
@@ -262,7 +262,7 @@ void SendMidiByte(unsigned char data)
 						MidiSysExDelay = 290; // All Parameters reset
 					else
 						MidiSysExDelay = (char)(((float)(MidiSysExUsed) * 1.25f) * 1000.0f / 3125.0f) + 2;
-					MidiSysExStart = GetTickCount();
+					MidiSysExStart = GetTickCount64();
 				}
 			}
 		}
