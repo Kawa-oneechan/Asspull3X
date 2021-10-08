@@ -190,11 +190,21 @@ unsigned int m68k_read_memory_16(unsigned int address)
 				return keyScan;
 			case 0x50: //Mouse
 			{
+				POINT pos;
 				if (lastMouseX == -1000)
-					SDL_GetMouseState(&lastMouseX, &lastMouseY);
+				{
+					GetCursorPos(&pos);
+					lastMouseX = pos.x;
+					lastMouseY = pos.y;
+				}
+				//	SDL_GetMouseState(&lastMouseX, &lastMouseY);
 
 				int newX, newY, b;
-				b = SDL_GetMouseState(&newX, &newY);
+				GetCursorPos(&pos);
+				newX = pos.x;
+				newY = pos.y;
+				b = (!!GetAsyncKeyState(VK_LBUTTON)) | (!!GetAsyncKeyState(VK_RBUTTON) << 2);
+				//b = SDL_GetMouseState(&newX, &newY);
 
 				int x = newX - lastMouseX;
 				int y = newY - lastMouseY;
