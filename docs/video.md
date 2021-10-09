@@ -94,15 +94,17 @@ A sprite with the double width and height bits set would be functionally the sam
 
 #### Tile mode
 
+(warning: this was just found to be wrong and needs empirical testing)
+
 1. Backdrop
 2. Sprites with priority 4
-3. Map 0
+3. Map 1
 4. Sprites with priority 3 
-5. Map 1
+5. Map 2
 6. Sprites with priority 2
-7. Map 2
+7. Map 3
 8. Sprites with priority 1
-9. Map 3
+9. Map 4
 10. Sprites with priority 0
 
 #### Other modes

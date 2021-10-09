@@ -464,8 +464,8 @@ void RenderTileMode(int line)
 				screenSource = screenBase + (yShift * 2);
 			}
 		}
-		RenderSprites(line, 3 - layer);
-		RenderSprites(line + 1, 3 - layer);
+		RenderSprites(line, 2 - layer);
+		RenderSprites(line + 1, 2 - layer);
 	}
 }
 
