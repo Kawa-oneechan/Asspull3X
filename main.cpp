@@ -214,13 +214,9 @@ void MainLoop()
 					else if (ev.key.keysym.sym == SDLK_p)
 					{
 						if (pauseState == 0)
-						{
 							pauseState = 1;
-						}
 						else if (pauseState == 2)
-						{
 							pauseState = 0;
-						}
 					}
 				}
 				break;
