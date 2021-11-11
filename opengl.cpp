@@ -154,7 +154,7 @@ char* ReadTextFile(const WCHAR* filePath)
 		return "";
 	}
 	fseek(file, 0, SEEK_SET);
-	char* dest = (char*)malloc(size);
+	auto dest = new char[size]();
 	if (dest == NULL)
 	{
 		fclose(file);
@@ -180,7 +180,7 @@ GLuint compileProgram(const WCHAR* fragFile)
 
 	auto source = ReadTextFile(fragFile);
 	fragShaderId = compileShader(source, fragFile, GL_FRAGMENT_SHADER);
-	free(source);
+	delete[] source;
 
 	if(vtxShaderId && fragShaderId)
 	{
@@ -402,14 +402,14 @@ int InitVideo()
 		return -2;
 	}
 
-	pixels = (unsigned char*)malloc(640 * 480 * 4);
+	pixels = new unsigned char[640 * 480 * 4]();
 
 	return 0;
 }
 
 int UninitVideo()
 {
-	free(pixels);
+	delete[] pixels;
 	SDL_DestroyTexture(sdlTexture);
 	SDL_DestroyTexture(sdlShader);
 	SDL_DestroyRenderer(sdlRenderer);
@@ -428,11 +428,13 @@ void Screenshot()
 	_time64(&now);
 	wsprintf(snap, L"%I64u.png", now);
 
-	char* shot = (char*)malloc(4 * scrWidth * scrHeight);
+	auto shot = new char[4 * scrWidth * scrHeight]();
 	glReadPixels(offsetX, offsetY, scrWidth, scrHeight, GL_RGB, GL_UNSIGNED_BYTE, shot);
 
 	size_t png_data_size = 0;
 	void *pPNG_data = tdefl_write_image_to_png_file_in_memory_ex(shot, scrWidth, scrHeight, 3, &png_data_size, MZ_DEFAULT_LEVEL, MZ_TRUE);
+	delete[] shot;
+
 	if (!pPNG_data)
 	{
 		SetStatus(IDS_PNGFAILED); //"Failed to write PNG."

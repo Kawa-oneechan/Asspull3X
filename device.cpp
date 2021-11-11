@@ -5,6 +5,8 @@ extern void SetStatus(int);
 
 extern int diskIconTimer, hddIconTimer;
 
+#define SECTOR_SIZE 512
+
 Device* devices[MAXDEVS] = { 0 };
 
 Device::Device(void) { }
@@ -15,7 +17,7 @@ int Device::GetID() { return 0; }
 
 DiskDrive::DiskDrive(int newType)
 {
-	if ((data = (unsigned char*)calloc(1, 0x0000200)) == NULL) return;
+	if ((data = new unsigned char[SECTOR_SIZE]()) == NULL) return;
 	sector = 0;
 	error = 0;
 	capacity = 0;
@@ -138,7 +140,7 @@ unsigned int DiskDrive::Read(unsigned int address)
 		case 0x14: return sectors >> 8;
 		case 0x15: return sectors & 0xFF;
 	}
-	if (address >= 512 && address < 1024)
+	if (address >= 512 && address < 512 + SECTOR_SIZE)
 		return data[address - 512];
 	return 0;
 }
@@ -159,13 +161,13 @@ void DiskDrive::Write(unsigned int address, unsigned int value)
 			if (file == NULL)
 				return;
 			//TODO: don't allow seeking out of bounds.
-			fseek(file, sector * 512, SEEK_SET);
+			fseek(file, sector * SECTOR_SIZE, SEEK_SET);
 			error = false;
 			if (value == 4)
-				error = (fread(data, 1, 512, file) == 0);
+				error = (fread(data, 1, SECTOR_SIZE, file) == 0);
 			else if (value == 8)
 			{
-				fwrite(data, 1, 512, file);
+				fwrite(data, 1, SECTOR_SIZE, file);
 
 				/*
 				//Not really needed since we won't *edit* the header.
@@ -191,8 +193,8 @@ void DiskDrive::Write(unsigned int address, unsigned int value)
 			return;
 		}
 	}
-	if (address >= 512 && address < 1024)
-		data[address - 512] = (unsigned char)value;;
+	if (address >= 512 && address < 512 + SECTOR_SIZE)
+		data[address - 512] = (unsigned char)value;
 }
 
 int DiskDrive::GetID() { return 0x0144; }

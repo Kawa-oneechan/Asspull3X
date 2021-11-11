@@ -123,7 +123,7 @@ extern unsigned char* pixels;
 
 void MainLoop()
 {
-	pauseScreen = (unsigned char*)malloc(640 * 480 * 4);
+	pauseScreen = new unsigned char[640 * 480 * 4]();
 
 	Log(GetString(IDS_RESETTING));
 	m68k_init();
@@ -382,9 +382,9 @@ void MainLoop()
 	ResetAudio();
 	for (int i = 0; i < MAXDEVS; i++)
 		if (devices[i] != NULL) delete devices[i];
-	free(pauseScreen);
-	free(romBIOS);
-	free(romCartridge);
-	free(ramInternal);
-	free(ramVideo);
+	delete[] pauseScreen;
+	delete[] romBIOS;
+	delete[] romCartridge;
+	delete[] ramInternal;
+	delete[] ramVideo;
 }

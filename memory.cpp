@@ -90,10 +90,10 @@ void HandleHdma(int currentLine)
 
 int InitMemory()
 {
-	if ((romBIOS = (unsigned char*)calloc(1, BIOS_SIZE)) == NULL) return -1;
-	if ((romCartridge = (unsigned char*)calloc(1, CART_SIZE)) == NULL) return -1;
-	if ((ramInternal = (unsigned char*)calloc(1, WRAM_SIZE)) == NULL) return -1;
-	if ((ramVideo = (unsigned char*)calloc(1, VRAM_SIZE)) == NULL) return -1;
+	if ((romBIOS = new unsigned char[BIOS_SIZE]()) == NULL) return -1;
+	if ((romCartridge = new unsigned char[CART_SIZE]()) == NULL) return -1;
+	if ((ramInternal = new unsigned char[WRAM_SIZE]()) == NULL) return -1;
+	if ((ramVideo = new unsigned char[VRAM_SIZE]()) == NULL) return -1;
 	return 0;
 }
 
