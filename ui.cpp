@@ -25,55 +25,55 @@ bool wasPaused = false;
 int theme = 0;
 int diskIconTimer = 0, hddIconTimer = 0;
 
-HWND hWndAbout = NULL, hWndMemViewer = NULL, hWndOptions = NULL, hWndDevices = NULL, hWndPalViewer = NULL, hWndShaders = NULL;
-HFONT headerFont = NULL, monoFont = NULL, statusFont = NULL;
-HBRUSH hbrBack = NULL, hbrStripe = NULL, hbrList = NULL;
-HPEN hpnStripe = NULL;
-COLORREF rgbBack = NULL, rgbStripe = NULL, rgbText = NULL, rgbHeader = NULL, rgbList = NULL, rgbListBk = NULL;
-HIMAGELIST hIml = NULL;
-
 bool ShowFileDlg(bool toSave, WCHAR* target, size_t max, const WCHAR* filter);
 
-void DrawWindowBk(HWND hwndDlg, bool stripe)
+namespace Presentation
 {
-	PAINTSTRUCT ps;
-	HDC hdc = BeginPaint(hwndDlg, &ps);
-	DrawWindowBk(hwndDlg, stripe, &ps, hdc);
-	EndPaint(hwndDlg, &ps);
-}
+	HFONT headerFont = NULL, monoFont = NULL, statusFont = NULL;
+	HBRUSH hbrBack = NULL, hbrStripe = NULL, hbrList = NULL;
+	HPEN hpnStripe = NULL;
+	COLORREF rgbBack = NULL, rgbStripe = NULL, rgbText = NULL, rgbHeader = NULL, rgbList = NULL, rgbListBk = NULL;
 
-void DrawWindowBk(HWND hwndDlg, bool stripe, PAINTSTRUCT* ps, HDC hdc)
-{
-	if (stripe)
+	void DrawWindowBk(HWND hwndDlg, bool stripe)
 	{
-		RECT rect = { 0 };
-		rect.bottom = 7 + 14 + 7; //margin, button, padding
-		MapDialogRect(hwndDlg, &rect);
-		auto h = rect.bottom;
-		GetClientRect(hwndDlg, &rect);
-		rect.bottom -= h;
-		FillRect(hdc, &ps->rcPaint, hbrStripe);
-		FillRect(hdc, &rect, hbrBack);
+		PAINTSTRUCT ps;
+		HDC hdc = BeginPaint(hwndDlg, &ps);
+		DrawWindowBk(hwndDlg, stripe, &ps, hdc);
+		EndPaint(hwndDlg, &ps);
 	}
-	else
-	{
-		FillRect(hdc, &ps->rcPaint, hbrBack);
-	}
-	return;
-}
 
-void DrawCheckbox(HWND hwndDlg, LPNMCUSTOMDRAW nmc)
-{
-	int idFrom = nmc->hdr.idFrom;
-	switch(nmc->dwDrawStage)
+	void DrawWindowBk(HWND hwndDlg, bool stripe, PAINTSTRUCT* ps, HDC hdc)
 	{
+		if (stripe)
+		{
+			RECT rect = { 0 };
+			rect.bottom = 7 + 14 + 7; //margin, button, padding
+			MapDialogRect(hwndDlg, &rect);
+			auto h = rect.bottom;
+			GetClientRect(hwndDlg, &rect);
+			rect.bottom -= h;
+			FillRect(hdc, &ps->rcPaint, hbrStripe);
+			FillRect(hdc, &rect, hbrBack);
+		}
+		else
+		{
+			FillRect(hdc, &ps->rcPaint, hbrBack);
+		}
+		return;
+	}
+
+	void DrawCheckbox(HWND hwndDlg, LPNMCUSTOMDRAW nmc)
+	{
+		int idFrom = nmc->hdr.idFrom;
+		switch (nmc->dwDrawStage)
+		{
 		case CDDS_PREERASE:
 		{
 			SetBkColor(nmc->hdc, rgbBack);
 			SetTextColor(nmc->hdc, nmc->uItemState & CDIS_DISABLED ? rgbListBk : rgbText);
 
 			HTHEME hTheme = OpenThemeData(nmc->hdr.hwndFrom, L"BUTTON");
-			if(!hTheme)
+			if (!hTheme)
 			{
 				CloseThemeData(hTheme);
 				SetWindowLongPtr(hwndDlg, DWLP_MSGRESULT, (LONG_PTR)CDRF_DODEFAULT);
@@ -101,7 +101,7 @@ void DrawCheckbox(HWND hwndDlg, LPNMCUSTOMDRAW nmc)
 
 			DrawThemeBackground(hTheme, nmc->hdc, BP_CHECKBOX, stateID, &r, NULL);
 
-			nmc->rc.left +=  3 + s.cx;
+			nmc->rc.left += 3 + s.cx;
 
 			WCHAR text[256];
 			GetDlgItemText(hwndDlg, idFrom, text, 255);
@@ -111,16 +111,16 @@ void DrawCheckbox(HWND hwndDlg, LPNMCUSTOMDRAW nmc)
 			SetWindowLongPtr(hwndDlg, DWLP_MSGRESULT, (LONG_PTR)CDRF_SKIPDEFAULT);
 			return;
 		}
+		}
 	}
-}
 
-bool DrawDarkButton(HWND hwndDlg, LPNMCUSTOMDRAW nmc)
-{
-	if (theme == 0)
-		return false; //don't draw jack
-	int idFrom = nmc->hdr.idFrom;
-	switch(nmc->dwDrawStage)
+	bool DrawDarkButton(HWND hwndDlg, LPNMCUSTOMDRAW nmc)
 	{
+		if (theme == 0)
+			return false; //don't draw jack
+		int idFrom = nmc->hdr.idFrom;
+		switch (nmc->dwDrawStage)
+		{
 		case CDDS_PREPAINT:
 		{
 			SetBkColor(nmc->hdc, rgbBack);
@@ -140,7 +140,7 @@ bool DrawDarkButton(HWND hwndDlg, LPNMCUSTOMDRAW nmc)
 				InflateRect(&nmc->rc, -1, -1);
 				DrawFocusRect(nmc->hdc, &nmc->rc);
 			}
-		
+
 			DeleteObject(border);
 
 			SetBkColor(nmc->hdc, (nmc->uItemState & CDIS_SELECTED) ? rgbListBk : rgbBack);
@@ -149,94 +149,110 @@ bool DrawDarkButton(HWND hwndDlg, LPNMCUSTOMDRAW nmc)
 			DrawText(nmc->hdc, text, -1, &nmc->rc, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
 			SetWindowLongPtr(hwndDlg, DWLP_MSGRESULT, (LONG_PTR)CDRF_SKIPDEFAULT);
 		}
+		}
+		return true;
 	}
-	return true;
-}
 
-bool DrawComboBox(LPDRAWITEMSTRUCT dis)
-{
-	if (dis->itemID == -1)
-		return false;
-
-	SetTextColor(dis->hDC, dis->itemState & ODS_SELECTED ? GetSysColor(COLOR_HIGHLIGHTTEXT) : rgbList);
-	SetBkColor(dis->hDC, dis->itemState & ODS_SELECTED ? GetSysColor(COLOR_HIGHLIGHT) : rgbListBk);
-
-	TEXTMETRIC tm;
-	GetTextMetrics(dis->hDC, &tm);
-	int y = (dis->rcItem.bottom + dis->rcItem.top - tm.tmHeight) / 2;
-	int x = LOWORD(GetDialogBaseUnits()) / 4;
-	if (dis->itemState & ODS_COMBOBOXEDIT)
-		x += 2;
-
-	WCHAR text[256] = { 0 };
-	SendMessage(dis->hwndItem, CB_GETLBTEXT, dis->itemID, (LPARAM)text);
-	ExtTextOut(dis->hDC, x, y, ETO_CLIPPED | ETO_OPAQUE, &dis->rcItem, text, (UINT)wcslen(text), NULL);
-	return true;
-}
-
-typedef void (WINAPI * fnRtlGetNtVersionNumbers) (LPDWORD major, LPDWORD minor, LPDWORD build);
-bool IsWin10()
-{
-	auto mHd = GetModuleHandleW(L"ntdll.dll");
-	//shouldn't happen but let's keep code analysis happy.
-	if (mHd == NULL) return false;
-	auto RtlGetNtVersionNumbers = (fnRtlGetNtVersionNumbers)GetProcAddress(mHd, "RtlGetNtVersionNumbers");
-	if (RtlGetNtVersionNumbers)
+	bool DrawComboBox(LPDRAWITEMSTRUCT dis)
 	{
-		DWORD major, minor, build;
-		RtlGetNtVersionNumbers(&major, &minor, &build);
-		build &= ~0xF0000000;
-		if (major == 10 && minor == 0 && build > 18360)
-			return true;
+		if (dis->itemID == -1)
+			return false;
+
+		SetTextColor(dis->hDC, dis->itemState & ODS_SELECTED ? GetSysColor(COLOR_HIGHLIGHTTEXT) : rgbList);
+		SetBkColor(dis->hDC, dis->itemState & ODS_SELECTED ? GetSysColor(COLOR_HIGHLIGHT) : rgbListBk);
+
+		TEXTMETRIC tm;
+		GetTextMetrics(dis->hDC, &tm);
+		int y = (dis->rcItem.bottom + dis->rcItem.top - tm.tmHeight) / 2;
+		int x = LOWORD(GetDialogBaseUnits()) / 4;
+		if (dis->itemState & ODS_COMBOBOXEDIT)
+			x += 2;
+
+		WCHAR text[256] = { 0 };
+		SendMessage(dis->hwndItem, CB_GETLBTEXT, dis->itemID, (LPARAM)text);
+		ExtTextOut(dis->hDC, x, y, ETO_CLIPPED | ETO_OPAQUE, &dis->rcItem, text, (UINT)wcslen(text), NULL);
+		return true;
 	}
-	return false;
-}
 
-int MatchTheme()
-{
-	if (!IsWin10()) return 0;
-	DWORD nResult;
-	HKEY key;
-	if (RegOpenKeyEx(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", 0, KEY_READ, &key)) return 0;
-	DWORD dwBufferSize = sizeof(DWORD);
-	RegQueryValueEx(key, L"AppsUseLightTheme", 0, NULL, (LPBYTE)&nResult, &dwBufferSize);
-	RegCloseKey(key);
-	//AppsUseLightTheme == 0 means light, and that's the inverse of our list.
-	return !nResult;
-}
-
-COLORREF GetWindows10AccentColor(COLORREF not10)
-{
-	if (!IsWin10())
-		return not10;
-	DWORD nResult;
-	HKEY key;
-	if (RegOpenKeyEx(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\DWM", 0, KEY_READ, &key)) return not10;
-	DWORD dwBufferSize = sizeof(DWORD);
-	RegQueryValueEx(key, L"AccentColor", 0, NULL, (LPBYTE)&nResult, &dwBufferSize);
-	RegCloseKey(key);
-	nResult &= 0xFFFFFF;
-	if (nResult == 0x000000) //you chose black?
-		nResult = not10; //fall back
-	return nResult;
-}
-
-void SetThemeColors()
-{
-	theme = ini.GetLongValue(L"media", L"theme", 0);
-
-	if (theme == 2) //match
-		theme = MatchTheme();
-
-	switch (theme)
+	void GetIconPos(HWND hwndDlg, int ctlID, RECT* iconRect, int leftOffset, int topOffset)
 	{
+		POINT t;
+		GetWindowRect(GetDlgItem(hwndDlg, ctlID), iconRect);
+		t.x = iconRect->left;
+		t.y = iconRect->top;
+		ScreenToClient(hwndDlg, &t);
+		iconRect->left = t.x + leftOffset;
+		iconRect->top = t.y + topOffset;
+		iconRect->right = iconRect->left + 16;
+		iconRect->bottom = iconRect->top + 16;
+	}
+
+	namespace Windows10
+	{
+		typedef void (WINAPI * fnRtlGetNtVersionNumbers) (LPDWORD major, LPDWORD minor, LPDWORD build);
+		bool IsWin10()
+		{
+			auto mHd = GetModuleHandleW(L"ntdll.dll");
+			//shouldn't happen but let's keep code analysis happy.
+			if (mHd == NULL) return false;
+			auto RtlGetNtVersionNumbers = (fnRtlGetNtVersionNumbers)GetProcAddress(mHd, "RtlGetNtVersionNumbers");
+			if (RtlGetNtVersionNumbers)
+			{
+				DWORD major, minor, build;
+				RtlGetNtVersionNumbers(&major, &minor, &build);
+				build &= ~0xF0000000;
+				if (major == 10 && minor == 0 && build > 18360)
+					return true;
+			}
+			return false;
+		}
+
+		int MatchTheme()
+		{
+			if (!IsWin10()) return 0;
+			DWORD nResult;
+			HKEY key;
+			if (RegOpenKeyEx(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", 0, KEY_READ, &key)) return 0;
+			DWORD dwBufferSize = sizeof(DWORD);
+			RegQueryValueEx(key, L"AppsUseLightTheme", 0, NULL, (LPBYTE)&nResult, &dwBufferSize);
+			RegCloseKey(key);
+			//AppsUseLightTheme == 0 means light, and that's the inverse of our list.
+			return !nResult;
+		}
+
+		COLORREF GetAccent(COLORREF not10)
+		{
+			if (!IsWin10())
+				return not10;
+			DWORD nResult;
+			HKEY key;
+			if (RegOpenKeyEx(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\DWM", 0, KEY_READ, &key)) return not10;
+			DWORD dwBufferSize = sizeof(DWORD);
+			RegQueryValueEx(key, L"AccentColor", 0, NULL, (LPBYTE)&nResult, &dwBufferSize);
+			RegCloseKey(key);
+			nResult &= 0xFFFFFF;
+			if (nResult == 0x000000) //you chose black?
+				nResult = not10; //fall back
+			return nResult;
+		}
+	}
+
+	void SetThemeColors()
+	{
+		theme = ini.GetLongValue(L"media", L"theme", 0);
+
+		if (theme == 2) //match
+			theme = Windows10::MatchTheme();
+
+		switch (theme)
+		{
 		case 0: //light
 		{
 			rgbBack = RGB(255, 255, 255);
 			rgbStripe = RGB(240, 240, 240);
 			rgbText = RGB(0, 0, 0);
 			rgbList = RGB(0, 0, 0);
-			rgbHeader = GetWindows10AccentColor(RGB(0x00, 0x33, 0x99));
+			rgbHeader = Windows10::GetAccent(RGB(0x00, 0x33, 0x99));
 			rgbListBk = RGB(255, 255, 255);
 			break;
 		}
@@ -246,78 +262,84 @@ void SetThemeColors()
 			rgbStripe = RGB(76, 74, 72);
 			rgbText = RGB(255, 255, 255);
 			rgbList = RGB(255, 255, 255);
-			rgbHeader = GetWindows10AccentColor(RGB(0x8E, 0xCA, 0xF8));
+			rgbHeader = Windows10::GetAccent(RGB(0x8E, 0xCA, 0xF8));
 			rgbListBk = RGB(76, 74, 72);
 		}
 		//this space for rent
+		}
+		if (hbrBack != NULL) DeleteObject(hbrBack);
+		if (hbrStripe != NULL) DeleteObject(hbrStripe);
+		if (hbrList != NULL) DeleteObject(hbrList);
+		if (hpnStripe != NULL) DeleteObject(hpnStripe);
+		hbrBack = CreateSolidBrush(rgbBack);
+		hbrStripe = CreateSolidBrush(rgbStripe);
+		hbrList = CreateSolidBrush(rgbListBk);
+		hpnStripe = CreatePen(PS_SOLID, 1, rgbStripe);
+
+		if (About::hWnd != NULL) RedrawWindow(About::hWnd, NULL, NULL, RDW_INVALIDATE);
+		if (DeviceManager::hWnd != NULL) RedrawWindow(DeviceManager::hWnd, NULL, NULL, RDW_INVALIDATE);
+		if (MemoryViewer::hWnd != NULL) RedrawWindow(MemoryViewer::hWnd, NULL, NULL, RDW_INVALIDATE);
+		//Being called right before the options window is closed, we don't need to bother with it.
+		//if (Options::hWnd != NULL) RedrawWindow(Options::hWnd, NULL, NULL, RDW_INVALIDATE);
 	}
-	if (hbrBack != NULL) DeleteObject(hbrBack);
-	if (hbrStripe != NULL) DeleteObject(hbrStripe);
-	if (hbrList != NULL) DeleteObject(hbrList);
-	if (hpnStripe != NULL) DeleteObject(hpnStripe);
-	hbrBack = CreateSolidBrush(rgbBack);
-	hbrStripe = CreateSolidBrush(rgbStripe);
-	hbrList = CreateSolidBrush(rgbListBk);
-	hpnStripe = CreatePen(PS_SOLID, 1, rgbStripe);
-
-	if (hWndAbout != NULL) RedrawWindow(hWndAbout, NULL, NULL, RDW_INVALIDATE);
-	if (hWndDevices != NULL) RedrawWindow(hWndDevices, NULL, NULL, RDW_INVALIDATE);
-	if (hWndMemViewer != NULL) RedrawWindow(hWndMemViewer, NULL, NULL, RDW_INVALIDATE);
-	//Being called right before the options window is closed, we don't need to bother with it.
-	//if (hWndOptions != NULL) RedrawWindow(hWndOptions, NULL, NULL, RDW_INVALIDATE);
-}
-
-HBITMAP GetImageListImage(int index)
-{
-	//Step one, prepare a canvas.
-	auto scrDC = GetDC(0);
-	BITMAPINFO bmi = { 0 };
-	bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-	bmi.bmiHeader.biCompression = BI_RGB;
-	bmi.bmiHeader.biBitCount = 32;
-	bmi.bmiHeader.biPlanes = 1;
-	bmi.bmiHeader.biWidth = bmi.bmiHeader.biHeight = 16;
-	void* throwAway; //only here to satisfy code analysis :shrug:
-	auto hbm = CreateDIBSection(scrDC, &bmi, DIB_RGB_COLORS, &throwAway, NULL, 0);
-	ReleaseDC(0, scrDC);
-	if (hbm == NULL) return NULL;
-	//Step two, draw on it.
-	auto dc = CreateCompatibleDC(0);
-	auto oldBm = SelectObject(dc, hbm);
-	ImageList_Draw(hIml, index, dc, 0, 0, ILD_NORMAL);
-	SelectObject(dc, oldBm);
-	ReleaseDC(0, dc);
-
-	return hbm;
 }
 
 #include <vector>
 extern int decodePNG(std::vector<unsigned char>& out_image, unsigned long& image_width, unsigned long& image_height, const unsigned char* in_png, size_t in_size, bool convert_to_rgba32 = true);
-HBITMAP LoadImageFromPNG(int id)
+namespace Images
 {
-	unsigned long size, width, height;
+	HIMAGELIST hIml = NULL;
 
-	auto find = FindResource(NULL, MAKEINTRESOURCE(id), L"PNG");
-	if (find == NULL) return NULL;
-	auto res = LoadResource(NULL, find);
-	if (res == NULL) return NULL;
-	auto lock = LockResource(res);
-	size = SizeofResource(NULL, find);
-	
-	std::vector<unsigned char> image;
-	decodePNG(image, width, height, (const unsigned char*)lock, size);
-	
-	for (unsigned long i = 0; i < (width * height * 4); i += 4)
+	HBITMAP GetImageListImage(int index)
 	{
-		auto r = image[i + 0];
-		auto b = image[i + 2];
-		image[i + 0] = b;
-		image[i + 2] = r;
+		//Step one, prepare a canvas.
+		auto scrDC = GetDC(0);
+		BITMAPINFO bmi = { 0 };
+		bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+		bmi.bmiHeader.biCompression = BI_RGB;
+		bmi.bmiHeader.biBitCount = 32;
+		bmi.bmiHeader.biPlanes = 1;
+		bmi.bmiHeader.biWidth = bmi.bmiHeader.biHeight = 16;
+		void* throwAway; //only here to satisfy code analysis :shrug:
+		auto hbm = CreateDIBSection(scrDC, &bmi, DIB_RGB_COLORS, &throwAway, NULL, 0);
+		ReleaseDC(0, scrDC);
+		if (hbm == NULL) return NULL;
+		//Step two, draw on it.
+		auto dc = CreateCompatibleDC(0);
+		auto oldBm = SelectObject(dc, hbm);
+		ImageList_Draw(hIml, index, dc, 0, 0, ILD_NORMAL);
+		SelectObject(dc, oldBm);
+		ReleaseDC(0, dc);
+
+		return hbm;
 	}
 
-	auto bitmap = CreateBitmap(width, height, 1, 32, &image[0]);
-	
-	return bitmap;
+	HBITMAP LoadPNGResource(int id)
+	{
+		unsigned long size, width, height;
+
+		auto find = FindResource(NULL, MAKEINTRESOURCE(id), L"PNG");
+		if (find == NULL) return NULL;
+		auto res = LoadResource(NULL, find);
+		if (res == NULL) return NULL;
+		auto lock = LockResource(res);
+		size = SizeofResource(NULL, find);
+
+		std::vector<unsigned char> image;
+		decodePNG(image, width, height, (const unsigned char*)lock, size);
+
+		for (unsigned long i = 0; i < (width * height * 4); i += 4)
+		{
+			auto r = image[i + 0];
+			auto b = image[i + 2];
+			image[i + 0] = b;
+			image[i + 2] = r;
+		}
+
+		auto bitmap = CreateBitmap(width, height, 1, 32, &image[0]);
+
+		return bitmap;
+	}
 }
 
 WNDPROC SDLWinProc = NULL;
@@ -335,8 +357,8 @@ LRESULT WndProc(HWND hWnd, unsigned int message, WPARAM wParam, LPARAM lParam)
 				if (uiCommand >= cmdMemViewer && uiCommand <= cmdDevices)
 				{
 					void(*commands[])(void) = {
-						ShowMemViewer, ShowPalViewer, ShowAbout,
-						ShowOptions, ShowShaders, ShowDevices
+						MemoryViewer::Show, PalViewer::Show, About::Show,
+						Options::Show, Shaders::Show, DeviceManager::Show
 					};
 					commands[uiCommand - cmdMemViewer]();
 					uiCommand = 0;
@@ -355,6 +377,7 @@ HDC statusRealDC = NULL;
 HDC statusDC = NULL;
 HBITMAP statusBmp = NULL;
 void DrawStatusBar();
+
 void ResizeStatusBar()
 {
 	RECT sbRect;
@@ -369,7 +392,7 @@ void ResizeStatusBar()
 	statusBmp = CreateCompatibleBitmap(statusRealDC, sbRect.right, sbRect.bottom);
 
 	SelectObject(statusDC, GetStockObject(DC_PEN));
-	SelectObject(statusDC, statusFont);
+	SelectObject(statusDC, Presentation::statusFont);
 	SelectObject(statusDC, statusBmp);
 
 	DrawStatusBar();
@@ -383,25 +406,25 @@ void DrawStatusBar()
 
 	auto hdc = statusDC;
 
-	FillRect(hdc, &sbRect, hbrBack);
+	FillRect(hdc, &sbRect, Presentation::hbrBack);
 
-	SetDCPenColor(hdc, rgbStripe);
+	SetDCPenColor(hdc, Presentation::rgbStripe);
 	MoveToEx(hdc, 0, 0, NULL);
 	LineTo(hdc, sbRect.right, 0);
 	MoveToEx(hdc, 40, 3, NULL);
 	LineTo(hdc, 40, sbRect.bottom - 3);
 
-	SetBkColor(hdc, rgbBack);
-	SetTextColor(hdc, rgbText);
+	SetBkColor(hdc, Presentation::rgbBack);
+	SetTextColor(hdc, Presentation::rgbText);
 	RECT sbText = { 4, 4, 32, sbRect.bottom - 4 };
 	DrawText(hdc, statusFPS, wcslen(statusFPS), &sbText, DT_RIGHT);
 	sbText.left = 48;
 	sbText.right = sbRect.right - 48;
 	DrawText(hdc, statusText, wcslen(statusText), &sbText, DT_END_ELLIPSIS);
 
-	ImageList_Draw(hIml, pauseState == 0 ? IML_PLAY : IML_PAUSE, hdc, sbRect.right - 24, 3, ILD_NORMAL);
-	if (hddIconTimer) ImageList_Draw(hIml, IML_HARDDRIVE, hdc, sbRect.right - 24 - 20, 3, ILD_NORMAL);
-	if (diskIconTimer) ImageList_Draw(hIml, IML_DISKETTE, hdc, sbRect.right - 24 - (hddIconTimer ? 40 : 20), 3, ILD_NORMAL);
+	ImageList_Draw(Images::hIml, pauseState == 0 ? IML_PLAY : IML_PAUSE, hdc, sbRect.right - 24, 3, ILD_NORMAL);
+	if (hddIconTimer) ImageList_Draw(Images::hIml, IML_HARDDRIVE, hdc, sbRect.right - 24 - 20, 3, ILD_NORMAL);
+	if (diskIconTimer) ImageList_Draw(Images::hIml, IML_DISKETTE, hdc, sbRect.right - 24 - (hddIconTimer ? 40 : 20), 3, ILD_NORMAL);
 
 	BitBlt(statusRealDC, 0, 0, sbRect.right, sbRect.bottom, hdc, 0, 0, SRCCOPY);
 }
@@ -454,8 +477,8 @@ void InitializeUI()
 
 		InitCommonControls();
 
-		hIml = ImageList_Create(16, 16, ILC_COLOR32, 32, 0);
-		ImageList_Add(hIml, LoadImageFromPNG(IDB_ICONS), NULL);
+		Images::hIml = ImageList_Create(16, 16, ILC_COLOR32, 32, 0);
+		ImageList_Add(Images::hIml, Images::LoadPNGResource(IDB_ICONS), NULL);
 
 		menuBar = LoadMenu(hInstance, MAKEINTRESOURCE(IDR_MAINMENU));
 
@@ -475,7 +498,7 @@ void InitializeUI()
 		for (int i = 0; i < 20; i++)
 		{
 			//auto hBmp = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(1000 + i), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
-			auto hBmp = GetImageListImage(IML_MENUSTART + i);
+			auto hBmp = Images::GetImageListImage(IML_MENUSTART + i);
 			if (hBmp == NULL)
 				continue;
 			miInfo.hbmpItem = hBmp;
@@ -492,11 +515,11 @@ void InitializeUI()
 		auto headerSize = MulDiv(13, dpiY, 72);
 		ReleaseDC(0, scrDC);
 
-		headerFont = CreateFont(headerSize, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, L"Segoe UI");
-		monoFont = CreateFont(16, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, L"Courier New");
-		statusFont = CreateFont(14, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, L"Segoe UI");
+		Presentation::headerFont = CreateFont(headerSize, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, L"Segoe UI");
+		Presentation::monoFont = CreateFont(16, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, L"Courier New");
+		Presentation::statusFont = CreateFont(14, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, L"Segoe UI");
 
-		SetThemeColors();
+		Presentation::SetThemeColors();
 	}
 	return;
 }
@@ -676,7 +699,7 @@ void InsertDisk(int devId)
 			ini.SetValue(L"devices/hardDrive", key, uiString);
 		ResetPath();
 		ini.SaveFile(settingsFile, false);
-		if (hWndDevices != NULL) UpdateDevicePage(hWndDevices);
+		if (DeviceManager::hWnd != NULL) DeviceManager::UpdatePage(DeviceManager::hWnd);
 	}
 }
 
@@ -692,7 +715,7 @@ void EjectDisk(int devId)
 	ResetPath();
 	ini.SaveFile(settingsFile, false);
 	SetStatus(IDS_DISKEJECTED); //"Disk ejected."
-	if (hWndDevices != NULL) UpdateDevicePage(hWndDevices);
+	if (DeviceManager::hWnd != NULL) DeviceManager::UpdatePage(DeviceManager::hWnd);
 }
 
 void SetTitle(const char* subtitle)

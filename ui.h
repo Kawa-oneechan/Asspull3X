@@ -10,9 +10,6 @@
 extern int pauseState;
 extern bool stretch200, fpsCap, reloadROM, reloadIMG;
 
-extern HWND hWndAbout, hWndMemViewer, hWndOptions, hWndDevices, hWndPalViewer, hWndShaders;
-extern HFONT headerFont, monoFont;
-
 extern WCHAR startingPath[FILENAME_MAX];
 extern WCHAR lastPath[FILENAME_MAX];
 
@@ -32,22 +29,60 @@ extern bool ShowFileDlg(bool toSave, WCHAR* target, size_t max, const WCHAR* fil
 extern void InsertDisk(int devId);
 extern void EjectDisk(int devId);
 
-extern HBRUSH hbrBack, hbrStripe, hbrList;
-extern COLORREF rgbBack, rgbStripe, rgbText, rgbHeader, rgbList, rgbListBk;
-extern void DrawWindowBk(HWND hwndDlg, bool stripe);
-extern void DrawWindowBk(HWND hwndDlg, bool stripe, PAINTSTRUCT* ps, HDC hdc);
-extern void DrawCheckbox(HWND hwndDlg, LPNMCUSTOMDRAW dis);
-extern bool DrawDarkButton(HWND hwndDlg, LPNMCUSTOMDRAW dis);
-extern bool DrawComboBox(LPDRAWITEMSTRUCT dis);
-extern void SetThemeColors();
-extern bool IsWin10();
-extern HBITMAP LoadImageFromPNG(int);
+namespace Presentation
+{
+	extern HBRUSH hbrBack, hbrStripe, hbrList;
+	extern COLORREF rgbBack, rgbStripe, rgbText, rgbHeader, rgbList, rgbListBk;
+	extern HFONT headerFont, monoFont;
 
-extern void ShowAbout();
-extern void ShowMemViewer();
-extern void ShowOptions();
-extern void ShowDevices();
-extern void ShowPalViewer();
-extern void ShowShaders();
+	extern void DrawWindowBk(HWND hwndDlg, bool stripe);
+	extern void DrawWindowBk(HWND hwndDlg, bool stripe, PAINTSTRUCT* ps, HDC hdc);
+	extern void DrawCheckbox(HWND hwndDlg, LPNMCUSTOMDRAW dis);
+	extern bool DrawDarkButton(HWND hwndDlg, LPNMCUSTOMDRAW dis);
+	extern bool DrawComboBox(LPDRAWITEMSTRUCT dis);
+	extern void GetIconPos(HWND hwndDlg, int ctlID, RECT* iconRect, int leftOffset, int topOffset);
+	namespace Windows10
+	{
+		extern bool IsWin10();
+	}
+	extern void SetThemeColors();
+}
 
-extern void UpdateDevicePage(HWND hwndDlg);
+namespace Images
+{
+	extern HIMAGELIST hIml;
+	extern HBITMAP GetImageListImage(int);
+	extern HBITMAP LoadPNGResource(int);
+}
+
+namespace About
+{
+	extern void Show();
+	extern HWND hWnd;
+}
+namespace MemoryViewer
+{
+	extern void Show();
+	extern HWND hWnd;
+}
+namespace Options
+{
+	extern void Show();
+	extern HWND hWnd;
+}
+namespace DeviceManager
+{
+	extern void UpdatePage(HWND hwndDlg);
+	extern void Show();
+	extern HWND hWnd;
+}
+namespace PalViewer
+{
+	extern void Show();
+	extern HWND hWnd;
+}
+namespace Shaders
+{
+	extern void Show();
+	extern HWND hWnd;
+}

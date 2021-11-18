@@ -4,31 +4,37 @@
 
 extern void InitShaders();
 
-static void EnableShaderButtons(HWND hwndDlg)
+namespace Shaders
 {
-	EnableWindow(GetDlgItem(hwndDlg, IDC_ADDSHADER),
-		(SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETCOUNT, 0, 0) < MAXSHADERS) &&
-		(SendDlgItemMessage(hwndDlg, IDC_SHADERSAVAILABLE, LB_GETCURSEL, 0, 0) != LB_ERR)
-	);
+	using namespace Presentation;
 
-	auto inUseCount = SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETCOUNT, 0, 0);
-	auto inUseSel = SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETCURSEL, 0, 0);
+	HWND hWnd = NULL;
 
-	auto allowInUse = (inUseCount > 0) && (inUseSel != LB_ERR);
-
-	EnableWindow(GetDlgItem(hwndDlg, IDC_REMOVESHADER), allowInUse);
-	EnableWindow(GetDlgItem(hwndDlg, IDC_MOVESHADERUP), allowInUse && (inUseSel > 0));
-	EnableWindow(GetDlgItem(hwndDlg, IDC_MOVESHADERDOWN), allowInUse && (inUseSel < inUseCount - 1));
-}
-
-BOOL CALLBACK ShadersWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	switch (message)
+	void UpdateButtons(HWND hwndDlg)
 	{
+		EnableWindow(GetDlgItem(hwndDlg, IDC_ADDSHADER),
+			(SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETCOUNT, 0, 0) < MAXSHADERS) &&
+			(SendDlgItemMessage(hwndDlg, IDC_SHADERSAVAILABLE, LB_GETCURSEL, 0, 0) != LB_ERR)
+		);
+
+		auto inUseCount = SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETCOUNT, 0, 0);
+		auto inUseSel = SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETCURSEL, 0, 0);
+
+		auto allowInUse = (inUseCount > 0) && (inUseSel != LB_ERR);
+
+		EnableWindow(GetDlgItem(hwndDlg, IDC_REMOVESHADER), allowInUse);
+		EnableWindow(GetDlgItem(hwndDlg, IDC_MOVESHADERUP), allowInUse && (inUseSel > 0));
+		EnableWindow(GetDlgItem(hwndDlg, IDC_MOVESHADERDOWN), allowInUse && (inUseSel < inUseCount - 1));
+	}
+
+	BOOL CALLBACK WndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam)
+	{
+		switch (message)
+		{
 		case WM_CLOSE:
 		{
 			DestroyWindow(hwndDlg);
-			hWndShaders = NULL;
+			hWnd = NULL;
 			return true;
 		}
 		case WM_INITDIALOG:
@@ -43,29 +49,29 @@ BOOL CALLBACK ShadersWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 				SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_ADDSTRING, 0, (LPARAM)ini.GetValue(L"video", key, L""));
 			}
 
-			EnableShaderButtons(hwndDlg);
+			UpdateButtons(hwndDlg);
 			return true;
 		}
 		case WM_NOTIFY:
 		{
 			switch (((LPNMHDR)lParam)->code)
 			{
-				case NM_CUSTOMDRAW:
+			case NM_CUSTOMDRAW:
+			{
+				auto nmc = (LPNMCUSTOMDRAW)lParam;
+				int idFrom = nmc->hdr.idFrom;
+				switch (idFrom)
 				{
-					auto nmc = (LPNMCUSTOMDRAW)lParam;
-					int idFrom = nmc->hdr.idFrom;
-					switch(idFrom)
-					{
-						case IDOK:
-						case IDCANCEL:
-						case IDC_ADDSHADER:
-						case IDC_REMOVESHADER:
-						case IDC_MOVESHADERUP:
-						case IDC_MOVESHADERDOWN:
-							return DrawDarkButton(hwndDlg, nmc);
-						break;
-					}
+				case IDOK:
+				case IDCANCEL:
+				case IDC_ADDSHADER:
+				case IDC_REMOVESHADER:
+				case IDC_MOVESHADERUP:
+				case IDC_MOVESHADERDOWN:
+					return DrawDarkButton(hwndDlg, nmc);
+					break;
 				}
+			}
 			}
 		}
 		case WM_PAINT:
@@ -93,7 +99,7 @@ BOOL CALLBACK ShadersWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 		{
 			if (HIWORD(wParam) == LBN_SELCHANGE)
 			{
-				EnableShaderButtons(hwndDlg);
+				UpdateButtons(hwndDlg);
 			}
 			else if (HIWORD(wParam) == LBN_DBLCLK)
 			{
@@ -108,106 +114,107 @@ BOOL CALLBACK ShadersWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM l
 				switch (LOWORD(wParam))
 				{
 				case IDOK:
-					{
-						auto cnt = SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETCOUNT, 0, 0);
+				{
+					auto cnt = SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETCOUNT, 0, 0);
 
-						ini.SetLongValue(L"video", L"shaders", cnt);
-						for (int i = 0; i < MAXSHADERS; i++)
+					ini.SetLongValue(L"video", L"shaders", cnt);
+					for (int i = 0; i < MAXSHADERS; i++)
+					{
+						WCHAR key[16] = { 0 };
+						wsprintf(key, L"shader%d", i + 1);
+						if (i < cnt)
 						{
-							WCHAR key[16] = { 0 };
-							wsprintf(key, L"shader%d", i + 1);
-							if (i < cnt)
-							{
-								WCHAR val[256];
-								SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETTEXT, i, (LPARAM)val);
-								ini.SetValue(L"video", key, val);
-							}
-							else
-							{
-								ini.Delete(L"video", key, true);
-							}
+							WCHAR val[256];
+							SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETTEXT, i, (LPARAM)val);
+							ini.SetValue(L"video", key, val);
 						}
-						ini.SaveFile(settingsFile, false);
-
-						//DestroyWindow(hwndDlg);
-						//hWndShaders = NULL;
-
-						InitShaders();
-
-						return true;
+						else
+						{
+							ini.Delete(L"video", key, true);
+						}
 					}
+					ini.SaveFile(settingsFile, false);
+
+					//DestroyWindow(hwndDlg);
+					//hWndShaders = NULL;
+
+					InitShaders();
+
+					return true;
+				}
 				case IDCANCEL:
-					{
-						DestroyWindow(hwndDlg);
-						hWndShaders = NULL;
-						return true;
-					}
+				{
+					DestroyWindow(hwndDlg);
+					hWnd = NULL;
+					return true;
+				}
 				case IDC_ADDSHADER:
-					{
-						if (SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETCOUNT, 0, 0) >= MAXSHADERS)
-							return false;
-						auto sel = SendDlgItemMessage(hwndDlg, IDC_SHADERSAVAILABLE, LB_GETCURSEL, 0, 0);
-						if (sel == LB_ERR)
-							return false;
-						char selText[256];
-						SendDlgItemMessage(hwndDlg, IDC_SHADERSAVAILABLE, LB_GETTEXT, sel, (LPARAM)selText);
-						SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_ADDSTRING, 0, (LPARAM)selText);
-						SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_SETCURSEL, SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETCOUNT, 0, 0) - 1, 0);
-						EnableShaderButtons(hwndDlg);
+				{
+					if (SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETCOUNT, 0, 0) >= MAXSHADERS)
 						return false;
-					}
+					auto sel = SendDlgItemMessage(hwndDlg, IDC_SHADERSAVAILABLE, LB_GETCURSEL, 0, 0);
+					if (sel == LB_ERR)
+						return false;
+					char selText[256];
+					SendDlgItemMessage(hwndDlg, IDC_SHADERSAVAILABLE, LB_GETTEXT, sel, (LPARAM)selText);
+					SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_ADDSTRING, 0, (LPARAM)selText);
+					SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_SETCURSEL, SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETCOUNT, 0, 0) - 1, 0);
+					UpdateButtons(hwndDlg);
+					return false;
+				}
 				case IDC_REMOVESHADER:
-					{
-						auto sel = SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETCURSEL, 0, 0);
-						if (sel == LB_ERR)
-							return false;
-						SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_DELETESTRING, sel, 0);
-						if (sel > 0)
-							SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_SETCURSEL, sel - 1, 0);
-						else if (SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETCOUNT, 0, 0) > 0)
-							SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_SETCURSEL, sel, 0);
-						EnableShaderButtons(hwndDlg);
+				{
+					auto sel = SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETCURSEL, 0, 0);
+					if (sel == LB_ERR)
 						return false;
-					}
-				case IDC_MOVESHADERUP:
-					{
-						auto sel = SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETCURSEL, 0, 0);
-						if (sel == LB_ERR || sel == 0)
-							return false;
-						char toMove[256];
-						SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETTEXT, sel, (LPARAM)toMove);
-						SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_DELETESTRING, sel, 0);
-						SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_INSERTSTRING, sel - 1, (LPARAM)toMove);
+					SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_DELETESTRING, sel, 0);
+					if (sel > 0)
 						SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_SETCURSEL, sel - 1, 0);
-						EnableShaderButtons(hwndDlg);
+					else if (SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETCOUNT, 0, 0) > 0)
+						SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_SETCURSEL, sel, 0);
+					UpdateButtons(hwndDlg);
+					return false;
+				}
+				case IDC_MOVESHADERUP:
+				{
+					auto sel = SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETCURSEL, 0, 0);
+					if (sel == LB_ERR || sel == 0)
 						return false;
-					}
+					char toMove[256];
+					SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETTEXT, sel, (LPARAM)toMove);
+					SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_DELETESTRING, sel, 0);
+					SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_INSERTSTRING, sel - 1, (LPARAM)toMove);
+					SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_SETCURSEL, sel - 1, 0);
+					UpdateButtons(hwndDlg);
+					return false;
+				}
 				case IDC_MOVESHADERDOWN:
-					{
-						auto sel = SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETCURSEL, 0, 0);
-						auto cnt = SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETCOUNT, 0, 0);
-						if (sel == LB_ERR || sel == cnt - 1)
-							return false;
-						char toMove[256];
-						SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETTEXT, sel, (LPARAM)toMove);
-						SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_DELETESTRING, sel, 0);
-						SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_INSERTSTRING, sel + 1, (LPARAM)toMove);
-						SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_SETCURSEL, sel + 1, 0);
-						EnableShaderButtons(hwndDlg);
+				{
+					auto sel = SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETCURSEL, 0, 0);
+					auto cnt = SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETCOUNT, 0, 0);
+					if (sel == LB_ERR || sel == cnt - 1)
 						return false;
-					}
+					char toMove[256];
+					SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_GETTEXT, sel, (LPARAM)toMove);
+					SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_DELETESTRING, sel, 0);
+					SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_INSERTSTRING, sel + 1, (LPARAM)toMove);
+					SendDlgItemMessage(hwndDlg, IDC_SHADERSINUSE, LB_SETCURSEL, sel + 1, 0);
+					UpdateButtons(hwndDlg);
+					return false;
+				}
 				}
 			}
 		}
+		}
+		return false;
 	}
-	return false;
-}
 
-void ShowShaders()
-{
-	if (!IsWindow(hWndShaders))
+	void Show()
 	{
-		hWndShaders = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_SHADERS), (HWND)hWndMain, (DLGPROC)ShadersWndProc);
-		ShowWindow(hWndShaders, SW_SHOW);
+		if (!IsWindow(hWnd))
+		{
+			hWnd = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_SHADERS), (HWND)hWndMain, (DLGPROC)WndProc);
+			ShowWindow(hWnd, SW_SHOW);
+		}
 	}
 }

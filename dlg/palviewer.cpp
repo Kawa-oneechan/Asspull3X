@@ -1,85 +1,91 @@
 #include "..\ui.h"
 
 extern unsigned char* ramVideo;
-int currentIndex = 0;
 
-void UpdateDetails()
+namespace PalViewer
 {
-	auto snes = (ramVideo[PAL_ADDR + (currentIndex * 2) + 0] << 8) + ramVideo[PAL_ADDR + (currentIndex * 2) + 1];
-	auto r = (snes >> 0) & 0x1F;
-	auto g = (snes >> 5) & 0x1F;
-	auto b = (snes >> 10) & 0x1F;
-	auto red = r; red = (red << 3) + (red >> 2);
-	auto grn = g; grn = (grn << 3) + (grn >> 2);
-	auto blu = b; blu = (blu << 3) + (blu >> 2);
-	WCHAR buffer[256] = { 0 };
-	wsprintf(buffer, GetString(IDS_PALDETAILS), currentIndex, snes, r, red, g, grn, b, blu);
-	SetDlgItemText(hWndPalViewer, IDC_DETAILS, buffer);
-}
+	using namespace Presentation;
 
-void PalViewerDraw(DRAWITEMSTRUCT* dis)
-{
-	RECT rect;
-	GetClientRect(dis->hwndItem, &rect);
-	int w = rect.right - rect.left;
-	int h = rect.bottom - rect.top;
-	w += 2;
-	h += 2;
-	int cellW = w / 16;
-	int cellH = h / 16;
-	
-	HDC hdc = dis->hDC;
-	HBRUSH hbr;
-	RECT r;
-	r.top = 0;
-	r.bottom = cellH;
-	int c = 0;
-	for (int row = 0; row < 16; row++)
+	HWND hWnd = NULL;
+	int currentIndex = 0;
+
+	void UpdateDetails()
 	{
-		r.left = 0;
-		r.right = cellW;
-		for (int col = 0; col < 16; col++)
-		{
-			auto snes = (ramVideo[PAL_ADDR + (c * 2) + 0] << 8) + ramVideo[PAL_ADDR + (c * 2) + 1];	
-			auto red = (snes >> 0) & 0x1F; red = (red << 3) + (red >> 2);
-			auto grn = (snes >> 5) & 0x1F; grn = (grn << 3) + (grn >> 2);
-			auto blu = (snes >> 10) & 0x1F; blu = (blu << 3) + (blu >> 2);
-			hbr = CreateSolidBrush(RGB(red, grn, blu));
-			FillRect(hdc, &r, hbr);
-			if (c == currentIndex)
-			{
-				InvertRect(hdc, &r);
-				InflateRect(&r, -1, -1);
-				InvertRect(hdc, &r);
-				InflateRect(&r, 1, 1);
-			}
-			DeleteObject(hbr);
-			r.left += cellW;
-			r.right += cellW;
-			c++;
-		}
-		r.top += cellH;
-		r.bottom += cellH;
+		auto snes = (ramVideo[PAL_ADDR + (currentIndex * 2) + 0] << 8) + ramVideo[PAL_ADDR + (currentIndex * 2) + 1];
+		auto r = (snes >> 0) & 0x1F;
+		auto g = (snes >> 5) & 0x1F;
+		auto b = (snes >> 10) & 0x1F;
+		auto red = r; red = (red << 3) + (red >> 2);
+		auto grn = g; grn = (grn << 3) + (grn >> 2);
+		auto blu = b; blu = (blu << 3) + (blu >> 2);
+		WCHAR buffer[256] = { 0 };
+		wsprintf(buffer, GetString(IDS_PALDETAILS), currentIndex, snes, r, red, g, grn, b, blu);
+		SetDlgItemText(hWnd, IDC_DETAILS, buffer);
 	}
 
-	UpdateDetails();
-}
-
-void CALLBACK PalViewerAutoUpdate(HWND a, UINT b, UINT_PTR c, DWORD d)
-{
-	a, b, c, d;
-	InvalidateRect(GetDlgItem(hWndPalViewer, IDC_MEMVIEWERGRID), NULL, true);
-}
-
-BOOL CALLBACK PalViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	switch (message)
+	void DrawGrid(DRAWITEMSTRUCT* dis)
 	{
+		RECT rect;
+		GetClientRect(dis->hwndItem, &rect);
+		int w = rect.right - rect.left;
+		int h = rect.bottom - rect.top;
+		w += 2;
+		h += 2;
+		int cellW = w / 16;
+		int cellH = h / 16;
+
+		HDC hdc = dis->hDC;
+		HBRUSH hbr;
+		RECT r;
+		r.top = 0;
+		r.bottom = cellH;
+		int c = 0;
+		for (int row = 0; row < 16; row++)
+		{
+			r.left = 0;
+			r.right = cellW;
+			for (int col = 0; col < 16; col++)
+			{
+				auto snes = (ramVideo[PAL_ADDR + (c * 2) + 0] << 8) + ramVideo[PAL_ADDR + (c * 2) + 1];
+				auto red = (snes >> 0) & 0x1F; red = (red << 3) + (red >> 2);
+				auto grn = (snes >> 5) & 0x1F; grn = (grn << 3) + (grn >> 2);
+				auto blu = (snes >> 10) & 0x1F; blu = (blu << 3) + (blu >> 2);
+				hbr = CreateSolidBrush(RGB(red, grn, blu));
+				FillRect(hdc, &r, hbr);
+				if (c == currentIndex)
+				{
+					InvertRect(hdc, &r);
+					InflateRect(&r, -1, -1);
+					InvertRect(hdc, &r);
+					InflateRect(&r, 1, 1);
+				}
+				DeleteObject(hbr);
+				r.left += cellW;
+				r.right += cellW;
+				c++;
+			}
+			r.top += cellH;
+			r.bottom += cellH;
+		}
+
+		UpdateDetails();
+	}
+
+	void CALLBACK AutoUpdate(HWND a, UINT b, UINT_PTR c, DWORD d)
+	{
+		a, b, c, d;
+		InvalidateRect(GetDlgItem(hWnd, IDC_MEMVIEWERGRID), NULL, true);
+	}
+
+	BOOL CALLBACK WndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam)
+	{
+		switch (message)
+		{
 		case WM_CLOSE:
 		{
 			DestroyWindow(hwndDlg);
 			KillTimer(hwndDlg, 1);
-			hWndMemViewer = NULL;
+			hWnd = NULL;
 			return true;
 		}
 		case WM_SIZE:
@@ -101,19 +107,19 @@ BOOL CALLBACK PalViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM
 		case WM_SHOWWINDOW:
 		{
 			if (wParam)
-				InvalidateRect(GetDlgItem(hWndPalViewer, IDC_MEMVIEWERGRID), NULL, true);
+				InvalidateRect(GetDlgItem(hWnd, IDC_MEMVIEWERGRID), NULL, true);
 		}
 		case WM_COMMAND:
 		{
 			if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_REFRESH)
 			{
-				InvalidateRect(GetDlgItem(hWndPalViewer, IDC_MEMVIEWERGRID), NULL, true);
+				InvalidateRect(GetDlgItem(hWnd, IDC_MEMVIEWERGRID), NULL, true);
 				return true;
 			}
 			else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_AUTOUPDATE)
 			{
 				if (IsDlgButtonChecked(hwndDlg, IDC_AUTOUPDATE))
-					SetTimer(hwndDlg, 1, 100, PalViewerAutoUpdate);
+					SetTimer(hwndDlg, 1, 100, AutoUpdate);
 				else
 					KillTimer(hwndDlg, 1);
 				return true;
@@ -137,7 +143,7 @@ BOOL CALLBACK PalViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM
 				if (x > 15 || y > 15)
 					return true;
 				currentIndex = (y * 16) + x;
-				InvalidateRect(GetDlgItem(hWndPalViewer, IDC_MEMVIEWERGRID), NULL, true);
+				InvalidateRect(GetDlgItem(hWnd, IDC_MEMVIEWERGRID), NULL, true);
 			}
 			return true;
 		}
@@ -145,7 +151,7 @@ BOOL CALLBACK PalViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM
 		{
 			if (wParam == IDC_MEMVIEWERGRID)
 			{
-				PalViewerDraw((DRAWITEMSTRUCT*)lParam);
+				DrawGrid((DRAWITEMSTRUCT*)lParam);
 				return true;
 			}
 			return false;
@@ -157,7 +163,7 @@ BOOL CALLBACK PalViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM
 		}
 		case WM_NOTIFY:
 		{
-			if(((LPNMHDR)lParam)->code == NM_CUSTOMDRAW)
+			if (((LPNMHDR)lParam)->code == NM_CUSTOMDRAW)
 			{
 				auto nmc = (LPNMCUSTOMDRAW)lParam;
 				if (nmc->hdr.idFrom == IDC_AUTOUPDATE)
@@ -181,15 +187,16 @@ BOOL CALLBACK PalViewerWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM
 		{
 			return (INT_PTR)hbrBack;
 		}
+		}
+		return false;
 	}
-	return false;
-}
 
-void ShowPalViewer()
-{
-	if (!IsWindow(hWndPalViewer))
+	void Show()
 	{
-		hWndPalViewer = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_PALVIEWER), (HWND)hWndMain, (DLGPROC)PalViewerWndProc);
-		ShowWindow(hWndPalViewer, SW_SHOW);
+		if (!IsWindow(hWnd))
+		{
+			hWnd = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_PALVIEWER), (HWND)hWndMain, (DLGPROC)WndProc);
+			ShowWindow(hWnd, SW_SHOW);
+		}
 	}
 }
