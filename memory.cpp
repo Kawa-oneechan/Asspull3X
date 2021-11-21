@@ -3,7 +3,6 @@
 
 extern void SendMidiByte(unsigned char part);
 extern void SendOPL(unsigned short message);
-extern int mouseTimer;
 
 extern "C"
 {
@@ -44,10 +43,6 @@ extern unsigned int PollKeyboard(bool force);
 long ticks = 0;
 time_t timelatch, timesetlatch;
 long rtcOffset = 0;
-
-extern bool gfx320, gfx240, gfxTextBold, gfxTextBlink;
-extern int gfxMode, gfxFade, scrollX[4], scrollY[4], tileShift[4], mapEnabled[4], mapBlend[4];
-extern int caret;
 
 int lastMouseX = -1000, lastMouseY;
 
@@ -107,18 +102,18 @@ unsigned int m68k_read_memory_8(unsigned int address)
 			case 0x00: //Interrupts
 				return interrupts;
 			case 0x01: //Screen Mode
-				return (gfxMode |
-					(gfxTextBlink ? 1 << 4 : 0) |
-					(gfx240 ? 1 << 5 : 0) |
-					(gfx320 ? 1 << 6 : 0) |
-					(gfxTextBold ? 1 << 7 : 0));
+				return (Video::gfxMode |
+					(Video::gfxTextBlink ? 1 << 4 : 0) |
+					(Video::gfx240 ? 1 << 5 : 0) |
+					(Video::gfx320 ? 1 << 6 : 0) |
+					(Video::gfxTextBold ? 1 << 7 : 0));
 			case 0x08: //ScreenFade
-				return gfxFade;
+				return Video::gfxFade;
 			case 0x09: //TilemapSet
-				return (tileShift[1] |
-					(tileShift[0] << 2) |
-					(mapEnabled[1] << 6) |
-					(mapEnabled[0] << 7));
+				return (Video::tileShift[1] |
+					(Video::tileShift[0] << 2) |
+					(Video::mapEnabled[1] << 6) |
+					(Video::mapEnabled[0] << 7));
 				//TODO: add mapEnabled[2] and [3].
 			case 0x42: //Joypad
 			case 0x43:
@@ -179,12 +174,12 @@ unsigned int m68k_read_memory_16(unsigned int address)
 			case 0x14:
 			case 0x18:
 			case 0x1C:
-				return scrollX[min((reg - 0x10) / 4, 4)];
+				return Video::scrollX[min((reg - 0x10) / 4, 4)];
 			case 0x12: //Vertical scroll
 			case 0x16:
 			case 0x1A:
 			case 0x1E:
-				return scrollY[min((reg - 0x12) / 4, 4)];
+				return Video::scrollY[min((reg - 0x12) / 4, 4)];
 			case 0x40: //Keyscan
 				keyScan = PollKeyboard(false);
 				return keyScan;
@@ -216,13 +211,13 @@ unsigned int m68k_read_memory_16(unsigned int address)
 				lastMouseX = newX;
 				lastMouseY = newY;
 
-				if (mouseTimer == -1)
-					mouseTimer = 3 * 60;
+				if (UI::mouseTimer == -1)
+					UI::mouseTimer = 3 * 60;
 
 				return ((b & 1) << 14) | ((b & 4) << 13) | (dy << 13) | (y << 7) | (dx << 6) | x;
 			}
 			case 0x54:
-				return caret;
+				return Video::caret;
 		}
 		return 0;
 	}
@@ -274,28 +269,28 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				interrupts = value;
 				break;
 			case 0x01: //ScreenMode
-				gfxTextBold = ((u8 >> 7) & 1) == 1;
-				gfx320 = ((u8 >> 6) & 1) == 1;
-				gfx240 = ((u8 >> 5) & 1) == 1;
-				gfxTextBlink = ((u8 >> 4) & 1) == 1;
-				gfxMode = u8 & 0x0F;
+				Video::gfxTextBold = ((u8 >> 7) & 1) == 1;
+				Video::gfx320 = ((u8 >> 6) & 1) == 1;
+				Video::gfx240 = ((u8 >> 5) & 1) == 1;
+				Video::gfxTextBlink = ((u8 >> 4) & 1) == 1;
+				Video::gfxMode = u8 & 0x0F;
 				break;
 			case 0x08: //ScreenFade
-				gfxFade = u8;
+				Video::gfxFade = u8;
 				break;
 			case 0x09: //TilemapSet
-				mapEnabled[0] = (value & 0x10);
-				mapEnabled[1] = (value & 0x20);
-				mapEnabled[2] = (value & 0x40);
-				mapEnabled[3] = (value & 0x80);
-				tileShift[0] = (value >> 2) & 3;
-				tileShift[1] = value & 3;
+				Video::mapEnabled[0] = (value & 0x10);
+				Video::mapEnabled[1] = (value & 0x20);
+				Video::mapEnabled[2] = (value & 0x40);
+				Video::mapEnabled[3] = (value & 0x80);
+				Video::tileShift[0] = (value >> 2) & 3;
+				Video::tileShift[1] = value & 3;
 				break;
 			case 0x0A: //TilemapBlend
-				mapBlend[0] = ((u8 >> 0) & 1) | (((u8 >> 4) & 1) << 1);
-				mapBlend[1] = ((u8 >> 1) & 1) | (((u8 >> 5) & 1) << 1);
-				mapBlend[2] = ((u8 >> 2) & 1) | (((u8 >> 6) & 1) << 1);
-				mapBlend[3] = ((u8 >> 3) & 1) | (((u8 >> 7) & 1) << 1);
+				Video::mapBlend[0] = ((u8 >> 0) & 1) | (((u8 >> 4) & 1) << 1);
+				Video::mapBlend[1] = ((u8 >> 1) & 1) | (((u8 >> 5) & 1) << 1);
+				Video::mapBlend[2] = ((u8 >> 2) & 1) | (((u8 >> 6) & 1) << 1);
+				Video::mapBlend[3] = ((u8 >> 3) & 1) | (((u8 >> 7) & 1) << 1);
 				break;
 			case 0x42: //Joypads
 			case 0x43:
@@ -391,19 +386,19 @@ void m68k_write_memory_16(unsigned int address, unsigned int value)
 			case 0x14:
 			case 0x18:
 			case 0x1C:
-				scrollX[(reg - 0x10) / 4] = value & 511;
+				Video::scrollX[(reg - 0x10) / 4] = value & 511;
 				break;
 			case 0x12: //Vertical scroll
 			case 0x16:
 			case 0x1A:
 			case 0x1E:
-				scrollY[(reg - 0x12) / 4] = value & 511;
+				Video::scrollY[(reg - 0x12) / 4] = value & 511;
 				break;
 			case 0x48: //OPL3 out
 				SendOPL(value);
 				break;
 			case 0x54:
-				caret = value;
+				Video::caret = value;
 				break;
 		}
 		return;
@@ -441,8 +436,8 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 				rtcOffset = (long)(timesetlatch - timelatch);
 				{
 					ini.SetLongValue(L"media", L"rtcOffset", rtcOffset);
-					ResetPath();
-					ini.SaveFile(settingsFile, false);
+					UI::ResetPath();
+					ini.SaveFile(UI::settingsFile, false);
 				}
 				//return (int)timelatch;
 				break;

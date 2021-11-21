@@ -10,21 +10,7 @@ bool fpsCap;
 bool quit = 0;
 int line = 0, interrupts = 0;
 int invertButtons = 0;
-extern void Screenshot();
-extern int uiCommand;
-extern WCHAR uiString[512];
-extern void InitializeUI();
-extern void SetStatus(const WCHAR*);
-extern void SetStatus(int);
-extern void SetFPS(int fps);
-extern void ShowOpenFileDialog(int, const WCHAR*);
-extern bool ShowFileDlg(bool, WCHAR*, size_t, const WCHAR*);
-extern void LetItSnow();
-extern void InsertDisk(int);
-extern void EjectDisk(int);
 extern void ResetAudio();
-extern void ResizeStatusBar();
-extern void SetTitle(const char*);
 extern void ReportLoadingFail(int messageId, int err, int device, const WCHAR* fileName);
 
 extern unsigned int biosSize, romSize;
@@ -84,7 +70,7 @@ void LoadROM(const WCHAR* path)
 		mz_zip_reader_end(&zip);
 		if (!foundSomething)
 		{
-			SetStatus(IDS_NOTHINGINZIP); //"No single AP3 file found in archive."
+			UI::SetStatus(IDS_NOTHINGINZIP); //"No single AP3 file found in archive."
 			return;
 		}
 	}
@@ -108,24 +94,23 @@ void LoadROM(const WCHAR* path)
 #endif
 
 	ini.SetValue(L"media", L"lastROM", path);
-	ResetPath();
-	ini.SaveFile(settingsFile, false);
+	UI::ResetPath();
+	ini.SaveFile(UI::settingsFile, false);
 
 	char romName[32] = { 0 };
 	memcpy(romName, romCartridge + 8, 24);
 	Discord::UpdateDiscordPresence(romName);
-	SetTitle(romName);
+	UI::SetTitle(romName);
 }
 
 int pauseState = 0;
 unsigned char* pauseScreen;
-extern unsigned char* pixels;
 
 void MainLoop()
 {
 	pauseScreen = new unsigned char[640 * 480 * 4]();
 
-	Log(GetString(IDS_RESETTING));
+	Log(UI::GetString(IDS_RESETTING));
 	m68k_init();
 	m68k_set_cpu_type(M68K_CPU_TYPE_68020);
 	ResetAudio();
@@ -156,7 +141,7 @@ void MainLoop()
 
 	bool gottaReset = false;
 
-	SetStatus(IDS_CLICKTORELEASE); //"Middle-click or RCtrl-P to pause emulation."
+	UI::SetStatus(IDS_CLICKTORELEASE); //"Middle-click or RCtrl-P to pause emulation."
 
 	while (!quit)
 	{
@@ -193,7 +178,6 @@ void MainLoop()
 				break;
 			case SDL_JOYAXISMOTION:
 				if (ev.jaxis.axis > 2) ev.jaxis.axis -= 3; //map right stick and trigger to left
-				SetStatus(uiString);
 				if (ev.jaxis.which < 2)
 					joyaxes[(ev.jaxis.which * 2) + ev.jaxis.axis] = ev.jaxis.value >> 8;
 				break;
@@ -202,15 +186,15 @@ void MainLoop()
 				if (ev.key.keysym.mod & KMOD_RCTRL)
 				{
 					if (ev.key.keysym.sym == SDLK_l)
-						uiCommand = (ev.key.keysym.mod & KMOD_SHIFT) ? cmdInsertDisk : cmdLoadRom;
+						UI::uiCommand = (ev.key.keysym.mod & KMOD_SHIFT) ? cmdInsertDisk : cmdLoadRom;
 					else if (ev.key.keysym.sym == SDLK_u)
-						uiCommand = (ev.key.keysym.mod & KMOD_SHIFT) ? cmdEjectDisk : cmdUnloadRom;
+						UI::uiCommand = (ev.key.keysym.mod & KMOD_SHIFT) ? cmdEjectDisk : cmdUnloadRom;
 					else if (ev.key.keysym.sym == SDLK_r)
-						uiCommand = cmdReset;
+						UI::uiCommand = cmdReset;
 					else if (ev.key.keysym.sym == SDLK_d)
-						uiCommand = cmdDump;
+						UI::uiCommand = cmdDump;
 					else if (ev.key.keysym.sym == SDLK_s)
-						uiCommand = cmdScreenshot;
+						UI::uiCommand = cmdScreenshot;
 					else if (ev.key.keysym.sym == SDLK_p)
 					{
 						if (pauseState == 0)
@@ -231,87 +215,87 @@ void MainLoop()
 				}
 			case SDL_WINDOWEVENT:
 				if (ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
-					ResizeStatusBar();
+					UI::ResizeStatusBar();
 			}
 		}
 
 		if (gottaReset)
 		{
-			uiCommand = cmdReset;
+			UI::uiCommand = cmdReset;
 			gottaReset = false;
 		}
 
-		if (uiCommand != cmdNone)
+		if (UI::uiCommand != cmdNone)
 		{
-			if (uiCommand == cmdLoadRom)
+			if (UI::uiCommand == cmdLoadRom)
 			{
-				ShowOpenFileDialog(cmdLoadRom, GetString(IDS_CARTFILTER)); //"Asspull IIIx ROMS (*.ap3)|*.ap3"
-				if (uiCommand == 0) continue;
-				Log(GetString(IDS_LOADINGROM), uiString); //"Loading ROM, %s ..."
+				UI::ShowOpenFileDialog(cmdLoadRom, UI::GetString(IDS_CARTFILTER)); //"Asspull IIIx ROMS (*.ap3)|*.ap3"
+				if (UI::uiCommand == 0) continue;
+				Log(UI::GetString(IDS_LOADINGROM), UI::uiString); //"Loading ROM, %s ..."
 				gottaReset = (*(uint32_t*)romCartridge == 0x21535341);
-				LoadROM(uiString);
+				LoadROM(UI::uiString);
 			}
-			else if (uiCommand == cmdInsertDisk)
+			else if (UI::uiCommand == cmdInsertDisk)
 			{
 				if (devices[0] == NULL || devices[0]->GetID() != 0x0144)
-					SetStatus(IDS_NODISKDRIVE); //"No disk drive."
+					UI::SetStatus(IDS_NODISKDRIVE); //"No disk drive."
 				else if (((DiskDrive*)devices[0])->IsMounted())
-					SetStatus(IDS_UNMOUNTFIRST); //"Unmount the medium first."
+					UI::SetStatus(IDS_UNMOUNTFIRST); //"Unmount the medium first."
 				else
-					InsertDisk(0);
+					UI::InsertDisk(0);
 			}
-			else if (uiCommand == cmdUnloadRom)
+			else if (UI::uiCommand == cmdUnloadRom)
 			{
-				Log(GetString(IDS_UNLOADINGROM)); //"Unloading ROM..."
+				Log(UI::GetString(IDS_UNLOADINGROM)); //"Unloading ROM..."
 				memset(romCartridge, 0, CART_SIZE);
 				ini.SetValue(L"media", L"lastROM", L"");
-				ResetPath();
-				ini.SaveFile(settingsFile, false);
-				gfxFade = 31;
-				SetStatus(IDS_CARTEJECTED); //"Cart pulled."
+				UI::ResetPath();
+				ini.SaveFile(UI::settingsFile, false);
+				Video::gfxFade = 31;
+				UI::SetStatus(IDS_CARTEJECTED); //"Cart pulled."
 				Discord::UpdateDiscordPresence(NULL);
-				SetTitle(NULL);
+				UI::SetTitle(NULL);
 			}
-			else if (uiCommand == cmdEjectDisk)
+			else if (UI::uiCommand == cmdEjectDisk)
 			{
 				if (devices[0] == NULL || devices[0]->GetID() != 0x0144)
-					SetStatus(IDS_NODISKDRIVE); //"No disk drive."
+					UI::SetStatus(IDS_NODISKDRIVE); //"No disk drive."
 				else if (((DiskDrive*)devices[0])->IsMounted())
-					EjectDisk(0);
+					UI::EjectDisk(0);
 			}
-			else if (uiCommand == cmdReset)
+			else if (UI::uiCommand == cmdReset)
 			{
 				if (SDL_GetModState() & KMOD_SHIFT)
 				{
-					Log(GetString(IDS_UNLOADINGROM)); //"Unloading ROM..."
+					Log(UI::GetString(IDS_UNLOADINGROM)); //"Unloading ROM..."
 					memset(romCartridge, 0, CART_SIZE);
 					ini.SetValue(L"media", L"lastROM", L"");
-					ResetPath();
-					ini.SaveFile(settingsFile, true);
+					UI::ResetPath();
+					ini.SaveFile(UI::settingsFile, true);
 					Discord::UpdateDiscordPresence(NULL);
-					SetTitle(NULL);
+					UI::SetTitle(NULL);
 				}
-				Log(GetString(IDS_SYSTEMRESET)); //"Resetting Musashi..."
-				SetStatus(IDS_SYSTEMRESET); //"System reset."
+				Log(UI::GetString(IDS_SYSTEMRESET)); //"Resetting Musashi..."
+				UI::SetStatus(IDS_SYSTEMRESET); //"System reset."
 				ResetAudio();
 				m68k_pulse_reset();
 			}
-			else if (uiCommand == cmdQuit)
+			else if (UI::uiCommand == cmdQuit)
 			{
 				quit = true;
 			}
-			else if (uiCommand == cmdDump)
+			else if (UI::uiCommand == cmdDump)
 			{
 				Dump(L"wram.bin", ramInternal, WRAM_SIZE);
 				Dump(L"vram.bin", ramVideo, VRAM_SIZE);
-				SetStatus(IDS_DUMPEDRAM); //"Dumping core..."
+				UI::SetStatus(IDS_DUMPEDRAM); //"Dumping core..."
 			}
-			else if (uiCommand == cmdScreenshot)
+			else if (UI::uiCommand == cmdScreenshot)
 			{
-				Screenshot();
+				Video::Screenshot();
 			}
-			uiCommand = 0;
-			uiString[0] = 0;
+			UI::uiCommand = 0;
+			UI::uiString[0] = 0;
 		}
 
 		if (pauseState != 2)
@@ -320,14 +304,14 @@ void MainLoop()
 			if (line < lines)
 			{
 				HandleHdma(line);
-				RenderLine(line);
+				Video::RenderLine(line);
 			}
 			m68k_execute(hBlankLasts);
 			if (line == lines)
 			{
 				if (pauseState == 1) //pausing now!
 				{
-					memcpy(pauseScreen, pixels, 640 * 480 * 4);
+					memcpy(pauseScreen, Video::pixels, 640 * 480 * 4);
 					for (auto i = 0; i < 640 * 480 * 4; i += 4)
 					{
 						pauseScreen[i + 0] /= 2;
@@ -336,8 +320,8 @@ void MainLoop()
 					}
 					pauseState = 2;
 				}
-				HandleUI();
-				VBlank();
+				UI::HandleUI();
+				Video::VBlank();
 
 				if (!startTime)
 					startTime = SDL_GetTicks();
@@ -347,7 +331,7 @@ void MainLoop()
 				auto averageFPS = frames / (SDL_GetTicks() / 1000.0f);
 				if (averageFPS > 2000000)
 					averageFPS = 0;
-				SetFPS((int)averageFPS);
+				UI::SetFPS((int)averageFPS);
 				if (fpsCap && delta < 20)
 					SDL_Delay(20 - delta);
 				startTime = endTime;
@@ -366,9 +350,9 @@ void MainLoop()
 		}
 		else if (pauseState == 2)
 		{
-			memcpy(pixels, pauseScreen, 640 * 480 * 4);
-			LetItSnow();
-			VBlank();
+			memcpy(Video::pixels, pauseScreen, 640 * 480 * 4);
+			UI::LetItSnow();
+			Video::VBlank();
 		}
 		line++;
 		if (line == trueLines)

@@ -12,22 +12,15 @@ extern "C" {
 
 CSimpleIni ini;
 
-bool reloadROM, reloadIMG;
-extern bool fpsVisible, fpsCap;
 extern unsigned int biosSize, romSize;
 extern long rtcOffset;
 extern int invertButtons;
-extern int pauseState;
 
-extern void InitializeUI();
-extern void ShowOpenFileDialog(int, const WCHAR*);
-extern bool ShowFileDlg(bool, WCHAR*, size_t, const WCHAR*);
 extern void LoadROM(const WCHAR* path);
 extern void MainLoop();
 extern FILE* logFile;
 
 WCHAR* paramLoad = NULL;
-WCHAR settingsFile[512] = { 0 };
 
 void GetSettings()
 {
@@ -38,27 +31,27 @@ void GetSettings()
 	
 	PWSTR path = NULL;
 	auto res = SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, NULL, &path); res;
-	wcscpy(settingsFile, path);
-	wcscat(settingsFile, L"\\Clunibus.ini");
-	auto atts = GetFileAttributes(settingsFile);
+	wcscpy(UI::settingsFile, path);
+	wcscat(UI::settingsFile, L"\\Clunibus.ini");
+	auto atts = GetFileAttributes(UI::settingsFile);
 	if (atts == INVALID_FILE_ATTRIBUTES)
 	{
-		wcscpy(settingsFile, L"Clunibus.ini");
-		atts = GetFileAttributes(settingsFile);
+		wcscpy(UI::settingsFile, L"Clunibus.ini");
+		atts = GetFileAttributes(UI::settingsFile);
 		if (atts == INVALID_FILE_ATTRIBUTES)
 		{
 			//Local file doesn't exist? Then revert back to appdata and pretend.
-			wcscpy(settingsFile, path);
-			wcscat(settingsFile, L"\\Clunibus.ini");
+			wcscpy(UI::settingsFile, path);
+			wcscat(UI::settingsFile, L"\\Clunibus.ini");
 		}
 	}
 	CoTaskMemFree(path);
 
-	ini.LoadFile(settingsFile);
-	fpsCap = ini.GetBoolValue(L"video", L"fpsCap", false);
-	fpsVisible = ini.GetBoolValue(L"video", L"showFps", true);
-	reloadROM = ini.GetBoolValue(L"media", L"reloadRom", false);
-	reloadIMG = ini.GetBoolValue(L"media", L"reloadImg", false);
+	ini.LoadFile(UI::settingsFile);
+	UI::fpsCap = ini.GetBoolValue(L"video", L"fpsCap", false);
+	UI::fpsVisible = ini.GetBoolValue(L"video", L"showFps", true);
+	UI::reloadROM = ini.GetBoolValue(L"media", L"reloadRom", false);
+	UI::reloadIMG = ini.GetBoolValue(L"media", L"reloadImg", false);
 	invertButtons = (int)ini.GetBoolValue(L"media", L"invertButtons", false);
 	Discord::enabled = ini.GetBoolValue(L"media", L"discord", false);
 
@@ -69,11 +62,11 @@ void GetSettings()
 		if (argv[i][0] == L'-')
 		{
 			if (!wcscmp(argv[i], L"--fpscap"))
-				fpsCap = false;
+				UI::fpsCap = false;
 			else if (!wcscmp(argv[i], L"--noreload"))
-				reloadROM = false;
+				UI::reloadROM = false;
 			else if (!wcscmp(argv[i], L"--noremount"))
-				reloadIMG = false;
+				UI::reloadIMG = false;
 			else if (!wcscmp(argv[i], L"--nodiscord"))
 				Discord::enabled = false;
 		}
@@ -95,8 +88,8 @@ void ReportLoadingFail(int messageId, int err, int device, const WCHAR* fileName
 	_wsplitpath_s(fileName, NULL, 0, NULL, 0, f, ARRAYSIZE(f), e, ARRAYSIZE(e));
 	wcscat(f, e);
 	_wcserror_s(e, ARRAYSIZE(e), err);
-	wsprintf(b, GetString(messageId), f, device);
-	TaskDialog(NULL, NULL, GetString(IDS_SHORTTITLE), b, e, TDCBF_OK_BUTTON, TD_WARNING_ICON, NULL);
+	wsprintf(b, UI::GetString(messageId), f, device);
+	TaskDialog(NULL, NULL, UI::GetString(IDS_SHORTTITLE), b, e, TDCBF_OK_BUTTON, TD_WARNING_ICON, NULL);
 }
 
 void InitializeDevices()
@@ -118,7 +111,7 @@ void InitializeDevices()
 			devices[i] = (Device*)(new DiskDrive(0));
 			Log(L"Attached a diskette drive as device #%d.", i);
 			thing = ini.GetValue(L"devices/diskDrive", key, L"");
-			if (reloadIMG && wcslen(thing))
+			if (UI::reloadIMG && wcslen(thing))
 			{
 				auto err = ((DiskDrive*)devices[i])->Mount(thing);
 				if (err)
@@ -132,7 +125,7 @@ void InitializeDevices()
 			devices[i] = (Device*)(new DiskDrive(1));
 			Log(L"Attached a hard disk drive as device #%d.", i);
 			thing = ini.GetValue(L"devices/hardDrive", key, L"");
-			if (reloadIMG && wcslen(thing))
+			if (UI::reloadIMG && wcslen(thing))
 			{
 				auto err = ((DiskDrive*)devices[i])->Mount(thing);
 				if (err)
@@ -157,11 +150,11 @@ void Preload()
 	{
 		//thing = "roms\\ass-bios.apb";
 		WCHAR thePath[FILENAME_MAX] = L"roms\\ass-bios.apb";
-		if (ShowFileDlg(false, thePath, 256, L"A3X BIOS files (*.apb)|*.apb"))
+		if (UI::ShowFileDlg(false, thePath, 256, L"A3X BIOS files (*.apb)|*.apb"))
 		{
 			thing = thePath;
 			ini.SetValue(L"media", L"bios", thePath);
-			ini.SaveFile(settingsFile, false);
+			ini.SaveFile(UI::settingsFile, false);
 		}
 		else
 		{
@@ -172,7 +165,7 @@ void Preload()
 	Slurp(romBIOS, thing, &biosSize);
 	biosSize = RoundUp(biosSize);
 	thing = ini.GetValue(L"media", L"lastROM", L"");
-	if (reloadROM && wcslen(thing) && paramLoad == NULL)
+	if (UI::reloadROM && wcslen(thing) && paramLoad == NULL)
 	{
 		Log(L"Loading ROM %s...", thing);
 		LoadROM(thing);
@@ -204,12 +197,12 @@ int main(int argc, char** argv)
 
 	GetSettings();
 
-	if (InitVideo() < 0)
+	if (Video::InitVideo() < 0)
 		return 0;
 
 	InitializeDevices();
 
-	InitializeUI();
+	UI::InitializeUI();
 
 	if (InitMemory() < 0)
 		return 0;
@@ -234,7 +227,7 @@ int main(int argc, char** argv)
 	Discord::Shutdown();
 
 	UninitSound();
-	UninitVideo();
+	Video::UninitVideo();
 	SDL_Quit();
 	if (logFile != NULL)
 		fclose(logFile);

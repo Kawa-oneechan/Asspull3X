@@ -1,9 +1,6 @@
-#include "ui.h"
+#include "asspull.h"
 #include <discord_rpc.h>
 #include <time.h>
-
-extern WCHAR* GetString(int);
-extern void Log(WCHAR* message, ...);
 
 namespace Discord
 {
@@ -31,7 +28,7 @@ namespace Discord
 		discordDLL = LoadLibraryExA("discord-rpc.dll", NULL, 0);
 		if (discordDLL == NULL)
 		{
-			Log(GetString(IDS_DISCORDDLL)); //"Discord is enabled but the DLL isn't here."
+			Log(UI::GetString(IDS_DISCORDDLL)); //"Discord is enabled but the DLL isn't here."
 			enabled = false;
 			return;
 		}
@@ -51,7 +48,7 @@ namespace Discord
 			return;
 		WCHAR wName[128] = { 0 };
 		if (gameName == NULL)
-			wcscpy(wName, GetString(IDS_NOTPLAYING));
+			wcscpy(wName, UI::GetString(IDS_NOTPLAYING));
 		else
 			mbstowcs(wName, gameName, ARRAYSIZE(wName));
 		Log(L"Discord: \"%s\"", wName);

@@ -104,7 +104,6 @@
     <ClInclude Include="opl3.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SimpleIni.h" />
-    <ClInclude Include="ui.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="device.cpp" />

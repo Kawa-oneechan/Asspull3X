@@ -1,4 +1,4 @@
-#include "..\ui.h"
+#include "..\asspull.h"
 
 #define PROMO_W 280
 #define PROMO_H 160
@@ -8,119 +8,122 @@
 #define DANCE_H 56
 #define DANCE_F 8
 
-namespace About
+namespace UI
 {
-	using namespace Presentation;
-
-	HWND hWnd = NULL;
-	HBITMAP hPromoImage = NULL;
-	HIMAGELIST hDanceIml = NULL;
-	int aboutFrame = 0;
-	RECT aboutRect = { DANCE_X, DANCE_Y, DANCE_X + DANCE_W, DANCE_Y + DANCE_H };
-
-	void CALLBACK Animate(HWND a, UINT b, UINT_PTR c, DWORD d)
+	namespace About
 	{
-		a, b, c, d;
-		aboutFrame++;
-		if (aboutFrame == DANCE_F)
-			aboutFrame = 0;
+		using namespace Presentation;
 
-		InvalidateRect(hWnd, &aboutRect, false);
-	}
+		HWND hWnd = NULL;
+		HBITMAP hPromoImage = NULL;
+		HIMAGELIST hDanceIml = NULL;
+		int aboutFrame = 0;
+		RECT aboutRect = { DANCE_X, DANCE_Y, DANCE_X + DANCE_W, DANCE_Y + DANCE_H };
 
-	BOOL CALLBACK WndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam)
-	{
-		switch (message)
+		void CALLBACK Animate(HWND a, UINT b, UINT_PTR c, DWORD d)
 		{
-		case WM_INITDIALOG:
-		{
-			hPromoImage = Images::LoadPNGResource(IDB_ABOUT);
-			hDanceIml = ImageList_Create(DANCE_W, DANCE_H, ILC_COLOR32, DANCE_F, 0);
-			ImageList_Add(hDanceIml, Images::LoadPNGResource(IDB_DANCE), NULL);
-			SendDlgItemMessage(hwndDlg, IDC_HEADER, WM_SETFONT, (WPARAM)headerFont, (LPARAM)true);
-			SetTimer(hwndDlg, 1, 100, Animate);
-			return true;
-		}
-		case WM_PAINT:
-		{
-			PAINTSTRUCT ps;
-			HDC hdc = BeginPaint(hwndDlg, &ps);
-			if (ps.rcPaint.left != aboutRect.left)
-			{
-				DrawWindowBk(hwndDlg, true, &ps, hdc);
-				auto hdcMem = CreateCompatibleDC(hdc);
-				auto oldBitmap = SelectObject(hdcMem, hPromoImage);
-				BitBlt(hdc, 0, 0, PROMO_W, PROMO_H, hdcMem, 0, 0, SRCCOPY);
-				SelectObject(hdcMem, oldBitmap);
-				DeleteDC(hdcMem);
-			}
-			else
-				FillRect(hdc, &ps.rcPaint, hbrBack);
+			a, b, c, d;
+			aboutFrame++;
+			if (aboutFrame == DANCE_F)
+				aboutFrame = 0;
 
-			ImageList_Draw(hDanceIml, aboutFrame, hdc, DANCE_X, DANCE_Y, ILD_NORMAL);
-			EndPaint(hwndDlg, &ps);
-			return true;
+			InvalidateRect(hWnd, &aboutRect, false);
 		}
-		case WM_CTLCOLORSTATIC:
+
+		BOOL CALLBACK WndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		{
-			SetBkColor((HDC)wParam, rgbBack);
-			SetTextColor((HDC)wParam, rgbText);
-			if (lParam == (LPARAM)GetDlgItem(hwndDlg, IDC_LINK))
+			switch (message)
 			{
-				SetBkColor((HDC)wParam, rgbStripe);
-				return (INT_PTR)hbrStripe;
+			case WM_INITDIALOG:
+			{
+				hPromoImage = Images::LoadPNGResource(IDB_ABOUT);
+				hDanceIml = ImageList_Create(DANCE_W, DANCE_H, ILC_COLOR32, DANCE_F, 0);
+				ImageList_Add(hDanceIml, Images::LoadPNGResource(IDB_DANCE), NULL);
+				SendDlgItemMessage(hwndDlg, IDC_HEADER, WM_SETFONT, (WPARAM)headerFont, (LPARAM)true);
+				SetTimer(hwndDlg, 1, 100, Animate);
+				return true;
 			}
-			else if (lParam == (LPARAM)GetDlgItem(hwndDlg, IDC_HEADER))
-				SetTextColor((HDC)wParam, rgbHeader);
-			return (INT_PTR)hbrBack;
-		}
-		case WM_CTLCOLORBTN:
-		{
-			return (INT_PTR)hbrBack;
-		}
-		case WM_CLOSE:
-		case WM_COMMAND:
-		{
-			DeleteObject(hPromoImage);
-			ImageList_Destroy(hDanceIml);
-			KillTimer(hwndDlg, 1);
-			DestroyWindow(hwndDlg);
-			hWnd = NULL;
-			return true;
-		}
-		case WM_NOTIFY:
-			switch (((LPNMHDR)lParam)->code)
+			case WM_PAINT:
 			{
-			case NM_CLICK:
-			case NM_RETURN:
-			{
-				PNMLINK pNMLink = (PNMLINK)lParam;
-				LITEM item = pNMLink->item;
-				if ((((LPNMHDR)lParam)->hwndFrom == GetDlgItem(hwndDlg, IDC_LINK)) && (item.iLink == 0))
-					ShellExecuteA(NULL, "open", "https://github.com/Kawa-oneechan/Asspull3X", NULL, NULL, SW_SHOW);
-				break;
-			}
-			case NM_CUSTOMDRAW:
-			{
-				auto nmc = (LPNMCUSTOMDRAW)lParam;
-				int idFrom = nmc->hdr.idFrom;
-				switch (idFrom)
+				PAINTSTRUCT ps;
+				HDC hdc = BeginPaint(hwndDlg, &ps);
+				if (ps.rcPaint.left != aboutRect.left)
 				{
-				case IDOK: return Presentation::DrawDarkButton(hwndDlg, nmc);
+					DrawWindowBk(hwndDlg, true, &ps, hdc);
+					auto hdcMem = CreateCompatibleDC(hdc);
+					auto oldBitmap = SelectObject(hdcMem, hPromoImage);
+					BitBlt(hdc, 0, 0, PROMO_W, PROMO_H, hdcMem, 0, 0, SRCCOPY);
+					SelectObject(hdcMem, oldBitmap);
+					DeleteDC(hdcMem);
+				}
+				else
+					FillRect(hdc, &ps.rcPaint, hbrBack);
+
+				ImageList_Draw(hDanceIml, aboutFrame, hdc, DANCE_X, DANCE_Y, ILD_NORMAL);
+				EndPaint(hwndDlg, &ps);
+				return true;
+			}
+			case WM_CTLCOLORSTATIC:
+			{
+				SetBkColor((HDC)wParam, rgbBack);
+				SetTextColor((HDC)wParam, rgbText);
+				if (lParam == (LPARAM)GetDlgItem(hwndDlg, IDC_LINK))
+				{
+					SetBkColor((HDC)wParam, rgbStripe);
+					return (INT_PTR)hbrStripe;
+				}
+				else if (lParam == (LPARAM)GetDlgItem(hwndDlg, IDC_HEADER))
+					SetTextColor((HDC)wParam, rgbHeader);
+				return (INT_PTR)hbrBack;
+			}
+			case WM_CTLCOLORBTN:
+			{
+				return (INT_PTR)hbrBack;
+			}
+			case WM_CLOSE:
+			case WM_COMMAND:
+			{
+				DeleteObject(hPromoImage);
+				ImageList_Destroy(hDanceIml);
+				KillTimer(hwndDlg, 1);
+				DestroyWindow(hwndDlg);
+				hWnd = NULL;
+				return true;
+			}
+			case WM_NOTIFY:
+				switch (((LPNMHDR)lParam)->code)
+				{
+				case NM_CLICK:
+				case NM_RETURN:
+				{
+					PNMLINK pNMLink = (PNMLINK)lParam;
+					LITEM item = pNMLink->item;
+					if ((((LPNMHDR)lParam)->hwndFrom == GetDlgItem(hwndDlg, IDC_LINK)) && (item.iLink == 0))
+						ShellExecuteA(NULL, "open", "https://github.com/Kawa-oneechan/Asspull3X", NULL, NULL, SW_SHOW);
 					break;
 				}
+				case NM_CUSTOMDRAW:
+				{
+					auto nmc = (LPNMCUSTOMDRAW)lParam;
+					int idFrom = nmc->hdr.idFrom;
+					switch (idFrom)
+					{
+					case IDOK: return Presentation::DrawDarkButton(hwndDlg, nmc);
+						break;
+					}
+				}
+				}
 			}
-			}
+			return false;
 		}
-		return false;
-	}
 
-	void Show()
-	{
-		if (!IsWindow(hWnd))
+		void Show()
 		{
-			hWnd = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_ABOUT), (HWND)hWndMain, (DLGPROC)WndProc);
-			ShowWindow(hWnd, SW_SHOW);
+			if (!IsWindow(hWnd))
+			{
+				hWnd = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_ABOUT), (HWND)hWndMain, (DLGPROC)WndProc);
+				ShowWindow(hWnd, SW_SHOW);
+			}
 		}
 	}
 }

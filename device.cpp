@@ -1,9 +1,5 @@
 #include "asspull.h"
 #include "resource.h"
-extern void SetStatus(const WCHAR*);
-extern void SetStatus(int);
-
-extern int diskIconTimer, hddIconTimer;
 
 #define SECTOR_SIZE 512
 
@@ -58,7 +54,7 @@ int DiskDrive::Mount(const WCHAR* filename)
 {
 	if (file != NULL)
 		return -1;
-	Log(GetString(IDS_MOUNTINGDISK), filename); //"Mounting disk image, %s ..."
+	Log(UI::GetString(IDS_MOUNTINGDISK), filename); //"Mounting disk image, %s ..."
 	if (_wfopen_s(&file, filename, L"r+b"))
 		return errno;
 	fseek(file, 0, SEEK_END);
@@ -80,14 +76,14 @@ int DiskDrive::Mount(const WCHAR* filename)
 		uint32_t i = ReadMoto32(file);
 		if (i != 2)
 		{
-			SetStatus(IDS_VHDBADBITS); //"Invalid VHD: bad feature bits (must be 2)"
+			UI::SetStatus(IDS_VHDBADBITS); //"Invalid VHD: bad feature bits (must be 2)"
 			fclose(file);
 			return 1;
 		}
 		i = ReadMoto32(file);
 		if (i != 0x00010000)
 		{
-			SetStatus(IDS_VHDBADVERSION); //"Invalid VHD: bad version (must be 1.00)."
+			UI::SetStatus(IDS_VHDBADVERSION); //"Invalid VHD: bad version (must be 1.00)."
 			fclose(file);
 			return 1;
 		}
@@ -99,12 +95,12 @@ int DiskDrive::Mount(const WCHAR* filename)
 		i = ReadMoto32(file);
 		if (i != 2)
 		{
-			SetStatus(IDS_VHDBADTYPE); //"Invalid VHD: bad disk type (must be FIXED)."
+			UI::SetStatus(IDS_VHDBADTYPE); //"Invalid VHD: bad disk type (must be FIXED)."
 			fclose(file);
 			return 1;
 		}
 		fseek(file, 0, SEEK_SET);
-		Log(GetString(IDS_MOUNTEDVHD), tracks, heads, sectors, tracks * heads * sectors * 512, capacity); //"Mounted VHD. %d * %d * %d * 512 = %d, should be ~%d."
+		Log(UI::GetString(IDS_MOUNTEDVHD), tracks, heads, sectors, tracks * heads * sectors * 512, capacity); //"Mounted VHD. %d * %d * %d * 512 = %d, should be ~%d."
 	}
 	return 0;
 }
@@ -113,7 +109,7 @@ int DiskDrive::Unmount()
 {
 	if (file == NULL)
 		return 1;
-	Log(GetString(IDS_UNMOUNTINGDISK)); //"Unmounting diskette..."
+	Log(UI::GetString(IDS_UNMOUNTINGDISK)); //"Unmounting diskette..."
 	fclose(file);
 	file = NULL;
 	return 0;
@@ -148,9 +144,9 @@ unsigned int DiskDrive::Read(unsigned int address)
 void DiskDrive::Write(unsigned int address, unsigned int value)
 {
 	if (type == ddDiskette)
-		diskIconTimer = 20;
+		UI::diskIconTimer = 20;
 	else
-		hddIconTimer = 20;
+		UI::hddIconTimer = 20;
 
 	switch (address)
 	{
