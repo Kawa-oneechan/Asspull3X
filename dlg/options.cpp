@@ -158,7 +158,7 @@ namespace UI
 						hWnd = NULL;
 
 						Presentation::SetThemeColors();
-						InitSound();
+						Sound::InitSound();
 						return true;
 					}
 					case IDCANCEL:

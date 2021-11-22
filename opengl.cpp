@@ -347,7 +347,7 @@ namespace Video
 		}
 	}
 
-	int InitVideo()
+	int Initialize()
 	{
 		//Log("Creating window...");
 		winWidth = ini.GetLongValue(L"video", L"width", 640);
@@ -401,7 +401,7 @@ namespace Video
 		return 0;
 	}
 
-	int UninitVideo()
+	int Shutdown()
 	{
 		delete[] pixels;
 		SDL_DestroyTexture(sdlTexture);

@@ -433,7 +433,7 @@ namespace UI
 		BitBlt(statusRealDC, 0, 0, sbRect.right, sbRect.bottom, hdc, 0, 0, SRCCOPY);
 	}
 
-	void HandleUI()
+	void Update()
 	{
 		if (statusTimer)
 			statusTimer--;
@@ -460,7 +460,7 @@ namespace UI
 		DrawStatusBar();
 	}
 
-	void InitializeUI()
+	void Initialize()
 	{
 		//SetProcessDPIAware();
 
@@ -699,8 +699,7 @@ namespace UI
 				ini.SetValue(L"devices/diskDrive", key, uiString);
 			else
 				ini.SetValue(L"devices/hardDrive", key, uiString);
-			ResetPath();
-			ini.SaveFile(settingsFile, false);
+			SaveINI();
 			if (DeviceManager::hWnd != NULL) DeviceManager::UpdatePage(DeviceManager::hWnd);
 		}
 	}
@@ -734,5 +733,11 @@ namespace UI
 			wcstombs_s(NULL, title, wTitle, 256);
 		}
 		SDL_SetWindowTitle(Video::sdlWindow, title);
+	}
+
+	void SaveINI()
+	{
+		ResetPath();
+		ini.SaveFile(settingsFile, false);
 	}
 }

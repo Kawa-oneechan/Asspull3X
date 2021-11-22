@@ -18,9 +18,9 @@ namespace Discord
 
 	HMODULE discordDLL = NULL;
 
-	void UpdateDiscordPresence(char* gameName);
+	void SetPresence(char* gameName);
 
-	void Init()
+	void Initialize()
 	{
 		if (!enabled)
 			return;
@@ -39,10 +39,10 @@ namespace Discord
 
 		DiscordEventHandlers handlers = {};
 		__Discord_Initialize(ApplicationId, &handlers, 1, nullptr);
-		UpdateDiscordPresence(NULL);
+		SetPresence(NULL);
 	}
 
-	void UpdateDiscordPresence(char* gameName)
+	void SetPresence(char* gameName)
 	{
 		if (!enabled)
 			return;

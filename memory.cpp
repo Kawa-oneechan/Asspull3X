@@ -1,14 +1,11 @@
 #include "asspull.h"
 #include <time.h>
 
-extern void SendMidiByte(unsigned char part);
-extern void SendOPL(unsigned short message);
-
 extern "C"
 {
-unsigned int  m68k_read_memory_8(unsigned int address);
-unsigned int  m68k_read_memory_16(unsigned int address);
-unsigned int  m68k_read_memory_32(unsigned int address);
+unsigned int m68k_read_memory_8(unsigned int address);
+unsigned int m68k_read_memory_16(unsigned int address);
+unsigned int m68k_read_memory_32(unsigned int address);
 void m68k_write_memory_8(unsigned int address, unsigned int value);
 void m68k_write_memory_16(unsigned int address, unsigned int value);
 void m68k_write_memory_32(unsigned int address, unsigned int value);
@@ -30,9 +27,6 @@ int dmaSource, dmaTarget;
 unsigned int dmaLength;
 bool hdmaOn[8], hdmaDouble[8];
 int hdmaSource[8], hdmaTarget[8], hdmaWidth[8], hdmaStart[8], hdmaCount[8];
-
-int pcmSource, pcmLength, pcmPlayed;
-bool pcmRepeat;
 
 void HandleBlitter(unsigned int function);
 unsigned int blitLength;
@@ -298,7 +292,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				joylatch[reg - 0x42] = 0;
 				break;
 			case 0x44: //MIDI Out
-				SendMidiByte(value);
+				Sound::SendMidiByte(value);
 				break;
 			case 0x80: //Debug
 			{
@@ -395,7 +389,7 @@ void m68k_write_memory_16(unsigned int address, unsigned int value)
 				Video::scrollY[(reg - 0x12) / 4] = value & 511;
 				break;
 			case 0x48: //OPL3 out
-				SendOPL(value);
+				Sound::SendOPL(value);
 				break;
 			case 0x54:
 				Video::caret = value;
@@ -436,17 +430,16 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 				rtcOffset = (long)(timesetlatch - timelatch);
 				{
 					ini.SetLongValue(L"media", L"rtcOffset", rtcOffset);
-					UI::ResetPath();
-					ini.SaveFile(UI::settingsFile, false);
+					UI::SaveINI();
 				}
 				//return (int)timelatch;
 				break;
 			case 0x70: //PCM Offset
-				pcmSource = value;
+				Sound::pcmSource = value;
 				break;
 			case 0x74: //PCM Length + Repeat
-				pcmPlayed = pcmLength = value & 0x7FFFFFFF;
-				pcmRepeat = (value & 0x80000000) != 0;
+				Sound::pcmPlayed = Sound::pcmLength = value & 0x7FFFFFFF;
+				Sound::pcmRepeat = (value & 0x80000000) != 0;
 				break;
 			case 0x180: //HDMA Control
 			case 0x184:

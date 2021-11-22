@@ -206,7 +206,7 @@ int main(int argc, char** argv)
 
 	if (InitMemory() < 0)
 		return 0;
-	if (InitSound() < 0)
+	if (Sound::InitSound() < 0)
 		return 0;
 
 	SDL_Joystick *controller[2] = { NULL , NULL };
@@ -226,7 +226,7 @@ int main(int argc, char** argv)
 
 	Discord::Shutdown();
 
-	UninitSound();
+	Sound::UninitSound();
 	Video::UninitVideo();
 	SDL_Quit();
 	if (logFile != NULL)

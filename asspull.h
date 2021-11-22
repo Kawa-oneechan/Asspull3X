@@ -65,6 +65,7 @@ namespace UI
 	extern void HandleUI();
 	extern void ResetPath();
 	extern void SetTitle(const char*);
+	extern void SaveINI();
 
 	namespace Presentation
 	{
@@ -154,8 +155,17 @@ namespace Video
 extern void HandleHdma(int line);
 extern int InitMemory();
 
-extern int InitSound();
-extern void UninitSound();
+namespace Sound
+{
+	extern int pcmSource, pcmLength, pcmPlayed;
+	extern bool pcmRepeat;
+
+	extern int InitSound();
+	extern void UninitSound();
+	extern void SendMidiByte(unsigned char part);
+	extern void SendOPL(unsigned short message);
+	extern void ResetAudio();
+}
 
 extern CSimpleIni ini;
 

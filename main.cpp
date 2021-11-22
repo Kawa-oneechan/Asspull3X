@@ -10,7 +10,6 @@ bool fpsCap;
 bool quit = 0;
 int line = 0, interrupts = 0;
 int invertButtons = 0;
-extern void ResetAudio();
 extern void ReportLoadingFail(int messageId, int err, int device, const WCHAR* fileName);
 
 extern unsigned int biosSize, romSize;
@@ -94,8 +93,7 @@ void LoadROM(const WCHAR* path)
 #endif
 
 	ini.SetValue(L"media", L"lastROM", path);
-	UI::ResetPath();
-	ini.SaveFile(UI::settingsFile, false);
+	UI::SaveINI();
 
 	char romName[32] = { 0 };
 	memcpy(romName, romCartridge + 8, 24);
@@ -113,7 +111,7 @@ void MainLoop()
 	Log(UI::GetString(IDS_RESETTING));
 	m68k_init();
 	m68k_set_cpu_type(M68K_CPU_TYPE_68020);
-	ResetAudio();
+	Sound::ResetAudio();
 	m68k_pulse_reset();
 
 #if _CONSOLE
@@ -249,8 +247,7 @@ void MainLoop()
 				Log(UI::GetString(IDS_UNLOADINGROM)); //"Unloading ROM..."
 				memset(romCartridge, 0, CART_SIZE);
 				ini.SetValue(L"media", L"lastROM", L"");
-				UI::ResetPath();
-				ini.SaveFile(UI::settingsFile, false);
+				UI::SaveINI();
 				Video::gfxFade = 31;
 				UI::SetStatus(IDS_CARTEJECTED); //"Cart pulled."
 				Discord::UpdateDiscordPresence(NULL);
@@ -270,14 +267,13 @@ void MainLoop()
 					Log(UI::GetString(IDS_UNLOADINGROM)); //"Unloading ROM..."
 					memset(romCartridge, 0, CART_SIZE);
 					ini.SetValue(L"media", L"lastROM", L"");
-					UI::ResetPath();
-					ini.SaveFile(UI::settingsFile, true);
+					UI::SaveINI();
 					Discord::UpdateDiscordPresence(NULL);
 					UI::SetTitle(NULL);
 				}
 				Log(UI::GetString(IDS_SYSTEMRESET)); //"Resetting Musashi..."
 				UI::SetStatus(IDS_SYSTEMRESET); //"System reset."
-				ResetAudio();
+				Sound::ResetAudio();
 				m68k_pulse_reset();
 			}
 			else if (UI::uiCommand == cmdQuit)
@@ -363,7 +359,7 @@ void MainLoop()
 		}
 	}
 
-	ResetAudio();
+	Sound::ResetAudio();
 	for (int i = 0; i < MAXDEVS; i++)
 		if (devices[i] != NULL) delete devices[i];
 	delete[] pauseScreen;
