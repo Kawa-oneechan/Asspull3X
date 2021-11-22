@@ -30,7 +30,7 @@ namespace UI
 			InvalidateRect(hWnd, &aboutRect, false);
 		}
 
-		BOOL CALLBACK WndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam)
+		BOOL CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 			switch (message)
 			{
@@ -39,17 +39,17 @@ namespace UI
 				hPromoImage = Images::LoadPNGResource(IDB_ABOUT);
 				hDanceIml = ImageList_Create(DANCE_W, DANCE_H, ILC_COLOR32, DANCE_F, 0);
 				ImageList_Add(hDanceIml, Images::LoadPNGResource(IDB_DANCE), NULL);
-				SendDlgItemMessage(hwndDlg, IDC_HEADER, WM_SETFONT, (WPARAM)headerFont, (LPARAM)true);
-				SetTimer(hwndDlg, 1, 100, Animate);
+				SendDlgItemMessage(hWnd, IDC_HEADER, WM_SETFONT, (WPARAM)headerFont, (LPARAM)true);
+				SetTimer(hWnd, 1, 100, Animate);
 				return true;
 			}
 			case WM_PAINT:
 			{
 				PAINTSTRUCT ps;
-				HDC hdc = BeginPaint(hwndDlg, &ps);
+				HDC hdc = BeginPaint(hWnd, &ps);
 				if (ps.rcPaint.left != aboutRect.left)
 				{
-					DrawWindowBk(hwndDlg, true, &ps, hdc);
+					DrawWindowBk(hWnd, true, &ps, hdc);
 					auto hdcMem = CreateCompatibleDC(hdc);
 					auto oldBitmap = SelectObject(hdcMem, hPromoImage);
 					BitBlt(hdc, 0, 0, PROMO_W, PROMO_H, hdcMem, 0, 0, SRCCOPY);
@@ -60,19 +60,19 @@ namespace UI
 					FillRect(hdc, &ps.rcPaint, hbrBack);
 
 				ImageList_Draw(hDanceIml, aboutFrame, hdc, DANCE_X, DANCE_Y, ILD_NORMAL);
-				EndPaint(hwndDlg, &ps);
+				EndPaint(hWnd, &ps);
 				return true;
 			}
 			case WM_CTLCOLORSTATIC:
 			{
 				SetBkColor((HDC)wParam, rgbBack);
 				SetTextColor((HDC)wParam, rgbText);
-				if (lParam == (LPARAM)GetDlgItem(hwndDlg, IDC_LINK))
+				if (lParam == (LPARAM)GetDlgItem(hWnd, IDC_LINK))
 				{
 					SetBkColor((HDC)wParam, rgbStripe);
 					return (INT_PTR)hbrStripe;
 				}
-				else if (lParam == (LPARAM)GetDlgItem(hwndDlg, IDC_HEADER))
+				else if (lParam == (LPARAM)GetDlgItem(hWnd, IDC_HEADER))
 					SetTextColor((HDC)wParam, rgbHeader);
 				return (INT_PTR)hbrBack;
 			}
@@ -85,9 +85,9 @@ namespace UI
 			{
 				DeleteObject(hPromoImage);
 				ImageList_Destroy(hDanceIml);
-				KillTimer(hwndDlg, 1);
-				DestroyWindow(hwndDlg);
-				hWnd = NULL;
+				KillTimer(hWnd, 1);
+				DestroyWindow(hWnd);
+				About::hWnd = NULL;
 				return true;
 			}
 			case WM_NOTIFY:
@@ -98,7 +98,7 @@ namespace UI
 				{
 					PNMLINK pNMLink = (PNMLINK)lParam;
 					LITEM item = pNMLink->item;
-					if ((((LPNMHDR)lParam)->hwndFrom == GetDlgItem(hwndDlg, IDC_LINK)) && (item.iLink == 0))
+					if ((((LPNMHDR)lParam)->hwndFrom == GetDlgItem(hWnd, IDC_LINK)) && (item.iLink == 0))
 						ShellExecuteA(NULL, "open", "https://github.com/Kawa-oneechan/Asspull3X", NULL, NULL, SW_SHOW);
 					break;
 				}
@@ -108,7 +108,7 @@ namespace UI
 					int idFrom = nmc->hdr.idFrom;
 					switch (idFrom)
 					{
-					case IDOK: return Presentation::DrawDarkButton(hwndDlg, nmc);
+					case IDOK: return Presentation::DrawDarkButton(hWnd, nmc);
 						break;
 					}
 				}

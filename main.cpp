@@ -97,7 +97,7 @@ void LoadROM(const WCHAR* path)
 
 	char romName[32] = { 0 };
 	memcpy(romName, romCartridge + 8, 24);
-	Discord::UpdateDiscordPresence(romName);
+	Discord::SetPresence(romName);
 	UI::SetTitle(romName);
 }
 
@@ -111,7 +111,7 @@ void MainLoop()
 	Log(UI::GetString(IDS_RESETTING));
 	m68k_init();
 	m68k_set_cpu_type(M68K_CPU_TYPE_68020);
-	Sound::ResetAudio();
+	Sound::ResetPCM();
 	m68k_pulse_reset();
 
 #if _CONSOLE
@@ -250,7 +250,7 @@ void MainLoop()
 				UI::SaveINI();
 				Video::gfxFade = 31;
 				UI::SetStatus(IDS_CARTEJECTED); //"Cart pulled."
-				Discord::UpdateDiscordPresence(NULL);
+				Discord::SetPresence(NULL);
 				UI::SetTitle(NULL);
 			}
 			else if (UI::uiCommand == cmdEjectDisk)
@@ -268,12 +268,12 @@ void MainLoop()
 					memset(romCartridge, 0, CART_SIZE);
 					ini.SetValue(L"media", L"lastROM", L"");
 					UI::SaveINI();
-					Discord::UpdateDiscordPresence(NULL);
+					Discord::SetPresence(NULL);
 					UI::SetTitle(NULL);
 				}
 				Log(UI::GetString(IDS_SYSTEMRESET)); //"Resetting Musashi..."
 				UI::SetStatus(IDS_SYSTEMRESET); //"System reset."
-				Sound::ResetAudio();
+				Sound::ResetPCM();
 				m68k_pulse_reset();
 			}
 			else if (UI::uiCommand == cmdQuit)
@@ -316,7 +316,7 @@ void MainLoop()
 					}
 					pauseState = 2;
 				}
-				UI::HandleUI();
+				UI::Update();
 				Video::VBlank();
 
 				if (!startTime)
@@ -359,7 +359,7 @@ void MainLoop()
 		}
 	}
 
-	Sound::ResetAudio();
+	Sound::ResetPCM();
 	for (int i = 0; i < MAXDEVS; i++)
 		if (devices[i] != NULL) delete devices[i];
 	delete[] pauseScreen;

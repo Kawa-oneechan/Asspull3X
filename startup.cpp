@@ -197,16 +197,16 @@ int main(int argc, char** argv)
 
 	GetSettings();
 
-	if (Video::InitVideo() < 0)
+	if (Video::Initialize() < 0)
 		return 0;
 
 	InitializeDevices();
 
-	UI::InitializeUI();
+	UI::Initialize();
 
 	if (InitMemory() < 0)
 		return 0;
-	if (Sound::InitSound() < 0)
+	if (Sound::Initialize() < 0)
 		return 0;
 
 	SDL_Joystick *controller[2] = { NULL , NULL };
@@ -218,7 +218,7 @@ int main(int argc, char** argv)
 			controller[1] = SDL_JoystickOpen(1);
 	}
 
-	Discord::Init();
+	Discord::Initialize();
 
 	Preload();
 
@@ -226,8 +226,8 @@ int main(int argc, char** argv)
 
 	Discord::Shutdown();
 
-	Sound::UninitSound();
-	Video::UninitVideo();
+	Sound::Shutdown();
+	Video::Shutdown();
 	SDL_Quit();
 	if (logFile != NULL)
 		fclose(logFile);

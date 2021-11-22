@@ -11,28 +11,28 @@ namespace UI
 		HBITMAP hShrugImage;
 		int numDrives;
 
-		void UpdatePage(HWND hwndDlg)
+		void UpdatePage()
 		{
-			int devNum = SendDlgItemMessage(hwndDlg, IDC_DEVLIST, LB_GETCURSEL, 0, 0);
+			int devNum = SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_GETCURSEL, 0, 0);
 			auto device = devices[devNum];
 
 			//Don't allow changing device #0 from disk drive
-			EnableWindow(GetDlgItem(hwndDlg, IDC_DEVTYPE), (devNum > 0));
+			EnableWindow(GetDlgItem(hWnd, IDC_DEVTYPE), (devNum > 0));
 
 			//Hide everything regardless at first.
 			int everything[] = { IDC_DEVNONE, IDC_DDFILE, IDC_DDINSERT, IDC_DDEJECT, IDC_PRIMARYDEVICE, IDC_ONLYFOURDRIVES };
 			for (int i = 0; i < ARRAYSIZE(everything); i++)
-				ShowWindow(GetDlgItem(hwndDlg, everything[i]), SW_HIDE);
+				ShowWindow(GetDlgItem(hWnd, everything[i]), SW_HIDE);
 
 			if (devNum == 0)
-				ShowWindow(GetDlgItem(hwndDlg, IDC_PRIMARYDEVICE), SW_SHOW);
+				ShowWindow(GetDlgItem(hWnd, IDC_PRIMARYDEVICE), SW_SHOW);
 
 			if (device == NULL)
 			{
-				ShowWindow(GetDlgItem(hwndDlg, IDC_DEVNONE), SW_SHOW);
-				//ShowWindow(GetDlgItem(hwndDlg, IDC_SHRUG), SW_SHOW);
-				SetDlgItemText(hwndDlg, IDC_HEADER, GetString(IDS_DEVICES2 + 0)); //"No device"
-				SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, CB_SETCURSEL, 0, 0);
+				ShowWindow(GetDlgItem(hWnd, IDC_DEVNONE), SW_SHOW);
+				//ShowWindow(GetDlgItem(hWnd, IDC_SHRUG), SW_SHOW);
+				SetDlgItemText(hWnd, IDC_HEADER, GetString(IDS_DEVICES2 + 0)); //"No device"
+				SendDlgItemMessage(hWnd, IDC_DEVTYPE, CB_SETCURSEL, 0, 0);
 			}
 			else
 			{
@@ -41,42 +41,42 @@ namespace UI
 				case 0x0144:
 				{
 					for (int i = 1; i < 4; i++)
-						ShowWindow(GetDlgItem(hwndDlg, everything[i]), SW_SHOW);
-					SetDlgItemText(hwndDlg, IDC_HEADER, (((DiskDrive*)device)->GetType() == ddHardDisk) ? GetString(IDS_DEVICES2 + 2) : GetString(IDS_DEVICES2 + 1)); //"Diskette drive" "Hard drive"
-					SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, CB_SETCURSEL, (((DiskDrive*)device)->GetType() == ddHardDisk) ? 2 : 1, 0);
+						ShowWindow(GetDlgItem(hWnd, everything[i]), SW_SHOW);
+					SetDlgItemText(hWnd, IDC_HEADER, (((DiskDrive*)device)->GetType() == ddHardDisk) ? GetString(IDS_DEVICES2 + 2) : GetString(IDS_DEVICES2 + 1)); //"Diskette drive" "Hard drive"
+					SendDlgItemMessage(hWnd, IDC_DEVTYPE, CB_SETCURSEL, (((DiskDrive*)device)->GetType() == ddHardDisk) ? 2 : 1, 0);
 					WCHAR key[8] = { 0 };
 					_itow(devNum, key, 10);
 					auto val = ini.GetValue((((DiskDrive*)device)->GetType() == ddDiskette) ? L"devices/diskDrive" : L"devices/hardDrive", key, L"");
-					SetDlgItemText(hwndDlg, IDC_DDFILE, val);
-					EnableWindow(GetDlgItem(hwndDlg, IDC_DDINSERT), val[0] == 0);
-					EnableWindow(GetDlgItem(hwndDlg, IDC_DDEJECT), val[0] != 0);
+					SetDlgItemText(hWnd, IDC_DDFILE, val);
+					EnableWindow(GetDlgItem(hWnd, IDC_DDINSERT), val[0] == 0);
+					EnableWindow(GetDlgItem(hWnd, IDC_DDEJECT), val[0] != 0);
 
-					ShowWindow(GetDlgItem(hwndDlg, IDC_ONLYFOURDRIVES), (numDrives > 4) ? SW_SHOW : SW_HIDE);
+					ShowWindow(GetDlgItem(hWnd, IDC_ONLYFOURDRIVES), (numDrives > 4) ? SW_SHOW : SW_HIDE);
 
 					break;
 				}
 				case 0x4C50:
 				{
-					ShowWindow(GetDlgItem(hwndDlg, IDC_DEVNONE), SW_SHOW);
-					//ShowWindow(GetDlgItem(hwndDlg, IDC_SHRUG), SW_SHOW);
-					SetDlgItemText(hwndDlg, IDC_HEADER, GetString(IDS_DEVICES2 + 3)); //"Line printer"
-					SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, CB_SETCURSEL, 3, 0);
+					ShowWindow(GetDlgItem(hWnd, IDC_DEVNONE), SW_SHOW);
+					//ShowWindow(GetDlgItem(hWnd, IDC_SHRUG), SW_SHOW);
+					SetDlgItemText(hWnd, IDC_HEADER, GetString(IDS_DEVICES2 + 3)); //"Line printer"
+					SendDlgItemMessage(hWnd, IDC_DEVTYPE, CB_SETCURSEL, 3, 0);
 					break;
 				}
 				}
 			}
 
 			//if (numDrives > 4 || firstDev)
-			InvalidateRect(hwndDlg, NULL, true);
+			InvalidateRect(hWnd, NULL, true);
 		}
 
-		void UpdateList(HWND hwndDlg)
+		void UpdateList()
 		{
 			int selection = 0;
-			if (SendDlgItemMessage(hwndDlg, IDC_DEVLIST, LB_GETCOUNT, 0, 0))
-				selection = SendDlgItemMessage(hwndDlg, IDC_DEVLIST, LB_GETCURSEL, 0, 0);
+			if (SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_GETCOUNT, 0, 0))
+				selection = SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_GETCURSEL, 0, 0);
 			WCHAR item[64] = { 0 };
-			SendDlgItemMessage(hwndDlg, IDC_DEVLIST, LB_RESETCONTENT, 0, 0);
+			SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_RESETCONTENT, 0, 0);
 			numDrives = 0;
 			for (int i = 0; i < MAXDEVS; i++)
 			{
@@ -110,18 +110,18 @@ namespace UI
 						break;
 					}
 				}
-				SendDlgItemMessage(hwndDlg, IDC_DEVLIST, LB_ADDSTRING, 0, (LPARAM)item);
-				SendDlgItemMessage(hwndDlg, IDC_DEVLIST, LB_SETITEMDATA, i, (LPARAM)icon);
+				SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_ADDSTRING, 0, (LPARAM)item);
+				SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_SETITEMDATA, i, (LPARAM)icon);
 			}
 
-			SendDlgItemMessage(hwndDlg, IDC_DEVLIST, LB_SETCURSEL, selection, 0);
-			UpdatePage(hwndDlg);
+			SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_SETCURSEL, selection, 0);
+			UpdatePage();
 		}
 
-		void SwitchDevice(HWND hwndDlg)
+		void SwitchDevice()
 		{
-			int devNum = SendDlgItemMessage(hwndDlg, IDC_DEVLIST, LB_GETCURSEL, 0, 0);
-			int newType = SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, CB_GETCURSEL, 0, 0);
+			int devNum = SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_GETCURSEL, 0, 0);
+			int newType = SendDlgItemMessage(hWnd, IDC_DEVTYPE, CB_GETCURSEL, 0, 0);
 
 			int oldType = 0;
 			if (devices[devNum] != NULL)
@@ -167,35 +167,35 @@ namespace UI
 				break;
 			}
 			ini.SaveFile(settingsFile, false);
-			UpdateList(hwndDlg);
+			UpdateList();
 		}
 
-		BOOL CALLBACK WndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam)
+		BOOL CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 			switch (message)
 			{
 			case WM_CLOSE:
 			{
-				DestroyWindow(hwndDlg);
+				DestroyWindow(hWnd);
 				DeleteObject(hShrugImage);
-				hWnd = NULL;
+				DeviceManager::hWnd = NULL;
 				if (!wasPaused) pauseState = 0;
 				return true;
 			}
 			case WM_INITDIALOG:
 			{
 				const int deviceIcons[] = { IML_CROSS, IML_DISKDRIVE, IML_HARDDRIVE, IML_PRINTER };
-				SendDlgItemMessage(hwndDlg, IDC_DEVNONE, WM_SETFONT, (WPARAM)headerFont, (LPARAM)true);
+				SendDlgItemMessage(hWnd, IDC_DEVNONE, WM_SETFONT, (WPARAM)headerFont, (LPARAM)true);
 				for (int i = 0; i < 4; i++)
 				{
-					SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, CB_ADDSTRING, 0, (LPARAM)GetString(IDS_DEVICES1 + i));
-					SendDlgItemMessage(hwndDlg, IDC_DEVTYPE, CB_SETITEMDATA, i, deviceIcons[i]);
+					SendDlgItemMessage(hWnd, IDC_DEVTYPE, CB_ADDSTRING, 0, (LPARAM)GetString(IDS_DEVICES1 + i));
+					SendDlgItemMessage(hWnd, IDC_DEVTYPE, CB_SETITEMDATA, i, deviceIcons[i]);
 				}
-				GetIconPos(hwndDlg, IDC_PRIMARYDEVICE, &primaryIcon, -24, 0);
-				GetIconPos(hwndDlg, IDC_ONLYFOURDRIVES, &warningIcon, -24, 0);
-				GetIconPos(hwndDlg, IDC_SHRUG, &shrugIcon, 0, 0);
+				GetIconPos(hWnd, IDC_PRIMARYDEVICE, &primaryIcon, -24, 0);
+				GetIconPos(hWnd, IDC_ONLYFOURDRIVES, &warningIcon, -24, 0);
+				GetIconPos(hWnd, IDC_SHRUG, &shrugIcon, 0, 0);
 				hShrugImage = Images::LoadPNGResource(IDB_SHRUG);
-				UpdateList(hwndDlg);
+				UpdateList();
 				return true;
 			}
 			case WM_NOTIFY:
@@ -210,7 +210,7 @@ namespace UI
 					{
 					case IDOK:
 					case IDC_DDINSERT:
-					case IDC_DDEJECT: return DrawDarkButton(hwndDlg, nmc);
+					case IDC_DDEJECT: return DrawDarkButton(hWnd, nmc);
 						break;
 					}
 				}
@@ -221,14 +221,14 @@ namespace UI
 			case WM_PAINT:
 			{
 				PAINTSTRUCT ps;
-				HDC hdc = BeginPaint(hwndDlg, &ps);
+				HDC hdc = BeginPaint(hWnd, &ps);
 				FillRect(hdc, &ps.rcPaint, hbrBack);
 				auto hdcMem = CreateCompatibleDC(hdc);
-				if (SendDlgItemMessage(hwndDlg, IDC_DEVLIST, LB_GETCURSEL, 0, 0) == 0)
+				if (SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_GETCURSEL, 0, 0) == 0)
 					ImageList_Draw(Images::hIml, IML_INFO, hdc, primaryIcon.left, primaryIcon.top, ILD_NORMAL);
 				if (numDrives > 4)
 					ImageList_Draw(Images::hIml, IML_WARNING, hdc, warningIcon.left, warningIcon.top, ILD_NORMAL);
-				if (IsWindowVisible(GetDlgItem(hwndDlg, IDC_DEVNONE)))
+				if (IsWindowVisible(GetDlgItem(hWnd, IDC_DEVNONE)))
 				{
 					auto oldBitmap = SelectObject(hdcMem, hShrugImage);
 					BLENDFUNCTION ftn = { AC_SRC_OVER, 0, 255, AC_SRC_ALPHA };
@@ -236,7 +236,7 @@ namespace UI
 					SelectObject(hdcMem, oldBitmap);
 				}
 				DeleteDC(hdcMem);
-				EndPaint(hwndDlg, &ps);
+				EndPaint(hWnd, &ps);
 				return true;
 			}
 			case WM_CTLCOLORLISTBOX:
@@ -248,10 +248,10 @@ namespace UI
 			case WM_CTLCOLORSTATIC:
 			{
 				SetTextColor((HDC)wParam, rgbText);
-				if (lParam == (LPARAM)GetDlgItem(hwndDlg, IDC_DEVNONE))
+				if (lParam == (LPARAM)GetDlgItem(hWnd, IDC_DEVNONE))
 					SetTextColor((HDC)wParam, rgbHeader);
 				SetBkColor((HDC)wParam, rgbBack);
-				if (lParam == (LPARAM)GetDlgItem(hwndDlg, IDC_DDFILE))
+				if (lParam == (LPARAM)GetDlgItem(hWnd, IDC_DDFILE))
 				{
 					SetTextColor((HDC)wParam, rgbList);
 					SetBkColor((HDC)wParam, rgbListBk);
@@ -298,28 +298,28 @@ namespace UI
 			{
 				if (HIWORD(wParam) == LBN_SELCHANGE && LOWORD(wParam) == IDC_DEVLIST)
 				{
-					UpdatePage(hwndDlg);
+					UpdatePage();
 					return true;
 				}
 				if (HIWORD(wParam) == CBN_SELCHANGE && LOWORD(wParam) == IDC_DEVTYPE)
 				{
-					SwitchDevice(hwndDlg);
+					SwitchDevice();
 					return true;
 				}
 				else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_DDINSERT)
 				{
-					int devID = SendDlgItemMessage(hwndDlg, IDC_DEVLIST, LB_GETCURSEL, 0, 0);
+					int devID = SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_GETCURSEL, 0, 0);
 					InsertDisk(devID);
 					return true;
 				}
 				else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_DDEJECT)
 				{
-					int devID = SendDlgItemMessage(hwndDlg, IDC_DEVLIST, LB_GETCURSEL, 0, 0);
+					int devID = SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_GETCURSEL, 0, 0);
 					EjectDisk(devID);
 				}
 				else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDOK)
 				{
-					DestroyWindow(hwndDlg);
+					DestroyWindow(hWnd);
 					hWnd = NULL;
 					if (!wasPaused) pauseState = 0;
 					return true;

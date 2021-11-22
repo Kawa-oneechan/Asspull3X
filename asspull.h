@@ -61,8 +61,8 @@ namespace UI
 	extern void SetFPS(int fps);
 	extern void ShowOpenFileDialog(int, const WCHAR*);
 	extern void LetItSnow();
-	extern void InitializeUI();
-	extern void HandleUI();
+	extern void Initialize();
+	extern void Update();
 	extern void ResetPath();
 	extern void SetTitle(const char*);
 	extern void SaveINI();
@@ -110,7 +110,7 @@ namespace UI
 	}
 	namespace DeviceManager
 	{
-		extern void UpdatePage(HWND hwndDlg);
+		extern void UpdatePage();
 		extern void Show();
 		extern HWND hWnd;
 	}
@@ -145,8 +145,8 @@ namespace Video
 
 	extern void RenderLine(int);
 	extern void VBlank();
-	extern int InitVideo();
-	extern int UninitVideo();
+	extern int Initialize();
+	extern int Shutdown();
 
 	extern void InitShaders();
 	extern void Screenshot();
@@ -160,11 +160,11 @@ namespace Sound
 	extern int pcmSource, pcmLength, pcmPlayed;
 	extern bool pcmRepeat;
 
-	extern int InitSound();
-	extern void UninitSound();
+	extern int Initialize();
+	extern void Shutdown();
 	extern void SendMidiByte(unsigned char part);
 	extern void SendOPL(unsigned short message);
-	extern void ResetAudio();
+	extern void ResetPCM();
 }
 
 extern CSimpleIni ini;
@@ -337,7 +337,7 @@ namespace Discord
 {
 	extern bool enabled;
 
-	extern void Init();
-	extern void UpdateDiscordPresence(char* gameName);
+	extern void Initialize();
+	extern void SetPresence(char* gameName);
 	extern void Shutdown();
 }

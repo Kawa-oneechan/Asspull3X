@@ -79,21 +79,21 @@ namespace UI
 			InvalidateRect(GetDlgItem(hWnd, IDC_MEMVIEWERGRID), NULL, true);
 		}
 
-		BOOL CALLBACK WndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam)
+		BOOL CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 			switch (message)
 			{
 			case WM_CLOSE:
 			{
-				DestroyWindow(hwndDlg);
-				KillTimer(hwndDlg, 1);
-				hWnd = NULL;
+				DestroyWindow(hWnd);
+				KillTimer(hWnd, 1);
+				PalViewer::hWnd = NULL;
 				return true;
 			}
 			case WM_SIZE:
 			{
 				RECT rctGrid;
-				HWND hwndGrid = GetDlgItem(hwndDlg, IDC_MEMVIEWERGRID);
+				HWND hwndGrid = GetDlgItem(hWnd, IDC_MEMVIEWERGRID);
 				GetWindowRect(hwndGrid, &rctGrid);
 				int w = rctGrid.right - rctGrid.left;
 				int h = rctGrid.bottom - rctGrid.top;
@@ -120,10 +120,10 @@ namespace UI
 				}
 				else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_AUTOUPDATE)
 				{
-					if (IsDlgButtonChecked(hwndDlg, IDC_AUTOUPDATE))
-						SetTimer(hwndDlg, 1, 100, AutoUpdate);
+					if (IsDlgButtonChecked(hWnd, IDC_AUTOUPDATE))
+						SetTimer(hWnd, 1, 100, AutoUpdate);
 					else
-						KillTimer(hwndDlg, 1);
+						KillTimer(hWnd, 1);
 					return true;
 				}
 			}
@@ -131,9 +131,9 @@ namespace UI
 			{
 				POINTS ptlHit = MAKEPOINTS(lParam);
 				RECT rctGrid;
-				GetWindowRect(GetDlgItem(hwndDlg, IDC_MEMVIEWERGRID), &rctGrid);
+				GetWindowRect(GetDlgItem(hWnd, IDC_MEMVIEWERGRID), &rctGrid);
 				POINT tl = { rctGrid.left, rctGrid.top };
-				ScreenToClient(hwndDlg, &tl);
+				ScreenToClient(hWnd, &tl);
 				int w = rctGrid.right - rctGrid.left;
 				int h = rctGrid.bottom - rctGrid.top;
 				if (ptlHit.x > tl.x && ptlHit.y > tl.y && ptlHit.x < tl.x + w && ptlHit.y < tl.y + h)
@@ -160,7 +160,7 @@ namespace UI
 			}
 			case WM_PAINT:
 			{
-				DrawWindowBk(hwndDlg, false);
+				DrawWindowBk(hWnd, false);
 				return true;
 			}
 			case WM_NOTIFY:
@@ -170,18 +170,18 @@ namespace UI
 					auto nmc = (LPNMCUSTOMDRAW)lParam;
 					if (nmc->hdr.idFrom == IDC_AUTOUPDATE)
 					{
-						DrawCheckbox(hwndDlg, nmc);
+						DrawCheckbox(hWnd, nmc);
 						return true;
 					}
 					else if (nmc->hdr.idFrom == IDC_REFRESH)
-						return DrawDarkButton(hwndDlg, nmc);
+						return DrawDarkButton(hWnd, nmc);
 				}
 			}
 			case WM_CTLCOLORSTATIC:
 			{
 				SetBkColor((HDC)wParam, rgbBack);
 				SetTextColor((HDC)wParam, rgbText);
-				if (lParam == (LPARAM)GetDlgItem(hwndDlg, IDC_MEMVIEWERGRID))
+				if (lParam == (LPARAM)GetDlgItem(hWnd, IDC_MEMVIEWERGRID))
 					return (INT_PTR)hbrList;
 				return (INT_PTR)hbrBack;
 			}

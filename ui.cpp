@@ -700,7 +700,7 @@ namespace UI
 			else
 				ini.SetValue(L"devices/hardDrive", key, uiString);
 			SaveINI();
-			if (DeviceManager::hWnd != NULL) DeviceManager::UpdatePage(DeviceManager::hWnd);
+			if (DeviceManager::hWnd != NULL) DeviceManager::UpdatePage();
 		}
 	}
 
@@ -716,7 +716,7 @@ namespace UI
 		ResetPath();
 		ini.SaveFile(settingsFile, false);
 		SetStatus(IDS_DISKEJECTED); //"Disk ejected."
-		if (DeviceManager::hWnd != NULL) DeviceManager::UpdatePage(DeviceManager::hWnd);
+		if (DeviceManager::hWnd != NULL) DeviceManager::UpdatePage();
 	}
 
 	void SetTitle(const char* subtitle)

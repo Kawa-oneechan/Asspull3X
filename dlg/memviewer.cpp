@@ -90,40 +90,40 @@ namespace UI
 			InvalidateRect(GetDlgItem(hWnd, IDC_MEMVIEWERGRID), NULL, true);
 		}
 
-		void ScrollTo(HWND hwndDlg, int to)
+		void ScrollTo(int to)
 		{
 			if (to < 0) to = 0;
 			if (to > MAXRANGE) to = MAXRANGE;
 			offset = to;
 			WCHAR asText[64] = { 0 };
 			wsprintf(asText, L"%08X", offset);
-			SetDlgItemText(hwndDlg, IDC_MEMVIEWEROFFSET, asText);
-			InvalidateRect(GetDlgItem(hwndDlg, IDC_MEMVIEWERGRID), NULL, true);
-			SetScrollPos(GetDlgItem(hwndDlg, IDC_MEMVIEWERSCROLL), SB_CTL, to / BYTES, true);
+			SetDlgItemText(hWnd, IDC_MEMVIEWEROFFSET, asText);
+			InvalidateRect(GetDlgItem(hWnd, IDC_MEMVIEWERGRID), NULL, true);
+			SetScrollPos(GetDlgItem(hWnd, IDC_MEMVIEWERSCROLL), SB_CTL, to / BYTES, true);
 		}
 
-		void ScrollMsg(HWND hwndDlg, int message, int position)
+		void ScrollMsg(int message, int position)
 		{
 			position;
 			switch (message)
 			{
 			case SB_BOTTOM:
-				ScrollTo(hwndDlg, MAXRANGE);
+				ScrollTo(MAXRANGE);
 				return;
 			case SB_TOP:
-				ScrollTo(hwndDlg, 0);
+				ScrollTo(0);
 				return;
 			case SB_LINEDOWN:
-				ScrollTo(hwndDlg, offset + BYTES);
+				ScrollTo(offset + BYTES);
 				return;
 			case SB_LINEUP:
-				ScrollTo(hwndDlg, offset - BYTES);
+				ScrollTo(offset - BYTES);
 				return;
 			case SB_PAGEDOWN:
-				ScrollTo(hwndDlg, offset + PAGE);
+				ScrollTo(offset + PAGE);
 				return;
 			case SB_PAGEUP:
-				ScrollTo(hwndDlg, offset - PAGE);
+				ScrollTo(offset - PAGE);
 				return;
 			case SB_THUMBPOSITION:
 			{
@@ -131,60 +131,60 @@ namespace UI
 				ZeroMemory(&si, sizeof(si));
 				si.cbSize = sizeof(si);
 				si.fMask = SIF_TRACKPOS;
-				GetScrollInfo(GetDlgItem(hwndDlg, IDC_MEMVIEWERSCROLL), SB_CTL, &si);
+				GetScrollInfo(GetDlgItem(hWnd, IDC_MEMVIEWERSCROLL), SB_CTL, &si);
 				auto newTo = si.nTrackPos;
-				ScrollTo(hwndDlg, newTo * BYTES);
+				ScrollTo(newTo * BYTES);
 			}
 			}
 		}
 
-		void ComboSelChange(HWND hwndDlg)
+		void ComboSelChange()
 		{
-			int index = SendDlgItemMessage(hwndDlg, IDC_MEMVIEWERDROP, CB_GETCURSEL, 0, 0);
+			int index = SendDlgItemMessage(hWnd, IDC_MEMVIEWERDROP, CB_GETCURSEL, 0, 0);
 			uint32_t areas[] = { BIOS_ADDR, CART_ADDR, WRAM_ADDR + 0x1000, DEVS_ADDR, REGS_ADDR, VRAM_ADDR };
-			ScrollTo(hwndDlg, areas[index]);
+			ScrollTo(areas[index]);
 		}
 
 		WNDPROC oldTextProc;
-		BOOL CALLBACK EditProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam)
+		BOOL CALLBACK EditProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
-			switch (msg)
+			switch (message)
 			{
 			case WM_KEYDOWN:
 				switch (wParam)
 				{
 				case VK_RETURN:
 					WCHAR thing[16] = { 0 };
-					GetWindowText(wnd, thing, 16);
-					ScrollTo(hWnd, wcstol(thing, NULL, 16));
+					GetWindowText(hWnd, thing, 16);
+					ScrollTo(wcstol(thing, NULL, 16));
 					return 0;
 				}
 			default:
-				return CallWindowProc(oldTextProc, wnd, msg, wParam, lParam);
+				return CallWindowProc(oldTextProc, hWnd, message, wParam, lParam);
 			}
 		}
 
-		BOOL CALLBACK WndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam)
+		BOOL CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 			switch (message)
 			{
 			case WM_CLOSE:
 			{
-				DestroyWindow(hwndDlg);
-				KillTimer(hwndDlg, 1);
-				hWnd = NULL;
+				DestroyWindow(hWnd);
+				KillTimer(hWnd, 1);
+				MemoryViewer::hWnd = NULL;
 				return true;
 			}
 			case WM_INITDIALOG:
 			{
 				//SendDlgItemMessage(hwndDlg, IDC_MEMVIEWEROFFSET, WM_SETFONT, (WPARAM)monoFont, false);
 				for (int i = 0; i < 6; i++)
-					SendDlgItemMessage(hwndDlg, IDC_MEMVIEWERDROP, CB_ADDSTRING, 0, (LPARAM)GetString(IDS_REGIONS + i));
-				SendDlgItemMessage(hwndDlg, IDC_MEMVIEWERDROP, CB_SETCURSEL, 1, 0);
-				SendDlgItemMessage(hwndDlg, IDC_MEMVIEWEROFFSET, EM_SETLIMITTEXT, 8, 0);
-				oldTextProc = (WNDPROC)SetWindowLongPtr(GetDlgItem(hwndDlg, IDC_MEMVIEWEROFFSET), GWLP_WNDPROC, (LONG_PTR)EditProc);
-				SetScrollRange(GetDlgItem(hwndDlg, IDC_MEMVIEWERSCROLL), SB_CTL, 0, ((VRAM_ADDR + VRAM_SIZE) / BYTES) - LINES, false);
-				ComboSelChange(hwndDlg); //force update
+					SendDlgItemMessage(hWnd, IDC_MEMVIEWERDROP, CB_ADDSTRING, 0, (LPARAM)GetString(IDS_REGIONS + i));
+				SendDlgItemMessage(hWnd, IDC_MEMVIEWERDROP, CB_SETCURSEL, 1, 0);
+				SendDlgItemMessage(hWnd, IDC_MEMVIEWEROFFSET, EM_SETLIMITTEXT, 8, 0);
+				oldTextProc = (WNDPROC)SetWindowLongPtr(GetDlgItem(hWnd, IDC_MEMVIEWEROFFSET), GWLP_WNDPROC, (LONG_PTR)EditProc);
+				SetScrollRange(GetDlgItem(hWnd, IDC_MEMVIEWERSCROLL), SB_CTL, 0, ((VRAM_ADDR + VRAM_SIZE) / BYTES) - LINES, false);
+				ComboSelChange(); //force update
 				return true;
 			}
 			case WM_COMMAND:
@@ -193,7 +193,7 @@ namespace UI
 				{
 					if (HIWORD(wParam) == CBN_SELCHANGE)
 					{
-						ComboSelChange(hwndDlg);
+						ComboSelChange();
 						return true;
 					}
 				}
@@ -204,10 +204,10 @@ namespace UI
 				}
 				else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_AUTOUPDATE)
 				{
-					if (IsDlgButtonChecked(hwndDlg, IDC_AUTOUPDATE))
-						SetTimer(hwndDlg, 1, 100, AutoUpdate);
+					if (IsDlgButtonChecked(hWnd, IDC_AUTOUPDATE))
+						SetTimer(hWnd, 1, 100, AutoUpdate);
 					else
-						KillTimer(hwndDlg, 1);
+						KillTimer(hWnd, 1);
 					return true;
 				}
 			}
@@ -224,7 +224,7 @@ namespace UI
 			}
 			case WM_PAINT:
 			{
-				DrawWindowBk(hwndDlg, false);
+				DrawWindowBk(hWnd, false);
 				return true;
 			}
 			case WM_NOTIFY:
@@ -234,17 +234,17 @@ namespace UI
 					auto nmc = (LPNMCUSTOMDRAW)lParam;
 					if (nmc->hdr.idFrom == IDC_AUTOUPDATE)
 					{
-						DrawCheckbox(hwndDlg, nmc);
+						DrawCheckbox(hWnd, nmc);
 						return true;
 					}
 					else if (nmc->hdr.idFrom == IDC_REFRESH)
-						return DrawDarkButton(hwndDlg, nmc);
+						return DrawDarkButton(hWnd, nmc);
 				}
 			}
 			case WM_CTLCOLORSTATIC:
 			{
 				SetTextColor((HDC)wParam, rgbText);
-				if (lParam == (LPARAM)GetDlgItem(hwndDlg, IDC_MEMVIEWERGRID))
+				if (lParam == (LPARAM)GetDlgItem(hWnd, IDC_MEMVIEWERGRID))
 					return (INT_PTR)hbrList;
 				return (INT_PTR)hbrBack;
 			}
@@ -260,7 +260,7 @@ namespace UI
 			}
 			case WM_VSCROLL:
 			{
-				ScrollMsg(hwndDlg, LOWORD(wParam), HIWORD(wParam));
+				ScrollMsg(LOWORD(wParam), HIWORD(wParam));
 				return true;
 			}
 			case WM_MOUSEWHEEL:
@@ -271,7 +271,7 @@ namespace UI
 					inc *= 8;
 				if (delta > 0)
 					inc = -inc;
-				ScrollTo(hwndDlg, offset + inc);
+				ScrollTo(offset + inc);
 			}
 			}
 			return false;
