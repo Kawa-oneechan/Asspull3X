@@ -56,9 +56,9 @@ In tile mode, you get four separate map layers that can be enabled via the [MapS
     |    |_______________ Vertical flip
     |____________________ Palette #
 
-## Sprites
+## Objects
 
-Sprites are available in all screen modes. Like tilemaps, their graphics are taken from `0E050000`. Their settings are stored in two separate arrays, one at `0E064000` and another at `0E064200`, defined as `SPRITES_A` and `SPRITES_B`.
+Objects are available in all screen modes. Like tilemaps, their graphics are taken from `0E050000`. Their settings are stored in two separate arrays, one at `0E064000` and another at `0E064200`, defined as `OBJECTS_A` and `OBJECTS_B`.
 
     PPPP EBBT TTTT TTTT
     |    || |____________ Tile #
@@ -77,7 +77,7 @@ Sprites are available in all screen modes. Like tilemaps, their graphics are tak
     |  |___________________________________  Double up again
     |______________________________________  Priority
 
-A sprite with the double width and height bits set would be functionally the same as a sprite with the double up bit set.
+An object with the double width and height bits set would be functionally the same as an object with the double up bit set.
 
 | Bits              | Size  |
 | ----------------- | ----- |
@@ -97,18 +97,18 @@ A sprite with the double width and height bits set would be functionally the sam
 (warning: this was just found to be wrong and needs empirical testing)
 
 1. Backdrop
-2. Sprites with priority 4
+2. Objects with priority 4
 3. Map 1
-4. Sprites with priority 3 
+4. Objects with priority 3 
 5. Map 2
-6. Sprites with priority 2
+6. Objects with priority 2
 7. Map 3
-8. Sprites with priority 1
+8. Objects with priority 1
 9. Map 4
-10. Sprites with priority 0
+10. Objects with priority 0
 
 #### Other modes
 
 1. Stuff
-2. Sprites with any priority
+2. Objects with any priority
 

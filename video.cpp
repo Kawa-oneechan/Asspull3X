@@ -70,29 +70,29 @@ namespace Video
 		}
 	}
 
-	void RenderSprites(int line, int withPriority)
+	void RenderObjects(int line, int withPriority)
 	{
 		auto step = gfx320 ? 4 : 2;
 		for (auto i = 0; i < 256; i++)
 		{
-			auto spriteA = (ramVideo[SPR1_ADDR + 0 + (i * 2)] << 8) | (ramVideo[SPR1_ADDR + 1 + (i * 2)] << 0);
-			if (spriteA == 0)
+			auto objA = (ramVideo[OBJ1_ADDR + 0 + (i * 2)] << 8) | (ramVideo[OBJ1_ADDR + 1 + (i * 2)] << 0);
+			if (objA == 0)
 				continue;
-			if ((spriteA & 0x800) != 0x800)
+			if ((objA & 0x800) != 0x800)
 				continue;
-			auto spriteB =
-				(ramVideo[SPR2_ADDR + 0 + (i * 4)] << 24) |
-				(ramVideo[SPR2_ADDR + 1 + (i * 4)] << 16) |
-				(ramVideo[SPR2_ADDR + 2 + (i * 4)] << 8) |
-				(ramVideo[SPR2_ADDR + 3 + (i * 4)] << 0);
-			auto prio = (spriteB >> 29) & 7;
+			auto objB =
+				(ramVideo[OBJ2_ADDR + 0 + (i * 4)] << 24) |
+				(ramVideo[OBJ2_ADDR + 1 + (i * 4)] << 16) |
+				(ramVideo[OBJ2_ADDR + 2 + (i * 4)] << 8) |
+				(ramVideo[OBJ2_ADDR + 3 + (i * 4)] << 0);
+			auto prio = (objB >> 29) & 7;
 			if (withPriority > -1 && prio != withPriority)
 				continue;
-			auto tile = (spriteA >> 0) & 0x1FF;
-			auto blend = (spriteA >> 9) & 3;
-			auto pal = (spriteA >> 12) & 0x0F;
-			short hPos = ((spriteB & 0x7FF) << 21) >> 21;
-			short vPos = ((spriteB & 0x7FF000) << 10) >> 22;
+			auto tile = (objA >> 0) & 0x1FF;
+			auto blend = (objA >> 9) & 3;
+			auto pal = (objA >> 12) & 0x0F;
+			short hPos = ((objB & 0x7FF) << 21) >> 21;
+			short vPos = ((objB & 0x7FF000) << 10) >> 22;
 			if (hPos & 0x200) //extend sign because lolbitfields
 				hPos |= 0xFC00;
 			else
@@ -104,11 +104,11 @@ namespace Video
 			if (gfx320) hPos *= 2;
 			if (gfx240) vPos *= 2;
 
-			auto doubleWidth = ((spriteB >> 24) & 1) == 1;
-			auto doubleHeight = ((spriteB >> 25) & 1) == 1;
-			auto hFlip = ((spriteB >> 26) & 1) == 1;
-			auto vFlip = ((spriteB >> 27) & 1) == 1;
-			auto doubleSize = ((spriteB >> 28) & 1) == 1;
+			auto doubleWidth = ((objB >> 24) & 1) == 1;
+			auto doubleHeight = ((objB >> 25) & 1) == 1;
+			auto hFlip = ((objB >> 26) & 1) == 1;
+			auto vFlip = ((objB >> 27) & 1) == 1;
+			auto doubleSize = ((objB >> 28) & 1) == 1;
 
 			short tileHeight = 1;
 			if (doubleHeight) tileHeight *= 2;
@@ -288,7 +288,7 @@ namespace Video
 				}
 			}
 		}
-		RenderSprites(line, -1);
+		RenderObjects(line, -1);
 	}
 
 	void RenderBitmapMode1(int line)
@@ -326,7 +326,7 @@ namespace Video
 				RenderPixel(line, col + 3, r);
 			}
 		}
-		RenderSprites(line, -1);
+		RenderObjects(line, -1);
 	}
 
 	void RenderBitmapMode2(int line)
@@ -359,7 +359,7 @@ namespace Video
 				RenderPixel(line, col, pixel);
 			}
 		}
-		RenderSprites(line, -1);
+		RenderObjects(line, -1);
 	}
 
 	void RenderTileMode(int line)
@@ -384,8 +384,8 @@ namespace Video
 					RenderPixel(line + 1, (x * 2) + 0, 0);
 					RenderPixel(line + 1, (x * 2) + 1, 0);
 				}
-				RenderSprites(line, 4);
-				RenderSprites(line + 1, 4);
+				RenderObjects(line, 4);
+				RenderObjects(line + 1, 4);
 				continue;
 			}
 
@@ -393,8 +393,8 @@ namespace Video
 
 			if (!mapEnabled[layer])
 			{
-				RenderSprites(line, 3 - layer);
-				RenderSprites(line + 1, 3 - layer);
+				RenderObjects(line, 3 - layer);
+				RenderObjects(line + 1, 3 - layer);
 				continue;
 			}
 
@@ -466,8 +466,8 @@ namespace Video
 					screenSource = screenBase + (yShift * 2);
 				}
 			}
-			RenderSprites(line, 2 - layer);
-			RenderSprites(line + 1, 2 - layer);
+			RenderObjects(line, 2 - layer);
+			RenderObjects(line + 1, 2 - layer);
 		}
 	}
 

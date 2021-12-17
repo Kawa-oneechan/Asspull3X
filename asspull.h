@@ -209,8 +209,8 @@ enum uiCommands
 #define TILES_SIZE	((((8 * 8) / 2) * 512) + (128 << 3))
 #define PAL_SIZE	(256 * 2)	//256 xBGR-1555 colors.
 #define FONT_SIZE	(((8 * 256) * 2) + ((16 * 256) * 2))	//Two 8x8 fonts, two 8x16 fonts.
-#define SPR1_SIZE	(256 * 2)	//256 16-bit entries.
-#define SPR2_SIZE	(256 * 4)	//256 32-bit entries.
+#define OBJ1_SIZE	(256 * 2)	//256 16-bit entries.
+#define OBJ2_SIZE	(256 * 4)	//256 32-bit entries.
 
 #define BIOS_ADDR	0x00000000
 #define CART_ADDR	0x00020000
@@ -229,8 +229,8 @@ enum uiCommands
 #define TILES_ADDR	0x050000
 #define PAL_ADDR	0x060000
 #define FONT_ADDR	0x060200
-#define SPR1_ADDR	0x064000
-#define SPR2_ADDR	0x064200
+#define OBJ1_ADDR	0x064000
+#define OBJ2_ADDR	0x064200
 
 #pragma region Sanity checks!
 #if (BIOS_SIZE + CART_SIZE) != 0x1000000
@@ -272,13 +272,13 @@ enum uiCommands
 #if (PAL_ADDR + PAL_SIZE) > FONT_ADDR
 #error PAL encroaches on FONT.
 #endif
-#if (FONT_ADDR + FONT_SIZE) > SPR1_ADDR
-#error FONT encroaches on SPR1.
+#if (FONT_ADDR + FONT_SIZE) > OBJ1_ADDR
+#error FONT encroaches on OBJ1.
 #endif
-#if (SPRITE1 + SPR1_SIZE) > SPR2_ADDR
-#error SPR1 encroaches on SPR2.
+#if (OBJ1_ADDR + OBJ1_SIZE) > OBJ2_ADDR
+#error OBJ1 encroaches on OBJ2.
 #endif
-#if (SPR2_ADDR + SPR2_SIZE) > VRAM_SIZE
+#if (OBJ2_ADDR + OBJ2_SIZE) > VRAM_SIZE
 #error Insufficient VRAM!
 #endif
 #pragma endregion
