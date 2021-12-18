@@ -1,6 +1,11 @@
 #include "asspull.h"
 #include <time.h>
 
+namespace Registers
+{
+	ScreenModeRegister ScreenMode;
+}
+
 extern "C"
 {
 unsigned int m68k_read_memory_8(unsigned int address);
@@ -96,11 +101,12 @@ unsigned int m68k_read_memory_8(unsigned int address)
 			case 0x00: //Interrupts
 				return interrupts;
 			case 0x01: //Screen Mode
-				return (Video::gfxMode |
-					(Video::gfxTextBlink ? 1 << 4 : 0) |
-					(Video::gfx240 ? 1 << 5 : 0) |
-					(Video::gfx320 ? 1 << 6 : 0) |
-					(Video::gfxTextBold ? 1 << 7 : 0));
+				//return (Video::gfxMode |
+				//	(Video::gfxTextBlink ? 1 << 4 : 0) |
+				//	(Video::gfx240 ? 1 << 5 : 0) |
+				//	(Video::gfx320 ? 1 << 6 : 0) |
+				//	(Video::gfxTextBold ? 1 << 7 : 0));
+				return Registers::ScreenMode.Raw;
 			case 0x08: //ScreenFade
 				return Video::gfxFade;
 			case 0x09: //TilemapSet
@@ -263,11 +269,12 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				interrupts = value;
 				break;
 			case 0x01: //ScreenMode
-				Video::gfxTextBold = ((u8 >> 7) & 1) == 1;
-				Video::gfx320 = ((u8 >> 6) & 1) == 1;
-				Video::gfx240 = ((u8 >> 5) & 1) == 1;
-				Video::gfxTextBlink = ((u8 >> 4) & 1) == 1;
-				Video::gfxMode = u8 & 0x0F;
+				//Video::gfxTextBold = ((u8 >> 7) & 1) == 1;
+				//Video::gfx320 = ((u8 >> 6) & 1) == 1;
+				//Video::gfx240 = ((u8 >> 5) & 1) == 1;
+				//Video::gfxTextBlink = ((u8 >> 4) & 1) == 1;
+				//Video::gfxMode = u8 & 0x0F;
+				Registers::ScreenMode.Raw = u8;
 				break;
 			case 0x08: //ScreenFade
 				Video::gfxFade = u8;

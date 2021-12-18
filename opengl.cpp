@@ -261,7 +261,7 @@ namespace Video
 				offsetY += UI::statusBarHeight;
 
 				float imgH = 1.0f;
-				if (numShaders == 1 && (stretch200 && (gfxMode == 1 || gfxMode == 2) && gfxTextBold))
+				if (numShaders == 1 && (stretch200 && (Registers::ScreenMode.Mode == 1 || Registers::ScreenMode.Mode == 2) && Registers::ScreenMode.Aspect))
 					imgH = 0.830f;
 
 				glViewport(offsetX, offsetY, scrWidth, scrHeight);
@@ -279,7 +279,7 @@ namespace Video
 			else
 			{
 				float imgH = 1.0f;
-				if (i == 0 && stretch200 && (gfxMode == 1 || gfxMode == 2) && gfxTextBold)
+				if (i == 0 && stretch200 && (Registers::ScreenMode.Mode == 1 || Registers::ScreenMode.Mode == 2) && Registers::ScreenMode.Aspect)
 					imgH = 0.830f;
 
 				glViewport(0, 0, 640, 480);

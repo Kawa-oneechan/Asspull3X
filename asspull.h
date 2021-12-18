@@ -133,11 +133,31 @@ extern char joyaxes[4];
 extern long ticks;
 extern int pauseState;
 
+namespace Registers
+{
+	struct ScreenModeRegister
+	{
+		union
+		{
+			struct
+			{
+				unsigned char Mode : 2;
+				unsigned char padding : 2;
+				unsigned char Blink : 1;
+				unsigned char HalfHeight : 1;
+				unsigned char HalfWidth : 1;
+				unsigned char Aspect : 1;
+			};
+			unsigned char Raw;
+		};
+	};
+	extern ScreenModeRegister ScreenMode;
+}
+
 namespace Video
 {
 	extern SDL_Window* sdlWindow;
-
-	extern bool gfx320, gfx240, gfxTextBold, gfxTextBlink, stretch200;
+	extern bool stretch200;
 	extern int gfxMode, gfxFade, scrollX[4], scrollY[4], tileShift[2], mapEnabled[4], mapBlend[4];
 	extern int caret;
 

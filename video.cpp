@@ -3,8 +3,8 @@
 
 namespace Video
 {
-	bool gfx320, gfx240, gfxTextBold, gfxTextBlink, stretch200;
-	int gfxMode, gfxFade, scrollX[4], scrollY[4], tileShift[2], mapEnabled[4], mapBlend[4];
+	bool stretch200;
+	int gfxFade, scrollX[4], scrollY[4], tileShift[2], mapEnabled[4], mapBlend[4];
 	int caret;
 
 	unsigned char* pixels;
@@ -72,7 +72,7 @@ namespace Video
 
 	void RenderObjects(int line, int withPriority)
 	{
-		auto step = gfx320 ? 4 : 2;
+		auto step = Registers::ScreenMode.HalfWidth ? 4 : 2;
 		for (auto i = 0; i < 256; i++)
 		{
 			auto objA = (ramVideo[OBJ1_ADDR + 0 + (i * 2)] << 8) | (ramVideo[OBJ1_ADDR + 1 + (i * 2)] << 0);
@@ -101,8 +101,8 @@ namespace Video
 				vPos |= 0xFE00;
 			else
 				vPos &= 0x1FF;
-			if (gfx320) hPos *= 2;
-			if (gfx240) vPos *= 2;
+			if (Registers::ScreenMode.HalfWidth) hPos *= 2;
+			if (Registers::ScreenMode.HalfHeight) vPos *= 2;
 
 			auto doubleWidth = ((objB >> 24) & 1) == 1;
 			auto doubleHeight = ((objB >> 25) & 1) == 1;
@@ -120,17 +120,17 @@ namespace Video
 
 			short effectiveHeight = tileHeight * 8;
 			short effectiveWidth = tileWidth * 8;
-			effectiveHeight *= ((gfx240 && gfxMode > 0) ? 2 : 1);
+			effectiveHeight *= ((Registers::ScreenMode.HalfHeight && Registers::ScreenMode.Mode > 0) ? 2 : 1);
 
 			if (line < vPos || line >= vPos + effectiveHeight)
 				continue;
 
-			short renderWidth = (gfx320 ? 16 : 8);
-			if (hPos + (effectiveWidth * (gfx320 ? 2 : 1)) <= 0 || hPos > 640)
+			short renderWidth = (Registers::ScreenMode.HalfWidth ? 16 : 8);
+			if (hPos + (effectiveWidth * (Registers::ScreenMode.HalfWidth ? 2 : 1)) <= 0 || hPos > 640)
 				continue;
 
 			if (hFlip)
-				hPos += (gfx320 ? (effectiveWidth * 2) - 4 : effectiveWidth - 2);
+				hPos += (Registers::ScreenMode.HalfWidth ? (effectiveWidth * 2) - 4 : effectiveWidth - 2);
 
 			auto tileBasePic = TILES_ADDR + (tile * 32);
 			for (auto col = 0; col < tileWidth; col++)
@@ -139,7 +139,7 @@ namespace Video
 				auto part = (line - vPos);
 				if (vFlip) part = effectiveHeight - 1 - part;
 
-				if (gfx240 && gfxMode > 0)
+				if (Registers::ScreenMode.HalfHeight && Registers::ScreenMode.Mode > 0)
 					part /= 2;
 				auto tileLine = part / 8;
 				if (tileWidth == 2) tilePic += tileLine * 32;
@@ -168,7 +168,7 @@ namespace Video
 
 					if (blend == 0)
 					{
-						if (!gfx320)
+						if (!Registers::ScreenMode.HalfWidth)
 						{
 							if (l != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640) RenderPixel(line, hPos + hfJ + 0, l);
 							if (r != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640) RenderPixel(line, hPos + hfJ + 1, r);
@@ -190,7 +190,7 @@ namespace Video
 					else
 					{
 						bool sub = ((blend & 2) == 2);
-						if (!gfx320)
+						if (!Registers::ScreenMode.HalfWidth)
 						{
 							if (l != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640) RenderBlended(line, hPos + hfJ + 0, l, sub);
 							if (r != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640) RenderBlended(line, hPos + hfJ + 1, r, sub);
@@ -230,14 +230,14 @@ namespace Video
 
 	void RenderTextMode(int line)
 	{
-		auto width = gfx320 ? 40 : 80;
-		auto height = gfx240 ? 16 : 8;
+		auto width = Registers::ScreenMode.HalfWidth ? 40 : 80;
+		auto height = Registers::ScreenMode.HalfHeight ? 16 : 8;
 		auto bgY = line / height;
 		auto tileIndex = TEXT_ADDR + (((bgY % width) * width) * 2);
-		auto font = FONT_ADDR + (gfxTextBold ? 0x800 : 0);
-		if (gfx240)
-			font = FONT_ADDR + 0x1000 + (gfxTextBold ? 0x1000 : 0);
-		auto tileY = line % (gfx240 ? 16 : 8); //8;
+		auto font = FONT_ADDR + (Registers::ScreenMode.Aspect ? 0x800 : 0);
+		if (Registers::ScreenMode.HalfHeight)
+			font = FONT_ADDR + 0x1000 + (Registers::ScreenMode.Aspect ? 0x1000 : 0);
+		auto tileY = line % (Registers::ScreenMode.HalfHeight ? 16 : 8); //8;
 
 		//if (gfxTextHigh)
 		//	tileY = (line2 / 2) % 8;
@@ -247,17 +247,17 @@ namespace Video
 			auto att = ramVideo[tileIndex++];
 			//if (chr == 0)
 			//	continue;
-			auto glyph = font + (chr * (gfx240 ? 16 : 8)); //8);
+			auto glyph = font + (chr * (Registers::ScreenMode.HalfHeight ? 16 : 8)); //8);
 			auto scan = ramVideo[glyph + tileY];
 
-			if (gfxTextBlink && (att & 0x80))
+			if (Registers::ScreenMode.Blink && (att & 0x80))
 			{
 				att = (att & 0x7F);
 				if (BLINK)
 					att = (att & 0x70) | ((att & 0x70) >> 4);
 			}
 
-			if (!gfx320)
+			if (!Registers::ScreenMode.HalfWidth)
 			{
 				for (auto bit = 0; bit < 8; bit++)
 					RenderPixel(line, (col * 8) + bit, ((scan >> bit) & 1) == 1 ? (att & 0xF) : (att >> 4));
@@ -281,7 +281,7 @@ namespace Video
 			{
 				int cc = cp % width;
 				int ca = ramVideo[TEXT_ADDR + (cp * 2) + 1];
-				int cw = gfx320 ? 16 : 8;
+				int cw = Registers::ScreenMode.HalfWidth ? 16 : 8;
 				for (auto col = 0; col < cw; col++)
 				{
 					RenderPixel(line, (cc * cw) + col, ca & 0xF);
@@ -293,9 +293,9 @@ namespace Video
 
 	void RenderBitmapMode1(int line)
 	{
-		auto imgWidth = gfx320 ? 160 : 320; //image is 160 or 320 bytes wide
+		auto imgWidth = Registers::ScreenMode.HalfWidth ? 160 : 320; //image is 160 or 320 bytes wide
 		auto sourceLine = line; // gfxTextBold ? (int)(line * 0.835) : line;
-		if (gfxTextBold && !stretch200)
+		if (Registers::ScreenMode.Aspect && !stretch200)
 		{
 			if (line < 40 || line > 439)
 			{
@@ -305,15 +305,15 @@ namespace Video
 			}
 			sourceLine = line - 40;
 		}
-		auto effective = BMP_ADDR + (gfx240 ? sourceLine / 2 : sourceLine);
+		auto effective = BMP_ADDR + (Registers::ScreenMode.HalfHeight ? sourceLine / 2 : sourceLine);
 		auto p = 0;
-		for (auto col = 0; col < 640; col += (gfx320 ? 4 : 2))
+		for (auto col = 0; col < 640; col += (Registers::ScreenMode.HalfWidth ? 4 : 2))
 		{
 			auto twoPix = ramVideo[effective * imgWidth + p];
 			p++;
 			auto l = (twoPix >> 0) & 0x0F;
 			auto r = (twoPix >> 4) & 0x0F;
-			if (!gfx320)
+			if (!Registers::ScreenMode.HalfWidth)
 			{
 				RenderPixel(line, col + 0, l);
 				RenderPixel(line, col + 1, r);
@@ -331,9 +331,9 @@ namespace Video
 
 	void RenderBitmapMode2(int line)
 	{
-		auto imgWidth = gfx320 ? 320 : 640;
+		auto imgWidth = Registers::ScreenMode.HalfWidth ? 320 : 640;
 		auto sourceLine = line; // gfxTextBold ? (int)(line * 0.835) : line;
-		if (gfxTextBold && !stretch200)
+		if (Registers::ScreenMode.Aspect && !stretch200)
 		{
 			if (line < 40 || line > 439)
 			{
@@ -343,13 +343,13 @@ namespace Video
 			}
 			sourceLine = line - 40;
 		}
-		auto effective = BMP_ADDR + (gfx240 ? sourceLine / 2 : sourceLine);
+		auto effective = BMP_ADDR + (Registers::ScreenMode.HalfHeight ? sourceLine / 2 : sourceLine);
 		auto p = 0;
 		for (auto col = 0; col < 640; col++)
 		{
 			auto pixel = ramVideo[effective * imgWidth + p];
 			p++;
-			if (!gfx320)
+			if (!Registers::ScreenMode.HalfWidth)
 			{
 				RenderPixel(line, col, pixel);
 			}
@@ -473,7 +473,7 @@ namespace Video
 
 	void RenderLine(int line)
 	{
-		switch (gfxMode)
+		switch (Registers::ScreenMode.Mode)
 		{
 		case 0: RenderTextMode(line); break;
 		case 1: RenderBitmapMode1(line); break;
