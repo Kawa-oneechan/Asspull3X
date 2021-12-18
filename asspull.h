@@ -142,7 +142,7 @@ namespace Registers
 			struct
 			{
 				unsigned char Mode : 2;
-				unsigned char padding : 2;
+				unsigned char : 2;
 				unsigned char Blink : 1;
 				unsigned char HalfHeight : 1;
 				unsigned char HalfWidth : 1;
@@ -152,14 +152,63 @@ namespace Registers
 		};
 	};
 	extern ScreenModeRegister ScreenMode;
+
+	struct MapSetRegister
+	{
+		union
+		{
+			struct
+			{
+				unsigned char Shift : 4;
+				unsigned char Enabled : 4;
+			};
+			struct
+			{
+				unsigned char Shift12 : 2;
+				unsigned char Shift34: 2;
+				unsigned char Map1 : 1;
+				unsigned char Map2 : 1;
+				unsigned char Map3 : 1;
+				unsigned char Map4 : 1;
+			};
+			unsigned char Raw;
+		};
+	};
+	extern MapSetRegister MapSet;
+
+	struct MapBlendRegister
+	{
+		union
+		{
+			struct
+			{
+				unsigned char Enabled : 4;
+				unsigned char Subtract : 4;
+			};
+			struct
+			{
+				unsigned char Enable1 : 1;
+				unsigned char Enable2 : 1;
+				unsigned char Enable3 : 1;
+				unsigned char Enable4 : 1;
+				unsigned char Subtract1 : 1;
+				unsigned char Subtract2 : 1;
+				unsigned char Subtract3 : 1;
+				unsigned char Subtract4 : 1;
+			};
+			unsigned char Raw;
+		};
+	};
+	extern MapBlendRegister MapBlend;
+
+	extern int Fade, Caret;
+	extern int ScrollX[4], ScrollY[4];
 }
 
 namespace Video
 {
 	extern SDL_Window* sdlWindow;
 	extern bool stretch200;
-	extern int gfxMode, gfxFade, scrollX[4], scrollY[4], tileShift[2], mapEnabled[4], mapBlend[4];
-	extern int caret;
 
 	extern unsigned char* pixels;
 

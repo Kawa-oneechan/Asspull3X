@@ -248,7 +248,7 @@ void MainLoop()
 				memset(romCartridge, 0, CART_SIZE);
 				ini.SetValue(L"media", L"lastROM", L"");
 				UI::SaveINI();
-				Video::gfxFade = 31;
+				Registers::Fade = 31;
 				UI::SetStatus(IDS_CARTEJECTED); //"Cart pulled."
 				Discord::SetPresence(NULL);
 				UI::SetTitle(NULL);

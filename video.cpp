@@ -4,18 +4,16 @@
 namespace Video
 {
 	bool stretch200;
-	int gfxFade, scrollX[4], scrollY[4], tileShift[2], mapEnabled[4], mapBlend[4];
-	int caret;
 
 	unsigned char* pixels;
 
 #define BLINK ((SDL_GetTicks() % 600) < 300)
 
 #define FADECODE \
-	if (gfxFade > 0) \
+	if (Registers::Fade > 0) \
 	{ \
-		auto f = (gfxFade & 31); \
-		if ((gfxFade & 0x80) == 0x80) \
+		auto f = (Registers::Fade & 31); \
+		if ((Registers::Fade & 0x80) == 0x80) \
 		{ \
 			r = ((r + f > 31) ? 31 : r + f); \
 			g = ((g + f > 31) ? 31 : g + f); \
@@ -272,11 +270,11 @@ namespace Video
 			}
 		}
 
-		if (caret & 0x8000 && BLINK)
+		if (Registers::Caret & 0x8000 && BLINK)
 		{
-			int cp = caret & 0x3FFF;
+			int cp = Registers::Caret & 0x3FFF;
 			int cr = cp / width;
-			int ch = caret & 0x4000 ? -1 : height - 3;
+			int ch = Registers::Caret & 0x4000 ? -1 : height - 3;
 			if (bgY == cr && line % height > ch)
 			{
 				int cc = cp % width;
@@ -391,15 +389,15 @@ namespace Video
 
 			screenBase = MAP1_ADDR + (layer * MAP_SIZE);
 
-			if (!mapEnabled[layer])
+			if (!(Registers::MapSet.Enabled & (layer << 1)))
 			{
 				RenderObjects(line, 3 - layer);
 				RenderObjects(line + 1, 3 - layer);
 				continue;
 			}
 
-			auto xxx = scrollX[layer] & maskX;
-			auto yyy = (scrollY[layer] + sourceLine) & maskY;
+			auto xxx = Registers::ScrollX[layer] & maskX;
+			auto yyy = (Registers::ScrollY[layer] + sourceLine) & maskY;
 
 			auto yShift = ((yyy >> 3) << 6);
 			//yShift = 0;
@@ -429,12 +427,13 @@ namespace Video
 				if (color)
 				{
 					if (color) color += pal * 16;
-					if (mapBlend[layer])
+					if (Registers::MapBlend.Enabled & (layer << 1))
 					{
-						RenderBlended(line, (x * 2) + 0, color, (mapBlend[layer] & 2) == 2);
-						RenderBlended(line, (x * 2) + 1, color, (mapBlend[layer] & 2) == 2);
-						RenderBlended(line + 1, (x * 2) + 0, color, (mapBlend[layer] & 2) == 2);
-						RenderBlended(line + 1, (x * 2) + 1, color, (mapBlend[layer] & 2) == 2);
+						auto sub = (Registers::MapBlend.Subtract & (layer << 1)) != 0;
+						RenderBlended(line, (x * 2) + 0, color, sub);
+						RenderBlended(line, (x * 2) + 1, color, sub);
+						RenderBlended(line + 1, (x * 2) + 0, color, sub);
+						RenderBlended(line + 1, (x * 2) + 1, color, sub);
 					}
 					else
 					{

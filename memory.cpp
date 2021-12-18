@@ -4,6 +4,11 @@
 namespace Registers
 {
 	ScreenModeRegister ScreenMode;
+	MapSetRegister MapSet;
+	MapBlendRegister MapBlend;
+
+	int Fade, Caret;
+	int ScrollX[4], ScrollY[4];
 }
 
 extern "C"
@@ -108,13 +113,9 @@ unsigned int m68k_read_memory_8(unsigned int address)
 				//	(Video::gfxTextBold ? 1 << 7 : 0));
 				return Registers::ScreenMode.Raw;
 			case 0x08: //ScreenFade
-				return Video::gfxFade;
+				return Registers::Fade;
 			case 0x09: //TilemapSet
-				return (Video::tileShift[1] |
-					(Video::tileShift[0] << 2) |
-					(Video::mapEnabled[1] << 6) |
-					(Video::mapEnabled[0] << 7));
-				//TODO: add mapEnabled[2] and [3].
+				return Registers::MapSet.Raw;
 			case 0x42: //Joypad
 			case 0x43:
 				switch (joylatch[reg - 0x42])
@@ -174,12 +175,12 @@ unsigned int m68k_read_memory_16(unsigned int address)
 			case 0x14:
 			case 0x18:
 			case 0x1C:
-				return Video::scrollX[min((reg - 0x10) / 4, 4)];
+				return Registers::ScrollX[min((reg - 0x10) / 4, 4)];
 			case 0x12: //Vertical scroll
 			case 0x16:
 			case 0x1A:
 			case 0x1E:
-				return Video::scrollY[min((reg - 0x12) / 4, 4)];
+				return Registers::ScrollY[min((reg - 0x12) / 4, 4)];
 			case 0x40: //Keyscan
 				keyScan = PollKeyboard(false);
 				return keyScan;
@@ -217,7 +218,7 @@ unsigned int m68k_read_memory_16(unsigned int address)
 				return ((b & 1) << 14) | ((b & 4) << 13) | (dy << 13) | (y << 7) | (dx << 6) | x;
 			}
 			case 0x54:
-				return Video::caret;
+				return Registers::Caret;
 		}
 		return 0;
 	}
@@ -277,21 +278,13 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				Registers::ScreenMode.Raw = u8;
 				break;
 			case 0x08: //ScreenFade
-				Video::gfxFade = u8;
+				Registers::Fade = u8;
 				break;
 			case 0x09: //TilemapSet
-				Video::mapEnabled[0] = (value & 0x10);
-				Video::mapEnabled[1] = (value & 0x20);
-				Video::mapEnabled[2] = (value & 0x40);
-				Video::mapEnabled[3] = (value & 0x80);
-				Video::tileShift[0] = (value >> 2) & 3;
-				Video::tileShift[1] = value & 3;
+				Registers::MapSet.Raw = value;
 				break;
 			case 0x0A: //TilemapBlend
-				Video::mapBlend[0] = ((u8 >> 0) & 1) | (((u8 >> 4) & 1) << 1);
-				Video::mapBlend[1] = ((u8 >> 1) & 1) | (((u8 >> 5) & 1) << 1);
-				Video::mapBlend[2] = ((u8 >> 2) & 1) | (((u8 >> 6) & 1) << 1);
-				Video::mapBlend[3] = ((u8 >> 3) & 1) | (((u8 >> 7) & 1) << 1);
+				Registers::MapBlend.Raw = value;
 				break;
 			case 0x42: //Joypads
 			case 0x43:
@@ -387,19 +380,19 @@ void m68k_write_memory_16(unsigned int address, unsigned int value)
 			case 0x14:
 			case 0x18:
 			case 0x1C:
-				Video::scrollX[(reg - 0x10) / 4] = value & 511;
+				Registers::ScrollX[(reg - 0x10) / 4] = value & 511;
 				break;
 			case 0x12: //Vertical scroll
 			case 0x16:
 			case 0x1A:
 			case 0x1E:
-				Video::scrollY[(reg - 0x12) / 4] = value & 511;
+				Registers::ScrollY[(reg - 0x12) / 4] = value & 511;
 				break;
 			case 0x48: //OPL3 out
 				Sound::SendOPL(value);
 				break;
 			case 0x54:
-				Video::caret = value;
+				Registers::Caret = value;
 				break;
 		}
 		return;
