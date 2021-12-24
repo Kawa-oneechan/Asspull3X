@@ -389,7 +389,7 @@ namespace Video
 
 			screenBase = MAP1_ADDR + (layer * MAP_SIZE);
 
-			if (!(Registers::MapSet.Enabled & (layer << 1)))
+			if (!(Registers::MapSet.Enabled & (1 << layer)))
 			{
 				RenderObjects(line, 3 - layer);
 				RenderObjects(line + 1, 3 - layer);
@@ -427,9 +427,9 @@ namespace Video
 				if (color)
 				{
 					if (color) color += pal * 16;
-					if (Registers::MapBlend.Enabled & (layer << 1))
+					if (Registers::MapBlend.Enabled & (1 << layer))
 					{
-						auto sub = (Registers::MapBlend.Subtract & (layer << 1)) != 0;
+						auto sub = (Registers::MapBlend.Subtract & (1 << layer)) != 0;
 						RenderBlended(line, (x * 2) + 0, color, sub);
 						RenderBlended(line, (x * 2) + 1, color, sub);
 						RenderBlended(line + 1, (x * 2) + 0, color, sub);
