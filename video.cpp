@@ -3,6 +3,54 @@
 
 namespace Video
 {
+	struct ObjectA
+	{
+		union
+		{
+			struct
+			{
+				unsigned short Tile : 9;
+				unsigned short Blend : 2;
+				unsigned short Enabled : 1;
+				unsigned short Palette : 4;
+			};
+			unsigned short Raw;
+		};
+	};
+	struct ObjectB
+	{
+		union
+		{
+			struct
+			{
+				int Horizontal : 10;
+				unsigned int : 2;
+				int Vertical : 9;
+				unsigned int : 3;
+				unsigned int DoubleWidth : 1;
+				unsigned int DoubleHeight : 1;
+				unsigned int FlipHoriz : 1;
+				unsigned int FlipVert : 1;
+				unsigned int DoubleUp : 1;
+				unsigned int Priority : 3;
+			};
+			unsigned int Raw;
+		};
+	};
+	struct MapTile {
+		union
+		{
+			struct
+			{
+				unsigned short Tile : 10;
+				unsigned short FlipHoriz : 1;
+				unsigned short FlipVert : 1;
+				unsigned short Palette : 4;
+			};
+			unsigned short Raw;
+		};
+	};
+
 	bool stretch200;
 
 	unsigned char* pixels;
@@ -73,48 +121,33 @@ namespace Video
 		auto step = Registers::ScreenMode.HalfWidth ? 4 : 2;
 		for (auto i = 0; i < 256; i++)
 		{
-			auto objA = (ramVideo[OBJ1_ADDR + 0 + (i * 2)] << 8) | (ramVideo[OBJ1_ADDR + 1 + (i * 2)] << 0);
-			if (objA == 0)
+			ObjectA objA;
+			objA.Raw = (unsigned short)((ramVideo[OBJ1_ADDR + 0 + (i * 2)] << 8) | (ramVideo[OBJ1_ADDR + 1 + (i * 2)] << 0));
+			if (objA.Raw == 0)
 				continue;
-			if ((objA & 0x800) != 0x800)
+			if (!objA.Enabled)
 				continue;
-			auto objB =
+			ObjectB objB;
+			objB.Raw = (unsigned int)(
 				(ramVideo[OBJ2_ADDR + 0 + (i * 4)] << 24) |
 				(ramVideo[OBJ2_ADDR + 1 + (i * 4)] << 16) |
 				(ramVideo[OBJ2_ADDR + 2 + (i * 4)] << 8) |
-				(ramVideo[OBJ2_ADDR + 3 + (i * 4)] << 0);
-			auto prio = (objB >> 29) & 7;
-			if (withPriority > -1 && prio != withPriority)
+				(ramVideo[OBJ2_ADDR + 3 + (i * 4)] << 0));
+			if (withPriority > -1 && objB.Priority != withPriority)
 				continue;
-			auto tile = (objA >> 0) & 0x1FF;
-			auto blend = (objA >> 9) & 3;
-			auto pal = (objA >> 12) & 0x0F;
-			short hPos = ((objB & 0x7FF) << 21) >> 21;
-			short vPos = ((objB & 0x7FF000) << 10) >> 22;
-			if (hPos & 0x200) //extend sign because lolbitfields
-				hPos |= 0xFC00;
-			else
-				hPos &= 0x3FF;
-			if (vPos & 0x100)
-				vPos |= 0xFE00;
-			else
-				vPos &= 0x1FF;
+
+			short hPos = objB.Horizontal;
+			short vPos = objB.Vertical;
 			if (Registers::ScreenMode.HalfWidth) hPos *= 2;
 			if (Registers::ScreenMode.HalfHeight) vPos *= 2;
 
-			auto doubleWidth = ((objB >> 24) & 1) == 1;
-			auto doubleHeight = ((objB >> 25) & 1) == 1;
-			auto hFlip = ((objB >> 26) & 1) == 1;
-			auto vFlip = ((objB >> 27) & 1) == 1;
-			auto doubleSize = ((objB >> 28) & 1) == 1;
-
 			short tileHeight = 1;
-			if (doubleHeight) tileHeight *= 2;
-			if (doubleSize) tileHeight *= 2;
+			if (objB.DoubleHeight) tileHeight *= 2;
+			if (objB.DoubleUp) tileHeight *= 2;
 
 			short tileWidth = 1;
-			if (doubleWidth) tileWidth *= 2;
-			if (doubleSize) tileWidth *= 2;
+			if (objB.DoubleWidth) tileWidth *= 2;
+			if (objB.DoubleUp) tileWidth *= 2;
 
 			short effectiveHeight = tileHeight * 8;
 			short effectiveWidth = tileWidth * 8;
@@ -127,15 +160,15 @@ namespace Video
 			if (hPos + (effectiveWidth * (Registers::ScreenMode.HalfWidth ? 2 : 1)) <= 0 || hPos > 640)
 				continue;
 
-			if (hFlip)
+			if (objB.FlipHoriz)
 				hPos += (Registers::ScreenMode.HalfWidth ? (effectiveWidth * 2) - 4 : effectiveWidth - 2);
 
-			auto tileBasePic = TILES_ADDR + (tile * 32);
+			auto tileBasePic = TILES_ADDR + (objA.Tile * 32);
 			for (auto col = 0; col < tileWidth; col++)
 			{
 				auto tilePic = tileBasePic;
 				auto part = (line - vPos);
-				if (vFlip) part = effectiveHeight - 1 - part;
+				if (objB.FlipVert) part = effectiveHeight - 1 - part;
 
 				if (Registers::ScreenMode.HalfHeight && Registers::ScreenMode.Mode > 0)
 					part /= 2;
@@ -148,23 +181,23 @@ namespace Video
 				for (auto j = 0; j < renderWidth; j += step)
 				{
 					auto hfJ = j;
-					if (hFlip) hfJ = -j;
+					if (objB.FlipHoriz) hfJ = -j;
 
 					auto twoPix = ramVideo[tilePic + (j / step)];
 					if (twoPix == 0)
 						continue;
 					auto l = (twoPix >> 0) & 0x0F;
 					auto r = (twoPix >> 4) & 0x0F;
-					if (l) l += pal * 16;
-					if (r) r += pal * 16;
-					if (hFlip)
+					if (l) l += objA.Palette * 16;
+					if (r) r += objA.Palette * 16;
+					if (objB.FlipHoriz)
 					{
 						auto lt = l;
 						l = r;
 						r = lt;
 					}
 
-					if (blend == 0)
+					if (objA.Blend == 0)
 					{
 						if (!Registers::ScreenMode.HalfWidth)
 						{
@@ -187,7 +220,7 @@ namespace Video
 					}
 					else
 					{
-						bool sub = ((blend & 2) == 2);
+						bool sub = ((objA.Blend & 2) == 2);
 						if (!Registers::ScreenMode.HalfWidth)
 						{
 							if (l != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640) RenderBlended(line, hPos + hfJ + 0, l, sub);
@@ -209,7 +242,7 @@ namespace Video
 					}
 				}
 
-				if (!hFlip)
+				if (!objB.FlipHoriz)
 					hPos += renderWidth;
 				else
 					hPos -= renderWidth;
@@ -406,27 +439,21 @@ namespace Video
 
 			for (auto x = 0; x < 320; x++)
 			{
-				//PPPP VH.T TTTT TTTT
-				auto data = (ramVideo[screenSource] << 8) | ramVideo[screenSource + 1];
-				auto tile = (data & 0x3FF) + shift;
+				MapTile mapTile;
+				mapTile.Raw = (ramVideo[screenSource] << 8) | ramVideo[screenSource + 1];
 				auto tileX = xxx & 7;
 				auto tileY = yyy & 7;
 
-				auto hFlip = (data & 0x0400) == 0x0400;
-				auto vFlip = (data & 0x0800) == 0x0800;
+				if (mapTile.FlipHoriz) tileX = 7 - tileX;
+				if (mapTile.FlipVert) tileY = 7 - tileY;
 
-				auto pal = data >> 12;
-
-				if (hFlip) tileX = 7 - tileX;
-				if (vFlip) tileY = 7 - tileY;
-
-				auto color = (int)ramVideo[charBase + (tile << 5) + (tileY << 2) + (tileX >> 1)];
+				auto color = (int)ramVideo[charBase + ((mapTile.Tile + shift) << 5) + (tileY << 2) + (tileX >> 1)];
 				if ((tileX & 1) == 1) color >>= 4;
 				color &= 0x0F;
 
 				if (color)
 				{
-					if (color) color += pal * 16;
+					if (color) color += mapTile.Palette * 16;
 					if (Registers::MapBlend.Enabled & (1 << layer))
 					{
 						auto sub = (Registers::MapBlend.Subtract & (1 << layer)) != 0;
@@ -444,7 +471,7 @@ namespace Video
 					}
 				}
 
-				if (hFlip) tileX = 7 - tileX;
+				if (mapTile.FlipHoriz) tileX = 7 - tileX;
 				if (tileX == 7) screenSource += 2;
 
 				xxx++;
