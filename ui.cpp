@@ -735,6 +735,28 @@ namespace UI
 		SDL_SetWindowTitle(Video::sdlWindow, title);
 	}
 
+	void Complain(int message)
+	{
+		WCHAR msg[512];
+		wcscpy(msg, UI::GetString(message));
+
+		Log(msg);
+
+		TASKDIALOGCONFIG td = {
+			sizeof(TASKDIALOGCONFIG), UI::hWndMain, NULL,
+			TDF_EXPAND_FOOTER_AREA, TDCBF_OK_BUTTON,
+			UI::GetString(IDS_SHORTTITLE),
+			NULL,
+			NULL, msg,
+			0, NULL, IDOK,
+			0, NULL, 0,
+			NULL,
+			NULL
+		};
+		td.pszMainIcon = TD_WARNING_ICON;
+		TaskDialogIndirect(&td, NULL, NULL, NULL);
+	}
+
 	void SaveINI()
 	{
 		ResetPath();

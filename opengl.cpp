@@ -396,7 +396,11 @@ namespace Video
 			return -2;
 		}
 
-		pixels = new unsigned char[640 * 480 * 4]();
+		if ((pixels = new unsigned char[640 * 480 * 4]()) == nullptr)
+		{
+			UI::Complain(IDS_SCREENFAIL);
+			return -2;
+		}
 
 		return 0;
 	}

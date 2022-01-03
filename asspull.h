@@ -65,6 +65,7 @@ namespace UI
 	extern void Update();
 	extern void ResetPath();
 	extern void SetTitle(const char*);
+	extern void Complain(int message);
 	extern void SaveINI();
 
 	namespace Presentation

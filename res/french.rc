@@ -55,6 +55,9 @@ STRINGTABLE
 	IDS_DISCORDDLL, "Discord est actif mais aucune DLL n'a été trouvée."
 	IDS_SCREENSHOT, "Clic-clac! %s sauvegardé."
 
+	IDS_SCREENFAIL, "Échec lors de l'allocation de mémoire pour l'écran principale."
+	IDS_PAUSEFAIL, "Échec lors de l'allocation de mémoire pour l'écran d'attente."
+
 	//Status bar message -- you tried to open a ZIP file but there was no ROM in there
 	IDS_NOTHINGINZIP, "Aucun fichier AP3 trouvé dans l'archive."
 	IDS_DUMPEDRAM, "RAM sauvegardée."

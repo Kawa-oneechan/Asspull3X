@@ -55,6 +55,9 @@ STRINGTABLE
 	IDS_DISCORDDLL, "Discord is enabled but the DLL isn't here." //missing discord-rpc.dll
 	IDS_SCREENSHOT, "Snap! %s saved."
 
+	IDS_SCREENFAIL, "Failed to allocate memory for main screen."
+	IDS_PAUSEFAIL, "Failed to allocate memory for pause screen."
+
 	//Status bar message -- you tried to open a ZIP file but there was no ROM in there
 	IDS_NOTHINGINZIP, "No single AP3 file found in archive."
 	IDS_DUMPEDRAM, "RAM dumped."

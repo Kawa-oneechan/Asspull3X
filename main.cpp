@@ -106,7 +106,11 @@ unsigned char* pauseScreen;
 
 void MainLoop()
 {
-	pauseScreen = new unsigned char[640 * 480 * 4]();
+	if ((pauseScreen = new unsigned char[640 * 480 * 4]()) == nullptr)
+	{
+		UI::Complain(IDS_PAUSEFAIL);
+		return;
+	}
 
 	Log(UI::GetString(IDS_RESETTING));
 	m68k_init();

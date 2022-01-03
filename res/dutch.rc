@@ -55,6 +55,9 @@ STRINGTABLE
 	IDS_DISCORDDLL, "Discord is ingeschakeld, maar de DLL is er niet." //missing discord-rpc.dll
 	IDS_SCREENSHOT, "Klik! %s opgeslagen."
 
+	IDS_SCREENFAIL, "Kon geen geheugen reserveren voor hoofdscherm."
+	IDS_PAUSEFAIL, "Kon geen geheugen reserveren voor pauzescherm."
+
 	//Status bar message -- you tried to open a ZIP file but there was no ROM in there
 	IDS_NOTHINGINZIP, "Geen enkel AP3-bestand gevonden in archief."
 	IDS_DUMPEDRAM, "RAM gedumpt."
