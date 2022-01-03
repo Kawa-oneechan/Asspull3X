@@ -510,120 +510,186 @@ void HandleBlitter(unsigned int function)
 	auto fun = function & 0xF;
 	switch (fun)
 	{
-		case 0: return;
-		case 1: //Blit
-		case 2: //Set
-		case 3: //Invert
+	case 0: return;
+	case 1: //Blit
+	case 2: //Set
+	case 3: //Invert
+	{
+		auto strideSkip = ((function & 0x10) >> 4) == 1; //1 2 3
+		auto colorKey = ((function & 0x20) >> 5) == 1; //1
+		auto width = ((function & 0x80) >> 6); //2
+		auto sourceStride = ((function >> 8) & 0xFFF); //1 2 3
+		auto targetStride = ((function >> 20) & 0xFFF); //1 2 3
+
+		auto read = m68k_read_memory_8;
+		if (width == 1) read = m68k_read_memory_16;
+		else if (width == 2) read = m68k_read_memory_32;
+		auto write = m68k_write_memory_8;
+		if (width == 1) write = m68k_write_memory_16;
+		else if (width == 2) write = m68k_write_memory_32;
+
+		int val = 0;
+
+		if (fun == 1) //Blit
+		{
+			while (blitLength > 0)
 			{
-				auto strideSkip = ((function & 0x10) >> 4) == 1; //1 2 3
-				auto colorKey = ((function & 0x20) >> 5) == 1; //1
-				auto width = ((function & 0x80) >> 6); //2
-				auto sourceStride = ((function >> 8) & 0xFFF); //1 2 3
-				auto targetStride = ((function >> 20) & 0xFFF); //1 2 3
-
-				auto read = m68k_read_memory_8;
-				if (width == 1) read = m68k_read_memory_16;
-				else if (width == 2) read = m68k_read_memory_32;
-				auto write = m68k_write_memory_8;
-				if (width == 1) write = m68k_write_memory_16;
-				else if (width == 2) write = m68k_write_memory_32;
-
-				int val = 0;
-
-				if (fun == 1) //Blit
+				if (strideSkip)
 				{
-					while (blitLength > 0)
+					for (unsigned int i = 0; i < sourceStride && blitLength > 0; i++, blitAddrA += (1 << width), blitAddrB += (1 << width), blitLength--)
 					{
-						if (strideSkip)
-						{
-							for (unsigned int i = 0; i < sourceStride && blitLength > 0; i++, blitAddrA += (1 << width), blitAddrB += (1 << width), blitLength--)
-							{
-								val = read(blitAddrA);
-								if (colorKey && val == blitKey) continue;
-								write(blitAddrB, val);
-							}
-							blitAddrB += (int)(targetStride - sourceStride) << width;
-						}
-						else
-						{
-							val = read(blitAddrA);
-							if (colorKey && val == blitKey) continue;
-							write(blitAddrB, val);
-							blitAddrA += (1 << width);
-							blitAddrB += (1 << width);
-							blitLength--;
-						}
+						val = read(blitAddrA);
+						if (colorKey && val == blitKey) continue;
+						write(blitAddrB, val);
 					}
-				}
-				else if (fun == 2) //Set
-				{
-					/*
-					Copies the value of ADDRESS A to B.
-					If STRIDESKIP is enabled, copies SOURCE STRIDE bytes,
-					then skips over TARGET STRIDE - SOURCE STRIDE bytes,
-					until LENGTH bytes are copied in total.
-					If WIDTH is set to 0, sets B to the low byte of the source value.
-					If WIDTH is set to 1, sets B to the lower short instead.
-					If WIDTH is set to 2, sets B to the full word.
-					If WIDTH is set to 3, behavior is undefined.
-					*/
-					while (blitLength > 0)
-					{
-						if (strideSkip)
-						{
-							for (unsigned int i = 0; i < sourceStride && blitLength > 0; i++, blitAddrB += (1 << width), blitLength--)
-								write(blitAddrB, blitAddrA);
-							blitAddrB += (int)(targetStride - sourceStride) << width;
-						}
-						else
-						{
-							write(blitAddrB, read(blitAddrB));
-							blitAddrB += (1 << width);
-							blitLength--;
-						}
-					}
-				}
-				else if (fun == 3) //Invert
-				{
-					while (blitLength > 0)
-					{
-						if (strideSkip)
-						{
-							for (unsigned int i = 0; i < sourceStride && blitLength > 0; i++, blitAddrB++, blitLength--)
-								m68k_write_memory_8(blitAddrB, ~m68k_read_memory_8(blitAddrB));
-							blitAddrB += (int)(targetStride - sourceStride);
-						}
-						else
-						{
-							m68k_write_memory_8(blitAddrB, ~m68k_read_memory_8(blitAddrB));
-							blitAddrB++;
-							blitLength--;
-						}
-					}
-				}
-			}
-			break;
-		case 4: //UnRLE
-			unsigned char data = 0;
-			while (blitLength) //hack
-			{
-				data = (unsigned char)m68k_read_memory_8(blitAddrA++);
-				if ((data & 0xC0) == 0xC0)
-				{
-					auto len = data & 0x3F;
-					data = (unsigned char)m68k_read_memory_8(blitAddrA++);
-					blitLength--;
-					if (data == 0xC0 && len == 0)
-						break;
-					for (; len > 0; len--)
-						m68k_write_memory_8(blitAddrB++, data);
+					blitAddrB += (int)(targetStride - sourceStride) << width;
 				}
 				else
 				{
-					m68k_write_memory_8(blitAddrB++, data);
+					val = read(blitAddrA);
+					if (colorKey && val == blitKey) continue;
+					write(blitAddrB, val);
+					blitAddrA += (1 << width);
+					blitAddrB += (1 << width);
+					blitLength--;
 				}
-				blitLength--;
 			}
-			break;
+		}
+		else if (fun == 2) //Set
+		{
+			/*
+			Copies the value of ADDRESS A to B.
+			If STRIDESKIP is enabled, copies SOURCE STRIDE bytes,
+			then skips over TARGET STRIDE - SOURCE STRIDE bytes,
+			until LENGTH bytes are copied in total.
+			If WIDTH is set to 0, sets B to the low byte of the source value.
+			If WIDTH is set to 1, sets B to the lower short instead.
+			If WIDTH is set to 2, sets B to the full word.
+			If WIDTH is set to 3, behavior is undefined.
+			*/
+			while (blitLength > 0)
+			{
+				if (strideSkip)
+				{
+					for (unsigned int i = 0; i < sourceStride && blitLength > 0; i++, blitAddrB += (1 << width), blitLength--)
+						write(blitAddrB, blitAddrA);
+					blitAddrB += (int)(targetStride - sourceStride) << width;
+				}
+				else
+				{
+					write(blitAddrB, read(blitAddrB));
+					blitAddrB += (1 << width);
+					blitLength--;
+				}
+			}
+		}
+		else if (fun == 3) //Invert
+		{
+			while (blitLength > 0)
+			{
+				if (strideSkip)
+				{
+					for (unsigned int i = 0; i < sourceStride && blitLength > 0; i++, blitAddrB++, blitLength--)
+						m68k_write_memory_8(blitAddrB, ~m68k_read_memory_8(blitAddrB));
+					blitAddrB += (int)(targetStride - sourceStride);
+				}
+				else
+				{
+					m68k_write_memory_8(blitAddrB, ~m68k_read_memory_8(blitAddrB));
+					blitAddrB++;
+					blitLength--;
+				}
+			}
+		}
+	}
+	break;
+	case 4: //UnRLE
+	{
+		unsigned char data = 0;
+		while (blitLength) //hack
+		{
+			data = (unsigned char)m68k_read_memory_8(blitAddrA++);
+			if ((data & 0xC0) == 0xC0)
+			{
+				auto len = data & 0x3F;
+				data = (unsigned char)m68k_read_memory_8(blitAddrA++);
+				blitLength--;
+				if (data == 0xC0 && len == 0)
+					break;
+				for (; len > 0; len--)
+					m68k_write_memory_8(blitAddrB++, data);
+			}
+			else
+			{
+				m68k_write_memory_8(blitAddrB++, data);
+			}
+			blitLength--;
+		}
+		break;
+	}
+	case 5: //Line
+	{
+		auto color = function >> 4;
+		auto x0 = (blitAddrA & 0xFFFF);
+		auto y0 = (blitAddrA >> 16);
+		auto x1 = (blitAddrB & 0xFFFF);
+		auto y1 = (blitAddrB >> 16);
+
+		auto width = Registers::ScreenMode.HalfWidth ? 320 : 640;
+		if (Registers::ScreenMode.Mode == 1) width /= 2;
+
+		auto steep = abs(y1 - y0) > abs(x1 - x0);
+		if (steep)
+		{
+			auto t = x0; // swap x0 and y0
+			x0 = y0;
+			y0 = t;
+			t = x1; // swap x1 and y1
+			x1 = y1;
+			y1 = t;
+		}
+		if (x0 > x1)
+		{
+			auto t = x0; // swap x0 and x1
+			x0 = x1;
+			x1 = t;
+			t = y0; // swap y0 and y1
+			y0 = y1;
+			y1 = t;
+		}
+		int dx = x1 - x0;
+		int dy = abs(y1 - y0);
+		int error = dx / 2;
+		int ystep = (y0 < y1) ? 1 : -1;
+		int y = y0;
+		int lastX = x0, lastY = y0;
+		for (int x = x0; x <= x1; x++)
+		{
+			lastX = x;
+			lastY = y;
+
+			//yield return new Point((steep ? y : x), (steep ? x : y));
+			auto nx = steep ? y : x;
+			auto ny = steep ? x : y;
+			if (Registers::ScreenMode.Mode == 1)
+			{
+				auto now = ramVideo[(ny * width) + (nx / 2)];
+				if (nx % 2 == 0)
+					now = (now & 0xF0) | (color << 0);
+				else
+					now = (now & 0x0F) | (color << 4);
+				ramVideo[(ny * width) + (nx / 2)] = now;
+			}
+			else
+				ramVideo[(ny * width) + nx] = color;
+
+			error = error - dy;
+			if (error < 0)
+			{
+				y += ystep;
+				error += dx;
+			}
+		}
+	}
 	}
 }
