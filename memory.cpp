@@ -505,6 +505,103 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 	m68k_write_memory_8(address + 3, (value >> 0));
 }
 
+#pragma region Floodfill support
+#include <vector>
+
+static inline void push(std::vector<int>& stack, int x, int y)
+{
+	stack.push_back(x);
+	stack.push_back(y);
+}
+
+static inline bool pop(std::vector<int>& stack, int& x, int& y)
+{
+	if (stack.size() < 2)
+		return false;
+	y = stack.back();
+	stack.pop_back();
+	x = stack.back();
+	stack.pop_back();
+	return true;
+}
+
+static inline unsigned getPixel(int x, int y)
+{
+	auto width = Registers::ScreenMode.HalfWidth ? 320 : 640;
+	if (Registers::ScreenMode.Mode == 1)
+	{
+		width /= 2;
+		auto r = ramVideo[y * width + (x / 2)];
+		if (x % 2)
+			return r >> 4;
+		else
+			return r & 0x0F;
+	}
+	return ramVideo[y * width + x];
+}
+
+static inline void setPixel(int x, int y, unsigned char c)
+{
+	auto width = Registers::ScreenMode.HalfWidth ? 320 : 640;
+	if (Registers::ScreenMode.Mode == 1)
+	{
+		width /= 2;
+		auto r = ramVideo[y * width + (x / 2)];
+		if (x % 2 == 0)
+			ramVideo[y * width + (x / 2)] = (r & 0xF0) | (r << 0);
+		else
+			ramVideo[y * width + (x / 2)] = (r & 0x0F) | (r << 4);
+	}
+	ramVideo[y * width + x] = c;
+}
+
+static inline void floodFill(int x, int y, unsigned char newColor)
+{
+	const int w = Registers::ScreenMode.HalfWidth ? 320 : 640;
+	const int h = Registers::ScreenMode.HalfHeight ? 240 : 480;
+
+	auto oldColor = getPixel(x, y);
+
+	if (oldColor == newColor) return;
+
+	int x1;
+	bool spanAbove, spanBelow;
+
+	std::vector<int> stack;
+	push(stack, x, y);
+	while (pop(stack, x, y))
+	{
+		x1 = x;
+		while (x1 >= 0 && getPixel(x1, y) == oldColor) x1--;
+		x1++;
+		spanAbove = spanBelow = 0;
+		while (x1 < w && getPixel(x1, y) == oldColor)
+		{
+			setPixel(x1, y, newColor);
+			if (!spanAbove && y > 0 && getPixel(x1, y - 1) == oldColor)
+			{
+				push(stack, x1, y - 1);
+				spanAbove = 1;
+			}
+			else if (spanAbove && y > 0 && getPixel(x1, y - 1) != oldColor)
+			{
+				spanAbove = 0;
+			}
+			if (!spanBelow && y < h - 1 && getPixel(x1, y + 1) == oldColor)
+			{
+				push(stack, x1, y + 1);
+				spanBelow = 1;
+			}
+			else if (spanBelow && y < h - 1 && getPixel(x1, y + 1) != oldColor)
+			{
+				spanBelow = 0;
+			}
+			x1++;
+		}
+	}
+}
+#pragma endregion
+
 void HandleBlitter(unsigned int function)
 {
 	auto fun = function & 0xF;
@@ -671,6 +768,8 @@ void HandleBlitter(unsigned int function)
 			//yield return new Point((steep ? y : x), (steep ? x : y));
 			auto nx = steep ? y : x;
 			auto ny = steep ? x : y;
+			setPixel(nx, ny, color);
+			/*
 			if (Registers::ScreenMode.Mode == 1)
 			{
 				auto now = ramVideo[(ny * width) + (nx / 2)];
@@ -682,6 +781,7 @@ void HandleBlitter(unsigned int function)
 			}
 			else
 				ramVideo[(ny * width) + nx] = color;
+			*/
 
 			error = error - dy;
 			if (error < 0)
@@ -690,6 +790,11 @@ void HandleBlitter(unsigned int function)
 				error += dx;
 			}
 		}
+	}
+	case 6: //Fill
+	{
+		floodFill(blitAddrA & 0xFFFF, blitAddrA >> 16, function >> 4);
+		break;
 	}
 	}
 }
