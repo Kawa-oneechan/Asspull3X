@@ -233,7 +233,3 @@ A pointer. Again repeated until `001DC REG_HDMATARGET8`.
     2222 2222 2222 1111 1111 1111 ...S 0011
 
 Inverts the byte values at B, simple as that.
-
-### 4	UnRLE
-
-Performs a simple RLE decompression from `source` to `dest`. `length` is the *compressed* size.

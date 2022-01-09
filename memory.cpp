@@ -496,6 +496,9 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 			case 0x20C: //Blitter length
 				blitLength = value;
 				break;
+			case 0x210: //Blitter key
+				blitKey = value;
+				break;
 		}
 		return;
 	}
