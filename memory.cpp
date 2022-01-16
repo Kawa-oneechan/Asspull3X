@@ -294,6 +294,13 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 			case 0x44: //MIDI Out
 				Sound::SendMidiByte(value);
 				break;
+			case 0x80: //PCM Volume
+			case 0x81:
+			{
+				Sound::pcmVolume[reg - 0x80] = value;
+				break;
+			}
+			/*
 			case 0x80: //Debug
 			{
 				char chr[1] = { (char)value };
@@ -303,6 +310,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				wprintf(wchr);
 				break;
 			}
+			*/
 			case 0x10A: //DMA Control
 			{
 				if ((value & 1) == 0) return;

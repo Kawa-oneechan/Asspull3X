@@ -16,7 +16,7 @@ namespace Sound
 	int programs[16] = { 0 };
 	std::vector<unsigned int> keyOns;
 
-	int pcmSource[2], pcmLength[2], pcmPlayed[2];
+	int pcmSource[2], pcmLength[2], pcmPlayed[2], pcmVolume[2];
 	bool pcmRepeat[2];
 
 	static SDL_AudioDeviceID saDev;
@@ -63,6 +63,8 @@ namespace Sound
 						pcmLength[channel] = 0;
 					}
 				}
+
+				samples[channel] = (short)((float)samples[channel] * ((float)pcmVolume[channel] / 256.0f));
 			}
 
 			if (samples[0] < 0 && samples[1] < 0)
@@ -312,6 +314,7 @@ namespace Sound
 	{
 		pcmSource[0] = pcmSource[1] = NULL;
 		pcmLength[0] = pcmLength[1] = 0;
+		pcmVolume[0] = pcmVolume[1] = 256;
 	}
 
 }
