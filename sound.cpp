@@ -16,8 +16,8 @@ namespace Sound
 	int programs[16] = { 0 };
 	std::vector<unsigned int> keyOns;
 
-	int pcmSource, pcmLength, pcmPlayed;
-	bool pcmRepeat;
+	int pcmSource[2], pcmLength[2], pcmPlayed[2];
+	bool pcmRepeat[2];
 
 	static SDL_AudioDeviceID saDev;
 
@@ -35,38 +35,50 @@ namespace Sound
 		if (pauseState != 0)
 			return;
 
-		if (pcmSource != NULL && pcmLength != 0)
+		short samples[2] = { 0 };
+
+		for (int i = 0; i < len; i += 8)
 		{
-			for (int i = 0; i < len; i += 8)
+			for (int channel = 0; channel < 2; channel++)
 			{
-				if (pcmPlayed)
+				if (pcmSource[channel] != NULL && pcmLength[channel] != 0)
 				{
-					mixStream[i] = (signed short)m68k_read_memory_8(pcmSource + (pcmLength - pcmPlayed)) - 128;
-					pcmPlayed--;
+					if (pcmPlayed[channel])
+					{
+						samples[channel] = (signed short)m68k_read_memory_8(pcmSource[channel] + (pcmLength[channel] - pcmPlayed[channel])) - 128;
+						pcmPlayed[channel]--;
+					}
 				}
-				else
-					mixStream[i] = 0;
-				mixStream[i + 1] = mixStream[i];
-				mixStream[i + 2] = mixStream[i];
-				mixStream[i + 3] = mixStream[i];
-				mixStream[i + 4] = mixStream[i];
-				mixStream[i + 5] = mixStream[i];
-				mixStream[i + 6] = mixStream[i];
-				mixStream[i + 7] = mixStream[i];
+
+				if (pcmPlayed[channel] <= 0)
+				{
+					if (pcmRepeat[channel])
+					{
+						//Log(L"saCallback: starting over!");
+						pcmPlayed[channel] = pcmLength[channel];
+					}
+					else
+					{
+						pcmSource[channel] = NULL;
+						pcmLength[channel] = 0;
+					}
+				}
 			}
 
-			if (pcmPlayed <= 0)
-			{
-				if (pcmRepeat)
-				{
-					//Log(L"saCallback: starting over!");
-					pcmPlayed = pcmLength;
-				}
-				else
-				{
-					pcmSource = NULL;
-				}
-			}
+			if (samples[0] < 0 && samples[1] < 0)
+				mixStream[i] = (samples[0] + samples[1]) - ((samples[0] * samples[1]) / INT8_MIN);
+			else if (samples[0] > 0 && samples[1] > 0)
+				mixStream[i] = (samples[0] + samples[1]) - ((samples[0] * samples[1]) / INT8_MAX);
+			else
+				mixStream[i] = samples[0] + samples[1];
+
+			mixStream[i + 1] = mixStream[i];
+			mixStream[i + 2] = mixStream[i];
+			mixStream[i + 3] = mixStream[i];
+			mixStream[i + 4] = mixStream[i];
+			mixStream[i + 5] = mixStream[i];
+			mixStream[i + 6] = mixStream[i];
+			mixStream[i + 7] = mixStream[i];
 		}
 
 		SDL_MixAudioFormat(stream, (unsigned char*)mixStream, FORMAT, len * 2, SDL_MIX_MAXVOLUME / 4);
@@ -298,8 +310,8 @@ namespace Sound
 
 	void ResetPCM()
 	{
-		pcmSource = NULL;
-		pcmLength = 0;
+		pcmSource[0] = pcmSource[1] = NULL;
+		pcmLength[0] = pcmLength[1] = 0;
 	}
 
 }

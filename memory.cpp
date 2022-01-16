@@ -301,8 +301,8 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				mbstate_t throwAway = { 0 }; //only here to please code analysis :shrug:
 				mbrtowc(wchr, chr, 1, &throwAway);
 				wprintf(wchr);
+				break;
 			}
-			break;
 			case 0x10A: //DMA Control
 			{
 				if ((value & 1) == 0) return;
@@ -435,12 +435,20 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 				//return (int)timelatch;
 				break;
 			case 0x70: //PCM Offset
-				Sound::pcmSource = value;
+			case 0x74:
+			{
+				auto channel = (reg - 0x70) / 4;
+				Sound::pcmSource[channel] = value;
 				break;
-			case 0x74: //PCM Length + Repeat
-				Sound::pcmPlayed = Sound::pcmLength = value & 0x7FFFFFFF;
-				Sound::pcmRepeat = (value & 0x80000000) != 0;
+			}
+			case 0x78: //PCM Length + Repeat
+			case 0x7C:
+			{
+				auto channel = (reg - 0x78) / 4;
+				Sound::pcmPlayed[channel] = Sound::pcmLength[channel] = value & 0x7FFFFFFF;
+				Sound::pcmRepeat[channel] = (value & 0x80000000) != 0;
 				break;
+			}
 			case 0x180: //HDMA Control
 			case 0x184:
 			case 0x188:
