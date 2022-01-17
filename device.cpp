@@ -216,7 +216,14 @@ unsigned int LinePrinter::Read(unsigned int address)
 void LinePrinter::Write(unsigned int address, unsigned int value)
 {
 	if (address == 2)
-		printf("%c", (char)value);
+	{
+		//printf("%c", (char)value);
+		char chr[1] = { (char)value };
+		WCHAR wchr[6] = { 0 };
+		mbstate_t throwAway = { 0 }; //only here to please code analysis :shrug:
+		mbrtowc(wchr, chr, 1, &throwAway);
+		wprintf(wchr);
+	}
 }
 
 int LinePrinter::GetID() { return 0x4C50; }

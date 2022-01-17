@@ -302,17 +302,6 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				Sound::pcmVolume[reg - 0x80] = value;
 				break;
 			}
-			/*
-			case 0x80: //Debug
-			{
-				char chr[1] = { (char)value };
-				WCHAR wchr[6] = { 0 };
-				mbstate_t throwAway = { 0 }; //only here to please code analysis :shrug:
-				mbrtowc(wchr, chr, 1, &throwAway);
-				wprintf(wchr);
-				break;
-			}
-			*/
 			case 0x10A: //DMA Control
 			{
 				if ((value & 1) == 0) return;
