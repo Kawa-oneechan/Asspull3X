@@ -22,6 +22,8 @@ namespace UI
 			}
 			case WM_INITDIALOG:
 			{
+				Options::hWnd = hWnd;
+
 				for (int i = 10; i < 15; i++)
 					SendDlgItemMessage(hWnd, i, WM_SETFONT, (WPARAM)headerFont, (LPARAM)true);
 

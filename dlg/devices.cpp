@@ -184,6 +184,7 @@ namespace UI
 			}
 			case WM_INITDIALOG:
 			{
+				DeviceManager::hWnd = hWnd;
 				const int deviceIcons[] = { IML_CROSS, IML_DISKDRIVE, IML_HARDDRIVE, IML_PRINTER };
 				SendDlgItemMessage(hWnd, IDC_DEVNONE, WM_SETFONT, (WPARAM)headerFont, (LPARAM)true);
 				for (int i = 0; i < 4; i++)

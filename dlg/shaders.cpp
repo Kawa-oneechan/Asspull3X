@@ -39,6 +39,8 @@ namespace UI
 			}
 			case WM_INITDIALOG:
 			{
+				Shaders::hWnd = hWnd;
+
 				SendDlgItemMessage(hWnd, IDC_SHADERSAVAILABLE, LB_DIR, DDL_READWRITE, (LPARAM)L"*.fs");
 
 				auto numShaders = ini.GetLongValue(L"video", L"shaders", 0);

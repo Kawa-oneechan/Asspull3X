@@ -36,6 +36,8 @@ namespace UI
 			{
 			case WM_INITDIALOG:
 			{
+				About::hWnd = hWnd;
+
 				hPromoImage = Images::LoadPNGResource(IDB_ABOUT);
 				hDanceIml = ImageList_Create(DANCE_W, DANCE_H, ILC_COLOR32, DANCE_F, 0);
 				ImageList_Add(hDanceIml, Images::LoadPNGResource(IDB_DANCE), NULL);

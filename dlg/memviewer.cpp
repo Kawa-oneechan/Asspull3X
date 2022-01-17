@@ -177,6 +177,7 @@ namespace UI
 			}
 			case WM_INITDIALOG:
 			{
+				MemoryViewer::hWnd = hWnd;
 				//SendDlgItemMessage(hwndDlg, IDC_MEMVIEWEROFFSET, WM_SETFONT, (WPARAM)monoFont, false);
 				for (int i = 0; i < 6; i++)
 					SendDlgItemMessage(hWnd, IDC_MEMVIEWERDROP, CB_ADDSTRING, 0, (LPARAM)GetString(IDS_REGIONS + i));
