@@ -6,7 +6,6 @@ extern "C" {
 #include "musashi/m68k.h"
 }
 
-bool fpsCap;
 bool quit = 0;
 int line = 0, interrupts = 0;
 int invertButtons = 0;
@@ -115,7 +114,7 @@ void MainLoop()
 	Log(UI::GetString(IDS_RESETTING));
 	m68k_init();
 	m68k_set_cpu_type(M68K_CPU_TYPE_68020);
-	Sound::ResetPCM();
+	Sound::Reset();
 	m68k_pulse_reset();
 
 #if _CONSOLE
@@ -277,7 +276,7 @@ void MainLoop()
 				}
 				Log(UI::GetString(IDS_SYSTEMRESET)); //"Resetting Musashi..."
 				UI::SetStatus(IDS_SYSTEMRESET); //"System reset."
-				Sound::ResetPCM();
+				Sound::Reset();
 				m68k_pulse_reset();
 			}
 			else if (UI::uiCommand == cmdQuit)
@@ -332,7 +331,7 @@ void MainLoop()
 				if (averageFPS > 2000000)
 					averageFPS = 0;
 				UI::SetFPS((int)averageFPS);
-				if (fpsCap && delta < 20)
+				if (UI::fpsCap && delta < 20)
 					SDL_Delay(20 - delta);
 				startTime = endTime;
 				endTime = SDL_GetTicks();
@@ -363,7 +362,7 @@ void MainLoop()
 		}
 	}
 
-	Sound::ResetPCM();
+	Sound::Reset();
 	for (int i = 0; i < MAXDEVS; i++)
 		if (devices[i] != NULL) delete devices[i];
 	delete[] pauseScreen;

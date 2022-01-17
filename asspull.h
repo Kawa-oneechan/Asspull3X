@@ -234,7 +234,7 @@ namespace Sound
 	extern void Shutdown();
 	extern void SendMidiByte(unsigned char part);
 	extern void SendOPL(unsigned short message);
-	extern void ResetPCM();
+	extern void Reset();
 }
 
 extern CSimpleIni ini;

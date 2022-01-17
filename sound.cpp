@@ -320,7 +320,7 @@ namespace Sound
 		OPL3_WriteReg(&opl3, message >> 8, message & 0xFF);
 	}
 
-	void ResetPCM()
+	void Reset()
 	{
 		pcmSource[0] = pcmSource[1] = NULL;
 		pcmLength[0] = pcmLength[1] = 0;

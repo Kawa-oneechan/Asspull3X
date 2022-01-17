@@ -138,8 +138,8 @@ namespace UI
 						ini.SetLongValue(L"media", L"theme", SendDlgItemMessage(hWnd, IDC_THEME, CB_GETCURSEL, 0, 0));
 						ini.SetLongValue(L"audio", L"midiDevice", SendDlgItemMessage(hWnd, IDC_MIDIDEV, CB_GETCURSEL, 0, 0));
 
-						fpsVisible = (IsDlgButtonChecked(hWnd, IDC_SHOWFPS) == 1);
-						fpsCap = (IsDlgButtonChecked(hWnd, IDC_FPSCAP) == 1);
+						UI::fpsVisible = (IsDlgButtonChecked(hWnd, IDC_SHOWFPS) == 1);
+						UI::fpsCap = (IsDlgButtonChecked(hWnd, IDC_FPSCAP) == 1);
 						Video::stretch200 = (IsDlgButtonChecked(hWnd, IDC_ASPECT) == 1);
 						UI::reloadROM = (IsDlgButtonChecked(hWnd, IDC_RELOAD) == 1);
 						UI::reloadIMG = (IsDlgButtonChecked(hWnd, IDC_REMOUNT) == 1);
