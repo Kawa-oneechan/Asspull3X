@@ -324,7 +324,7 @@ namespace Sound
 	{
 		pcmSource[0] = pcmSource[1] = NULL;
 		pcmLength[0] = pcmLength[1] = 0;
-		pcmVolume[0] = pcmVolume[1] = 256;
+		pcmVolume[0] = pcmVolume[1] = pcmVolume[2] = pcmVolume[3] = 256;
 	}
 
 }
