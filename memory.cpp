@@ -296,6 +296,8 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				break;
 			case 0x80: //PCM Volume
 			case 0x81:
+			case 0x82:
+			case 0x83:
 			{
 				Sound::pcmVolume[reg - 0x80] = value;
 				break;

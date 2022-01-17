@@ -227,7 +227,7 @@ extern int InitMemory();
 
 namespace Sound
 {
-	extern int pcmSource[2], pcmLength[2], pcmPlayed[2], pcmVolume[2];
+	extern int pcmSource[2], pcmLength[2], pcmPlayed[2], pcmVolume[4];
 	extern bool pcmRepeat[2];
 
 	extern int Initialize();

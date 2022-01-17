@@ -98,7 +98,7 @@ First, *write* anything to the joypad register you want to poll.
 
 Different connected joypads *may not* have all features. You should always write to reset before reading, or you *will* misinterpret inputs.
 
-The joypads are also available via the `JOYPADS` array and `REG_JOYPAD`.
+The joypads are also available via the `JOYPADS` array, and the first one as `REG_JOYPAD`.
 
 #### 00044	REG_MIDIOUT
 
@@ -134,29 +134,35 @@ Only rendered in text mode.
 
 The only 64-bit value in the system. Emulator-wise, reading the first half latches the current host system time so there's no sudden shifts when you read the second half. Writing the first half likewise latches, and the real time clock isn't actually *set* until the second half is written. If reading returns a null value, the RTC hasn't been set and doesn't tick.
 
-### 00070	REG_PCMOFFSET
+### 00070	REG_PCM1OFFSET
 
-A pointer to a chunk of 8-bit 11025 Hz unsigned PCM audio. Writing to this register only latches its value, it doesn't actually start playing anything.
+A pointer to a chunk of 8-bit 11025 Hz unsigned PCM audio for channel 1. Writing to this register only latches its value, it doesn't actually start playing anything. This is immediately followed by an identical register for channel 2, `00074 REG_PCM2OFFSET`.
 
-### 00074	REG_PCMLENGTH
+The PCM offsets are also available via the `PCMOFFSET` array, and the first one as `REG_PCMOFFSET`.
 
-The first 31 bytes are the length of the PCM audio chunk in `REG_PCMOFFSET`. The most significant specifies if the sound should repeat automatically. Sound playback starts when this register is written to.
+### 00078	REG_PCM1LENGTH
 
-### 00080	REG_DEBUGOUT
+The first 31 bytes are the length of the PCM audio chunk in `REG_PCM1OFFSET`. The most significant specifies if the sound should repeat automatically. Sound playback starts when this register is written to. This is immediately followed by an identical register for channel 2, `0007C REG_PCM2LENGTH`.
 
-Pipe characters to `STDOUT`. *Should really be redone as a Line Printer thing.* 
+The PCM lengths are also available via the `PCMLENGTH` array, and the first one as `REG_PCMLENGTH`.
+
+### 00080	REG_PCM1VOLUMEL
+
+A value from zero to 255 denoting the volume to play PCM channel 1 at, on the left speaker. This is immediately followed by an identical register for the right speaker, `00081 REG_PCM1VOLUMER`, then the same pair for channel 2.
+
+The PCM volume controls are also available via the `PCMVOLUME` array, and the first channels' as `REG_PCMVOLUMEL` and `REG_PCMVOLUMER`.
 
 ### 00100	REG_DMASOURCE
 
-Either a pointer or a value.
+Either a pointer to copy from, or a value to copy.
 
 ### 00104	REG_DMATARGET
 
-Certainly a pointer.
+A pointer to copy to.
 
 ### 00108	REG_DMALENGTH
 
-Certainly a value.
+The amount of data to copy.
 
 ### 0010A	REG_DMACONTROL
 

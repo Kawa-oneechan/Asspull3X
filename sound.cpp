@@ -16,7 +16,7 @@ namespace Sound
 	int programs[16] = { 0 };
 	std::vector<unsigned int> keyOns;
 
-	int pcmSource[2], pcmLength[2], pcmPlayed[2], pcmVolume[2];
+	int pcmSource[2], pcmLength[2], pcmPlayed[2], pcmVolume[4];
 	bool pcmRepeat[2];
 
 	static SDL_AudioDeviceID saDev;
@@ -35,17 +35,20 @@ namespace Sound
 		if (pauseState != 0)
 			return;
 
-		short samples[2] = { 0 };
+		short samples[4] = { 0 };
 
 		for (int i = 0; i < len; i += 8)
 		{
 			for (int channel = 0; channel < 2; channel++)
 			{
+				int l = channel * 2;
+				int r = l + 1;
+
 				if (pcmSource[channel] != NULL && pcmLength[channel] != 0)
 				{
 					if (pcmPlayed[channel])
 					{
-						samples[channel] = (signed short)m68k_read_memory_8(pcmSource[channel] + (pcmLength[channel] - pcmPlayed[channel])) - 128;
+						samples[r] = samples[l] = (signed short)m68k_read_memory_8(pcmSource[channel] + (pcmLength[channel] - pcmPlayed[channel])) - 128;
 						pcmPlayed[channel]--;
 					}
 				}
@@ -64,23 +67,30 @@ namespace Sound
 					}
 				}
 
-				samples[channel] = (short)((float)samples[channel] * ((float)pcmVolume[channel] / 256.0f));
+				samples[l] = (short)((float)samples[l] * ((float)pcmVolume[l] / 256.0f));
+				samples[r] = (short)((float)samples[r] * ((float)pcmVolume[r] / 256.0f));
 			}
 
-			if (samples[0] < 0 && samples[1] < 0)
-				mixStream[i] = (samples[0] + samples[1]) - ((samples[0] * samples[1]) / INT8_MIN);
-			else if (samples[0] > 0 && samples[1] > 0)
-				mixStream[i] = (samples[0] + samples[1]) - ((samples[0] * samples[1]) / INT8_MAX);
+			if (samples[0] < 0 && samples[2] < 0)
+				mixStream[i + 0] = (samples[0] + samples[2]) - ((samples[0] * samples[2]) / INT8_MIN);
+			else if (samples[0] > 0 && samples[2] > 0)
+				mixStream[i + 0] = (samples[0] + samples[2]) - ((samples[0] * samples[2]) / INT8_MAX);
 			else
-				mixStream[i] = samples[0] + samples[1];
+				mixStream[i + 0] = samples[0] + samples[2];
 
-			mixStream[i + 1] = mixStream[i];
-			mixStream[i + 2] = mixStream[i];
-			mixStream[i + 3] = mixStream[i];
-			mixStream[i + 4] = mixStream[i];
-			mixStream[i + 5] = mixStream[i];
-			mixStream[i + 6] = mixStream[i];
-			mixStream[i + 7] = mixStream[i];
+			if (samples[1] < 0 && samples[3] < 0)
+				mixStream[i + 1] = (samples[1] + samples[3]) - ((samples[1] * samples[3]) / INT8_MIN);
+			else if (samples[1] > 0 && samples[3] > 0)
+				mixStream[i + 1] = (samples[1] + samples[3]) - ((samples[1] * samples[3]) / INT8_MAX);
+			else
+				mixStream[i + 1] = samples[1] + samples[3];
+
+			mixStream[i + 2] = mixStream[i + 0];
+			mixStream[i + 3] = mixStream[i + 1];
+			mixStream[i + 4] = mixStream[i + 0];
+			mixStream[i + 5] = mixStream[i + 1];
+			mixStream[i + 6] = mixStream[i + 0];
+			mixStream[i + 7] = mixStream[i + 1];
 		}
 
 		SDL_MixAudioFormat(stream, (unsigned char*)mixStream, FORMAT, len * 2, SDL_MIX_MAXVOLUME / 4);
