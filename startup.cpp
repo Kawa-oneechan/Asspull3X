@@ -101,7 +101,7 @@ void InitializeDevices()
 		WCHAR dft[64] = { 0 };
 		const WCHAR* thing;
 		//Always load a lineprinter as #1 by default
-		if (i == 1) wcscpy(dft, L"linePrinter");
+		//if (i == 1) wcscpy(dft, L"linePrinter");
 		_itow(i, key, 10);
 		thing = ini.GetValue(L"devices", key, dft);
 		if (i == 0) thing = L"diskDrive"; //Enforce a disk drive as #0.
