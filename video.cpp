@@ -262,9 +262,10 @@ namespace Video
 	void RenderTextMode(int line)
 	{
 		auto width = Registers::ScreenMode.HalfWidth ? 40 : 80;
-		auto height = Registers::ScreenMode.HalfHeight ? 16 : 8;
-		auto bgY = line / height;
-		auto tileIndex = TEXT_ADDR + (((bgY % width) * width) * 2);
+		auto height = Registers::ScreenMode.HalfHeight ? 50 : 100;
+		auto celHeight = Registers::ScreenMode.HalfHeight ? 16 : 8;
+		auto bgY = line / celHeight;
+		auto tileIndex = TEXT_ADDR + (((bgY % height) * width) * 2);
 		auto font = FONT_ADDR + (Registers::ScreenMode.Aspect ? 0x800 : 0);
 		if (Registers::ScreenMode.HalfHeight)
 			font = FONT_ADDR + 0x1000 + (Registers::ScreenMode.Aspect ? 0x1000 : 0);
@@ -307,8 +308,8 @@ namespace Video
 		{
 			int cp = Registers::Caret & 0x3FFF;
 			int cr = cp / width;
-			int ch = Registers::Caret & 0x4000 ? -1 : height - 3;
-			if (bgY == cr && line % height > ch)
+			int ch = Registers::Caret & 0x4000 ? -1 : celHeight - 3;
+			if (bgY == cr && line % celHeight > ch)
 			{
 				int cc = cp % width;
 				int ca = ramVideo[TEXT_ADDR + (cp * 2) + 1];
