@@ -493,8 +493,8 @@ namespace Video
 					screenSource = screenBase + (yShift * 2);
 				}
 			}
-			RenderObjects(line, 2 - layer);
-			RenderObjects(line + 1, 2 - layer);
+			RenderObjects(line, 3 - layer);
+			RenderObjects(line + 1, 3 - layer);
 		}
 	}
 

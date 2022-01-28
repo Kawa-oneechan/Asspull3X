@@ -94,8 +94,6 @@ An object with the double width and height bits set would be functionally the sa
 
 #### Tile mode
 
-(warning: this was just found to be wrong and needs empirical testing)
-
 1. Backdrop
 2. Objects with priority 4
 3. Map 1
