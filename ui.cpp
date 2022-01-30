@@ -646,6 +646,36 @@ namespace UI
 		SetCurrentDirectory(startingPath);
 	}
 
+	bool ReportLoadingFail(int messageId, int err, int device, const WCHAR* fileName, bool offerToForget)
+	{
+		WCHAR b[1024] = { 0 };
+		WCHAR e[1024] = { 0 };
+		WCHAR f[1024] = { 0 };
+		WCHAR g[1024] = { 0 };
+		_wsplitpath_s(fileName, NULL, 0, NULL, 0, f, ARRAYSIZE(f), e, ARRAYSIZE(e));
+		wcscat(f, e);
+		_wcserror_s(e, ARRAYSIZE(e), err);
+		wsprintf(b, UI::GetString(messageId), f, device);
+
+		TASKDIALOGCONFIG tdc = { 0 };
+		tdc.cbSize = sizeof(TASKDIALOGCONFIG);
+		tdc.pszWindowTitle = UI::GetString(IDS_SHORTTITLE);
+		tdc.pszMainInstruction = b;
+		tdc.pszContent = e;
+		tdc.dwCommonButtons = TDCBF_OK_BUTTON;
+		tdc.pszMainIcon = TD_WARNING_ICON;
+
+		if (offerToForget)
+		{
+			wsprintf(g, UI::GetString(IDS_FORGETABOUTDISK));
+			tdc.pszVerificationText = g;
+		}
+		int forget;
+		TaskDialogIndirect(&tdc, NULL, NULL, &forget);
+		return forget > 0;
+		//TaskDialog(NULL, NULL, UI::GetString(IDS_SHORTTITLE), b, e, TDCBF_OK_BUTTON, TD_WARNING_ICON, NULL);
+	}
+
 	void ShowOpenFileDialog(int command, const WCHAR* pattern)
 	{
 		WCHAR thing[FILENAME_MAX] = { 0 };
@@ -691,7 +721,9 @@ namespace UI
 			SetStatus(IDS_EJECTFIRST); //"Eject the diskette first, with Ctrl-Shift-U."
 		else if (ret != 0)
 		{
-			Log(L"Error %d trying to open disk image.", ret);
+			//Log(L"Error %d trying to open disk image.", ret);
+			ReportLoadingFail(IDS_DISKIMAGEERROR, ret, devId, uiString);
+			uiCommand = 0;
 		}
 		else
 		{

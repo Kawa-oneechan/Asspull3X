@@ -67,6 +67,7 @@ STRINGTABLE
 
 	IDS_DISKIMAGEERROR, "Could not open disk image %s for device #%d."
 	IDS_ROMLOADERROR, "Could not open ROM file %s."
+	IDS_FORGETABOUTDISK, "Forget about it"
 
 	(IDS_THEMES+0), "Light"
 	(IDS_THEMES+1), "Dark"

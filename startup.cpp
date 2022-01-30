@@ -80,18 +80,6 @@ void GetSettings()
 	rtcOffset = ini.GetLongValue(L"media", L"rtcOffset", 0xDEADC70C);
 }
 
-void ReportLoadingFail(int messageId, int err, int device, const WCHAR* fileName)
-{
- 	WCHAR b[1024] = { 0 };
-	WCHAR e[1024] = { 0 };
-	WCHAR f[1024] = { 0 };
-	_wsplitpath_s(fileName, NULL, 0, NULL, 0, f, ARRAYSIZE(f), e, ARRAYSIZE(e));
-	wcscat(f, e);
-	_wcserror_s(e, ARRAYSIZE(e), err);
-	wsprintf(b, UI::GetString(messageId), f, device);
-	TaskDialog(NULL, NULL, UI::GetString(IDS_SHORTTITLE), b, e, TDCBF_OK_BUTTON, TD_WARNING_ICON, NULL);
-}
-
 void InitializeDevices()
 {
 	//Absolutely always load a disk drive as #0
@@ -115,7 +103,10 @@ void InitializeDevices()
 			{
 				auto err = ((DiskDrive*)devices[i])->Mount(thing);
 				if (err)
-					ReportLoadingFail(IDS_DISKIMAGEERROR, err, i, thing);
+				{
+					if (UI::ReportLoadingFail(IDS_DISKIMAGEERROR, err, i, thing, true))
+						UI::EjectDisk(i);
+				}
 				else
 					Log(L"Loaded \"%s\" into device #%d.", thing, i);
 			}
@@ -129,7 +120,10 @@ void InitializeDevices()
 			{
 				auto err = ((DiskDrive*)devices[i])->Mount(thing);
 				if (err)
-					ReportLoadingFail(IDS_DISKIMAGEERROR, err, i, thing);
+				{
+					if (UI::ReportLoadingFail(IDS_DISKIMAGEERROR, err, i, thing, true))
+						UI::EjectDisk(i);
+				}
 				else
 					Log(L"Loaded \"%s\" into device #%d.", thing, i);
 			}

@@ -46,6 +46,7 @@ namespace UI
 	extern bool wasPaused;
 
 	extern bool ShowFileDlg(bool toSave, WCHAR* target, size_t max, const WCHAR* filter);
+	extern bool ReportLoadingFail(int messageId, int err, int device, const WCHAR* fileName, bool offerToForget = false);
 
 	extern void InsertDisk(int devId);
 	extern void EjectDisk(int devId);

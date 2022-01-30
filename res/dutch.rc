@@ -67,6 +67,7 @@ STRINGTABLE
 
 	IDS_DISKIMAGEERROR, "Kon schijfkopie %s niet openen voor apparaat #%d."
 	IDS_ROMLOADERROR, "Kon ROM-bestand %s niet openen."
+	IDS_FORGETABOUTDISK, "Niet meer proberen"
 
 	(IDS_THEMES+0), "Licht"
 	(IDS_THEMES+1), "Donker"

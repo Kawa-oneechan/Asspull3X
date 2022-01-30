@@ -9,7 +9,6 @@ extern "C" {
 bool quit = 0;
 int line = 0, interrupts = 0;
 int invertButtons = 0;
-extern void ReportLoadingFail(int messageId, int err, int device, const WCHAR* fileName);
 
 extern unsigned int biosSize, romSize;
 extern long rtcOffset;
@@ -32,7 +31,7 @@ void LoadROM(const WCHAR* path)
 		memset(romCartridge, 0, CART_SIZE);
 		auto err = Slurp(romCartridge, path, &romSize);
 		if (err)
-			ReportLoadingFail(IDS_ROMLOADERROR, err, -1, path);
+			UI::ReportLoadingFail(IDS_ROMLOADERROR, err, -1, path);
 	}
 	else if (!wcscmp(ext, L"a3z"))
 	{

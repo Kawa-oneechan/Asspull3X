@@ -61,12 +61,13 @@ STRINGTABLE
 	//Status bar message -- you tried to open a ZIP file but there was no ROM in there
 	IDS_NOTHINGINZIP, "Aucun fichier AP3 trouvé dans l'archive."
 	IDS_DUMPEDRAM, "RAM sauvegardée."
+	IDS_SHADERCOMPILE_A "Une erreur s'est produite lors de la compilation des shaders."
+	IDS_SHADERCOMPILE_B "Le fichier %s contient au moins une erreur de syntaxe et sera ignoré."
+	IDS_PALDETAILS "Indice %d\n0x%04X\nR: 0x%02X > %d\nV: 0x%02X > %d\nB: 0x%02X > %d"
 
 	IDS_DISKIMAGEERROR, "Impossible d'ouvrir l'image disque %s pour le périphérique #%d."
 	IDS_ROMLOADERROR, "Impossible de charger la ROM %s."
-	IDS_SHADERCOMPILE_A "Une erreur s'est produite lors de la compilation des shaders."
-	IDS_SHADERCOMPILE_B "Le fichier %s contient au moins une erreur de syntaxe et sera ignoré."
-	IDS_PALDETAILS "Index %d\n0x%04X\nR: 0x%02X > %d\nV: 0x%02X > %d\nB: 0x%02X > %d"
+	IDS_FORGETABOUTDISK, "Ne plus m'avertir"
 
 	(IDS_THEMES+0), "Claire"
 	(IDS_THEMES+1), "Sombre"
