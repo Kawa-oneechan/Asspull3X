@@ -226,7 +226,7 @@ A pointer. Again repeated until `001DC REG_HDMATARGET8`.
 ### 2	Clear
 
     2222 2222 2222 1111 1111 1111 .WWS 0010
-    |_________ Source width
+	                               |_________ Source width
 
 * Copies the value of `source` to `dest`.
 * If `width` is set to 0, sets `dest` to the low byte of the source value.
@@ -238,4 +238,4 @@ A pointer. Again repeated until `001DC REG_HDMATARGET8`.
 
     2222 2222 2222 1111 1111 1111 ...S 0011
 
-Inverts the byte values at B, simple as that.
+Inverts the byte values at `dest`, simple as that.
