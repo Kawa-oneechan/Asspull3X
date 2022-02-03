@@ -15,6 +15,7 @@ CSimpleIni ini;
 extern unsigned int biosSize, romSize;
 extern long rtcOffset;
 extern int invertButtons;
+extern int firstDiskDrive;
 
 extern void LoadROM(const WCHAR* path);
 extern void MainLoop();
@@ -88,11 +89,8 @@ void InitializeDevices()
 		WCHAR key[32];
 		WCHAR dft[64] = { 0 };
 		const WCHAR* thing;
-		//Always load a lineprinter as #1 by default
-		//if (i == 1) wcscpy(dft, L"linePrinter");
 		_itow(i, key, 10);
 		thing = ini.GetValue(L"devices", key, dft);
-		if (i == 0) thing = L"diskDrive"; //Enforce a disk drive as #0.
 		if (!wcslen(thing)) continue;
 		if (!wcscmp(thing, L"diskDrive"))
 		{
@@ -135,6 +133,8 @@ void InitializeDevices()
 		}
 		else Log(L"Don't know what a \"%s\" is to connect as device #%d.", thing, i);
 	}
+
+	FindFirstDrive();
 }
 
 void Preload()

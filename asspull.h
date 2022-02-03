@@ -24,6 +24,9 @@ extern unsigned char* romCartridge;
 extern unsigned char* ramVideo;
 extern unsigned char* ramInternal;
 
+extern int firstDiskDrive;
+extern void FindFirstDrive();
+
 namespace UI
 {
 	extern int uiCommand;

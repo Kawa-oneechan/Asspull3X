@@ -13,6 +13,8 @@ int invertButtons = 0;
 extern unsigned int biosSize, romSize;
 extern long rtcOffset;
 
+int firstDiskDrive = -1;
+
 void LoadROM(const WCHAR* path)
 {
 	unsigned int fileSize = 0;
@@ -97,6 +99,21 @@ void LoadROM(const WCHAR* path)
 	memcpy(romName, romCartridge + 8, 24);
 	Discord::SetPresence(romName);
 	UI::SetTitle(romName);
+}
+
+void FindFirstDrive()
+{
+	int old = firstDiskDrive;
+	firstDiskDrive = -1;
+	for (int i = 0; i < MAXDEVS; i++)
+	{
+		if (devices[i] != nullptr && devices[i]->GetID() == 0x0144)
+		{
+			firstDiskDrive = i;
+			//if (old != i) Log(L"First disk drive is now #%d.", i);
+			return;
+		}
+	}
 }
 
 int pauseState = 0;
@@ -237,12 +254,12 @@ void MainLoop()
 			}
 			else if (UI::uiCommand == cmdInsertDisk)
 			{
-				if (devices[0] == NULL || devices[0]->GetID() != 0x0144)
+				if (firstDiskDrive == -1)
 					UI::SetStatus(IDS_NODISKDRIVE); //"No disk drive."
-				else if (((DiskDrive*)devices[0])->IsMounted())
+				else if (((DiskDrive*)devices[firstDiskDrive])->IsMounted())
 					UI::SetStatus(IDS_UNMOUNTFIRST); //"Unmount the medium first."
 				else
-					UI::InsertDisk(0);
+					UI::InsertDisk(firstDiskDrive);
 			}
 			else if (UI::uiCommand == cmdUnloadRom)
 			{
@@ -257,10 +274,10 @@ void MainLoop()
 			}
 			else if (UI::uiCommand == cmdEjectDisk)
 			{
-				if (devices[0] == NULL || devices[0]->GetID() != 0x0144)
+				if (firstDiskDrive == -1)
 					UI::SetStatus(IDS_NODISKDRIVE); //"No disk drive."
-				else if (((DiskDrive*)devices[0])->IsMounted())
-					UI::EjectDisk(0);
+				else if (((DiskDrive*)devices[firstDiskDrive])->IsMounted())
+					UI::EjectDisk(firstDiskDrive);
 			}
 			else if (UI::uiCommand == cmdReset)
 			{

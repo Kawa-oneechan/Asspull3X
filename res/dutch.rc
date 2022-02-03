@@ -140,8 +140,6 @@ END
 #define DEVICES_NONE "Een kolkende leegte huilt voor je." //poetry about nothingness, there's nothing to change here
 #define DEVICES_INSERTDISK "Voer in"
 #define DEVICES_EJECTDISK "Werp uit"
-#define DEVICES_MUSTBEDISKDRIVE "Het primaire apparaat kan alleen een diskettestation zijn."
-#define DEVICES_ONLYFOURDRIVES "Het systeem herkent alleen de eerste vier schijven."
 
 //Only COMMON_xxx labels for these two
 #define MEMORY_TITLE "Geheugeninzage"

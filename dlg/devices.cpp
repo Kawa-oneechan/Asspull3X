@@ -7,7 +7,7 @@ namespace UI
 		using namespace Presentation;
 
 		HWND hWnd = NULL;
-		RECT primaryIcon, warningIcon, shrugIcon;
+		RECT shrugIcon;
 		HBITMAP hShrugImage;
 		int numDrives;
 
@@ -17,15 +17,12 @@ namespace UI
 			auto device = devices[devNum];
 
 			//Don't allow changing device #0 from disk drive
-			EnableWindow(GetDlgItem(hWnd, IDC_DEVTYPE), (devNum > 0));
+			//EnableWindow(GetDlgItem(hWnd, IDC_DEVTYPE), (devNum > 0));
 
 			//Hide everything regardless at first.
-			int everything[] = { IDC_DEVNONE, IDC_DDFILE, IDC_DDINSERT, IDC_DDEJECT, IDC_PRIMARYDEVICE, IDC_ONLYFOURDRIVES };
+			int everything[] = { IDC_DEVNONE, IDC_DDFILE, IDC_DDINSERT, IDC_DDEJECT };
 			for (int i = 0; i < ARRAYSIZE(everything); i++)
 				ShowWindow(GetDlgItem(hWnd, everything[i]), SW_HIDE);
-
-			if (devNum == 0)
-				ShowWindow(GetDlgItem(hWnd, IDC_PRIMARYDEVICE), SW_SHOW);
 
 			if (device == NULL)
 			{
@@ -50,9 +47,6 @@ namespace UI
 					SetDlgItemText(hWnd, IDC_DDFILE, val);
 					EnableWindow(GetDlgItem(hWnd, IDC_DDINSERT), val[0] == 0);
 					EnableWindow(GetDlgItem(hWnd, IDC_DDEJECT), val[0] != 0);
-
-					ShowWindow(GetDlgItem(hWnd, IDC_ONLYFOURDRIVES), (numDrives > 4) ? SW_SHOW : SW_HIDE);
-
 					break;
 				}
 				case 0x4C50:
@@ -166,6 +160,7 @@ namespace UI
 				ini.SetValue(L"devices", key, L"linePrinter");
 				break;
 			}
+			FindFirstDrive();
 			ini.SaveFile(settingsFile, false);
 			UpdateList();
 		}
@@ -192,8 +187,6 @@ namespace UI
 					SendDlgItemMessage(hWnd, IDC_DEVTYPE, CB_ADDSTRING, 0, (LPARAM)GetString(IDS_DEVICES1 + i));
 					SendDlgItemMessage(hWnd, IDC_DEVTYPE, CB_SETITEMDATA, i, deviceIcons[i]);
 				}
-				GetIconPos(hWnd, IDC_PRIMARYDEVICE, &primaryIcon, -24, 0);
-				GetIconPos(hWnd, IDC_ONLYFOURDRIVES, &warningIcon, -24, 0);
 				GetIconPos(hWnd, IDC_SHRUG, &shrugIcon, 0, 0);
 				hShrugImage = Images::LoadPNGResource(IDB_SHRUG);
 				UpdateList();
@@ -225,10 +218,6 @@ namespace UI
 				HDC hdc = BeginPaint(hWnd, &ps);
 				FillRect(hdc, &ps.rcPaint, hbrBack);
 				auto hdcMem = CreateCompatibleDC(hdc);
-				if (SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_GETCURSEL, 0, 0) == 0)
-					ImageList_Draw(Images::hIml, IML_INFO, hdc, primaryIcon.left, primaryIcon.top, ILD_NORMAL);
-				if (numDrives > 4)
-					ImageList_Draw(Images::hIml, IML_WARNING, hdc, warningIcon.left, warningIcon.top, ILD_NORMAL);
 				if (IsWindowVisible(GetDlgItem(hWnd, IDC_DEVNONE)))
 				{
 					auto oldBitmap = SelectObject(hdcMem, hShrugImage);

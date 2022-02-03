@@ -140,8 +140,6 @@ END
 #define DEVICES_NONE "A swirling void howls before you." //poetry about nothingness, there's nothing to change here
 #define DEVICES_INSERTDISK "Insert"
 #define DEVICES_EJECTDISK "Eject"
-#define DEVICES_MUSTBEDISKDRIVE "The primary device can only be a diskette drive."
-#define DEVICES_ONLYFOURDRIVES "The system will only recognize the first four drives."
 
 //Only COMMON_xxx labels for these two
 #define MEMORY_TITLE "Memory viewer"
