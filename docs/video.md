@@ -22,8 +22,8 @@ PALETTE[15] = 0x7FFF;
 Quickly uploading two separate 16-color strips:
 
 ```c
-MISC->DmaCopy(PALETTE, (int16_t*)&tilesPal, 16, DMA_INT);
-MISC->DmaCopy(PALETTE + 32, (int16_t*)&playerPal, 16, DMA_INT);
+MISC->DmaCopy(PALETTE, (int16_t*)&tilesPal, 16, DMA_SHORT);
+MISC->DmaCopy(PALETTE + 16, (int16_t*)&playerPal, 16, DMA_SHORT);
 ```
 
 Note the `+ 32`, making `tilesPal` the 0th palette strip and `playerPal` the 1st.
