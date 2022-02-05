@@ -68,14 +68,14 @@ Objects are available in all screen modes. Like tilemaps, their graphics are tak
 
 
     PPP2 vhyx ...V VVVV VVVV ..HH HHHH HHHH
-    |  | ||||    |             |___________  Horizontal position
-    |  | ||||    |_________________________  Vertical position
-    |  | ||||______________________________  Double width
-    |  | |||_______________________________  Double height
-    |  | ||________________________________  Horizontal flip
-    |  | |_________________________________  Vertical flip
-    |  |___________________________________  Double up again
-    |______________________________________  Priority
+    |  | ||||    |             |___________ Horizontal position
+    |  | ||||    |_________________________ Vertical position
+    |  | ||||______________________________ Double width
+    |  | |||_______________________________ Double height
+    |  | ||________________________________ Horizontal flip
+    |  | |_________________________________ Vertical flip
+    |  |___________________________________ Double up again
+    |______________________________________ Priority
 
 An object with the double width and height bits set would be functionally the same as an object with the double up bit set.
 

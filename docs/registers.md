@@ -100,7 +100,7 @@ Different connected joypads *may not* have all features. You should always write
 
 The joypads are also available via the `JOYPADS` array, and the first one as `REG_JOYPAD`.
 
-#### 00044	REG_MIDIOUT
+### 00044	REG_MIDIOUT
 
 Send a byte through the MIDI OUT port.
 
