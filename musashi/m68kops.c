@@ -23,22 +23,22 @@ static void m68k_op_1111(void)
 
 static void m68k_op_040fpu0_32(void)
 {
-	if(CPU_TYPE_IS_040_PLUS(CPU_TYPE))
-	{
-		m68040_fpu_op0();
-		return;
-	}
+	//if(CPU_TYPE_IS_040_PLUS(CPU_TYPE))
+	//{
+	//	m68040_fpu_op0();
+	//	return;
+	//}
 	m68ki_exception_1111();
 }
 
 
 static void m68k_op_040fpu1_32(void)
 {
-	if(CPU_TYPE_IS_040_PLUS(CPU_TYPE))
-	{
-		m68040_fpu_op1();
-		return;
-	}
+	//if(CPU_TYPE_IS_040_PLUS(CPU_TYPE))
+	//{
+	//	m68040_fpu_op1();
+	//	return;
+	//}
 	m68ki_exception_1111();
 }
 

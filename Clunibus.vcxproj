@@ -119,7 +119,6 @@
     <ClCompile Include="memory.cpp" />
     <ClCompile Include="miniz.c" />
     <ClCompile Include="musashi\m68kcpu.c" />
-    <ClCompile Include="musashi\m68kfpu.c" />
     <ClCompile Include="musashi\m68kops.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="opengl.cpp" />
