@@ -34,7 +34,7 @@ namespace UI
 			w += 2;
 			h += 2;
 			int cellW = w / 16;
-			int cellH = h / 16;
+			int cellH = h / 32;
 
 			HDC hdc = dis->hDC;
 			HBRUSH hbr;
@@ -42,7 +42,7 @@ namespace UI
 			r.top = 0;
 			r.bottom = cellH;
 			int c = 0;
-			for (int row = 0; row < 16; row++)
+			for (int row = 0; row < 32; row++)
 			{
 				r.left = 0;
 				r.right = cellW;
@@ -141,8 +141,8 @@ namespace UI
 					int px = (long)ptlHit.x - tl.x;
 					int py = (long)ptlHit.y - tl.y;
 					int x = px / (w / 16);
-					int y = py / (h / 16);
-					if (x > 15 || y > 15)
+					int y = py / (h / 32);
+					if (x > 15 || y > 31)
 						return true;
 					currentIndex = (y * 16) + x;
 					InvalidateRect(GetDlgItem(hWnd, IDC_MEMVIEWERGRID), NULL, true);

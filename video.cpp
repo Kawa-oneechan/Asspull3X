@@ -201,20 +201,20 @@ namespace Video
 					{
 						if (!Registers::ScreenMode.HalfWidth)
 						{
-							if (l != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640) RenderPixel(line, hPos + hfJ + 0, l);
-							if (r != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640) RenderPixel(line, hPos + hfJ + 1, r);
+							if (l != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640) RenderPixel(line, hPos + hfJ + 0, l + 256);
+							if (r != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640) RenderPixel(line, hPos + hfJ + 1, r + 256);
 						}
 						else
 						{
 							if (l != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640)
 							{
-								RenderPixel(line, hPos + hfJ + 0, l);
-								RenderPixel(line, hPos + hfJ + 1, l);
+								RenderPixel(line, hPos + hfJ + 0, l + 256);
+								RenderPixel(line, hPos + hfJ + 1, l + 256);
 							}
 							if (r != 0 && hPos + hfJ + 2 >= 0 && hPos + hfJ + 2 < 640)
 							{
-								RenderPixel(line, hPos + hfJ + 2, r);
-								RenderPixel(line, hPos + hfJ + 3, r);
+								RenderPixel(line, hPos + hfJ + 2, r + 256);
+								RenderPixel(line, hPos + hfJ + 3, r + 256);
 							}
 						}
 					}
@@ -223,20 +223,20 @@ namespace Video
 						bool sub = ((objA.Blend & 2) == 2);
 						if (!Registers::ScreenMode.HalfWidth)
 						{
-							if (l != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640) RenderBlended(line, hPos + hfJ + 0, l, sub);
-							if (r != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640) RenderBlended(line, hPos + hfJ + 1, r, sub);
+							if (l != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640) RenderBlended(line, hPos + hfJ + 0, l + 256, sub);
+							if (r != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640) RenderBlended(line, hPos + hfJ + 1, r + 256, sub);
 						}
 						else
 						{
 							if (l != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640)
 							{
-								RenderBlended(line, hPos + hfJ + 0, l, sub);
-								RenderBlended(line, hPos + hfJ + 1, l, sub);
+								RenderBlended(line, hPos + hfJ + 0, l + 256, sub);
+								RenderBlended(line, hPos + hfJ + 1, l + 256, sub);
 							}
 							if (r != 0 && hPos + hfJ + 2 >= 0 && hPos + hfJ + 2 < 640)
 							{
-								RenderBlended(line, hPos + hfJ + 2, r, sub);
-								RenderBlended(line, hPos + hfJ + 3, r, sub);
+								RenderBlended(line, hPos + hfJ + 2, r + 256, sub);
+								RenderBlended(line, hPos + hfJ + 3, r + 256, sub);
 							}
 						}
 					}

@@ -281,7 +281,7 @@ enum uiCommands
 #define BITMAP_SIZE	(640 * 480)		//640x480 mode in 256 colors.
 #define MAP_SIZE	(((512 / 8) * (512 / 8)) * 4)	//Each tile is a 16-bit value.
 #define TILES_SIZE	((((8 * 8) / 2) * 512) + (128 << 3))
-#define PAL_SIZE	(256 * 2)	//256 xBGR-1555 colors.
+#define PAL_SIZE	(512 * 2)	//512 xBGR-1555 colors.
 #define FONT_SIZE	(((8 * 256) * 2) + ((16 * 256) * 2))	//Two 8x8 fonts, two 8x16 fonts.
 #define OBJ1_SIZE	(256 * 2)	//256 16-bit entries.
 #define OBJ2_SIZE	(256 * 4)	//256 32-bit entries.
@@ -302,7 +302,7 @@ enum uiCommands
 #define MAP4_ADDR	(MAP3_ADDR + MAP_SIZE)
 #define TILES_ADDR	0x050000
 #define PAL_ADDR	0x060000
-#define FONT_ADDR	0x060200
+#define FONT_ADDR	0x060400
 #define OBJ1_ADDR	0x064000
 #define OBJ2_ADDR	0x064200
 
