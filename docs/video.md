@@ -26,7 +26,7 @@ MISC->DmaCopy(PALETTE, (int16_t*)&tilesPal, 16, DMA_SHORT);
 MISC->DmaCopy(PALETTE + 16, (int16_t*)&playerPal, 16, DMA_SHORT);
 ```
 
-Note the `+ 32`, making `tilesPal` the 0th palette strip and `playerPal` the 1st.
+Note the `+ 16`, making `tilesPal` the 0th palette strip and `playerPal` the 1st.
 
 ## Text mode
 
