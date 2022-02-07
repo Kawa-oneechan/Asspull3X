@@ -228,6 +228,7 @@ namespace Video
 
 extern void HandleHdma(int line);
 extern int InitMemory();
+extern void ResetMemory();
 
 namespace Sound
 {

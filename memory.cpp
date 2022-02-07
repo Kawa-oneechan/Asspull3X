@@ -96,6 +96,22 @@ int InitMemory()
 	return 0;
 }
 
+void ResetMemory()
+{
+	memset(ramInternal, 0, WRAM_SIZE);
+	memset(ramVideo, 0, VRAM_SIZE);
+	memset(hdmaOn, 0, sizeof(bool) * 8);
+	ticks = 0;
+	Registers::Caret = 0;
+	Registers::Fade = 0;
+	Registers::MapBlend.Raw = 0;
+	Registers::MapSet.Raw = 0;
+	Registers::ScreenMode.Raw = 0;
+	memset(Registers::ScrollX, 0, sizeof(int) * 4);
+	memset(Registers::ScrollY, 0, sizeof(int) * 4);
+	Sound::Reset();
+}
+
 unsigned int m68k_read_memory_8(unsigned int address)
 {
 	if (address >= REGS_ADDR && address < REGS_ADDR + REGS_SIZE)

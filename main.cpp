@@ -274,7 +274,6 @@ void MainLoop()
 				memset(romCartridge, 0, CART_SIZE);
 				ini.SetValue(L"media", L"lastROM", L"");
 				UI::SaveINI();
-				Registers::Fade = 31;
 				UI::SetStatus(IDS_CARTEJECTED); //"Cart pulled."
 				Discord::SetPresence(NULL);
 				UI::SetTitle(NULL);
@@ -299,7 +298,7 @@ void MainLoop()
 				}
 				Log(UI::GetString(IDS_SYSTEMRESET)); //"Resetting Musashi..."
 				UI::SetStatus(IDS_SYSTEMRESET); //"System reset."
-				Sound::Reset();
+				ResetMemory();
 				m68k_pulse_reset();
 			}
 			else if (UI::uiCommand == cmdQuit)
