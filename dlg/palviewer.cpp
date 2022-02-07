@@ -11,6 +11,9 @@ namespace UI
 		HWND hWnd = NULL;
 		int currentIndex = 0;
 
+		BITMAPINFO bmpInfo;
+		unsigned char *bmpData = NULL;
+
 		void UpdateDetails()
 		{
 			auto snes = (ramVideo[PAL_ADDR + (currentIndex * 2) + 0] << 8) + ramVideo[PAL_ADDR + (currentIndex * 2) + 1];
@@ -27,49 +30,83 @@ namespace UI
 
 		void DrawGrid(DRAWITEMSTRUCT* dis)
 		{
-			RECT rect;
-			GetClientRect(dis->hwndItem, &rect);
-			int w = rect.right - rect.left;
-			int h = rect.bottom - rect.top;
-			w += 2;
-			h += 2;
-			int cellW = w / 16;
-			int cellH = h / 32;
+			const int w = 256;
+			const int h = 512;
 
-			HDC hdc = dis->hDC;
-			HBRUSH hbr;
-			RECT r;
-			r.top = 0;
-			r.bottom = cellH;
 			int c = 0;
+			int skip = w * 4 - 16 * 4;
 			for (int row = 0; row < 32; row++)
 			{
-				r.left = 0;
-				r.right = cellW;
 				for (int col = 0; col < 16; col++)
 				{
+					unsigned char *start = bmpData + row * 16 * w * 4 + col * 16 * 4;
+
 					auto snes = (ramVideo[PAL_ADDR + (c * 2) + 0] << 8) + ramVideo[PAL_ADDR + (c * 2) + 1];
-					auto red = (snes >> 0) & 0x1F; red = (red << 3) + (red >> 2);
-					auto grn = (snes >> 5) & 0x1F; grn = (grn << 3) + (grn >> 2);
-					auto blu = (snes >> 10) & 0x1F; blu = (blu << 3) + (blu >> 2);
-					hbr = CreateSolidBrush(RGB(red, grn, blu));
-					FillRect(hdc, &r, hbr);
-					if (c == currentIndex)
+					auto r = (snes >> 0) & 0x1F; r = (r << 3) + (r >> 2);
+					auto g = (snes >> 5) & 0x1F; g = (g << 3) + (g >> 2);
+					auto b = (snes >> 10) & 0x1F; b = (b << 3) + (b >> 2);
+
+					for (int i = 0; i < 16; i++)
 					{
-						InvertRect(hdc, &r);
-						InflateRect(&r, -1, -1);
-						InvertRect(hdc, &r);
-						InflateRect(&r, 1, 1);
+						for (int j = 0; j < 16; j++)
+						{
+							*start++ = b;
+							*start++ = g;
+							*start++ = r;
+							*start++ = 0;
+						}
+						start += skip;
 					}
-					DeleteObject(hbr);
-					r.left += cellW;
-					r.right += cellW;
 					c++;
 				}
-				r.top += cellH;
-				r.bottom += cellH;
 			}
 
+			//draw selection
+			{
+				int row = currentIndex / 16;
+				int col = currentIndex % 16;
+				unsigned char *start = bmpData + row * 16 * w * 4 + col * 16 * 4;
+				for (int i = 0; i < 16; i++)
+				{
+					*start++ = 255 - *start;
+					*start++ = 255 - *start;
+					*start++ = 255 - *start;
+					start++;
+				}
+				start += skip;
+				for (int i = 1; i < 15; i++)
+				{
+					*start++ = 255 - *start;
+					*start++ = 255 - *start;
+					*start++ = 255 - *start;
+					start++;
+					start += 14 * 4;
+					*start++ = 255 - *start;
+					*start++ = 255 - *start;
+					*start++ = 255 - *start;
+					start++;
+					start += skip;
+				}
+				for (int i = 0; i < 16; i++)
+				{
+					*start++ = 255 - *start;
+					*start++ = 255 - *start;
+					*start++ = 255 - *start;
+					start++;
+				}
+			}
+
+
+			bmpInfo.bmiHeader.biWidth = w;
+			bmpInfo.bmiHeader.biHeight = -h;
+			auto hdc = CreateCompatibleDC(dis->hDC);
+			auto bitmap = CreateCompatibleBitmap(dis->hDC, w, h);
+			auto oldBitmap = SelectObject(hdc, bitmap);
+			SetDIBitsToDevice(hdc, 0, 0, w, h, 0, 0, 0, h, bmpData, &bmpInfo, DIB_RGB_COLORS);
+			BitBlt(dis->hDC, 0, 0, w, h, hdc, 0, 0, SRCCOPY);
+			SelectObject(hdc, oldBitmap);
+			DeleteObject(bitmap);
+			DeleteDC(hdc);
 			UpdateDetails();
 		}
 
@@ -88,6 +125,8 @@ namespace UI
 				DestroyWindow(hWnd);
 				KillTimer(hWnd, 1);
 				PalViewer::hWnd = NULL;
+				delete[] bmpData;
+				bmpData = NULL;
 				return true;
 			}
 			case WM_SIZE:
@@ -95,15 +134,9 @@ namespace UI
 				RECT rctGrid;
 				HWND hwndGrid = GetDlgItem(hWnd, IDC_MEMVIEWERGRID);
 				GetWindowRect(hwndGrid, &rctGrid);
-				int w = rctGrid.right - rctGrid.left;
-				int h = rctGrid.bottom - rctGrid.top;
-				int cellW = w / 16;
-				int cellH = h / 16;
-				w = cellW * 16;
-				h = cellH * 16;
-				w += 2;
-				h += 2;
-				SetWindowPos(hwndGrid, 0, 0, 0, w, h, SWP_NOMOVE | SWP_NOZORDER);
+				SetWindowPos(hwndGrid, 0, 0, 0, 258, 514, SWP_NOMOVE | SWP_NOZORDER);
+				HWND hwndDetails = GetDlgItem(hWnd, IDC_DETAILS);
+				SetWindowPos(hwndDetails, 0, 258 + 32, 48, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
 				return true;
 			}
 			case WM_SHOWWINDOW:
@@ -198,6 +231,18 @@ namespace UI
 			if (!IsWindow(hWnd))
 			{
 				hWnd = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_PALVIEWER), (HWND)hWndMain, (DLGPROC)WndProc);
+
+				memset(&bmpInfo, 0, sizeof(bmpInfo));
+
+				bmpInfo.bmiHeader.biSize = sizeof(bmpInfo.bmiHeader);
+				bmpInfo.bmiHeader.biWidth = 256;
+				bmpInfo.bmiHeader.biHeight = 512;
+				bmpInfo.bmiHeader.biPlanes = 1;
+				bmpInfo.bmiHeader.biBitCount = 32;
+				bmpInfo.bmiHeader.biCompression = BI_RGB;
+				if (bmpData == NULL)
+					bmpData = new unsigned char[4 * 32 * 64 * 64]();
+
 				ShowWindow(hWnd, SW_SHOW);
 			}
 		}
