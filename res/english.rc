@@ -64,6 +64,7 @@ STRINGTABLE
 	IDS_SHADERCOMPILE_A "An error occured while compiling shaders."
 	IDS_SHADERCOMPILE_B "The file %s contains at least one syntax error, and will be skipped."
 	IDS_PALDETAILS "Index %d\n0x%04X\nR: 0x%02X > %d\nG: 0x%02X > %d\nB: 0x%02X > %d"
+	IDS_TILEDETAILS "Index %d, 0x%03X\nPal %d"
 
 	IDS_DISKIMAGEERROR, "Could not open disk image %s for device #%d."
 	IDS_ROMLOADERROR, "Could not open ROM file %s."

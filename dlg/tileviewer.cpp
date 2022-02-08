@@ -19,7 +19,7 @@ namespace UI
 		void UpdateDetails()
 		{
 			WCHAR buffer[256] = { 0 };
-			wsprintf(buffer, L"Tile %d, 0x%03X\nPal %d", currentIndex, currentIndex, currentPal);
+			wsprintf(buffer, GetString(IDS_TILEDETAILS), currentIndex, currentIndex, currentPal);
 			SetDlgItemText(hWnd, IDC_DETAILS, buffer);
 		}
 

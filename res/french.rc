@@ -64,6 +64,7 @@ STRINGTABLE
 	IDS_SHADERCOMPILE_A "Une erreur s'est produite lors de la compilation des shaders."
 	IDS_SHADERCOMPILE_B "Le fichier %s contient au moins une erreur de syntaxe et sera ignoré."
 	IDS_PALDETAILS "Indice %d\n0x%04X\nR: 0x%02X > %d\nV: 0x%02X > %d\nB: 0x%02X > %d"
+	IDS_TILEDETAILS "Indice %d, 0x%03X\nPal %d"
 
 	IDS_DISKIMAGEERROR, "Impossible d'ouvrir l'image disque %s pour le périphérique #%d."
 	IDS_ROMLOADERROR, "Impossible de charger la ROM %s."
@@ -111,6 +112,7 @@ BEGIN
 		MENUITEM SEPARATOR
 		MENUITEM "Péripheriques", 1012
 		MENUITEM "Visionneuse Mémoire", 1007
+		MENUITEM "Visionneuse Tuiles", 1013
 		MENUITEM "Visionneuse Palette", 1008
 		MENUITEM "Sauvegarder RAM\tRCtrl+D", 1005 //as in write the whole thing to file
 		MENUITEM "Capture d écran\tRCtrl+S", 1004
@@ -146,6 +148,7 @@ END
 //Only COMMON_xxx labels for these two
 #define MEMORY_TITLE "Visionneuse Mémoire"
 #define PALETTE_TITLE "Visionneuse Palette"
+#define TLES_TITLE "Visionneuse de Tuiles"
 
 #define OPTIONS_TITLE "Options"
 #define OPTIONS_FRAMERATE "Fréquence"
