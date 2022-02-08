@@ -358,11 +358,12 @@ namespace UI
 			if (wParam > 1000 && wParam < 2000)
 			{
 				uiCommand = (int)(wParam - 1000);
-				if (uiCommand >= cmdMemViewer && uiCommand <= cmdDevices)
+				if (uiCommand >= cmdMemViewer && uiCommand <= cmdTileViewer)
 				{
 					void(*commands[])(void) = {
 						MemoryViewer::Show, PalViewer::Show, About::Show,
-						Options::Show, Shaders::Show, DeviceManager::Show
+						Options::Show, Shaders::Show, DeviceManager::Show,
+						TileViewer::Show,
 					};
 					commands[uiCommand - cmdMemViewer]();
 					uiCommand = 0;

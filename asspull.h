@@ -124,6 +124,11 @@ namespace UI
 		extern void Show();
 		extern HWND hWnd;
 	}
+	namespace TileViewer
+	{
+		extern void Show();
+		extern HWND hWnd;
+	}
 	namespace Shaders
 	{
 		extern void Show();
@@ -259,6 +264,7 @@ enum uiCommands
 	cmdOptions,
 	cmdShaders,
 	cmdDevices,
+	cmdTileViewer,
 	cmdInsertDisk,
 	cmdEjectDisk,
 	cmdCreateDisk,

@@ -97,8 +97,8 @@ BEGIN
 		MENUITEM "Load ROM\x85\tRCtrl+L", 1001
 		MENUITEM "Unload ROM\tRCtrl+U", 1002
 		MENUITEM SEPARATOR		
-		MENUITEM "Insert disk\x85\tRCtrl+Shift+L", 1013
-		MENUITEM "Eject disk\tRCtrl+Shift+U", 1014
+		MENUITEM "Insert disk\x85\tRCtrl+Shift+L", 1014
+		MENUITEM "Eject disk\tRCtrl+Shift+U", 1015
 		MENUITEM SEPARATOR
 		MENUITEM "Reset\tRCtrl+R", 1003
 		MENUITEM SEPARATOR
@@ -111,6 +111,7 @@ BEGIN
 		MENUITEM SEPARATOR
 		MENUITEM "Devices", 1012
 		MENUITEM "Memory viewer", 1007
+		MENUITEM "Tile viewer", 1013
 		MENUITEM "Palette viewer", 1008
 		MENUITEM "Dump RAM\tRCtrl+D", 1005 //as in write the whole thing to file
 		MENUITEM "Screenshot\tRCtrl+S", 1004
@@ -144,6 +145,7 @@ END
 //Only COMMON_xxx labels for these two
 #define MEMORY_TITLE "Memory viewer"
 #define PALETTE_TITLE "Palette viewer"
+#define TILES_TITLE "Tile viewer"
 
 #define OPTIONS_TITLE "Options"
 #define OPTIONS_FRAMERATE "Framerate"
