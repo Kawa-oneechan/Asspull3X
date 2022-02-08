@@ -51,6 +51,7 @@ namespace UI
 				SendDlgItemMessage(hWnd, IDC_MIDIDEV, CB_SETCURSEL, dev, 0);
 
 				CheckDlgButton(hWnd, IDC_INVERTBUTTONS, ini.GetBoolValue(L"media", L"invertButtons", false));
+				CheckDlgButton(hWnd, IDC_KEY2JOY, ini.GetBoolValue(L"media", L"key2joy", false));
 
 				CheckDlgButton(hWnd, IDC_RELOAD, UI::reloadROM);
 				CheckDlgButton(hWnd, IDC_REMOUNT, UI::reloadIMG);
@@ -78,6 +79,7 @@ namespace UI
 					case IDC_SOUND:
 					case IDC_MUSIC:
 					case IDC_INVERTBUTTONS:
+					case IDC_KEY2JOY:
 					{
 						DrawCheckbox(hWnd, nmc);
 						return true;
@@ -144,6 +146,7 @@ namespace UI
 						UI::reloadROM = (IsDlgButtonChecked(hWnd, IDC_RELOAD) == 1);
 						UI::reloadIMG = (IsDlgButtonChecked(hWnd, IDC_REMOUNT) == 1);
 						invertButtons = (IsDlgButtonChecked(hWnd, IDC_INVERTBUTTONS) == 1) ? 1 : 0;
+						key2joy = (IsDlgButtonChecked(hWnd, IDC_KEY2JOY) == 1) ? 1 : 0;
 						auto enableSound = (IsDlgButtonChecked(hWnd, IDC_SOUND) == 1);
 						auto enableMusic = (IsDlgButtonChecked(hWnd, IDC_MUSIC) == 1);
 
@@ -155,6 +158,7 @@ namespace UI
 						ini.SetBoolValue(L"media", L"reloadRom", UI::reloadROM);
 						ini.SetBoolValue(L"media", L"reloadImg", UI::reloadIMG);
 						ini.SetBoolValue(L"media", L"invertButtons", invertButtons == 1);
+						ini.SetBoolValue(L"media", L"key2joy", key2joy == 1);
 						ini.SaveFile(settingsFile, false);
 						DestroyWindow(hWnd);
 						Options::hWnd = NULL;

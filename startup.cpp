@@ -54,6 +54,7 @@ void GetSettings()
 	UI::reloadROM = ini.GetBoolValue(L"media", L"reloadRom", false);
 	UI::reloadIMG = ini.GetBoolValue(L"media", L"reloadImg", false);
 	invertButtons = (int)ini.GetBoolValue(L"media", L"invertButtons", false);
+	key2joy = (int)ini.GetBoolValue(L"media", L"key2joy", true);
 	Discord::enabled = ini.GetBoolValue(L"media", L"discord", false);
 
 	int argc = 0;

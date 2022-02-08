@@ -161,6 +161,7 @@ END
 	#define OPTIONS_MIDIDEVICE "MIDI device"
 #define OPTIONS_INPUT "Input"
 	#define OPTIONS_SWITCH "Switch ABXY to BAYX"
+	#define OPTIONS_KEY2JOY "Keyboard gamepad"
 #define OPTIONS_MEDIA "Media"
 	#define OPTIONS_RELOADROM "Reload ROM"
 	#define OPTIONS_RELOADDISK "Reload disk image"

@@ -321,7 +321,17 @@ void MainLoop()
 
 		if (pauseState != 2)
 		{
-			m68k_execute(hBlankEvery);
+			if (dmaLines == 0)
+			{
+				//Registers::Fade = 0; //timing test
+				m68k_execute(hBlankEvery);
+			}
+			else
+			{
+				dmaLines--;
+				//Registers::Fade = 0x88; //timing test
+			}
+
 			if (line < lines)
 			{
 				HandleHdma(line);
