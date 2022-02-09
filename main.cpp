@@ -9,6 +9,7 @@ extern "C" {
 bool quit = 0;
 int line = 0, interrupts = 0;
 int invertButtons = 0;
+int key2joy = 0;
 
 extern unsigned int biosSize, romSize;
 extern long rtcOffset;
@@ -174,10 +175,12 @@ void MainLoop()
 			switch (ev.type)
 			{
 			case SDL_QUIT:
+			{
 				quit = true;
 				break;
-
+			}
 			case SDL_JOYBUTTONDOWN:
+			{
 				if (ev.jbutton.which < 2)
 				{
 					//If the button is 0-3 it's ABXY. Any higher must be LB/RB, Back, or Start.
@@ -187,7 +190,9 @@ void MainLoop()
 						joypad[ev.jbutton.which + 2] |= 1 << (ev.jbutton.button - 4);
 				}
 				break;
+			}
 			case SDL_JOYBUTTONUP:
+			{
 				if (ev.jbutton.which < 2)
 				{
 					if (ev.jbutton.button < 4)
@@ -196,17 +201,62 @@ void MainLoop()
 						joypad[ev.jbutton.which + 2] &= ~(1 << (ev.jbutton.button - 4));
 				}
 				break;
+			}
 			case SDL_JOYHATMOTION:
+			{
 				if (ev.jhat.which < 2 && ev.jhat.hat == 0)
 					joypad[ev.jhat.which] = (joypad[ev.jhat.which] & ~15) | ev.jhat.value;
 				break;
+			}
 			case SDL_JOYAXISMOTION:
+			{
 				if (ev.jaxis.axis > 2) ev.jaxis.axis -= 3; //map right stick and trigger to left
 				if (ev.jaxis.which < 2)
 					joyaxes[(ev.jaxis.which * 2) + ev.jaxis.axis] = ev.jaxis.value >> 8;
 				break;
+			}
+			case SDL_KEYDOWN:
+			{
+				if (key2joy)
+				{
+					switch (ev.key.keysym.sym)
+					{
+					case SDLK_UP: joypad[0] |= 1; break;
+					case SDLK_RIGHT: joypad[0] |= 2; break;
+					case SDLK_DOWN: joypad[0] |= 4; break;
+					case SDLK_LEFT: joypad[0] |= 8; break;
+					case SDLK_z: joypad[0] |= 16; break;
+					case SDLK_x: joypad[0] |= 32; break;
+					case SDLK_a: joypad[0] |= 64; break;
+					case SDLK_s: joypad[0] |= 128; break;
+					case SDLK_d: joypad[2] |= 1; break;
+					case SDLK_f: joypad[2] |= 2; break;
+					case SDLK_c: joypad[2] |= 4; break;
+					case SDLK_v: joypad[2] |= 8; break;
+					}
+				}
+				break;
+			}
 			case SDL_KEYUP:
 			{
+				if (key2joy)
+				{
+					switch (ev.key.keysym.sym)
+					{
+					case SDLK_UP: joypad[0] &= ~1; break;
+					case SDLK_RIGHT: joypad[0] &= ~2; break;
+					case SDLK_DOWN: joypad[0] &= ~4; break;
+					case SDLK_LEFT: joypad[0] &= ~8; break;
+					case SDLK_z: joypad[0] &= ~16; break;
+					case SDLK_x: joypad[0] &= ~32; break;
+					case SDLK_a: joypad[0] &= ~64; break;
+					case SDLK_s: joypad[0] &= ~128; break;
+					case SDLK_d: joypad[2] &= ~1; break;
+					case SDLK_f: joypad[2] &= ~2; break;
+					case SDLK_c: joypad[2] &= ~4; break;
+					case SDLK_v: joypad[2] &= ~8; break;
+					}
+				}
 				if (ev.key.keysym.mod & KMOD_RCTRL)
 				{
 					if (ev.key.keysym.sym == SDLK_l)
@@ -321,17 +371,7 @@ void MainLoop()
 
 		if (pauseState != 2)
 		{
-			if (dmaLines == 0)
-			{
-				//Registers::Fade = 0; //timing test
-				m68k_execute(hBlankEvery);
-			}
-			else
-			{
-				dmaLines--;
-				//Registers::Fade = 0x88; //timing test
-			}
-
+			m68k_execute(hBlankEvery);
 			if (line < lines)
 			{
 				HandleHdma(line);
