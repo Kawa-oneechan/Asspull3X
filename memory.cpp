@@ -560,79 +560,85 @@ void HandleBlitter(unsigned int function)
 
 		if (fun == 1) //Blit
 		{
+			auto striding = 0;
 			while (blitLength > 0)
 			{
-				if (strideSkip)
+				val = read(blitAddrA);
+
+				if (!fourBitSource && !fourBitTarget)
 				{
-					for (unsigned int i = 0; i < sourceStride && blitLength > 0; i++, blitAddrA += (1 << width), blitAddrB += (1 << width), blitLength--)
-					{
-						val = read(blitAddrA);
-
-						if (!fourBitSource && !fourBitTarget)
-						{
-							if (!(colorKey && val == blitKey))
-								write(blitAddrB, val);
-						}
-						if (fourBitSource && fourBitTarget)
-						{
-							auto old = read(blitAddrB);
-
-							auto ai = (val >> 0) & 0x0F;
-							auto bi = (val >> 4) & 0x0F;
-							auto ao = (old >> 0) & 0x0F;
-							auto bo = (old >> 4) & 0x0F;
-							if (!(colorKey && ai == blitKey)) ao = ai;
-							if (!(colorKey && bi == blitKey)) bo = bi;
-							val = ao | (bo << 4);
-							write(blitAddrB, val);
-						}
-					}
-					blitAddrB += (int)(targetStride - sourceStride) << width;
+					if (!(colorKey && val == blitKey))
+						write(blitAddrB, val);
 				}
-				else
+				else if (fourBitSource && fourBitTarget) 
 				{
-					val = read(blitAddrA);
-					if (colorKey && val == blitKey) continue;
+					auto old = read(blitAddrB);
+
+					auto ai = (val >> 0) & 0x0F;
+					auto bi = (val >> 4) & 0x0F;
+					auto ao = (old >> 0) & 0x0F;
+					auto bo = (old >> 4) & 0x0F;
+					if (!(colorKey && ai == blitKey)) ao = ai;
+					if (!(colorKey && bi == blitKey)) bo = bi;
+					val = ao | (bo << 4);
 					write(blitAddrB, val);
 					blitAddrA += (1 << width);
 					blitAddrB += (1 << width);
 					blitLength--;
 				}
+
+				if (strideSkip)
+				{
+					striding++;
+					if (striding == sourceStride)
+					{
+						blitAddrB += (int)(targetStride - sourceStride);
+						striding = 0;
+					}
+				}
+
+				blitAddrA++;
+				blitAddrB++;
+				blitLength--;
 			}
 		}
 		else if (fun == 2) //Set
 		{
+			auto striding = 0;
 			while (blitLength > 0)
 			{
+				write(blitAddrB, blitAddrA);
+				blitAddrB += (1 << width);
+				blitLength--;
+
 				if (strideSkip)
 				{
-					for (unsigned int i = 0; i < sourceStride && blitLength > 0; i++, blitAddrB += (1 << width), blitLength--)
-						write(blitAddrB, blitAddrA);
-					blitAddrB += (int)(targetStride - sourceStride) << width;
-				}
-				else
-				{
-					write(blitAddrB, read(blitAddrB));
-					blitAddrB += (1 << width);
-					blitLength--;
+					striding++;
+					if (striding == sourceStride)
+					{
+						blitAddrB += (int)(targetStride - sourceStride);
+						striding = 0;
+					}
 				}
 			}
 		}
 		else if (fun == 3) //Invert
 		{
+			auto striding = 0;
 			while (blitLength > 0)
 			{
+				m68k_write_memory_8(blitAddrB, ~m68k_read_memory_8(blitAddrB));
+				blitAddrB++;
+				blitLength--;
+
 				if (strideSkip)
 				{
-					for (unsigned int i = 0; i < sourceStride && blitLength > 0; i++, blitAddrB++, blitLength--)
-						m68k_write_memory_8(blitAddrB, ~m68k_read_memory_8(blitAddrB));
-					blitAddrB += (int)(targetStride - sourceStride);
-				}
-				else
-				{
-					m68k_write_memory_8(blitAddrB, ~m68k_read_memory_8(blitAddrB));
-					blitAddrB++;
-					blitLength--;
+					striding++;
+					if (striding == sourceStride)
+					{
+						blitAddrB += (int)(targetStride - sourceStride);
+						striding = 0;
+					}
 				}
 			}
 		}
