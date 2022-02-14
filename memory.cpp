@@ -557,11 +557,11 @@ void HandleBlitter(unsigned int function)
 		else if (width == 2) write = m68k_write_memory_32;
 
 		int val = 0;
+		int striding = 0;
 
-		if (fun == 1) //Blit
+		while (blitLength > 0)
 		{
-			auto striding = 0;
-			while (blitLength > 0)
+			if (fun == 1) //Blit
 			{
 				val = read(blitAddrA);
 
@@ -570,7 +570,7 @@ void HandleBlitter(unsigned int function)
 					if (!(colorKey && val == blitKey))
 						write(blitAddrB, val);
 				}
-				else if (fourBitSource && fourBitTarget) 
+				else if (fourBitSource && fourBitTarget)
 				{
 					auto old = read(blitAddrB);
 
@@ -582,65 +582,33 @@ void HandleBlitter(unsigned int function)
 					if (!(colorKey && bi == blitKey)) bo = bi;
 					val = ao | (bo << 4);
 					write(blitAddrB, val);
-					blitAddrA += (1 << width);
-					blitAddrB += (1 << width);
-					blitLength--;
 				}
 
-				if (strideSkip)
-				{
-					striding++;
-					if (striding == sourceStride)
-					{
-						blitAddrB += (int)(targetStride - sourceStride);
-						striding = 0;
-					}
-				}
-
-				blitAddrA++;
-				blitAddrB++;
-				blitLength--;
+				blitAddrA += (1 << width);
+				blitAddrB += (1 << width);
 			}
-		}
-		else if (fun == 2) //Set
-		{
-			auto striding = 0;
-			while (blitLength > 0)
+			else if (fun == 2) //Set
 			{
 				write(blitAddrB, blitAddrA);
 				blitAddrB += (1 << width);
-				blitLength--;
-
-				if (strideSkip)
-				{
-					striding++;
-					if (striding == sourceStride)
-					{
-						blitAddrB += (int)(targetStride - sourceStride);
-						striding = 0;
-					}
-				}
 			}
-		}
-		else if (fun == 3) //Invert
-		{
-			auto striding = 0;
-			while (blitLength > 0)
+			else if (fun == 3) //Invert
 			{
 				m68k_write_memory_8(blitAddrB, ~m68k_read_memory_8(blitAddrB));
 				blitAddrB++;
-				blitLength--;
+			}
 
-				if (strideSkip)
+			if (strideSkip)
+			{
+				striding++;
+				if (striding == sourceStride)
 				{
-					striding++;
-					if (striding == sourceStride)
-					{
-						blitAddrB += (int)(targetStride - sourceStride);
-						striding = 0;
-					}
+					blitAddrB += (int)(targetStride - sourceStride);
+					striding = 0;
 				}
 			}
+
+			blitLength--;
 		}
 	}
 	break;
