@@ -156,8 +156,8 @@ END
 	#define OPTIONS_ASPECT "Aspect correction" //as in stretching 320x200 to 320x240
 	#define OPTIONS_THEME "Theme"
 #define OPTIONS_AUDIO "Audio"
-	#define OPTIONS_SOUND "Sound"
-	#define OPTIONS_MUSIC "Music"
+	#define OPTIONS_SOUND "PCM and OPL3"
+	#define OPTIONS_MUSIC "MIDI music"
 	#define OPTIONS_MIDIDEVICE "MIDI device"
 #define OPTIONS_INPUT "Input"
 	#define OPTIONS_SWITCH "Switch ABXY to BAYX"

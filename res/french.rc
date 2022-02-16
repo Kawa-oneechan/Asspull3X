@@ -148,7 +148,7 @@ END
 //Only COMMON_xxx labels for these two
 #define MEMORY_TITLE "Visionneuse Mémoire"
 #define PALETTE_TITLE "Visionneuse Palette"
-#define TLES_TITLE "Visionneuse de Tuiles"
+#define TILES_TITLE "Visionneuse de Tuiles"
 
 #define OPTIONS_TITLE "Options"
 #define OPTIONS_FRAMERATE "Fréquence"
@@ -158,11 +158,12 @@ END
 	#define OPTIONS_ASPECT "Correction de l'aspect visuel" //as in stretching 320x200 to 320x240
 	#define OPTIONS_THEME "Theme"
 #define OPTIONS_AUDIO "Audio"
-	#define OPTIONS_SOUND "Son"
-	#define OPTIONS_MUSIC "Musique"
+	#define OPTIONS_SOUND "MIC et OPL3"
+	#define OPTIONS_MUSIC "Musique MIDI"
 	#define OPTIONS_MIDIDEVICE "Péripherique MIDI"
 #define OPTIONS_INPUT "Entrées"
 	#define OPTIONS_SWITCH "Basculer ABXY en BAYX"
+	#define OPTIONS_KEY2JOY "Clavier comme manette de jeu"
 #define OPTIONS_MEDIA "Média"
 	#define OPTIONS_RELOADROM "Recharger la ROM"
 	#define OPTIONS_RELOADDISK "Recharger l'image disque"
