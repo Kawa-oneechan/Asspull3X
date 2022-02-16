@@ -26,6 +26,9 @@ namespace Sound
 
 	void saCallback(void *userdata, unsigned char* stream, int len)
 	{
+		if (opl3.rateratio == 0)
+			OPL3_Reset(&opl3, FREQUENCY);
+
 		signed short* str = (signed short*)stream;
 		len /= 2;
 
@@ -147,8 +150,6 @@ namespace Sound
 			saDev = SDL_OpenAudioDevice(0, 0, &wanted, &got, 0);// SDL_AUDIO_ALLOW_FREQUENCY_CHANGE | SDL_AUDIO_ALLOW_SAMPLES_CHANGE);
 			SDL_PauseAudioDevice(saDev, 0);
 		}
-
-		OPL3_Reset(&opl3, FREQUENCY);
 
 		return 0;
 	}
@@ -324,7 +325,7 @@ namespace Sound
 	{
 		pcmSource[0] = pcmSource[1] = NULL;
 		pcmLength[0] = pcmLength[1] = 0;
-		pcmVolume[0] = pcmVolume[1] = pcmVolume[2] = pcmVolume[3] = 256;
+		pcmVolume[0] = pcmVolume[1] = pcmVolume[2] = pcmVolume[3] = 255;
 	}
 
 }
