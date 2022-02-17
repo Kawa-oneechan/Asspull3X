@@ -57,6 +57,34 @@ void GetSettings()
 	key2joy = (int)ini.GetBoolValue(L"media", L"key2joy", true);
 	Discord::enabled = ini.GetBoolValue(L"media", L"discord", false);
 
+	int locale = (int)ini.GetLongValue(L"media", L"locale", 0);
+	if (locale == 0)
+	{
+		//try as a string
+		auto locStr = ini.GetValue(L"media", L"locale", L"en-us");
+		const struct {
+			WCHAR locName[16];
+			int locNum;
+		} myLocs[] = {
+			{ L"en-US", 1033 },
+			{ L"fr-FR", 1036 },
+			{ L"hu-HU", 1038 },
+			{ L"ja-JP", 1041 },
+			{ L"nl-NL", 1043 },
+		};
+		for (auto &l : myLocs)
+			if (!_wcsnicmp(locStr, l.locName, 2))
+				locale = l.locNum;
+		for (auto &l : myLocs)
+			if (!_wcsnicmp(locStr, l.locName, 5))
+				locale = l.locNum;
+	}
+	if (locale != 0)
+	{
+		if (FindResourceEx(NULL, RT_MENU, MAKEINTRESOURCE(IDR_MAINMENU), locale) != NULL)
+			SetThreadUILanguage(locale);
+	}
+
 	int argc = 0;
 	auto argv = CommandLineToArgvW(GetCommandLine(), &argc);
 	for (int i = 1; i < argc; i++)

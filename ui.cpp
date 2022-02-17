@@ -525,6 +525,8 @@ namespace UI
 			Presentation::statusFont = CreateFont(14, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, L"Segoe UI");
 
 			Presentation::SetThemeColors();
+
+			SetTitle(NULL);
 		}
 		return;
 	}
@@ -754,18 +756,17 @@ namespace UI
 
 	void SetTitle(const char* subtitle)
 	{
-		char title[256] = { 0 };
+		WCHAR title[512] = { 0 };
 		if (subtitle == NULL)
-			wcstombs_s(NULL, title, GetString(IDS_FULLTITLE), 256);
+			wcscpy_s(title, 512, GetString(IDS_FULLTITLE));
 		else
 		{
-			WCHAR wTitle[256] = { 0 };
-			WCHAR wSub[128] = { 0 };
-			mbstowcs_s(NULL, wSub, subtitle, 128);
-			wsprintf(wTitle, GetString(IDS_TEMPLATETITLE), wSub);
-			wcstombs_s(NULL, title, wTitle, 256);
+			WCHAR wSub[256] = { 0 };
+			mbstowcs_s(NULL, wSub, subtitle, 256);
+			wsprintf(title, GetString(IDS_TEMPLATETITLE), wSub);
 		}
-		SDL_SetWindowTitle(Video::sdlWindow, title);
+		//SDL_SetWindowTitle(Video::sdlWindow, title);
+		SetWindowText(hWndMain, title);
 	}
 
 	void Complain(int message)

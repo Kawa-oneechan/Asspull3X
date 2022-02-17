@@ -352,9 +352,7 @@ namespace Video
 		//Log("Creating window...");
 		winWidth = ini.GetLongValue(L"video", L"width", 640);
 		winHeight = ini.GetLongValue(L"video", L"height", 480);
-		char title[256] = { 0 };
-		wcstombs(title, UI::GetString(IDS_FULLTITLE), 256);
-		if ((sdlWindow = SDL_CreateWindow(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, winWidth, winHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE)) == NULL)
+		if ((sdlWindow = SDL_CreateWindow("", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, winWidth, winHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE)) == NULL)
 		{
 			Log(UI::GetString(IDS_WINDOWFAILED), SDL_GetError()); //"Could not create window: %s"
 			return -1;
