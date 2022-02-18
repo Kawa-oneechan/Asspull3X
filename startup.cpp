@@ -23,6 +23,32 @@ extern FILE* logFile;
 
 WCHAR* paramLoad = NULL;
 
+struct {
+	WCHAR code[16];
+	int num;
+} langs[64];
+int langCt = 0;
+
+BOOL CALLBACK GetLangProc(HMODULE mod, LPCTSTR type, LPCTSTR name, WORD lang, LONG_PTR lParam)
+{
+	langs[langCt].num = lang;
+
+	WCHAR work[32] = { 0 };
+	GetLocaleInfo(MAKELCID(lang, SORT_DEFAULT), LOCALE_SENGLANGUAGE, work, 32);
+	wcslwr(work);
+	work[2] = L'-';
+	work[3] = 0;
+	GetLocaleInfo(MAKELCID(lang, SORT_DEFAULT), LOCALE_SABBREVCTRYNAME, work + 3, 32);
+	wcsupr(work + 3);
+	work[5] = 0;
+	wcscpy(langs[langCt].code, work);
+
+	langCt++;
+	if (langCt == 64)
+		return FALSE;
+	return TRUE;
+}
+
 void GetSettings()
 {
 	ini.SetSpaces(false);
@@ -57,34 +83,25 @@ void GetSettings()
 	key2joy = (int)ini.GetBoolValue(L"media", L"key2joy", true);
 	Discord::enabled = ini.GetBoolValue(L"media", L"discord", false);
 
-	int locale = (int)ini.GetLongValue(L"media", L"locale", 0);
-	if (locale == 0)
+	EnumResourceLanguages(NULL, RT_MENU, MAKEINTRESOURCE(IDR_MAINMENU), GetLangProc, 0);
+	int langID = (int)ini.GetLongValue(L"media", L"lang", 0);
+	if (langID == 0)
 	{
 		//try as a string
-		auto locStr = ini.GetValue(L"media", L"locale", L"en-us");
-		const struct {
-			WCHAR locName[16];
-			int locNum;
-		} myLocs[] = {
-			{ L"en-US", 1033 },
-			{ L"fr-FR", 1036 },
-			{ L"hu-HU", 1038 },
-			{ L"ja-JP", 1041 },
-			{ L"nl-NL", 1043 },
-		};
-		for (auto &l : myLocs)
-			if (!_wcsnicmp(locStr, l.locName, 2))
-				locale = l.locNum;
-		for (auto &l : myLocs)
-			if (!_wcsnicmp(locStr, l.locName, 5))
-				locale = l.locNum;
+		auto locStr = ini.GetValue(L"media", L"lang", L"en-us");
+		for (auto &l : langs)
+			if (!_wcsnicmp(locStr, l.code, 2))
+				langID = l.num;
+		for (auto &l : langs)
+			if (!_wcsnicmp(locStr, l.code, 5))
+				langID = l.num;
 	}
-	if (locale != 0)
+	if (langID != 0)
 	{
-		if (FindResourceEx(NULL, RT_MENU, MAKEINTRESOURCE(IDR_MAINMENU), locale) != NULL)
-			SetThreadUILanguage(locale);
+		//no need to check if a resource with this langID exists, it'll just default out.
+		SetThreadUILanguage(langID);
 	}
-
+	
 	int argc = 0;
 	auto argv = CommandLineToArgvW(GetCommandLine(), &argc);
 	for (int i = 1; i < argc; i++)
