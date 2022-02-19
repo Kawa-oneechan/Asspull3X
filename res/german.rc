@@ -1,0 +1,178 @@
+#pragma code_page(1252)
+
+LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
+
+//Note: "RCtrl" is the Control key on the *right* of the keyboard.
+//The left is visible to the A3X, the right controls the emulator.
+
+STRINGTABLE
+{
+	IDS_FULLTITLE, "Clunibus - Asspull IIIx Emulator"
+	IDS_SHORTTITLE, "Clunibus" //used for messageboxes
+	IDS_TEMPLATETITLE, "Clunibus - %s"
+
+	//File dialog filters. Format is "<description>|<pattern>|<desc>|<pat>" etc
+	IDS_DDFILTER, "Disk images (*.img)|*.img" //floppy diskettes
+	IDS_HDFILTER, "Disk images (*.vhd)|*.vhd" //hard disks
+	IDS_CARTFILTER, "Asspull IIIx ROMs (*.ap3)|*.ap3" //game cartridges
+
+	IDS_CLICKTORELEASE, "Mittleren Maustaste oder RStrg+P, um die Emulation anzuhalten."
+	IDS_SYSTEMRESET, "System zurückgesetzt."
+
+	IDS_NOTPLAYING, "Spielt derzeit nicht" //Discord integration: you're running the thing but don't have a game loaded
+
+	IDS_EJECTFIRST, "Werfen Sie zuerst die Diskette aus, mit RStrg+Shift+U."
+	IDS_DISKEJECTED, "Datenträger ausgeworfen."
+	IDS_NODISKDRIVE, "Kein Laufwerk."
+	IDS_UNMOUNTFIRST, "Werfen Sie zuerst das Medium aus."
+	IDS_CARTEJECTED, "Patrone herausgezogen." //as in taken out of the cartridge slot
+
+	IDS_VHDBADBITS, "Ungültige VHD: schlechte Feature-Bits (muss 2 sein)" //a bit technical maybe, but rare
+	IDS_VHDBADVERSION, "Ungültige VHD: schlechte Version (muss 1.00 sein)."
+	IDS_VHDBADTYPE, "Ungültige VHD: falscher Festplattentyp (muss FIXED sein)." //slightly less rare perhaps
+
+#ifdef _CONSOLE
+	//Debug stuff, doesn't appear in release builds
+	IDS_BADSIZE, "Die Dateigröße ist keine Zweierpotenz: ist %d (0x%08X), sollte %d (0x%08X) sein."
+	IDS_BADCHECKSUM, "Nichtübereinstimmung der Prüfsumme: ist 0x%08X, sollte 0x%08X sein."
+	IDS_RESETTING, "Zurücksetzen von Musashi..." //Musashi is the 68020 emulator core
+	IDS_ASSPULLISREADY, "\nAsspull IIIx ist bereit.\nDrücken Sie RStrg+L, um ein ROM zu laden, RStrg+Shift+L, um eine Diskette zu laden.\nDrücken Sie RStrg+U, um ROM zu entladen, RStrg+Shift+U, um Diskette zu entladen.\nDrücken Sie RStrg+R zum Zurücksetzen, RStrg+Shift+R zum Entladen und Zurücksetzen.\nDrücken Sie RStrg+D, um RAM zu leeren, RStrg+S, um einen Bildschirmfoto zu machen.\n\n"
+
+	//More debug-only stuff
+	IDS_LOADINGROM, "ROM %s wird geladen..."
+	IDS_UNLOADINGROM, "ROM entladen..."
+	IDS_UNMOUNTINGDISK, "Diskette aushängen..."
+	IDS_MOUNTINGDISK, "Disk-Image %s wird geladen..."
+	IDS_MOUNTEDVHD, "VHD angehängt. %d * %d * %d * 512 = %d, sollte ~%d sein."
+	IDS_SHADERERROR, "Fehler beim Kompilieren des Shaders!"
+	IDS_TOOMANYSHADERS, "Zu viele Shader angegeben: kann nur %d ausführen, aber %d wurden angefordert."
+	IDS_WINDOWFAILED, "Fenster konnte nicht erstellt werden: %s"
+	IDS_RENDERERFAILED, "Renderer konnte nicht erstellt werden: %s"
+	IDS_TSK, "Schön." //ignore, IDS_TSK is #69.
+	IDS_TEXTUREFAILED, "Textur konnte nicht erstellt werden: %s"
+#endif
+	IDS_PNGFAILED, "PNG konnte nicht geschrieben werden."
+	IDS_DISCORDDLL, "Discord ist aktiviert, aber die DLL ist nicht hier." //missing discord-rpc.dll
+	IDS_SCREENSHOT, "Schnapp! %s gespeichert."
+
+	IDS_SCREENFAIL, "Fehler beim Zuweisen von Speicher für den Hauptbildschirm."
+	IDS_PAUSEFAIL, "Speicher für Pausenbildschirm konnte nicht zugewiesen werden."
+
+	//Status bar message -- you tried to open a ZIP file but there was no ROM in there
+	IDS_NOTHINGINZIP, "Keine einzelne AP3-Datei im Archiv gefunden."
+	IDS_DUMPEDRAM, "RAM gedumpt."
+	IDS_SHADERCOMPILE_A "Beim Kompilieren von Shadern ist ein Fehler aufgetreten."
+	IDS_SHADERCOMPILE_B "Die Datei %s enthält mindestens einen Syntaxfehler und wird übersprungen."
+	IDS_PALDETAILS "Index %d\n0x%04X\nR: 0x%02X > %d\nG: 0x%02X > %d\nB: 0x%02X > %d"
+	IDS_TILEDETAILS "Index %d, 0x%03X\nPal %d"
+
+	IDS_DISKIMAGEERROR, "Disk-Image %s für Gerät #%d konnte nicht geöffnet werden."
+	IDS_ROMLOADERROR, "ROM-Datei %s konnte nicht geöffnet werden."
+	IDS_FORGETABOUTDISK, "Vergiss es dann"
+
+	(IDS_THEMES+0), "Hell"
+	(IDS_THEMES+1), "Dunkel"
+	(IDS_THEMES+2), "Wie das System"
+
+	(IDS_DEVICES1+0), "Nichts"
+	(IDS_DEVICES1+1), "Diskettenlaufwerk"
+	(IDS_DEVICES1+2), "Festplatte"
+	(IDS_DEVICES1+3), "Zeilendrucker" //as in the "automated typewriter" kind of yore
+	(IDS_DEVICES2+0), "Kein Gerät"
+	(IDS_DEVICES2+1), "Diskettenlaufwerk"
+	(IDS_DEVICES2+2), "Festplatte"
+	(IDS_DEVICES2+3), "Zeilendrucker"
+
+	(IDS_REGIONS+0), "BIOS"
+	(IDS_REGIONS+1), "Patrone"
+	(IDS_REGIONS+2), "WRAM"
+	(IDS_REGIONS+3), "Geräte"
+	(IDS_REGIONS+4), "Register"
+	(IDS_REGIONS+5), "VRAM"
+}
+
+IDR_MAINMENU MENU
+BEGIN
+	POPUP "File"
+	BEGIN
+		MENUITEM "ROM laden\x85\tRStrg+L", 1001
+		MENUITEM "ROM entladen\tRStrg+U", 1002
+		MENUITEM SEPARATOR		
+		MENUITEM "Diskette einlegen\x85\tRStrg+Shift+L", 1014
+		MENUITEM "Diskette auswerfen\tRStrg+Shift+U", 1015
+		MENUITEM SEPARATOR
+		MENUITEM "Neustart\tRStrg+R", 1003
+		MENUITEM SEPARATOR
+		MENUITEM "Beenden", 1006
+	END
+	POPUP "Werkzeuge"
+	BEGIN
+		MENUITEM "Optionen", 1010
+		MENUITEM "Shader", 1011
+		MENUITEM SEPARATOR
+		MENUITEM "Geräte", 1012
+		MENUITEM "RAM-Viewer", 1007
+		MENUITEM "Tile-Viewer", 1013
+		MENUITEM "Paletten-Viewer", 1008
+		MENUITEM "RAM entleeren\tRStrg+D", 1005 //as in write the whole thing to file
+		MENUITEM "Bildschirmfoto\tRStrg+S", 1004
+	END
+	POPUP "Hilfe"
+	BEGIN
+		MENUITEM "Über Clunibus", 1009
+	END
+END
+
+//------------------------//
+
+#define COMMON_OK "OK"
+#define COMMON_CANCEL "Abbrechen"
+#define COMMON_APPLY "Anwenden"
+#define COMMON_CLOSE "Schließen"
+#define COMMON_REFRESH "Aktual."
+#define COMMON_AUTOUPDATE "Auto-Update"
+
+#define ABOUT_TITLE "E Clunibus Tractum" //"Pulled out of the arse" in Latin, Kawa's pretentious motto
+#define ABOUT_OKAY "Cool"
+#define ABOUT_HEADER "Clunibus \x97 Asspull IIIx Fantasy Computer Emulator" //\x97 is an em-dash
+#define ABOUT_BODY "Systemdesign und Emulator von Kawa.\n\nDanke und Grüße an alle Leute auf dem Bcord." //Feel free to add "\n\nLANG translation by YOU."
+#define ABOUT_GITLINK "<a>GitHub Website</a>" //Keep the <a></a> to make it look like the clickable link it is
+
+#define DEVICES_TITLE "Geräte"
+#define DEVICES_NONE "Eine wirbelnde Leere heult vor dir." //poetry about nothingness, there's nothing to change here
+#define DEVICES_INSERTDISK "Einsetz"
+#define DEVICES_EJECTDISK "Auswerf"
+
+//Only COMMON_xxx labels for these two
+#define MEMORY_TITLE "RAM-Viewer"
+#define PALETTE_TITLE "Paletten-Viewer"
+#define TILES_TITLE "Tile-Viewer"
+
+#define OPTIONS_TITLE "Optionen"
+#define OPTIONS_FRAMERATE "Bildrate"
+	#define OPTIONS_SHOWFPS "FPS anzeigen"
+	#define OPTIONS_LIMITFPS "Auf 60 FPS beschränken"
+#define OPTIONS_VISUALS "Bild"
+	#define OPTIONS_ASPECT "Aspektkorrektur" //as in stretching 320x200 to 320x240
+	#define OPTIONS_THEME "Farbschema"
+#define OPTIONS_AUDIO "Audio"
+	#define OPTIONS_SOUND "PCM und OPL3"
+	#define OPTIONS_MUSIC "MIDI-Musik"
+	#define OPTIONS_MIDIDEVICE "MIDI-Gerät"
+#define OPTIONS_INPUT "Eingabe"
+	#define OPTIONS_SWITCH "Wechseln von ABXY zu BAYX"
+	#define OPTIONS_KEY2JOY "Tastatur als Gamepad"
+#define OPTIONS_MEDIA "Medien"
+	#define OPTIONS_RELOADROM "ROM neu laden"
+	#define OPTIONS_RELOADDISK "Disk-Image neu laden"
+	#define OPTIONS_BIOS "BIOS-Datei"
+
+#define SHADERS_TITLE "Shader"
+#define SHADERS_AVAILABLE "Verfügbar"
+#define SHADERS_INUSE "Im Einsatz"
+#define SHADERS_ADD "Hinzuf."
+#define SHADERS_REMOVE "Lösch"
+#define SHADERS_MOVEUP "Aufst."
+#define SHADERS_MOVEDOWN "Abwärts"
+
+#include "dialogs.rc"
