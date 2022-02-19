@@ -35,11 +35,11 @@ BOOL CALLBACK GetLangProc(HMODULE mod, LPCTSTR type, LPCTSTR name, WORD lang, LO
 
 	WCHAR work[32] = { 0 };
 	GetLocaleInfo(MAKELCID(lang, SORT_DEFAULT), LOCALE_SENGLANGUAGE, work, 32);
-	wcslwr(work);
+	_wcslwr_s(work, 32);
 	work[2] = L'-';
 	work[3] = 0;
 	GetLocaleInfo(MAKELCID(lang, SORT_DEFAULT), LOCALE_SABBREVCTRYNAME, work + 3, 32);
-	wcsupr(work + 3);
+	_wcsupr_s(work + 3, 32 - 3);
 	work[5] = 0;
 	wcscpy(langs[langCt].code, work);
 
