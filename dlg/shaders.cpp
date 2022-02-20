@@ -41,7 +41,11 @@ namespace UI
 			{
 				Shaders::hWnd = hWnd;
 
-				SendDlgItemMessage(hWnd, IDC_SHADERSAVAILABLE, LB_DIR, DDL_READWRITE, (LPARAM)L"*.fs");
+				WCHAR shaderPat[FILENAME_MAX];
+				wcscpy_s(shaderPat, UI::startingPath);
+				wcscat_s(shaderPat, L"\\*.fs");
+
+				SendDlgItemMessage(hWnd, IDC_SHADERSAVAILABLE, LB_DIR, DDL_READWRITE, (LPARAM)shaderPat);
 
 				auto numShaders = ini.GetLongValue(L"video", L"shaders", 0);
 				for (int i = 0; i < numShaders; i++)

@@ -135,8 +135,13 @@ namespace Video
 
 	char* ReadTextFile(const WCHAR* filePath)
 	{
+		WCHAR myFullPath[FILENAME_MAX];
+		wcscpy_s(myFullPath, UI::startingPath);
+		wcscat_s(myFullPath, L"\\");
+		wcscat_s(myFullPath, filePath);
+
 		FILE* file = NULL;
-		if (_wfopen_s(&file, filePath, L"r+b"))
+		if (_wfopen_s(&file, myFullPath, L"r+b"))
 			return NULL;
 		if (file == NULL)
 			return NULL;

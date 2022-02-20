@@ -465,7 +465,15 @@ namespace UI
 	{
 		//SetProcessDPIAware();
 
-		GetCurrentDirectory(FILENAME_MAX, startingPath);
+		//GetCurrentDirectory(FILENAME_MAX, startingPath);
+		GetModuleFileName(NULL, startingPath, 512);
+		WCHAR* lastSlash = wcsrchr(startingPath, L'\\');
+		*lastSlash = 0;
+		if (!wcsncmp(lastSlash - 5, L"Debug",6))
+		{
+			lastSlash = wcsrchr(startingPath, L'\\');
+			*lastSlash = 0;
+		}
 
 		SDL_SysWMinfo info;
 		SDL_VERSION(&info.version);

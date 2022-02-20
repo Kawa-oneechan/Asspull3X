@@ -21,7 +21,7 @@ extern void LoadROM(const WCHAR* path);
 extern void MainLoop();
 extern FILE* logFile;
 
-WCHAR* paramLoad = NULL;
+WCHAR paramLoad[512] = { 0 };
 
 struct {
 	WCHAR code[16];
@@ -119,7 +119,7 @@ void GetSettings()
 		}
 		else if (i == 1)
 		{
-			paramLoad = argv[i];
+			wcscpy(paramLoad, argv[i]);
 		}
 	}
 	LocalFree(argv);
@@ -211,7 +211,7 @@ void Preload()
 		LoadROM(thing);
 		pauseState = 0;
 	}
-	else if (paramLoad != NULL)
+	else if (paramLoad[0])
 	{
 		Log(L"Command-line loading ROM %s...", paramLoad);
 		LoadROM((const WCHAR*)paramLoad);
@@ -235,8 +235,17 @@ int main(int argc, char** argv)
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_VIDEO_OPENGL | SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER) < 0)
 		return 0;
 
-	GetSettings();
+	GetModuleFileName(NULL, UI::startingPath, 512);
+	WCHAR* lastSlash = wcsrchr(UI::startingPath, L'\\');
+	*lastSlash = 0;
+	if (!wcsncmp(lastSlash - 5, L"Debug", 6))
+	{
+		lastSlash = wcsrchr(UI::startingPath, L'\\');
+		*lastSlash = 0;
+	}
 
+	GetSettings();
+	
 	if (Video::Initialize() < 0)
 		return 0;
 
