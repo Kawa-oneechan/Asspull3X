@@ -77,18 +77,18 @@ void GetSettings()
 	ini.LoadFile(UI::settingsFile);
 	UI::fpsCap = ini.GetBoolValue(L"video", L"fpsCap", false);
 	UI::fpsVisible = ini.GetBoolValue(L"video", L"showFps", true);
-	UI::reloadROM = ini.GetBoolValue(L"media", L"reloadRom", false);
-	UI::reloadIMG = ini.GetBoolValue(L"media", L"reloadImg", false);
-	invertButtons = (int)ini.GetBoolValue(L"media", L"invertButtons", false);
-	key2joy = (int)ini.GetBoolValue(L"media", L"key2joy", true);
-	Discord::enabled = ini.GetBoolValue(L"media", L"discord", false);
+	UI::reloadROM = ini.GetBoolValue(L"misc", L"reloadRom", false);
+	UI::reloadIMG = ini.GetBoolValue(L"misc", L"reloadImg", false);
+	invertButtons = (int)ini.GetBoolValue(L"input", L"invertButtons", false);
+	key2joy = (int)ini.GetBoolValue(L"input", L"key2joy", true);
+	Discord::enabled = ini.GetBoolValue(L"misc", L"discord", false);
 
 	EnumResourceLanguages(NULL, RT_MENU, MAKEINTRESOURCE(IDR_MAINMENU), GetLangProc, 0);
-	int langID = (int)ini.GetLongValue(L"media", L"lang", 0);
+	int langID = (int)ini.GetLongValue(L"misc", L"lang", 0);
 	if (langID == 0)
 	{
 		//try as a string
-		auto locStr = ini.GetValue(L"media", L"lang", L"en-us");
+		auto locStr = ini.GetValue(L"misc", L"lang", L"en-us");
 		for (auto &l : langs)
 			if (!_wcsnicmp(locStr, l.code, 2))
 				langID = l.num;
@@ -124,7 +124,7 @@ void GetSettings()
 	}
 	LocalFree(argv);
 
-	rtcOffset = ini.GetLongValue(L"media", L"rtcOffset", 0xDEADC70C);
+	rtcOffset = ini.GetLongValue(L"misc", L"rtcOffset", 0xDEADC70C);
 }
 
 void InitializeDevices()
@@ -204,7 +204,7 @@ void Preload()
 	Log(L"Loading BIOS %s...", thing);
 	Slurp(romBIOS, thing, &biosSize);
 	biosSize = RoundUp(biosSize);
-	thing = ini.GetValue(L"media", L"lastROM", L"");
+	thing = ini.GetValue(L"media", L"rom", L"");
 	if (UI::reloadROM && wcslen(thing) && paramLoad == NULL)
 	{
 		Log(L"Loading ROM %s...", thing);

@@ -245,7 +245,7 @@ namespace UI
 
 		void SetThemeColors()
 		{
-			theme = ini.GetLongValue(L"media", L"theme", 0);
+			theme = ini.GetLongValue(L"misc", L"theme", 0);
 
 			if (theme == 2) //match
 				theme = Windows10::MatchTheme();
@@ -682,7 +682,7 @@ namespace UI
 	void ShowOpenFileDialog(int command, const WCHAR* pattern)
 	{
 		WCHAR thing[FILENAME_MAX] = { 0 };
-		wcscpy_s(thing, FILENAME_MAX, (WCHAR*)ini.GetValue(L"media", L"lastRom", L""));
+		wcscpy_s(thing, FILENAME_MAX, (WCHAR*)ini.GetValue(L"media", L"rom", L""));
 		if (thing[0] == 0)
 		{
 			wcscpy_s(thing, FILENAME_MAX, lastPath);

@@ -93,7 +93,7 @@ void LoadROM(const WCHAR* path)
 		Log(UI::GetString(IDS_BADCHECKSUM), c2, c1); //"Checksum mismatch: is 0x%08X, should be 0x%08X."
 #endif
 
-	ini.SetValue(L"media", L"lastROM", path);
+	ini.SetValue(L"media", L"rom", path);
 	UI::SaveINI();
 
 	char romName[32] = { 0 };
@@ -322,7 +322,7 @@ void MainLoop()
 			{
 				Log(UI::GetString(IDS_UNLOADINGROM)); //"Unloading ROM..."
 				memset(romCartridge, 0, CART_SIZE);
-				ini.SetValue(L"media", L"lastROM", L"");
+				ini.SetValue(L"media", L"rom", L"");
 				UI::SaveINI();
 				UI::SetStatus(IDS_CARTEJECTED); //"Cart pulled."
 				Discord::SetPresence(NULL);
@@ -341,7 +341,7 @@ void MainLoop()
 				{
 					Log(UI::GetString(IDS_UNLOADINGROM)); //"Unloading ROM..."
 					memset(romCartridge, 0, CART_SIZE);
-					ini.SetValue(L"media", L"lastROM", L"");
+					ini.SetValue(L"media", L"rom", L"");
 					UI::SaveINI();
 					Discord::SetPresence(NULL);
 					UI::SetTitle(NULL);

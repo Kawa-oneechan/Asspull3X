@@ -35,7 +35,7 @@ namespace UI
 					SendDlgItemMessage(hWnd, IDC_THEME, CB_ADDSTRING, 0, (LPARAM)GetString(IDS_THEMES + i));
 				if (Presentation::Windows10::IsWin10())
 					SendDlgItemMessage(hWnd, IDC_THEME, CB_ADDSTRING, 0, (LPARAM)GetString(IDS_THEMES + 2));
-				SendDlgItemMessage(hWnd, IDC_THEME, CB_SETCURSEL, ini.GetLongValue(L"media", L"theme", 0), 0);
+				SendDlgItemMessage(hWnd, IDC_THEME, CB_SETCURSEL, ini.GetLongValue(L"misc", L"theme", 0), 0);
 
 				int midiDevs = midiOutGetNumDevs();
 				MIDIOUTCAPS caps = { 0 };
@@ -50,8 +50,8 @@ namespace UI
 				CheckDlgButton(hWnd, IDC_MUSIC, ini.GetBoolValue(L"audio", L"music", true));
 				SendDlgItemMessage(hWnd, IDC_MIDIDEV, CB_SETCURSEL, dev, 0);
 
-				CheckDlgButton(hWnd, IDC_INVERTBUTTONS, ini.GetBoolValue(L"media", L"invertButtons", false));
-				CheckDlgButton(hWnd, IDC_KEY2JOY, ini.GetBoolValue(L"media", L"key2joy", false));
+				CheckDlgButton(hWnd, IDC_INVERTBUTTONS, ini.GetBoolValue(L"input", L"invertButtons", false));
+				CheckDlgButton(hWnd, IDC_KEY2JOY, ini.GetBoolValue(L"input", L"key2joy", false));
 
 				CheckDlgButton(hWnd, IDC_RELOAD, UI::reloadROM);
 				CheckDlgButton(hWnd, IDC_REMOUNT, UI::reloadIMG);
@@ -96,7 +96,7 @@ namespace UI
 			{
 				SetTextColor((HDC)wParam, rgbText);
 				SetBkColor((HDC)wParam, rgbBack);
-				for (int i = 10; i < 14; i++)
+				for (int i = 10; i < 15; i++)
 					if (lParam == (LPARAM)GetDlgItem(hWnd, i))
 						SetTextColor((HDC)wParam, rgbHeader);
 				return (INT_PTR)hbrBack;
@@ -137,7 +137,7 @@ namespace UI
 						WCHAR thePath[FILENAME_MAX] = { 0 };
 						GetWindowText(GetDlgItem(hWnd, IDC_BIOSPATH), thePath, FILENAME_MAX);
 						ini.SetValue(L"media", L"bios", thePath);
-						ini.SetLongValue(L"media", L"theme", SendDlgItemMessage(hWnd, IDC_THEME, CB_GETCURSEL, 0, 0));
+						ini.SetLongValue(L"misc", L"theme", SendDlgItemMessage(hWnd, IDC_THEME, CB_GETCURSEL, 0, 0));
 						ini.SetLongValue(L"audio", L"midiDevice", SendDlgItemMessage(hWnd, IDC_MIDIDEV, CB_GETCURSEL, 0, 0));
 
 						UI::fpsVisible = (IsDlgButtonChecked(hWnd, IDC_SHOWFPS) == 1);
@@ -155,10 +155,10 @@ namespace UI
 						ini.SetBoolValue(L"video", L"stretch200", Video::stretch200);
 						ini.SetBoolValue(L"audio", L"sound", enableSound);
 						ini.SetBoolValue(L"audio", L"music", enableMusic);
-						ini.SetBoolValue(L"media", L"reloadRom", UI::reloadROM);
-						ini.SetBoolValue(L"media", L"reloadImg", UI::reloadIMG);
-						ini.SetBoolValue(L"media", L"invertButtons", invertButtons == 1);
-						ini.SetBoolValue(L"media", L"key2joy", key2joy == 1);
+						ini.SetBoolValue(L"misc", L"reloadRom", UI::reloadROM);
+						ini.SetBoolValue(L"misc", L"reloadImg", UI::reloadIMG);
+						ini.SetBoolValue(L"input", L"invertButtons", invertButtons == 1);
+						ini.SetBoolValue(L"input", L"key2joy", key2joy == 1);
 						ini.SaveFile(settingsFile, false);
 						DestroyWindow(hWnd);
 						Options::hWnd = NULL;

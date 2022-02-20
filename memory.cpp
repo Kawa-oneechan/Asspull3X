@@ -444,7 +444,7 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 				timesetlatch |= value;
 				rtcOffset = (long)(timesetlatch - timelatch);
 				{
-					ini.SetLongValue(L"media", L"rtcOffset", rtcOffset);
+					ini.SetLongValue(L"misc", L"rtcOffset", rtcOffset);
 					UI::SaveINI();
 				}
 				//return (int)timelatch;
