@@ -59,7 +59,12 @@ void Log(WCHAR* message, ...)
 	wprintf(L"\n");
 #endif
 	if (logFile == NULL)
-		logFile = _wfsopen(L"clunibus.log", L"w, ccs=UTF-8", _SH_DENYWR);
+	{
+		WCHAR fileName[FILENAME_MAX];
+		wcscpy(fileName, UI::startingPath);
+		wcscat(fileName, L"\\clunibus.log");
+		logFile = _wfsopen(fileName, L"w, ccs=UTF-8", _SH_DENYWR);
+	}
 	if (logFile)
 	{
 		fwprintf(logFile, buf);
