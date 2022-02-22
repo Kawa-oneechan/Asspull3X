@@ -205,7 +205,7 @@ void Preload()
 	Slurp(romBIOS, thing, &biosSize);
 	biosSize = RoundUp(biosSize);
 	thing = ini.GetValue(L"media", L"rom", L"");
-	if (UI::reloadROM && wcslen(thing) && paramLoad == NULL)
+	if (UI::reloadROM && wcslen(thing) && paramLoad[0] == 0)
 	{
 		Log(L"Loading ROM %s...", thing);
 		LoadROM(thing);
