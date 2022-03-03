@@ -23,10 +23,10 @@ namespace Video
 		{
 			struct
 			{
-				int Horizontal : 10;
-				unsigned int : 2;
-				int Vertical : 9;
-				unsigned int : 3;
+				unsigned int Horizontal : 11;
+				unsigned int : 1;
+				unsigned int Vertical : 11;
+				unsigned int : 1;
 				unsigned int DoubleWidth : 1;
 				unsigned int DoubleHeight : 1;
 				unsigned int FlipHoriz : 1;

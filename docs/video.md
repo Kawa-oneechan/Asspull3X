@@ -67,9 +67,9 @@ Objects are available in all screen modes. Like tilemaps, their graphics are tak
     |____________________ Palette #
 
 
-    PPP2 vhyx ...V VVVV VVVV ..HH HHHH HHHH
-    |  | ||||    |             |___________ Horizontal position
-    |  | ||||    |_________________________ Vertical position
+    PPP2 vhyx .VVV VVVV VVVV .HHH HHHH HHHH
+    |  | ||||  |              |____________ Horizontal position
+    |  | ||||  |___________________________ Vertical position
     |  | ||||______________________________ Double width
     |  | |||_______________________________ Double height
     |  | ||________________________________ Horizontal flip
