@@ -129,6 +129,7 @@ unsigned int DiskDrive::Read(unsigned int address)
 			ret |= (file == NULL) ? 0 : 1;
 			return ret;
 		}
+		case 0x05: return type;
 		case 0x10: return tracks >> 8;
 		case 0x11: return tracks & 0xFF;
 		case 0x12: return heads >> 8;
