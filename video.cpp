@@ -23,10 +23,10 @@ namespace Video
 		{
 			struct
 			{
-				unsigned int Horizontal : 11;
+				signed int Horizontal : 11;
 				unsigned int : 1;
-				unsigned int Vertical : 11;
-				unsigned int : 1;
+				signed int Vertical : 10;
+				unsigned int : 2;
 				unsigned int DoubleWidth : 1;
 				unsigned int DoubleHeight : 1;
 				unsigned int FlipHoriz : 1;
@@ -136,10 +136,8 @@ namespace Video
 			if (withPriority > -1 && objB.Priority != withPriority)
 				continue;
 
-			short hPos = objB.Horizontal;
-			short vPos = objB.Vertical;
-			if (Registers::ScreenMode.HalfWidth) hPos *= 2;
-			if (Registers::ScreenMode.HalfHeight) vPos *= 2;
+			short hPos = objB.Horizontal * (Registers::ScreenMode.HalfWidth ? 2 : 1);
+			short vPos = objB.Vertical * (Registers::ScreenMode.HalfHeight ? 2 : 1);
 
 			short tileHeight = 1;
 			if (objB.DoubleHeight) tileHeight *= 2;
