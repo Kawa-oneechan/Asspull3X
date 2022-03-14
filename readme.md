@@ -7,6 +7,7 @@ To actually *use* this, ROM files are included and more up-to-date copies can be
 * OpenGL shader thing based on [an example by Augusto Ruiz](https://github.com/AugustoRuiz/sdl2glsl).
 * PAL Composite shader by Viacheslav Slavinsky.
 * CRT shader by Timothy Lottes.
+* French localization help by Thomas_⑨.
 * miniz library by Rich Geldreich.
 * SimpleIni library by Brodie Thiesfield.
 
