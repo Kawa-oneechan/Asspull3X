@@ -94,7 +94,7 @@ First, *write* anything to the joypad register you want to poll.
     First read:  YXBA RLDU   -- the D-pad and action buttons
     Second read: .... RLSB   -- Back, Start, left and right shoulder buttons
     Third read:  signed byte -- Analog stick up/down
-    Fourth read: signed btye -- Analog stick left/right
+    Fourth read: signed byte -- Analog stick left/right
 
 Different connected joypads *may not* have all features. You should always write to reset before reading, or you *will* misinterpret inputs.
 
