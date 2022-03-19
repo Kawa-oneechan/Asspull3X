@@ -235,6 +235,10 @@ void MainLoop()
 					case SDLK_v: joypad[2] |= 8; break;
 					}
 				}
+				else if (ev.key.repeat)
+				{
+					inputDev->Enqueue(ev.key.keysym);
+				}
 				break;
 			}
 			case SDL_KEYUP:
@@ -276,6 +280,10 @@ void MainLoop()
 						else if (pauseState == 2)
 							pauseState = 0;
 					}
+				}
+				else
+				{
+					inputDev->Enqueue(ev.key.keysym);
 				}
 				break;
 			}

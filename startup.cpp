@@ -129,8 +129,11 @@ void GetSettings()
 
 void InitializeDevices()
 {
-	//Absolutely always load a disk drive as #0
-	for (int i = 0; i < MAXDEVS; i++)
+	//Absolutely always load Input as #0
+	inputDev = new InputDevice();
+	devices[0] = (Device*)inputDev;
+
+	for (int i = 1; i < MAXDEVS; i++)
 	{
 		WCHAR key[32];
 		WCHAR dft[64] = { 0 };

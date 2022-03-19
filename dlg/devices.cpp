@@ -13,7 +13,7 @@ namespace UI
 
 		void UpdatePage()
 		{
-			int devNum = SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_GETCURSEL, 0, 0);
+			int devNum = SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_GETCURSEL, 0, 0) + 1;
 			auto device = devices[devNum];
 
 			//Don't allow changing device #0 from disk drive
@@ -72,12 +72,12 @@ namespace UI
 			WCHAR item[64] = { 0 };
 			SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_RESETCONTENT, 0, 0);
 			numDrives = 0;
-			for (int i = 0; i < MAXDEVS; i++)
+			for (int i = 1; i < MAXDEVS; i++)
 			{
 				int icon = 0;
 				if (devices[i] == NULL)
 				{
-					wsprintf(item, L"%d. %s", i + 1, GetString(IDS_DEVICES1 + 0)); //"Nothing"
+					wsprintf(item, L"%d. %s", i, GetString(IDS_DEVICES1 + 0)); //"Nothing"
 					icon = IML_CROSS;
 				}
 				else
@@ -87,19 +87,19 @@ namespace UI
 					case 0x0144:
 						if (((DiskDrive*)devices[i])->GetType() == ddDiskette)
 						{
-							wsprintf(item, L"%d. %s", i + 1, GetString(IDS_DEVICES1 + 1)); //"Diskette drive"
+							wsprintf(item, L"%d. %s", i, GetString(IDS_DEVICES1 + 1)); //"Diskette drive"
 							icon = IML_DISKDRIVE;
 							numDrives++;
 						}
 						else
 						{
-							wsprintf(item, L"%d. %s", i + 1, GetString(IDS_DEVICES1 + 2)); //"Hard drive"
+							wsprintf(item, L"%d. %s", i, GetString(IDS_DEVICES1 + 2)); //"Hard drive"
 							icon = IML_HARDDRIVE;
 							numDrives++;
 						}
 						break;
 					case 0x4C50:
-						wsprintf(item, L"%d. %s", i + 1, GetString(IDS_DEVICES1 + 3)); //"Line printer"
+						wsprintf(item, L"%d. %s", i, GetString(IDS_DEVICES1 + 3)); //"Line printer"
 						icon = IML_PRINTER;
 						break;
 					}
@@ -114,7 +114,7 @@ namespace UI
 
 		void SwitchDevice()
 		{
-			int devNum = SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_GETCURSEL, 0, 0);
+			int devNum = SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_GETCURSEL, 0, 0) + 1;
 			int newType = SendDlgItemMessage(hWnd, IDC_DEVTYPE, CB_GETCURSEL, 0, 0);
 
 			int oldType = 0;

@@ -28,7 +28,6 @@ unsigned char* ramVideo = NULL;
 
 unsigned int biosSize = 0, romSize = 0;
 
-int keyScan;
 char joypad[4];
 char joyaxes[4];
 int joylatch[2];
@@ -122,11 +121,6 @@ unsigned int m68k_read_memory_8(unsigned int address)
 			case 0x00: //Interrupts
 				return interrupts;
 			case 0x01: //Screen Mode
-				//return (Video::gfxMode |
-				//	(Video::gfxTextBlink ? 1 << 4 : 0) |
-				//	(Video::gfx240 ? 1 << 5 : 0) |
-				//	(Video::gfx320 ? 1 << 6 : 0) |
-				//	(Video::gfxTextBold ? 1 << 7 : 0));
 				return Registers::ScreenMode.Raw;
 			case 0x08: //ScreenFade
 				return Registers::Fade;
@@ -198,10 +192,11 @@ unsigned int m68k_read_memory_16(unsigned int address)
 			case 0x1E:
 				return Registers::ScrollY[min((reg - 0x12) / 4, 4)];
 			case 0x40: //Keyscan
-				keyScan = PollKeyboard(false);
-				return keyScan;
+				//DEPRECATED: remove this when new keyboard is done.
+				return m68k_read_memory_16(DEVS_ADDR + 0x02);
 			case 0x50: //Mouse
 			{
+				//TODO: move this into InputDevice.
 				POINT pos;
 				if (lastMouseX == -1000)
 				{
@@ -286,11 +281,6 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				interrupts = value;
 				break;
 			case 0x01: //ScreenMode
-				//Video::gfxTextBold = ((u8 >> 7) & 1) == 1;
-				//Video::gfx320 = ((u8 >> 6) & 1) == 1;
-				//Video::gfx240 = ((u8 >> 5) & 1) == 1;
-				//Video::gfxTextBlink = ((u8 >> 4) & 1) == 1;
-				//Video::gfxMode = u8 & 0x0F;
 				Registers::ScreenMode.Raw = u8;
 				break;
 			case 0x08: //ScreenFade
@@ -437,7 +427,6 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 				if ((signed int)value == -1)
 					value = 0;
 				timesetlatch = value;
-				//return (int)(timelatch >> 32);
 				break;
 			case 0x64: //Time_T (bottom half)
 				timesetlatch <<= 32;
@@ -447,7 +436,6 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 					ini.SetLongValue(L"misc", L"rtcOffset", rtcOffset);
 					UI::SaveINI();
 				}
-				//return (int)timelatch;
 				break;
 			case 0x70: //PCM Offset
 			case 0x74:

@@ -1,5 +1,7 @@
 #include "asspull.h"
 
+InputDevice* inputDev;
+
 #define POLLDELAY 10
 
 static unsigned int lastPollTime = 0;
@@ -132,4 +134,81 @@ unsigned int PollKeyboard(bool force)
 	if (mods & KMOD_RCTRL) lastPollResult = 0; //reserved for the UI
 	lastPollTime = newPollTime;
 	return lastPollResult;
+}
+
+
+InputDevice::InputDevice()
+{
+	bufferCursor = 0;
+	for (int i = 0; i < 32; i++)
+		buffer[i] = 0;
+}
+
+InputDevice::~InputDevice()
+{
+}
+
+unsigned int InputDevice::Read(unsigned int address)
+{
+	switch (address)
+	{
+	case 0x00: return 0x49;
+	case 0x01: return 0x4F;
+	case 0x02:
+	case 0x03:
+	{
+		unsigned int key = 0;
+
+		if (bufferCursor)
+		{
+			key = buffer[0];
+			if (address == 0x03)
+			{
+				for (int i = 0; i < 31; i++)
+					buffer[i] = buffer[i + 1];
+				buffer[bufferCursor] = 0;
+				bufferCursor--;
+			}
+		}
+
+		if (address == 0x02) return key >> 8;
+		else return key & 0xFF;
+	}
+	}
+	if (address >= 0x10 && address < 0x110)
+	{
+		const unsigned char *keys = ::SDL_GetKeyboardState(0);
+		return keys[address - 0x10];
+	}
+	return 0;
+}
+
+void InputDevice::Write(unsigned int address, unsigned int value)
+{
+	return;
+}
+
+int InputDevice::GetID() { return 0x494F; }
+
+void InputDevice::Enqueue(SDL_Keysym sym)
+{
+	if (sym.scancode == SDL_SCANCODE_RCTRL) return;
+	if (sym.scancode == SDL_SCANCODE_RALT) return;
+	if (sym.scancode == SDL_SCANCODE_RSHIFT) return;
+	if (sym.scancode == SDL_SCANCODE_LCTRL) return;
+	if (sym.scancode == SDL_SCANCODE_LALT) return;
+	if (sym.scancode == SDL_SCANCODE_LSHIFT) return;
+
+	if (bufferCursor == 32)
+	{
+		wprintf(L"\x07");
+		return;
+	}
+
+	unsigned int key = keyMap[sym.scancode];
+	if (sym.mod & KMOD_SHIFT) key |= 0x100;
+	if (sym.mod & KMOD_ALT) key |= 0x200;
+	if (sym.mod & KMOD_LCTRL) key |= 0x400;
+	if (sym.mod & KMOD_RCTRL) key = 0; //reserved for the UI
+	buffer[bufferCursor++] = key;
 }

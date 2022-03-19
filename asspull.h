@@ -137,7 +137,7 @@ namespace UI
 	}
 }
 
-extern int keyScan;
+//Move these into InputDevice?
 extern char joypad[4];
 extern char joyaxes[4];
 
@@ -413,7 +413,22 @@ public:
 	int GetID();
 };
 
+class InputDevice : Device
+{
+private:
+	unsigned int buffer[32];
+	unsigned int bufferCursor;
+public:
+	InputDevice(void);
+	~InputDevice(void);
+	unsigned int Read(unsigned int address);
+	void Write(unsigned int address, unsigned int value);
+	int GetID();
+	void Enqueue(SDL_Keysym sym);
+};
+
 extern Device* devices[MAXDEVS];
+extern InputDevice* inputDev;
 
 namespace Discord
 {
