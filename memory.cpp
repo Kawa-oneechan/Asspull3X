@@ -41,8 +41,6 @@ void HandleBlitter(unsigned int function);
 unsigned int blitLength;
 int blitAddrA, blitAddrB, blitKey;
 
-extern unsigned int PollKeyboard(bool force);
-
 long ticks = 0;
 time_t timelatch, timesetlatch;
 long rtcOffset = 0;
@@ -191,9 +189,6 @@ unsigned int m68k_read_memory_16(unsigned int address)
 			case 0x1A:
 			case 0x1E:
 				return Registers::ScrollY[min((reg - 0x12) / 4, 4)];
-			case 0x40: //Keyscan
-				//DEPRECATED: remove this when new keyboard is done.
-				return m68k_read_memory_16(DEVS_ADDR + 0x02);
 			case 0x50: //Mouse
 			{
 				//TODO: move this into InputDevice.

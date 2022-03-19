@@ -2,11 +2,6 @@
 
 InputDevice* inputDev;
 
-#define POLLDELAY 10
-
-static unsigned int lastPollTime = 0;
-static int lastPollResult = 0;
-
 const unsigned char keyMap[] =
 {
 	0x00,
@@ -111,32 +106,6 @@ const unsigned char keyMap[] =
 	0x53, //kp.
 };
 
-unsigned int PollKeyboard(bool force)
-{
-	auto newPollTime = SDL_GetTicks();
-	if (!force && newPollTime < lastPollTime + POLLDELAY)
-		return lastPollResult;
-	SDL_PumpEvents();
-	const unsigned char *keys = SDL_GetKeyboardState(0);
-	lastPollResult = 0;
-	for (auto i = 0; i < 100; i++)
-	{
-		if (keys[i] == 1)
-		{
-			lastPollResult = keyMap[i];
-			break;
-		}
-	}
-	auto mods = SDL_GetModState();
-	if (mods & KMOD_SHIFT) lastPollResult |= 0x100;
-	if (mods & KMOD_ALT) lastPollResult |= 0x200;
-	if (mods & KMOD_LCTRL) lastPollResult |= 0x400;
-	if (mods & KMOD_RCTRL) lastPollResult = 0; //reserved for the UI
-	lastPollTime = newPollTime;
-	return lastPollResult;
-}
-
-
 InputDevice::InputDevice()
 {
 	bufferCursor = 0;
@@ -155,30 +124,40 @@ unsigned int InputDevice::Read(unsigned int address)
 	case 0x00: return 0x49;
 	case 0x01: return 0x4F;
 	case 0x02:
-	case 0x03:
 	{
 		unsigned int key = 0;
 
 		if (bufferCursor)
 		{
 			key = buffer[0];
-			if (address == 0x03)
-			{
-				for (int i = 0; i < 31; i++)
-					buffer[i] = buffer[i + 1];
-				buffer[bufferCursor] = 0;
-				bufferCursor--;
-			}
+			for (int i = 0; i < 31; i++)
+				buffer[i] = buffer[i + 1];
+			buffer[bufferCursor] = 0;
+			bufferCursor--;
 		}
-
-		if (address == 0x02) return key >> 8;
-		else return key & 0xFF;
+		return key & 0xFF;
 	}
-	}
-	if (address >= 0x10 && address < 0x110)
+	case 0x03:
 	{
+		unsigned int key = 0;
+		auto mods = SDL_GetModState();
+		if (mods & KMOD_SHIFT) key |= 0x01;
+		if (mods & KMOD_ALT) key |= 0x02;
+		if (mods & KMOD_LCTRL) key |= 0x04;
+		//if (mods & KMOD_RCTRL) key = 0; //reserved for the UI
+		return key;
+	}
+	}
+	if (address >= 0x40 && address < 0x140)
+	{
+		bufferCursor = 0;
 		const unsigned char *keys = ::SDL_GetKeyboardState(0);
-		return keys[address - 0x10];
+		if (address - 0x40 == 77) return keys[SDL_SCANCODE_LSHIFT] | keys[SDL_SCANCODE_RSHIFT];
+		if (address - 0x40 == 78) return keys[SDL_SCANCODE_LALT] | keys[SDL_SCANCODE_RALT];
+		if (address - 0x40 == 79) return keys[SDL_SCANCODE_LCTRL];
+		for (int i = 0; i < 100; i++)
+			if (keyMap[i] == address - 0x40)
+				return keys[i];
 	}
 	return 0;
 }

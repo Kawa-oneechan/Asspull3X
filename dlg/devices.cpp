@@ -298,13 +298,13 @@ namespace UI
 				}
 				else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_DDINSERT)
 				{
-					int devID = SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_GETCURSEL, 0, 0);
+					int devID = SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_GETCURSEL, 0, 0) + 1;
 					InsertDisk(devID);
 					return true;
 				}
 				else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_DDEJECT)
 				{
-					int devID = SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_GETCURSEL, 0, 0);
+					int devID = SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_GETCURSEL, 0, 0) + 1;
 					EjectDisk(devID);
 				}
 				else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDOK)
