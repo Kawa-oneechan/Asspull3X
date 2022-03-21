@@ -64,6 +64,29 @@ The above is repeated on `0016`-`0019` for the second gamepad.
 
 A list of 256 individual bytes reflecting the state of up to 256 individual keys.
 
+#### Key map
+
+|      | x0   | x1   | x2   | x3   | x4   | x5   | x6   | x7   | x8   | x9    | xA   | xB   | xC   | xD   | xE   | xF   |
+| ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ----- | ---- | ---- | ---- | ---- | ---- | ---- |
+| 0x   |      | Esc  | 1    | 2    | 3    | 4    | 5    | 6    | 7    | 8     | 9    | 0    | -    | =    | Back | Tab  |
+| 1x   | Q    | W    | E    | R    | T    | Y    | U    | I    | O    | P     | [    | ]    | Retn | CpLk | A    | S    |
+| 2x   | D    | F    | G    | H    | J    | K    | L    | ;    | '    | `     |      | \    | Z    | X    | C    | V    |
+| 3x   | B    | N    | M    | ,    | .    | /    |      | KP*  |      | Space |      | F1   | F2   | F3   | F4   | F5   |
+| 4x   | F6   | F7   | F8   | F9   | F10  | NmLk | ScLk | KP7  | KP8  | KP9   | KP-  | KP4  | KP5  | KP6  | KP+  | KP1  |
+| 5x   | KP2  | KP3  | KP0  | KP.  |      |      |      | F11  | F12  |       |      |      |      |      |      |      |
+| 6x   |      |      |      |      |      |      |      |      |      |       |      |      |      |      |      |      |
+| 7x   |      |      |      |      |      |      |      |      |      |       |      |      |      |      |      |      |
+| 8x   |      |      |      |      |      |      |      |      |      |       |      |      |      |      |      |      |
+| 9x   |      |      |      |      |      |      |      |      |      |       |      |      | KPEn |      |      |      |
+| Ax   |      |      |      |      |      |      |      |      |      |       |      |      |      |      |      |      |
+| Bx   |      |      |      |      |      | KP/  |      |      |      |       |      |      |      |      |      |      |
+| Cx   |      |      |      |      |      |      |      | Home |      | PgUp  |      | Up   |      | Left |      | End  |
+| Dx   | Down | PgDn | Ins  | Del  |      |      |      |      |      |       |      |      |      |      |      |      |
+| Ex   |      |      |      |      |      |      |      |      |      |       |      |      |      |      |      |      |
+| Fx   |      |      |      |      |      |      |      |      |      |       |      |      |      |      |      |      |
+
+
+
 ### Disk drive
 
 #### 0000	Identifier
