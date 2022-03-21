@@ -390,6 +390,8 @@ void MainLoop()
 			{
 				HandleHdma(line);
 				Video::RenderLine(line);
+				for (int i = 0; i < MAXDEVS; i++)
+					if (devices[i] != NULL) devices[i]->HBlank();
 			}
 			m68k_execute(hBlankLasts);
 			if (line == lines)
@@ -407,6 +409,8 @@ void MainLoop()
 				}
 				UI::Update();
 				Video::VBlank();
+				for (int i = 0; i < MAXDEVS; i++)
+					if (devices[i] != NULL) devices[i]->VBlank();
 
 				if (!startTime)
 					startTime = SDL_GetTicks();

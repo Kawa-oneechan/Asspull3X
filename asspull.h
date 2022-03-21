@@ -373,6 +373,8 @@ public:
 	virtual unsigned int Read(unsigned int address);
 	virtual void Write(unsigned int address, unsigned int value);
 	virtual int GetID();
+	virtual void HBlank();
+	virtual void VBlank();
 };
 
 class DiskDrive : Device
@@ -393,6 +395,8 @@ public:
 	unsigned int Read(unsigned int address);
 	void Write(unsigned int address, unsigned int value);
 	int GetID();
+	void HBlank();
+	void VBlank();
 	int GetType();
 	bool IsMounted();
 };
@@ -402,7 +406,6 @@ enum diskDriveTypes
 	ddHardDisk,
 };
 
-
 class LinePrinter : Device
 {
 public:
@@ -411,6 +414,8 @@ public:
 	unsigned int Read(unsigned int address);
 	void Write(unsigned int address, unsigned int value);
 	int GetID();
+	void HBlank();
+	void VBlank();
 };
 
 class InputDevice : Device
@@ -426,6 +431,8 @@ public:
 	unsigned int Read(unsigned int address);
 	void Write(unsigned int address, unsigned int value);
 	int GetID();
+	void HBlank();
+	void VBlank();
 	void Enqueue(SDL_Keysym sym);
 };
 

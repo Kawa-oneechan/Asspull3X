@@ -108,6 +108,7 @@
   <ItemGroup>
     <ClCompile Include="device.cpp" />
     <ClCompile Include="discord.cpp" />
+    <ClCompile Include="diskdrive.cpp" />
     <ClCompile Include="dlg\about.cpp" />
     <ClCompile Include="dlg\devices.cpp" />
     <ClCompile Include="dlg\memviewer.cpp" />

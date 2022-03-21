@@ -1,6 +1,8 @@
 #include "asspull.h"
 
 InputDevice* inputDev;
+char joypad[4];
+char joyaxes[4];
 
 const unsigned char keyMap[] =
 {
@@ -111,7 +113,8 @@ InputDevice::InputDevice()
 	bufferCursor = 0;
 	for (int i = 0; i < 32; i++)
 		buffer[i] = 0;
-	lastMouseX = -1000;
+	lastMouseX = lastMouseY = 0;
+	mouseLatch = 0;
 }
 
 InputDevice::~InputDevice()
@@ -177,37 +180,7 @@ unsigned int InputDevice::Read(unsigned int address)
 	case 0x19: //Gamepad 2 analog 2
 		return joyaxes[3];
 	case 0x20: //Mouse
-	{
-		POINT pos;
-		if (lastMouseX == -1000)
-		{
-			GetCursorPos(&pos);
-			lastMouseX = pos.x;
-			lastMouseY = pos.y;
-		}
-
-		int newX, newY, b;
-		GetCursorPos(&pos);
-		newX = pos.x;
-		newY = pos.y;
-		b = (!!GetAsyncKeyState(VK_LBUTTON)) | (!!GetAsyncKeyState(VK_RBUTTON) << 2);
-
-		int x = newX - lastMouseX;
-		int y = newY - lastMouseY;
-		int dx = x < 0;
-		int dy = y < 0;
-		if (x < 0) x = -x;
-		if (y < 0) y = -y;
-
-		lastMouseX = newX;
-		lastMouseY = newY;
-
-		if (UI::mouseTimer == -1)
-			UI::mouseTimer = 3 * 60;
-
-		mouseLatch = ((b & 1) << 14) | ((b & 4) << 13) | (dy << 13) | (y << 7) | (dx << 6) | x;
 		return (mouseLatch >> 8) & 0xFF;
-	}
 	case 0x21:
 		return mouseLatch & 0xFF;
 	}
@@ -231,6 +204,34 @@ void InputDevice::Write(unsigned int address, unsigned int value)
 }
 
 int InputDevice::GetID() { return 0x494F; }
+
+void InputDevice::HBlank() {}
+
+void InputDevice::VBlank()
+{
+	POINT pos;
+
+	int newX, newY, b;
+	GetCursorPos(&pos);
+	newX = pos.x;
+	newY = pos.y;
+	b = (!!GetAsyncKeyState(VK_LBUTTON)) | (!!GetAsyncKeyState(VK_RBUTTON) << 2);
+
+	int x = newX - lastMouseX;
+	int y = newY - lastMouseY;
+	int dx = x < 0;
+	int dy = y < 0;
+	if (x < 0) x = -x;
+	if (y < 0) y = -y;
+
+	lastMouseX = newX;
+	lastMouseY = newY;
+
+	if (UI::mouseTimer == -1)
+		UI::mouseTimer = 3 * 60;
+
+	mouseLatch = ((b & 1) << 14) | ((b & 4) << 13) | (dy << 13) | (y << 7) | (dx << 6) | x;
+}
 
 void InputDevice::Enqueue(SDL_Keysym sym)
 {
