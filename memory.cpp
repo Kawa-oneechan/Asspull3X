@@ -28,10 +28,6 @@ unsigned char* ramVideo = NULL;
 
 unsigned int biosSize = 0, romSize = 0;
 
-char joypad[4];
-char joyaxes[4];
-int joylatch[2];
-
 int dmaSource, dmaTarget;
 unsigned int dmaLength;
 bool hdmaOn[8], hdmaDouble[8];
@@ -44,8 +40,6 @@ int blitAddrA, blitAddrB, blitKey;
 long ticks = 0;
 time_t timelatch, timesetlatch;
 long rtcOffset = 0;
-
-int lastMouseX = -1000, lastMouseY;
 
 extern int scale, offsetX, offsetY, statusBarHeight;
 
@@ -124,23 +118,6 @@ unsigned int m68k_read_memory_8(unsigned int address)
 				return Registers::Fade;
 			case 0x09: //TilemapSet
 				return Registers::MapSet.Raw;
-			case 0x42: //Joypad
-			case 0x43:
-				switch (joylatch[reg - 0x42])
-				{
-				case 0:
-					joylatch[reg - 0x42]++;
-					return joypad[reg - 0x42];
-				case 1:
-					joylatch[reg - 0x42]++;
-					return joypad[(reg - 0x42) + 2];
-				case 2:
-					joylatch[reg - 0x42]++;
-					return joyaxes[(reg - 0x42) * 2 + 0];
-				case 3:
-					joylatch[reg - 0x42] = 0;//++;
-					return joyaxes[(reg - 0x42) * 2 + 1];
-				}
 		}
 		return 0;
 	}
@@ -189,40 +166,6 @@ unsigned int m68k_read_memory_16(unsigned int address)
 			case 0x1A:
 			case 0x1E:
 				return Registers::ScrollY[min((reg - 0x12) / 4, 4)];
-			case 0x50: //Mouse
-			{
-				//TODO: move this into InputDevice.
-				POINT pos;
-				if (lastMouseX == -1000)
-				{
-					GetCursorPos(&pos);
-					lastMouseX = pos.x;
-					lastMouseY = pos.y;
-				}
-				//	SDL_GetMouseState(&lastMouseX, &lastMouseY);
-
-				int newX, newY, b;
-				GetCursorPos(&pos);
-				newX = pos.x;
-				newY = pos.y;
-				b = (!!GetAsyncKeyState(VK_LBUTTON)) | (!!GetAsyncKeyState(VK_RBUTTON) << 2);
-				//b = SDL_GetMouseState(&newX, &newY);
-
-				int x = newX - lastMouseX;
-				int y = newY - lastMouseY;
-				int dx = x < 0;
-				int dy = y < 0;
-				if (x < 0) x = -x;
-				if (y < 0) y = -y;
-
-				lastMouseX = newX;
-				lastMouseY = newY;
-
-				if (UI::mouseTimer == -1)
-					UI::mouseTimer = 3 * 60;
-
-				return ((b & 1) << 14) | ((b & 4) << 13) | (dy << 13) | (y << 7) | (dx << 6) | x;
-			}
 			case 0x54:
 				return Registers::Caret;
 		}
@@ -286,11 +229,6 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				break;
 			case 0x0A: //TilemapBlend
 				Registers::MapBlend.Raw = value;
-				break;
-			case 0x42: //Joypads
-			case 0x43:
-				//TODO: decide on a poll value?
-				joylatch[reg - 0x42] = 0;
 				break;
 			case 0x44: //MIDI Out
 				Sound::SendMidiByte(value);

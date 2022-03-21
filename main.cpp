@@ -217,7 +217,8 @@ void MainLoop()
 			}
 			case SDL_KEYDOWN:
 			{
-				if (key2joy)
+				bool k2joyed = true;
+				if (key2joy && !(ev.key.keysym.mod & KMOD_RCTRL))
 				{
 					switch (ev.key.keysym.sym)
 					{
@@ -233,7 +234,9 @@ void MainLoop()
 					case SDLK_f: joypad[2] |= 2; break;
 					case SDLK_c: joypad[2] |= 4; break;
 					case SDLK_v: joypad[2] |= 8; break;
+					default: k2joyed = false;
 					}
+					if (k2joyed) break;
 				}
 				else if (ev.key.repeat)
 				{
@@ -243,7 +246,8 @@ void MainLoop()
 			}
 			case SDL_KEYUP:
 			{
-				if (key2joy)
+				bool k2joyed = true;
+				if (key2joy && !(ev.key.keysym.mod & KMOD_RCTRL))
 				{
 					switch (ev.key.keysym.sym)
 					{
@@ -259,7 +263,9 @@ void MainLoop()
 					case SDLK_f: joypad[2] &= ~2; break;
 					case SDLK_c: joypad[2] &= ~4; break;
 					case SDLK_v: joypad[2] &= ~8; break;
+					default: k2joyed = false;
 					}
+					if (k2joyed) break;
 				}
 				if (ev.key.keysym.mod & KMOD_RCTRL)
 				{

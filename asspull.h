@@ -418,6 +418,8 @@ class InputDevice : Device
 private:
 	unsigned int buffer[32];
 	unsigned int bufferCursor;
+	int lastMouseX, lastMouseY;
+	unsigned int mouseLatch;
 public:
 	InputDevice(void);
 	~InputDevice(void);

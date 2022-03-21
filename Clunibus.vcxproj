@@ -116,7 +116,7 @@
     <ClCompile Include="dlg\shaders.cpp" />
     <ClCompile Include="dlg\tileviewer.cpp" />
     <ClCompile Include="extras.cpp" />
-    <ClCompile Include="keyboard.cpp" />
+    <ClCompile Include="input.cpp" />
     <ClCompile Include="memory.cpp" />
     <ClCompile Include="miniz.c" />
     <ClCompile Include="musashi\m68kcpu.c" />
