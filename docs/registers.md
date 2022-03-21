@@ -77,29 +77,6 @@ Scroll values for the tile map as `int16`. This repeats for each of the four lay
 
 *The tile map controls are a work in progress.*
 
-### 00040	REG_KEYIN
-
-    .... .CAS KKKK KKKK
-          ||| |__________ Keycode
-          |||____________ Shift
-          ||_____________ Alt
-          |______________ Control
-
-### 00042	REG_JOYPAD1
-
-### 00043	REG_JOYPAD2
-
-First, *write* anything to the joypad register you want to poll.
-
-    First read:  YXBA RLDU   -- the D-pad and action buttons
-    Second read: .... RLSB   -- Back, Start, left and right shoulder buttons
-    Third read:  signed byte -- Analog stick up/down
-    Fourth read: signed byte -- Analog stick left/right
-
-Different connected joypads *may not* have all features. You should always write to reset before reading, or you *will* misinterpret inputs.
-
-The joypads are also available via the `JOYPADS` array, and the first one as `REG_JOYPAD`.
-
 ### 00044	REG_MIDIOUT
 
 Send a byte through the MIDI OUT port.
@@ -111,15 +88,6 @@ Sends a register-value pair to the OPL3/YMF262.
     RRRR RRRR VVVV VVVV
     |         |__________ Value
     |____________________ Register
-
-### 00050	REG_MOUSE
-
-    RLyY YYYY YxXX XXXX
-    |||       ||      |__ Horizontal displacement
-    |||       ||_________ Horizontal sign
-    |||       |__________ Vertical displacement
-    |||__________________ Vertical sign
-    ||___________________ Buttons
 
 ### 00054	REG_CARET
 

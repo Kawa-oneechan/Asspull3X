@@ -26,13 +26,13 @@ Device memory is divided into sixteen blocks of `0x8000` bytes, or 32 kibibytes 
 
 Video memory is subdivided into the following regions:
 
-| address  | content|
-| -------- | --------|
-| 0E000000 | Text, bitmap, and tile map data |
-| 0E050000 | Tile graphics|
-| 0E060000 | Palette data|
-| 0E060200 | Font graphics|
-| 0E064000 | Object tile and palette data|
-| 0E064200 | Objection position and priority data|
+| address  | content                              |
+| -------- | ------------------------------------ |
+| 0E000000 | Text, bitmap, and tile map data      |
+| 0E050000 | Tile graphics                        |
+| 0E060000 | Palette data                         |
+| 0E060400 | Font graphics                        |
+| 0E064000 | Object tile and palette data         |
+| 0E064200 | Objection position and priority data |
 
 Please refer to the [Video guide](video.md) for details.

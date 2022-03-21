@@ -9,7 +9,7 @@ The *Asspull IIIx* supports four different screen modes:
 
 ## Color palette
 
-In all four modes, the palette can be freely manipulated. It is a single array of 256 16-bit values in the same basic format as on the Super NES, but with the byte order adjusted for use on a Motorola. It is stored at `0E060000` and can be accessed with the `PALETTE` define.
+In all four modes, the palette can be freely manipulated. It is a single array of 512 16-bit values in the same basic format as on the Super NES, but with the byte order adjusted for use on a Motorola. It is stored at `0E060000` and can be accessed with the `PALETTE` define. The first 256 colors are used for backgrounds in all screen modes, the other half are for sprites to use.
 
 ### Examples
 

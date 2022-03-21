@@ -2,9 +2,77 @@
 
 Each of the sixteen blocks of `8000` bytes starting from `2000000` may or may not map to a device. The first two bytes of each block identify what kind of device it is. If those bytes are the value `0000` or `FFFF` there is no device.
 
+### Input devices
+
+The input device is hard wired as device #0. As such, it can safely have its components defined.
+
+#### 0000	Identifier
+
+The input device identifies by the value `494F`, for "IO", even though it's only input.
+
+#### 0002	INP_KEYIN
+
+Returns the last key pressed, or `00` if the input buffer is empty. This also pops the key out of the buffer.
+
+#### 0003	INP_KEYSHIFT
+
+Returns the state of the control, alt, and shift keys.
+
+    .... .CAS
+          |||__ Shift key is held
+          ||___ Alt key is held
+          |____ Control key is held
+
+#### 0010	INP_JOYSTATES
+
+Returns the availability and type of the two gamepads.
+
+    2222 1111
+    |    |_____ Type of the first gamepad
+    |__________ Type of the second gamepad
+
+0. Not attached
+1. Digital input only
+2. Analog sticks
+
+#### 0012	INP_JOYPAD1
+
+    .... RLSB YXBA RLDU
+         | || |    |_____ Directions
+         | || |__________ Action buttons
+         | ||____________ Back/Select
+         | |_____________ Start
+         |_______________ Shoulder buttons
+
+#### 0014	INP_JOYSTK1H
+#### 0015	INP_JOYSTK1V
+
+Analog stick movements are reported as a signed byte value.
+
+The above is repeated on `0016`-`0019` for the second gamepad.
+
+#### 0020	INP_MOUSE
+
+    RLyY YYYY YxXX XXXX
+    |||       ||      |__ Horizontal displacement
+    |||       ||_________ Horizontal sign
+    |||       |__________ Vertical displacement
+    |||__________________ Vertical sign
+    ||___________________ Buttons
+
+#### 0040	INP_KEYMAP
+
+A list of 256 individual bytes reflecting the state of up to 256 individual keys.
+
 ### Disk drive
 
-The disk drive is identified by the value `0144`.  The next `uint16` value selects which sector to read or write (IO register `00030` before) and the next byte controls the device (`00032` before):
+#### 0000	Identifier
+
+Disk drives identify by the value `0144`, as in "1.44 MB", even if it's a hard disk drive.
+
+#### 0002	Sector number
+
+#### 0004	Control
 
     ...B WREP
        | ||||__ Disk present (read only)
@@ -13,8 +81,26 @@ The disk drive is identified by the value `0144`.  The next `uint16` value selec
        | |_____ Write now
        |_______ Busy state (read only)
 
-From the 512th byte on, another 512 bytes form the disk controller's internal RAM, used to hold a sector's worth of data to read or write. That leaves plenty room for expansion.
+#### 0005	Drive type
+
+Returns 0 if this is a diskette drive, 1 if it's a hard drive.
+
+#### 0010	Tracks
+#### 0012	Heads
+#### 0014	Sectors
+
+Read only, return the disk geometry.
+
+#### 0200	Sector buffer
+
+The sector buffer comprises 512 bytes of the disk controller's internal RAM, used to hold a sector's worth of data to read or write.
 
 ### Line printer
 
-Identified by the value `4C50`, writing to the next byte pipes directly to the printer. Reading it returns `00` or an error value, to be determined. *This might make a nice alternative to `REG_DEBUGOUT`...*
+#### 0000	Identifier
+
+Line printers identify by the value `4C50`, for "LP".
+
+#### 0002	Character out
+
+Anything written here is piped directly to the printer.
