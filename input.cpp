@@ -200,7 +200,12 @@ unsigned int InputDevice::Read(unsigned int address)
 
 void InputDevice::Write(unsigned int address, unsigned int value)
 {
-	return;
+	if (address == 0x00)
+	{
+		for (int i = 0; i < 32; i++)
+			buffer[i] = 0;
+		bufferCursor = 0;
+	}
 }
 
 int InputDevice::GetID() { return 0x494F; }
@@ -241,7 +246,7 @@ void InputDevice::Enqueue(SDL_Keysym sym)
 	if (sym.scancode == SDL_SCANCODE_LCTRL) return;
 	if (sym.scancode == SDL_SCANCODE_LALT) return;
 	if (sym.scancode == SDL_SCANCODE_LSHIFT) return;
-
+	
 	if (bufferCursor == 32)
 	{
 		wprintf(L"\x07");
