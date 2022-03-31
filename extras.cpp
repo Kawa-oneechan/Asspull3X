@@ -60,7 +60,7 @@ void Log(WCHAR* message, ...)
 #endif
 	if (logFile == NULL)
 	{
-		WCHAR fileName[FILENAME_MAX];
+		WCHAR fileName[FILENAME_MAX] = { 0 };
 		wcscpy(fileName, UI::startingPath);
 		wcscat(fileName, L"\\clunibus.log");
 		logFile = _wfsopen(fileName, L"w, ccs=UTF-8", _SH_DENYWR);

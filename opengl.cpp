@@ -135,7 +135,7 @@ namespace Video
 
 	char* ReadTextFile(const WCHAR* filePath)
 	{
-		WCHAR myFullPath[FILENAME_MAX];
+		WCHAR myFullPath[FILENAME_MAX] = { 0 };
 		wcscpy_s(myFullPath, UI::startingPath);
 		wcscat_s(myFullPath, L"\\");
 		wcscat_s(myFullPath, filePath);
@@ -159,7 +159,7 @@ namespace Video
 			fclose(file);
 			return NULL;
 		}
-		fread(dest, 1, size, file);
+		fread(dest, size, 1, file);
 		dest[size - 1] = 0;
 		fclose(file);
 		return dest;

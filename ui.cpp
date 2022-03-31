@@ -466,7 +466,7 @@ namespace UI
 		//SetProcessDPIAware();
 
 		//GetCurrentDirectory(FILENAME_MAX, startingPath);
-		GetModuleFileName(NULL, startingPath, 512);
+		GetModuleFileName(NULL, startingPath, 256);
 		WCHAR* lastSlash = wcsrchr(startingPath, L'\\');
 		*lastSlash = 0;
 		if (!wcsncmp(lastSlash - 5, L"Debug",6))

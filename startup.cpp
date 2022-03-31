@@ -238,7 +238,7 @@ int main(int argc, char** argv)
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_VIDEO_OPENGL | SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER) < 0)
 		return 0;
 
-	GetModuleFileName(NULL, UI::startingPath, 512);
+	GetModuleFileName(NULL, UI::startingPath, 256);
 	WCHAR* lastSlash = wcsrchr(UI::startingPath, L'\\');
 	*lastSlash = 0;
 	if (!wcsncmp(lastSlash - 5, L"Debug", 6))
