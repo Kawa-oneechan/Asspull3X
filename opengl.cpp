@@ -146,21 +146,21 @@ namespace Video
 		if (file == NULL)
 			return NULL;
 		fseek(file, 0, SEEK_END);
-		long size = ftell(file);
+		size_t size = ftell(file);
 		if (size == 0)
 		{
 			fclose(file);
 			return "";
 		}
 		fseek(file, 0, SEEK_SET);
-		auto dest = new char[size]();
+		auto dest = (char*)malloc(size + 1);
 		if (dest == NULL)
 		{
 			fclose(file);
 			return NULL;
 		}
-		fread(dest, size, 1, file);
-		dest[size - 1] = 0;
+		fread(dest, 1, size, file);
+		dest[size] = 0;
 		fclose(file);
 		return dest;
 	}
