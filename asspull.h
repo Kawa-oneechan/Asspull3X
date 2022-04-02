@@ -28,6 +28,8 @@ extern int key2joy;
 extern int firstDiskDrive;
 extern void FindFirstDrive();
 
+#define SCREENBUFFERSIZE (640 * 480 * 4)
+
 namespace UI
 {
 	extern int uiCommand;
@@ -142,7 +144,14 @@ extern char joypad[4];
 extern char joyaxes[4];
 
 extern long ticks;
-extern int pauseState;
+
+enum pauseStates
+{
+	pauseNot,
+	pauseEntering,
+	pauseYes,
+};
+extern pauseStates pauseState;
 
 namespace Registers
 {

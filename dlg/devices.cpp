@@ -174,7 +174,7 @@ namespace UI
 				DestroyWindow(hWnd);
 				DeleteObject(hShrugImage);
 				DeviceManager::hWnd = NULL;
-				if (!wasPaused) pauseState = 0;
+				if (!wasPaused) pauseState = pauseNot;
 				return true;
 			}
 			case WM_INITDIALOG:
@@ -311,7 +311,7 @@ namespace UI
 				{
 					DestroyWindow(hWnd);
 					hWnd = NULL;
-					if (!wasPaused) pauseState = 0;
+					if (!wasPaused) pauseState = pauseNot;
 					return true;
 				}
 			}
@@ -324,7 +324,7 @@ namespace UI
 			if (!IsWindow(hWnd))
 			{
 				wasPaused = pauseState > 0;
-				if (!wasPaused) pauseState = 1;
+				if (!wasPaused) pauseState = pauseEntering;
 				hWnd = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_DEVICES), (HWND)hWndMain, (DLGPROC)WndProc);
 				ShowWindow(hWnd, SW_SHOW);
 			}

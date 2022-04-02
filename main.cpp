@@ -124,12 +124,12 @@ void FindFirstDrive()
 	}
 }
 
-int pauseState = 0;
+pauseStates pauseState = pauseNot;
 unsigned char* pauseScreen;
 
 void MainLoop()
 {
-	if ((pauseScreen = new unsigned char[640 * 480 * 4]()) == nullptr)
+	if ((pauseScreen = new unsigned char[SCREENBUFFERSIZE]()) == nullptr)
 	{
 		UI::Complain(IDS_PAUSEFAIL);
 		return;
@@ -281,10 +281,10 @@ void MainLoop()
 						UI::uiCommand = cmdScreenshot;
 					else if (ev.key.keysym.sym == SDLK_p)
 					{
-						if (pauseState == 0)
-							pauseState = 1;
-						else if (pauseState == 2)
-							pauseState = 0;
+						if (pauseState == pauseNot)
+							pauseState = pauseEntering;
+						else if (pauseState == pauseYes)
+							pauseState = pauseNot;
 					}
 				}
 				else
@@ -296,10 +296,10 @@ void MainLoop()
 			case SDL_MOUSEBUTTONUP:
 				if (ev.button.button == 2)
 				{
-					if (pauseState == 0)
-						pauseState = 1;
-					else if (pauseState == 2)
-						pauseState = 0;
+					if (pauseState == pauseNot)
+						pauseState = pauseEntering;
+					else if (pauseState == pauseYes)
+						pauseState = pauseNot;
 				}
 			case SDL_WINDOWEVENT:
 				if (ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
@@ -396,16 +396,17 @@ void MainLoop()
 			m68k_execute(hBlankLasts);
 			if (line == lines)
 			{
-				if (pauseState == 1) //pausing now!
+				if (pauseState == pauseEntering) //pausing now!
 				{
-					memcpy(pauseScreen, Video::pixels, 640 * 480 * 4);
-					for (auto i = 0; i < 640 * 480 * 4; i += 4)
+					memcpy(pauseScreen, Video::pixels, SCREENBUFFERSIZE);
+					for (auto i = 0; i < SCREENBUFFERSIZE; i += 4)
 					{
-						pauseScreen[i + 0] /= 2;
+						//what if we made it blue instead lol
+						//pauseScreen[i + 0] /= 2;
 						pauseScreen[i + 1] /= 2;
 						pauseScreen[i + 2] /= 2;
 					}
-					pauseState = 2;
+					pauseState = pauseYes;
 				}
 				UI::Update();
 				Video::VBlank();
@@ -439,7 +440,7 @@ void MainLoop()
 		}
 		else if (pauseState == 2)
 		{
-			memcpy(Video::pixels, pauseScreen, 640 * 480 * 4);
+			memcpy(Video::pixels, pauseScreen, SCREENBUFFERSIZE);
 			UI::LetItSnow();
 			Video::VBlank();
 		}

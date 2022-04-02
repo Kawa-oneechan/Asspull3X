@@ -619,8 +619,8 @@ namespace UI
 			srand(0xC001FACE);
 			for (int i = 0; i < MAXSNOW; i++)
 			{
-				snowData[(i * 2) + 0] = rand() % 640;
-				snowData[(i * 2) + 1] = rand() % 480;
+				snowData[(i * 2) + 0] = rand() % 639;
+				snowData[(i * 2) + 1] = rand() % 479;
 			}
 			snowTimer = 1;
 		}
@@ -631,11 +631,13 @@ namespace UI
 			snowTimer = 4;
 			for (int i = 0; i < MAXSNOW; i++)
 			{
-				snowData[(i * 2) + 0] += -1 + (rand() % 3);
+				snowData[(i * 2) + 0] += -1 + (rand() % 4);
 				snowData[(i * 2) + 1] += rand() % 2;
-				if (snowData[(i * 2) + 1] >= 480)
+				if (snowData[(i * 2) + 0] >= 639)
+					snowData[(i * 2) + 0] = 0;
+				if (snowData[(i * 2) + 1] >= 479)
 				{
-					snowData[(i * 2) + 0] = rand() % 640;
+					snowData[(i * 2) + 0] = rand() % 639;
 					snowData[(i * 2) + 1] = -10;
 				}
 			}
@@ -645,10 +647,16 @@ namespace UI
 		{
 			int x = snowData[(i * 2) + 0];
 			int y = snowData[(i * 2) + 1];
-			if (x < 0 || y < 0 || x >= 640 || y >= 480)
+			if (x < 0 || y < 0 || x >= 639 || y >= 479)
 				continue;
 			auto target = ((y * 640) + x) * 4;
+			const auto nl = 640 * 4;
 			Video::pixels[target + 0] = Video::pixels[target + 1] = Video::pixels[target + 2] = 255;
+			//chunky bois
+			Video::pixels[target + nl + 0] = Video::pixels[target + nl + 1] = Video::pixels[target + nl + 2] = 255;
+			target += 4;
+			Video::pixels[target + 0] = Video::pixels[target + 1] = Video::pixels[target + 2] = 255;
+			Video::pixels[target + nl + 0] = Video::pixels[target + nl + 1] = Video::pixels[target + nl + 2] = 255;
 		}
 	}
 

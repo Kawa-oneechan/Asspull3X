@@ -212,13 +212,13 @@ void Preload()
 	{
 		Log(L"Loading ROM %s...", thing);
 		LoadROM(thing);
-		pauseState = 0;
+		pauseState = pauseNot;
 	}
 	else if (paramLoad[0])
 	{
 		Log(L"Command-line loading ROM %s...", paramLoad);
 		LoadROM((const WCHAR*)paramLoad);
-		pauseState = 0;
+		pauseState = pauseNot;
 	}
 }
 

@@ -399,7 +399,7 @@ namespace Video
 			return -2;
 		}
 
-		if ((pixels = new unsigned char[640 * 480 * 4]()) == nullptr)
+		if ((pixels = new unsigned char[SCREENBUFFERSIZE]()) == nullptr)
 		{
 			UI::Complain(IDS_SCREENFAIL);
 			return -2;
@@ -410,7 +410,6 @@ namespace Video
 
 	int Shutdown()
 	{
-		delete[] pixels;
 		SDL_DestroyTexture(sdlTexture);
 		SDL_DestroyTexture(sdlShader);
 		SDL_DestroyRenderer(sdlRenderer);
