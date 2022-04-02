@@ -109,10 +109,9 @@ int DiskDrive::Unmount()
 
 unsigned int DiskDrive::Read(unsigned int address)
 {
+	READ_DEVID(DEVID_DISKDRIVE);
 	switch (address)
 	{
-	case 0x00: return 0x01;
-	case 0x01: return 0x44;
 	case 0x02: return sector >> 8;
 	case 0x03: return sector & 0xFF;
 	case 0x04:
@@ -186,7 +185,7 @@ void DiskDrive::Write(unsigned int address, unsigned int value)
 		data[address - 512] = (unsigned char)value;
 }
 
-int DiskDrive::GetID() { return 0x0144; }
+int DiskDrive::GetID() { return DEVID_DISKDRIVE; }
 
 void DiskDrive::HBlank() {}
 

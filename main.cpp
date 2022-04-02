@@ -109,7 +109,7 @@ void FindFirstDrive()
 	bool firstIsHDD = false;
 	for (int i = 0; i < MAXDEVS; i++)
 	{
-		if (devices[i] != nullptr && devices[i]->GetID() == 0x0144)
+		if (devices[i] != nullptr && devices[i]->GetID() == DEVID_DISKDRIVE)
 		{
 			if (((DiskDrive*)devices[i])->GetType() == ddHardDisk && firstDiskDrive == -1)
 			{

@@ -409,6 +409,7 @@ public:
 	int GetType();
 	bool IsMounted();
 };
+#define DEVID_DISKDRIVE 0x0144
 enum diskDriveTypes
 {
 	ddDiskette,
@@ -426,6 +427,7 @@ public:
 	void HBlank();
 	void VBlank();
 };
+#define DEVID_LINEPRINTER 0x4C50
 
 class InputDevice : Device
 {
@@ -444,6 +446,11 @@ public:
 	void VBlank();
 	void Enqueue(SDL_Keysym sym);
 };
+#define DEVID_INPUT 0x494F
+
+#define READ_DEVID(x) \
+	if (address == 0) return (x >> 8); \
+	else if (address == 1) return (x & 0xFF);
 
 extern Device* devices[MAXDEVS];
 extern InputDevice* inputDev;

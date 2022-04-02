@@ -35,7 +35,7 @@ namespace UI
 			{
 				switch (device->GetID())
 				{
-				case 0x0144:
+				case DEVID_DISKDRIVE:
 				{
 					for (int i = 1; i < 4; i++)
 						ShowWindow(GetDlgItem(hWnd, everything[i]), SW_SHOW);
@@ -49,7 +49,7 @@ namespace UI
 					EnableWindow(GetDlgItem(hWnd, IDC_DDEJECT), val[0] != 0);
 					break;
 				}
-				case 0x4C50:
+				case DEVID_LINEPRINTER:
 				{
 					ShowWindow(GetDlgItem(hWnd, IDC_DEVNONE), SW_SHOW);
 					//ShowWindow(GetDlgItem(hWnd, IDC_SHRUG), SW_SHOW);
@@ -84,7 +84,7 @@ namespace UI
 				{
 					switch (devices[i]->GetID())
 					{
-					case 0x0144:
+					case DEVID_DISKDRIVE:
 						if (((DiskDrive*)devices[i])->GetType() == ddDiskette)
 						{
 							wsprintf(item, L"%d. %s", i, GetString(IDS_DEVICES1 + 1)); //"Diskette drive"
@@ -98,14 +98,14 @@ namespace UI
 							numDrives++;
 						}
 						break;
-					case 0x4C50:
+					case DEVID_LINEPRINTER:
 						wsprintf(item, L"%d. %s", i, GetString(IDS_DEVICES1 + 3)); //"Line printer"
 						icon = IML_PRINTER;
 						break;
 					}
 				}
 				SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_ADDSTRING, 0, (LPARAM)item);
-				SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_SETITEMDATA, i, (LPARAM)icon);
+				SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_SETITEMDATA, i - 1, (LPARAM)icon);
 			}
 
 			SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_SETCURSEL, selection, 0);
@@ -122,12 +122,12 @@ namespace UI
 			{
 				switch (devices[devNum]->GetID())
 				{
-				case 0x0144:
+				case DEVID_DISKDRIVE:
 					oldType = 1;
 					if (((DiskDrive*)devices[devNum])->GetType() == ddHardDisk)
 						oldType = 2;
 					break;
-				case 0x4C50:
+				case DEVID_LINEPRINTER:
 					oldType = 3;
 					break;
 				}

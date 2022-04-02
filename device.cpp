@@ -20,10 +20,9 @@ LinePrinter::~LinePrinter() { }
 
 unsigned int LinePrinter::Read(unsigned int address)
 {
+	READ_DEVID(DEVID_LINEPRINTER);
 	switch (address)
 	{
-		case 0x00: return 0x4C;
-		case 0x01: return 0x50;
 	}
 	return 0;
 }
@@ -41,7 +40,7 @@ void LinePrinter::Write(unsigned int address, unsigned int value)
 	}
 }
 
-int LinePrinter::GetID() { return 0x4C50; }
+int LinePrinter::GetID() { return DEVID_LINEPRINTER; }
 
 void LinePrinter::HBlank() {}
 

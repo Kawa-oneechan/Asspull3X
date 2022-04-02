@@ -123,10 +123,9 @@ InputDevice::~InputDevice()
 
 unsigned int InputDevice::Read(unsigned int address)
 {
+	READ_DEVID(DEVID_INPUT);
 	switch (address)
 	{
-	case 0x00: return 0x49;
-	case 0x01: return 0x4F;
 	case 0x02: //Keyboard buffer
 	{
 		unsigned int key = 0;
@@ -208,7 +207,7 @@ void InputDevice::Write(unsigned int address, unsigned int value)
 	}
 }
 
-int InputDevice::GetID() { return 0x494F; }
+int InputDevice::GetID() { return DEVID_INPUT; }
 
 void InputDevice::HBlank() {}
 
