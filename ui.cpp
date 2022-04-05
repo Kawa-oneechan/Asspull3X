@@ -23,7 +23,7 @@ namespace UI
 	int uiCommand;
 	WCHAR uiString[512];
 
-	int mouseTimer = -1;
+	bool mouseLocked = false;
 	int statusTimer = 0;
 	WCHAR uiStatus[512];
 	bool fpsVisible = false, fpsCap = false, reloadROM, reloadIMG;
@@ -427,9 +427,29 @@ namespace UI
 		sbText.right = sbRect.right - 48;
 		DrawText(hdc, statusText, wcslen(statusText), &sbText, DT_END_ELLIPSIS);
 
-		ImageList_Draw(Images::hIml, pauseState == 0 ? IML_PLAY : IML_PAUSE, hdc, sbRect.right - 24, 3, ILD_NORMAL);
-		if (hddIconTimer) ImageList_Draw(Images::hIml, IML_HARDDRIVE, hdc, sbRect.right - 24 - 20, 3, ILD_NORMAL);
-		if (diskIconTimer) ImageList_Draw(Images::hIml, IML_DISKETTE, hdc, sbRect.right - 24 - (hddIconTimer ? 40 : 20), 3, ILD_NORMAL);
+		int x = sbRect.right - 24;
+		ImageList_Draw(Images::hIml, pauseState == 0 ? IML_PLAY : IML_PAUSE, hdc, x, 3, ILD_NORMAL);
+		x -= 20;
+		if (::key2joy)
+		{
+			ImageList_Draw(Images::hIml, IML_GAMEPAD, hdc, x, 3, ILD_NORMAL);
+			x -= 20;
+		}
+		if (UI::mouseLocked)
+		{
+			ImageList_Draw(Images::hIml, IML_MOUSE, hdc, x, 3, ILD_NORMAL);
+			x -= 20;
+		}
+		if (hddIconTimer)
+		{
+			ImageList_Draw(Images::hIml, IML_HARDDRIVE, hdc, x, 3, ILD_NORMAL);
+			x -= 20;
+		}
+		if (diskIconTimer)
+		{
+			ImageList_Draw(Images::hIml, IML_DISKETTE, hdc, x, 3, ILD_NORMAL);
+			x -= 20;
+		}
 
 		BitBlt(statusRealDC, 0, 0, sbRect.right, sbRect.bottom, hdc, 0, 0, SRCCOPY);
 	}
@@ -445,18 +465,6 @@ namespace UI
 			diskIconTimer--;
 		if (hddIconTimer)
 			hddIconTimer--;
-
-		if (mouseTimer > 0)
-		{
-			mouseTimer--;
-			if (mouseTimer == 0)
-				SDL_ShowCursor(false);
-		}
-		if (mouseTimer == 0 && (SDL_GetModState() & KMOD_RCTRL))
-		{
-			SDL_ShowCursor(true);
-			mouseTimer = 6 * 60;
-		}
 
 		DrawStatusBar();
 	}

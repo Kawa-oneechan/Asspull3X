@@ -21,9 +21,7 @@ LinePrinter::~LinePrinter() { }
 unsigned int LinePrinter::Read(unsigned int address)
 {
 	READ_DEVID(DEVID_LINEPRINTER);
-	switch (address)
-	{
-	}
+	//switch (address)
 	return 0;
 }
 

@@ -16,7 +16,7 @@ STRINGTABLE
 	IDS_HDFILTER, "Schijfkopieën (*.vhd)|*.vhd" //hard disks
 	IDS_CARTFILTER, "Asspull IIIx ROMs (*.ap3)|*.ap3" //game cartridges
 
-	IDS_CLICKTORELEASE, "Middelklik of RCtrl-P om de emulatie te pauzeren."
+	IDS_CLICKTORELEASE, "RCtrl-P om de emulatie te pauzeren, middelklik voor muis."
 	IDS_SYSTEMRESET, "Systeem is gereset."
 
 	IDS_NOTPLAYING, "Niet aan het spelen" //Discord integration: you're running the thing but don't have a game loaded

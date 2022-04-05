@@ -213,6 +213,9 @@ void InputDevice::HBlank() {}
 
 void InputDevice::VBlank()
 {
+	if (!UI::mouseLocked)
+		return;
+
 	POINT pos;
 
 	int newX, newY, b;
@@ -230,9 +233,6 @@ void InputDevice::VBlank()
 
 	lastMouseX = newX;
 	lastMouseY = newY;
-
-	if (UI::mouseTimer == -1)
-		UI::mouseTimer = 3 * 60;
 
 	mouseLatch = ((b & 1) << 14) | ((b & 4) << 13) | (dy << 13) | (y << 7) | (dx << 6) | x;
 }

@@ -43,7 +43,8 @@ namespace UI
 	extern int statusBarHeight;
 	extern int diskIconTimer, hddIconTimer;
 
-	extern int mouseTimer;
+	extern bool mouseLocked;
+
 	extern int statusTimer;
 	extern WCHAR uiStatus[512];
 	extern WCHAR uiString[512];

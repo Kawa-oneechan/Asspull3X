@@ -296,14 +296,25 @@ void MainLoop()
 			case SDL_MOUSEBUTTONUP:
 				if (ev.button.button == 2)
 				{
+					/*
 					if (pauseState == pauseNot)
 						pauseState = pauseEntering;
 					else if (pauseState == pauseYes)
 						pauseState = pauseNot;
+					*/
+					UI::mouseLocked = !UI::mouseLocked;
+					SDL_ShowCursor(!UI::mouseLocked);
+					SDL_CaptureMouse((SDL_bool)UI::mouseLocked);
 				}
 			case SDL_WINDOWEVENT:
 				if (ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
 					UI::ResizeStatusBar();
+				else if (ev.window.event == SDL_WINDOWEVENT_FOCUS_LOST)
+				{
+					UI::mouseLocked = false;
+					SDL_ShowCursor(true);
+					SDL_CaptureMouse(SDL_FALSE);
+				}
 			}
 		}
 

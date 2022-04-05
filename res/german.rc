@@ -16,7 +16,7 @@ STRINGTABLE
 	IDS_HDFILTER, "Disk images (*.vhd)|*.vhd" //hard disks
 	IDS_CARTFILTER, "Asspull IIIx ROMs (*.ap3)|*.ap3" //game cartridges
 
-	IDS_CLICKTORELEASE, "Mittleren Maustaste oder RStrg+P, um die Emulation anzuhalten."
+	IDS_CLICKTORELEASE, "RCtrl+P um die Emulation zu stoppen. Mittlere Maustaste zum Aktivieren der Maus."
 	IDS_SYSTEMRESET, "System zurückgesetzt."
 
 	IDS_NOTPLAYING, "Spielt derzeit nicht" //Discord integration: you're running the thing but don't have a game loaded
