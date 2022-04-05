@@ -6,6 +6,8 @@ namespace Registers
 	ScreenModeRegister ScreenMode;
 	MapSetRegister MapSet;
 	MapBlendRegister MapBlend;
+	
+	int WindowLeft, WindowRight, WindowMask;
 
 	int Fade, Caret;
 	int ScrollX[4], ScrollY[4];
@@ -98,6 +100,7 @@ void ResetMemory()
 	Registers::MapBlend.Raw = 0;
 	Registers::MapSet.Raw = 0;
 	Registers::ScreenMode.Raw = 0;
+	Registers::WindowLeft = Registers::WindowRight = Registers::WindowMask = 0;
 	memset(Registers::ScrollX, 0, sizeof(int) * 4);
 	memset(Registers::ScrollY, 0, sizeof(int) * 4);
 	Sound::Reset();
@@ -166,6 +169,12 @@ unsigned int m68k_read_memory_16(unsigned int address)
 			case 0x1A:
 			case 0x1E:
 				return Registers::ScrollY[min((reg - 0x12) / 4, 4)];
+			case 0x20:
+				return Registers::WindowMask;
+			case 0x22:
+				return Registers::WindowLeft;
+			case 0x24:
+				return Registers::WindowRight;
 			case 0x54:
 				return Registers::Caret;
 		}
@@ -325,6 +334,15 @@ void m68k_write_memory_16(unsigned int address, unsigned int value)
 			case 0x1A:
 			case 0x1E:
 				Registers::ScrollY[(reg - 0x12) / 4] = value & 511;
+				break;
+			case 0x20:
+				Registers::WindowMask = value;
+				break;
+			case 0x22:
+				Registers::WindowLeft = value;
+				break;
+			case 0x24:
+				Registers::WindowRight = value;
 				break;
 			case 0x48: //OPL3 out
 				Sound::SendOPL(value);

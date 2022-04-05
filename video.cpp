@@ -75,10 +75,31 @@ namespace Video
 		} \
 	}
 
-	static inline void RenderPixel(int row, int column, int color)
+#define WINDOWCODE \
+	if (Registers::WindowMask) \
+	{ \
+		int winMul =  Registers::ScreenMode.HalfWidth ? 2 : 1; \
+		if ( \
+			((Registers::WindowMask & (1 << win)) \
+				&& (column < (Registers::WindowLeft * winMul) \
+				|| column > (Registers::WindowRight * winMul))) || \
+			(((Registers::WindowMask >> 8) & (1 << win)) \
+				&& (column >= (Registers::WindowLeft * winMul) && \
+				column <= (Registers::WindowRight * winMul))) \
+			) \
+		{ \
+			if (win == 0) \
+				snes = 0; \
+			else \
+				return; \
+		} \
+	}
+
+	static inline void RenderPixel(int row, int column, int color, int win)
 	{
 		auto snes = (ramVideo[PAL_ADDR + ((color) * 2) + 0] << 8) + ramVideo[PAL_ADDR + ((color) * 2) + 1];
 		auto target = ((row * 640) + column) * 4;
+		WINDOWCODE;
 		auto r = (snes >> 0) & 0x1F;
 		auto g = (snes >> 5) & 0x1F;
 		auto b = (snes >> 10) & 0x1F;
@@ -88,10 +109,11 @@ namespace Video
 		pixels[target + 2] = (unsigned char)((r << 3) + (r >> 2));
 	}
 
-	static inline void RenderBlended(int row, int column, int color, bool subtractive)
+	static inline void RenderBlended(int row, int column, int color, bool subtractive, int win)
 	{
 		auto snes = (ramVideo[PAL_ADDR + ((color) * 2) + 0] << 8) + ramVideo[PAL_ADDR + ((color) * 2) + 1];
 		auto target = ((row * 640) + column) * 4;
+		WINDOWCODE;
 		auto r = (snes >> 0) & 0x1F;
 		auto g = (snes >> 5) & 0x1F;
 		auto b = (snes >> 10) & 0x1F;
@@ -199,20 +221,20 @@ namespace Video
 					{
 						if (!Registers::ScreenMode.HalfWidth)
 						{
-							if (l != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640) RenderPixel(line, hPos + hfJ + 0, l + 256);
-							if (r != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640) RenderPixel(line, hPos + hfJ + 1, r + 256);
+							if (l != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640) RenderPixel(line, hPos + hfJ + 0, l + 256, 5);
+							if (r != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640) RenderPixel(line, hPos + hfJ + 1, r + 256, 5);
 						}
 						else
 						{
 							if (l != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640)
 							{
-								RenderPixel(line, hPos + hfJ + 0, l + 256);
-								RenderPixel(line, hPos + hfJ + 1, l + 256);
+								RenderPixel(line, hPos + hfJ + 0, l + 256, 5);
+								RenderPixel(line, hPos + hfJ + 1, l + 256, 5);
 							}
 							if (r != 0 && hPos + hfJ + 2 >= 0 && hPos + hfJ + 2 < 640)
 							{
-								RenderPixel(line, hPos + hfJ + 2, r + 256);
-								RenderPixel(line, hPos + hfJ + 3, r + 256);
+								RenderPixel(line, hPos + hfJ + 2, r + 256, 5);
+								RenderPixel(line, hPos + hfJ + 3, r + 256, 5);
 							}
 						}
 					}
@@ -221,20 +243,20 @@ namespace Video
 						bool sub = ((objA.Blend & 2) == 2);
 						if (!Registers::ScreenMode.HalfWidth)
 						{
-							if (l != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640) RenderBlended(line, hPos + hfJ + 0, l + 256, sub);
-							if (r != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640) RenderBlended(line, hPos + hfJ + 1, r + 256, sub);
+							if (l != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640) RenderBlended(line, hPos + hfJ + 0, l + 256, sub, 5);
+							if (r != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640) RenderBlended(line, hPos + hfJ + 1, r + 256, sub, 5);
 						}
 						else
 						{
 							if (l != 0 && hPos + hfJ >= 0 && hPos + hfJ < 640)
 							{
-								RenderBlended(line, hPos + hfJ + 0, l + 256, sub);
-								RenderBlended(line, hPos + hfJ + 1, l + 256, sub);
+								RenderBlended(line, hPos + hfJ + 0, l + 256, sub, 5);
+								RenderBlended(line, hPos + hfJ + 1, l + 256, sub, 5);
 							}
 							if (r != 0 && hPos + hfJ + 2 >= 0 && hPos + hfJ + 2 < 640)
 							{
-								RenderBlended(line, hPos + hfJ + 2, r + 256, sub);
-								RenderBlended(line, hPos + hfJ + 3, r + 256, sub);
+								RenderBlended(line, hPos + hfJ + 2, r + 256, sub, 5);
+								RenderBlended(line, hPos + hfJ + 3, r + 256, sub, 5);
 							}
 						}
 					}
@@ -290,14 +312,14 @@ namespace Video
 			if (!Registers::ScreenMode.HalfWidth)
 			{
 				for (auto bit = 0; bit < 8; bit++)
-					RenderPixel(line, (col * 8) + bit, ((scan >> bit) & 1) == 1 ? (att & 0xF) : (att >> 4));
+					RenderPixel(line, (col * 8) + bit, ((scan >> bit) & 1) == 1 ? (att & 0xF) : (att >> 4), 0);
 			}
 			else
 			{
 				for (auto bit = 0; bit < 8; bit++)
 				{
-					RenderPixel(line, (col * 16) + (bit * 2) + 0, ((scan >> bit) & 1) == 1 ? (att & 0xF) : (att >> 4));
-					RenderPixel(line, (col * 16) + (bit * 2) + 1, ((scan >> bit) & 1) == 1 ? (att & 0xF) : (att >> 4));
+					RenderPixel(line, (col * 16) + (bit * 2) + 0, ((scan >> bit) & 1) == 1 ? (att & 0xF) : (att >> 4), 0);
+					RenderPixel(line, (col * 16) + (bit * 2) + 1, ((scan >> bit) & 1) == 1 ? (att & 0xF) : (att >> 4), 0);
 				}
 			}
 		}
@@ -314,7 +336,7 @@ namespace Video
 				int cw = Registers::ScreenMode.HalfWidth ? 16 : 8;
 				for (auto col = 0; col < cw; col++)
 				{
-					RenderPixel(line, (cc * cw) + col, ca & 0xF);
+					RenderPixel(line, (cc * cw) + col, ca & 0xF, 0);
 				}
 			}
 		}
@@ -345,15 +367,15 @@ namespace Video
 			auto r = (twoPix >> 4) & 0x0F;
 			if (!Registers::ScreenMode.HalfWidth)
 			{
-				RenderPixel(line, col + 0, l);
-				RenderPixel(line, col + 1, r);
+				RenderPixel(line, col + 0, l, 0);
+				RenderPixel(line, col + 1, r, 0);
 			}
 			else
 			{
-				RenderPixel(line, col + 0, l);
-				RenderPixel(line, col + 1, l);
-				RenderPixel(line, col + 2, r);
-				RenderPixel(line, col + 3, r);
+				RenderPixel(line, col + 0, l, 0);
+				RenderPixel(line, col + 1, l, 0);
+				RenderPixel(line, col + 2, r, 0);
+				RenderPixel(line, col + 3, r, 0);
 			}
 		}
 		RenderObjects(line, -1);
@@ -381,12 +403,12 @@ namespace Video
 			p++;
 			if (!Registers::ScreenMode.HalfWidth)
 			{
-				RenderPixel(line, col, pixel);
+				RenderPixel(line, col, pixel, 0);
 			}
 			else
 			{
-				RenderPixel(line, col++, pixel);
-				RenderPixel(line, col, pixel);
+				RenderPixel(line, col++, pixel, 0);
+				RenderPixel(line, col, pixel, 0);
 			}
 		}
 		RenderObjects(line, -1);
@@ -409,10 +431,10 @@ namespace Video
 			{
 				for (auto x = 0; x < 320; x++)
 				{
-					RenderPixel(line, (x * 2) + 0, 0);
-					RenderPixel(line, (x * 2) + 1, 0);
-					RenderPixel(line + 1, (x * 2) + 0, 0);
-					RenderPixel(line + 1, (x * 2) + 1, 0);
+					RenderPixel(line, (x * 2) + 0, 0, 0);
+					RenderPixel(line, (x * 2) + 1, 0, 0);
+					RenderPixel(line + 1, (x * 2) + 0, 0, 0);
+					RenderPixel(line + 1, (x * 2) + 1, 0, 0);
 				}
 				RenderObjects(line, 4);
 				RenderObjects(line + 1, 4);
@@ -456,17 +478,17 @@ namespace Video
 					if (Registers::MapBlend.Enabled & (1 << layer))
 					{
 						auto sub = (Registers::MapBlend.Subtract & (1 << layer)) != 0;
-						RenderBlended(line, (x * 2) + 0, color, sub);
-						RenderBlended(line, (x * 2) + 1, color, sub);
-						RenderBlended(line + 1, (x * 2) + 0, color, sub);
-						RenderBlended(line + 1, (x * 2) + 1, color, sub);
+						RenderBlended(line, (x * 2) + 0, color, sub, layer + 1);
+						RenderBlended(line, (x * 2) + 1, color, sub, layer + 1);
+						RenderBlended(line + 1, (x * 2) + 0, color, sub, layer + 1);
+						RenderBlended(line + 1, (x * 2) + 1, color, sub, layer + 1);
 					}
 					else
 					{
-						RenderPixel(line, (x * 2) + 0, color);
-						RenderPixel(line, (x * 2) + 1, color);
-						RenderPixel(line + 1, (x * 2) + 0, color);
-						RenderPixel(line + 1, (x * 2) + 1, color);
+						RenderPixel(line, (x * 2) + 0, color, layer + 1);
+						RenderPixel(line, (x * 2) + 1, color, layer + 1);
+						RenderPixel(line + 1, (x * 2) + 0, color, layer + 1);
+						RenderPixel(line + 1, (x * 2) + 1, color, layer + 1);
 					}
 				}
 

@@ -77,6 +77,21 @@ Scroll values for the tile map as `int16`. This repeats for each of the four lay
 
 *The tile map controls are a work in progress.*
 
+### 00020	REG_WINMASK
+
+    ..O4 321B ..O4 321B
+      ||    |   ||    |__ Background
+      ||    |   ||_______ Each map layer
+      ||    |   |________ Objects
+      ||____|____________ The same, but inverted
+
+Any pixel on the given layer that falls outside of the window clipping edges is skipped over. If this layer is the background, the resulting pixel will be black. The second set in the higher byte acts exactly the other way, skipping anything *inside* of the window.
+
+### 00022	REG_WINLEFT
+### 00024	REG_WINRIGHT
+
+The left and right edges for the window clipping effect set up by `REG_WINMASK`.
+
 ### 00044	REG_MIDIOUT
 
 Send a byte through the MIDI OUT port.

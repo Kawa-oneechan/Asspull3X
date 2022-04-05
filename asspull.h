@@ -221,6 +221,8 @@ namespace Registers
 	};
 	extern MapBlendRegister MapBlend;
 
+	extern int WindowLeft, WindowRight, WindowMask;
+
 	extern int Fade, Caret;
 	extern int ScrollX[4], ScrollY[4];
 }
