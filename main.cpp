@@ -279,6 +279,22 @@ void MainLoop()
 						UI::uiCommand = cmdDump;
 					else if (ev.key.keysym.sym == SDLK_s)
 						UI::uiCommand = cmdScreenshot;
+					else if (ev.key.keysym.sym == SDLK_a)
+					{
+						Video::stretch200 = !Video::stretch200;
+						if (UI::Options::hWnd)
+							CheckDlgButton(UI::Options::hWnd, IDC_ASPECT, Video::stretch200);
+						ini.SetBoolValue(L"video", L"stretch200", Video::stretch200);
+						ini.SaveFile(UI::settingsFile, false);
+					}
+					else if (ev.key.keysym.sym == SDLK_k)
+					{
+						key2joy = !key2joy;
+						if (UI::Options::hWnd)
+							CheckDlgButton(UI::Options::hWnd, IDC_KEY2JOY, key2joy);
+						ini.SetBoolValue(L"input", L"key2joy", key2joy == 1);
+						ini.SaveFile(UI::settingsFile, false);
+					}
 					else if (ev.key.keysym.sym == SDLK_p)
 					{
 						if (pauseState == pauseNot)
