@@ -14,7 +14,12 @@ void Device::HBlank() {}
 void Device::VBlank() {}
 
 
-LinePrinter::LinePrinter() { }
+LinePrinter::LinePrinter()
+{
+	memset(line, 0, 80);
+	lineLength = 0;
+	pageLength = 0;
+}
 
 LinePrinter::~LinePrinter() { }
 
@@ -29,12 +34,30 @@ void LinePrinter::Write(unsigned int address, unsigned int value)
 {
 	if (address == 2)
 	{
-		//printf("%c", (char)value);
-		char chr[1] = { (char)value };
-		WCHAR wchr[6] = { 0 };
-		mbstate_t throwAway = { 0 }; //only here to please code analysis :shrug:
-		mbrtowc(wchr, chr, 1, &throwAway);
-		wprintf(wchr);
+		if ((char)value == '\f')
+		{
+			wprintf(L"o¦----------------------------------------------------------------------------------¦o\n");
+			pageLength = 0;
+		}
+		else if ((char)value == '\n')
+		{
+			memset(line, 0, 80);
+			lineLength = 0;
+		}
+		else if (lineLength == 80 || (char)value == '\r')
+		{
+			WCHAR wLine[160] = { 0 };
+			mbstowcs_s(NULL, wLine, line, 80);
+			wprintf(L"o¦ %-80s ¦o\n", wLine);
+			Write(2, '\n');
+			pageLength++;
+			if (pageLength == 30)
+				Write(2, '\f');
+		}
+		else
+		{
+			line[lineLength++] = (char)value;
+		}
 	}
 }
 
