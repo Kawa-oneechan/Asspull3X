@@ -21,6 +21,7 @@ extern void Log(WCHAR* message, ...);
 
 extern unsigned char* romBIOS;
 extern unsigned char* romCartridge;
+extern unsigned char* ramCartridge;
 extern unsigned char* ramVideo;
 extern unsigned char* ramInternal;
 
@@ -290,7 +291,8 @@ enum uiCommands
 
 //Define memory map
 #define BIOS_SIZE	0x00020000
-#define CART_SIZE	0x00FE0000
+#define CART_SIZE	0x00FC0000
+#define SRAM_SIZE	0x00020000
 #define WRAM_SIZE	0x00400000
 #define DEVS_SIZE	(DEV_BLOCK * MAXDEVS) //0x0080000
 #define REGS_SIZE	0x000FFFFF
@@ -308,6 +310,7 @@ enum uiCommands
 
 #define BIOS_ADDR	0x00000000
 #define CART_ADDR	0x00020000
+#define SRAM_ADDR	0x00FE0000
 #define WRAM_ADDR	0x01000000
 #define STAC_ADDR	0x013F0000
 #define DEVS_ADDR	0x02000000
@@ -327,14 +330,17 @@ enum uiCommands
 #define OBJ2_ADDR	0x064200
 
 #pragma region Sanity checks!
-#if (BIOS_SIZE + CART_SIZE) != 0x1000000
-#error Total ROM size (BIOS + CART) should be exactly 0x1000000 (16 MiB).
+#if (BIOS_SIZE + CART_SIZE + SRAM_SIZE) != 0x1000000
+#error Total ROM size (BIOS + CART + SRAM) should be exactly 0x1000000 (16 MiB).
 #endif
 #if (BIOS_ADDR + BIOS_SIZE) > CART_ADDR
 #error BIOS encroaches on CART space.
 #endif
-#if (CART_ADDR + CART_SIZE) > WRAM_ADDR
-#error CART encroaches on WRAM space.
+#if (CART_ADDR + CART_SIZE) > SRAM_ADDR
+#error CART encroaches on SRAM space.
+#endif
+#if (SRAM_ADDR + SRAM_SIZE) > WRAM_ADDR
+#error SRAM encroaches on WRAM space.
 #endif
 #if (WRAM_ADDR + WRAM_SIZE) > DEVS_ADDR
 #error WRAM encroaches on DEVS space.

@@ -25,6 +25,7 @@ void m68k_write_memory_32(unsigned int address, unsigned int value);
 
 unsigned char* romBIOS = NULL;
 unsigned char* romCartridge = NULL;
+unsigned char* ramCartridge = NULL;
 unsigned char* ramInternal = NULL;
 unsigned char* ramVideo = NULL;
 
@@ -84,6 +85,7 @@ int InitMemory()
 {
 	if ((romBIOS = new unsigned char[BIOS_SIZE]()) == NULL) return -1;
 	if ((romCartridge = new unsigned char[CART_SIZE]()) == NULL) return -1;
+	if ((ramCartridge = new unsigned char[SRAM_SIZE]()) == NULL) return -1;
 	if ((ramInternal = new unsigned char[WRAM_SIZE]()) == NULL) return -1;
 	if ((ramVideo = new unsigned char[VRAM_SIZE]()) == NULL) return -1;
 	return 0;
@@ -131,6 +133,8 @@ unsigned int m68k_read_memory_8(unsigned int address)
 		case 0x0:
 			if (addr < BIOS_SIZE)
 				return romBIOS[addr & (biosSize - 1)];
+			if (addr >= SRAM_ADDR)
+				return ramCartridge[addr - SRAM_ADDR];
 			return romCartridge[(addr - CART_ADDR) & (romSize - 1)];
 		case 0x1:
 			return ramInternal[addr & (WRAM_SIZE - 1)];
@@ -296,7 +300,10 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 	auto addr = address & 0x00FFFFFF;
 	switch (bank)
 	{
-		case 0x0: /* BIOS is ROM */ break;
+		case 0x0:
+			if (addr >= SRAM_ADDR)
+				ramCartridge[addr - SRAM_ADDR] = (unsigned char)value;
+			break;
 		case 0x1:
 			if (addr < WRAM_SIZE)
 				ramInternal[addr & (WRAM_SIZE - 1)] = (unsigned char)value;

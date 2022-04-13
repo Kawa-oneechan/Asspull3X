@@ -16,6 +16,8 @@ extern long rtcOffset;
 
 int firstDiskDrive = -1;
 
+WCHAR currentROM[FILENAME_MAX], currentSRAM[FILENAME_MAX];
+
 void LoadROM(const WCHAR* path)
 {
 	unsigned int fileSize = 0;
@@ -35,6 +37,17 @@ void LoadROM(const WCHAR* path)
 		auto err = Slurp(romCartridge, path, &romSize);
 		if (err)
 			UI::ReportLoadingFail(IDS_ROMLOADERROR, err, -1, path);
+		else
+		{
+			wcscpy(currentROM, path);
+			wcscpy(currentSRAM, path);
+			ext = wcsrchr(currentSRAM, L'.') + 1;
+			*ext = 0;
+			wcscat(currentSRAM, L"srm");
+			auto sramSize = romCartridge[0x28] * 512;
+			if (sramSize)
+				Slurp(ramCartridge, currentSRAM, nullptr);
+		}
 	}
 	else if (!wcscmp(ext, L"a3z"))
 	{
@@ -122,6 +135,13 @@ void FindFirstDrive()
 			return;
 		}
 	}
+}
+
+void SaveCartRAM()
+{
+	auto sramSize = romCartridge[0x28] * 512;
+	if (sramSize)
+		Dump(currentSRAM, ramCartridge, sramSize);
 }
 
 pauseStates pauseState = pauseNot;
@@ -348,6 +368,7 @@ void MainLoop()
 				if (UI::uiCommand == 0) continue;
 				Log(UI::GetString(IDS_LOADINGROM), UI::uiString); //"Loading ROM, %s ..."
 				gottaReset = (*(uint32_t*)romCartridge == 0x21535341);
+				SaveCartRAM();
 				LoadROM(UI::uiString);
 			}
 			else if (UI::uiCommand == cmdInsertDisk)
@@ -362,6 +383,7 @@ void MainLoop()
 			else if (UI::uiCommand == cmdUnloadRom)
 			{
 				Log(UI::GetString(IDS_UNLOADINGROM)); //"Unloading ROM..."
+				SaveCartRAM();
 				memset(romCartridge, 0, CART_SIZE);
 				ini.SetValue(L"media", L"rom", L"");
 				UI::SaveINI();
@@ -480,12 +502,14 @@ void MainLoop()
 		}
 	}
 
+	SaveCartRAM();
 	Sound::Reset();
 	for (int i = 0; i < MAXDEVS; i++)
 		if (devices[i] != NULL) delete devices[i];
 	delete[] pauseScreen;
 	delete[] romBIOS;
 	delete[] romCartridge;
+	delete[] ramCartridge;
 	delete[] ramInternal;
 	delete[] ramVideo;
 }
