@@ -101,7 +101,7 @@ namespace Video
 	{
 		if (source == NULL)
 		{
-			Log(UI::GetString(IDS_MOUNTINGDISK)); //"Mounting disk image, %s ..."
+			Log(UI::GetString(IDS_SHADERERROR)); //"Error compiling shader!"
 			return 0;
 		}
 		//Log("Compiling shader: %s", source);
@@ -117,7 +117,7 @@ namespace Video
 		glGetShaderiv(result, GL_COMPILE_STATUS, &shaderCompiled);
 		if (shaderCompiled != GL_TRUE)
 		{
-			Log(UI::GetString(IDS_SHADERERROR)); //"Error compiling shader!"
+			Log(logError, UI::GetString(IDS_SHADERERROR)); //"Error compiling shader!"
 			GLint logLength;
 			glGetShaderiv(result, GL_INFO_LOG_LENGTH, &logLength);
 			if (logLength > 0)
@@ -340,7 +340,7 @@ namespace Video
 		{
 			if (numShaders >= MAXSHADERS)
 			{
-				Log(UI::GetString(IDS_TOOMANYSHADERS), MAXSHADERS, numShaders); //"Too many shaders specified: can only do %d but %d were requested."
+				Log(logWarning, UI::GetString(IDS_TOOMANYSHADERS), MAXSHADERS, numShaders); //"Too many shaders specified: can only do %d but %d were requested."
 				numShaders = MAXSHADERS;
 			}
 			for (int i = 0; i < numShaders; i++)
@@ -359,7 +359,7 @@ namespace Video
 		winHeight = ini.GetLongValue(L"video", L"height", 480);
 		if ((sdlWindow = SDL_CreateWindow("", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, winWidth, winHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE)) == NULL)
 		{
-			Log(UI::GetString(IDS_WINDOWFAILED), SDL_GetError()); //"Could not create window: %s"
+			Log(logError, UI::GetString(IDS_WINDOWFAILED), SDL_GetError()); //"Could not create window: %s"
 			return -1;
 		}
 
@@ -367,7 +367,7 @@ namespace Video
 
 		if ((sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE)) == NULL)
 		{
-			Log(UI::GetString(IDS_RENDERERFAILED), SDL_GetError()); //"Could not create renderer: %s"
+			Log(logError, UI::GetString(IDS_RENDERERFAILED), SDL_GetError()); //"Could not create renderer: %s"
 			return -2;
 		}
 
@@ -388,14 +388,14 @@ namespace Video
 		SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
 		if ((sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_TARGET, 640, 480)) == NULL)
 		{
-			Log(UI::GetString(IDS_TEXTUREFAILED), SDL_GetError()); //"Could not create texture: %s"
+			Log(logError, UI::GetString(IDS_TEXTUREFAILED), SDL_GetError()); //"Could not create texture: %s"
 			return -2;
 		}
 
 		SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
 		if ((sdlShader = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_TARGET, 640, 480)) == NULL)
 		{
-			Log(UI::GetString(IDS_TEXTUREFAILED), SDL_GetError()); //"Could not create texture: %s"
+			Log(logError, UI::GetString(IDS_TEXTUREFAILED), SDL_GetError()); //"Could not create texture: %s"
 			return -2;
 		}
 

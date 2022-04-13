@@ -144,7 +144,7 @@ void InitializeDevices()
 		if (!wcscmp(thing, L"diskDrive"))
 		{
 			devices[i] = (Device*)(new DiskDrive(0));
-			Log(L"Attached a diskette drive as device #%d.", i);
+			Log(L"Attached a \x1b[1mdiskette drive\x1b[0m as device \x1b[1m#%d\x1b[0m.", i);
 			thing = ini.GetValue(L"devices/diskDrive", key, L"");
 			if (UI::reloadIMG && wcslen(thing))
 			{
@@ -155,13 +155,13 @@ void InitializeDevices()
 						UI::EjectDisk(i);
 				}
 				else
-					Log(L"Loaded \"%s\" into device #%d.", thing, i);
+					Log(logNormal, L"Loaded \x1b[96m%s\x1b[0m into device \x1b[1m#%d\x1b[0m.", thing, i);
 			}
 		}
 		else if (!wcscmp(thing, L"hardDrive"))
 		{
 			devices[i] = (Device*)(new DiskDrive(1));
-			Log(L"Attached a hard disk drive as device #%d.", i);
+			Log(logNormal, L"Attached a \x1b[1mhard disk drive\x1b[0m as device \x1b[1m#%d\x1b[0m.", i);
 			thing = ini.GetValue(L"devices/hardDrive", key, L"");
 			if (UI::reloadIMG && wcslen(thing))
 			{
@@ -172,15 +172,15 @@ void InitializeDevices()
 						UI::EjectDisk(i);
 				}
 				else
-					Log(L"Loaded \"%s\" into device #%d.", thing, i);
+					Log(logNormal, L"Loaded \x1b[96m%s\x1b[0m into device \x1b[1m#%d\x1b[0m.", thing, i);
 			}
 		}
 		else if (!wcscmp(thing, L"linePrinter"))
 		{
 			devices[i] = (Device*)(new LinePrinter());
-			Log(L"Attached a line printer as device #%d.", i);
+			Log(logNormal, L"Attached a \x1b[1mline printer\x1b[0m as device \x1b[1m#%d\x1b[0m.", i);
 		}
-		else Log(L"Don't know what a \"%s\" is to connect as device #%d.", thing, i);
+		else Log(logWarning, L"Don't know what \x1b[101m\"%s\"\x1b[0m is to connect as device \x1b[1m#%d\x1b[0m.", thing, i);
 	}
 
 	FindFirstDrive();
@@ -204,19 +204,19 @@ void Preload()
 			return;
 		}
 	}
-	Log(L"Loading BIOS %s...", thing);
+	Log(logNormal, L"Loading BIOS \x1b[96m%s\x1b[0m...", thing);
 	Slurp(romBIOS, thing, &biosSize);
 	biosSize = RoundUp(biosSize);
 	thing = ini.GetValue(L"media", L"rom", L"");
 	if (UI::reloadROM && wcslen(thing) && paramLoad[0] == 0)
 	{
-		Log(L"Loading ROM %s...", thing);
+		Log(logNormal, L"Loading ROM \x1b[96m%s\x1b[0m...", thing);
 		LoadROM(thing);
 		pauseState = pauseNot;
 	}
 	else if (paramLoad[0])
 	{
-		Log(L"Command-line loading ROM %s...", paramLoad);
+		Log(logNormal, L"Command-line loading ROM \x1b[96m%s\x1b[0m...", paramLoad);
 		LoadROM((const WCHAR*)paramLoad);
 		pauseState = pauseNot;
 	}
@@ -233,6 +233,10 @@ int main(int argc, char** argv)
 #if _CONSOLE
 	SetConsoleCP(CP_UTF8);
 	auto throwAway = _setmode(_fileno(stdout), _O_U16TEXT); throwAway;
+	DWORD mode = 0;
+	GetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), &mode);
+	mode |= 4;
+	SetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), mode);
 #endif
 
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_VIDEO_OPENGL | SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER) < 0)

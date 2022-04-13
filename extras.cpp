@@ -47,7 +47,7 @@ int Dump(const WCHAR* filePath, unsigned char* source, unsigned long size)
 	return 0;
 }
 
-void Log(WCHAR* message, ...)
+void Log(logCategories cat, WCHAR* message, ...)
 {
 	va_list args;
 	va_start(args, message);
@@ -55,8 +55,28 @@ void Log(WCHAR* message, ...)
 	vswprintf(buf, 1024, message, args);
 	va_end(args);
 #if _CONSOLE
-	wprintf(buf);
-	wprintf(L"\n");
+	DWORD mode = 0;
+	auto std = GetStdHandle(STD_OUTPUT_HANDLE);
+	GetConsoleMode(std, &mode);
+	if (mode & 4)
+	{
+		switch (cat)
+		{
+		case logWarning: wprintf(L"\x1b[93m\u26A0 \x1B[1m"); break;
+		case logError: wprintf(L"\x1b[101m\u26D4 \x1B[1m"); break;
+		}
+		wprintf(L"%s\x1B[0m\n", buf);
+	}
+	else
+	{
+		switch (cat)
+		{
+		case logWarning: SetConsoleTextAttribute(std, 14); wprintf(L"\u26A0 "); break;
+		case logError: SetConsoleTextAttribute(std, 12); wprintf(L"\u26D4 "); break;
+		}
+		SetConsoleTextAttribute(std, 7);
+		wprintf(L"%s\n", buf);
+	}
 #endif
 	if (logFile == NULL)
 	{
@@ -71,4 +91,14 @@ void Log(WCHAR* message, ...)
 		fwprintf(logFile, L"\n");
 		fflush(logFile);
 	}
+}
+
+void Log(WCHAR* message, ...)
+{
+	va_list args;
+	va_start(args, message);
+	WCHAR buf[1024] = { 0 };
+	vswprintf(buf, 1024, message, args);
+	va_end(args);
+	Log(logNormal, buf);
 }

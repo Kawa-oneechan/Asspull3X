@@ -36,13 +36,13 @@ STRINGTABLE
 	IDS_BADSIZE, "File size is not a power of two: is %d (0x%08X), should be %d (0x%08X)."
 	IDS_BADCHECKSUM, "Checksum mismatch: is 0x%08X, should be 0x%08X."
 	IDS_RESETTING, "Resetting Musashi..." //Musashi is the 68020 emulator core
-	IDS_ASSPULLISREADY, "\nAsspull IIIx is ready.\nPress RCtrl+L to load a ROM, RCtrl+Shift+L to load a diskette.\nPress RCtrl+U to unload ROM, RCtrl+Shift+U to unload diskette.\nPress RCtrl+R to reset, RCtrl+Shift+R to unload and reset.\nPress RCtrl+D to dump RAM, RCtrl+S to take a screenshot.\n\n"
+	IDS_ASSPULLISREADY, "\n\x1b[96mAsspull \x1b[91mIII\x1b[94mx\x1b[0m is ready.\nPress RCtrl+L to load a ROM, RCtrl+Shift+L to load a diskette.\nPress RCtrl+U to unload ROM, RCtrl+Shift+U to unload diskette.\nPress RCtrl+R to reset, RCtrl+Shift+R to unload and reset.\nPress RCtrl+D to dump RAM, RCtrl+S to take a screenshot.\n\n"
 
 	//More debug-only stuff
 	IDS_LOADINGROM, "Loading ROM %s..."
 	IDS_UNLOADINGROM, "Unloading ROM..."
 	IDS_UNMOUNTINGDISK, "Unmounting diskette..."
-	IDS_MOUNTINGDISK, "Mounting disk image %s..."
+	IDS_MOUNTINGDISK, "Mounting disk image \x1b[96m%s\x1b[0m..."
 	IDS_MOUNTEDVHD, "Mounted VHD. %d * %d * %d * 512 = %d, should be ~%d."
 	IDS_SHADERERROR, "Error compiling shader!"
 	IDS_TOOMANYSHADERS, "Too many shaders specified: can only do %d but %d were requested."

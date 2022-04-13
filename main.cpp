@@ -92,7 +92,7 @@ void LoadROM(const WCHAR* path)
 	fileSize = romSize;
 	romSize = RoundUp(romSize);
 	if (romSize != fileSize)
-		Log(UI::GetString(IDS_BADSIZE), fileSize, fileSize, romSize, romSize); //"File size is not a power of two: is %d (0x%08X), should be %d (0x%08X)."
+		Log(logWarning, UI::GetString(IDS_BADSIZE), fileSize, fileSize, romSize, romSize); //"File size is not a power of two: is %d (0x%08X), should be %d (0x%08X)."
 
 	unsigned int c1 = 0;
 	unsigned int c2 = (romCartridge[0x20] << 24) | (romCartridge[0x21] << 16) | (romCartridge[0x22] << 8) | (romCartridge[0x23] << 0);
@@ -103,7 +103,7 @@ void LoadROM(const WCHAR* path)
 		c1 += romCartridge[i];
 	}
 	if (c1 != c2)
-		Log(UI::GetString(IDS_BADCHECKSUM), c2, c1); //"Checksum mismatch: is 0x%08X, should be 0x%08X."
+		Log(logWarning, UI::GetString(IDS_BADCHECKSUM), c2, c1); //"Checksum mismatch: is 0x%08X, should be 0x%08X."
 #endif
 
 	ini.SetValue(L"media", L"rom", path);

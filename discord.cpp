@@ -28,7 +28,7 @@ namespace Discord
 		discordDLL = LoadLibraryExA("discord-rpc.dll", NULL, 0);
 		if (discordDLL == NULL)
 		{
-			Log(UI::GetString(IDS_DISCORDDLL)); //"Discord is enabled but the DLL isn't here."
+			Log(logWarning, UI::GetString(IDS_DISCORDDLL)); //"Discord is enabled but the DLL isn't here."
 			enabled = false;
 			return;
 		}

@@ -34,9 +34,15 @@ void LinePrinter::Write(unsigned int address, unsigned int value)
 {
 	if (address == 2)
 	{
+		DWORD mode = 0;
+		GetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), &mode);
+		int bg = pageLength % 4 < 2 ? 107 : 47;
 		if ((char)value == '\f')
 		{
-			wprintf(L"o¦----------------------------------------------------------------------------------¦o\n");
+			if (mode & 4)
+				wprintf(L"\x1b[%d;90m\u2022\u00A6----------------------------------------------------------------------------------\u00A6\u2022\x1B[0m\n", bg);
+			else
+				wprintf(L"o|----------------------------------------------------------------------------------|o\n");
 			pageLength = 0;
 		}
 		else if ((char)value == '\n')
@@ -46,9 +52,12 @@ void LinePrinter::Write(unsigned int address, unsigned int value)
 		}
 		else if (lineLength == 80 || (char)value == '\r')
 		{
-			WCHAR wLine[160] = { 0 };
+			WCHAR wLine[80] = { 0 };
 			mbstowcs_s(NULL, wLine, line, 80);
-			wprintf(L"o¦ %-80s ¦o\n", wLine);
+			if (mode & 4)
+				wprintf(L"\x1b[%d;90m\u2022\u00A6\x1b[%d;30m %-80s \x1b[%d;90m\u00A6\u2022\x1B[0m\n", bg, bg, wLine, bg);
+			else
+				wprintf(L"o| %-80s |o\n", wLine);
 			Write(2, '\n');
 			pageLength++;
 			if (pageLength == 30)
