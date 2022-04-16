@@ -87,6 +87,22 @@ void Log(logCategories cat, WCHAR* message, ...)
 	}
 	if (logFile)
 	{
+		//strip out "ESC[...m"
+		WCHAR *o = buf;
+		WCHAR *n = buf;
+		while (*o)
+		{
+			if (*o != '\x1b')
+				*n++ = *o++;
+			else
+			{
+				while (*o != 'm')
+					o++;
+				o++;
+			}
+		}
+		*n = 0;
+
 		fwprintf(logFile, buf);
 		fwprintf(logFile, L"\n");
 		fflush(logFile);
