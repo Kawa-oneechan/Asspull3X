@@ -189,13 +189,14 @@ namespace Registers
 		{
 			struct
 			{
-				unsigned char Shift : 4;
+				unsigned char Shift : 2;
+				unsigned char : 2;
 				unsigned char Enabled : 4;
 			};
 			struct
 			{
-				unsigned char Shift12 : 2;
-				unsigned char Shift34: 2;
+				unsigned char Shift : 2;
+				unsigned char : 2;
 				unsigned char Map1 : 1;
 				unsigned char Map2 : 1;
 				unsigned char Map3 : 1;
@@ -235,6 +236,7 @@ namespace Registers
 
 	extern int Fade, Caret;
 	extern int ScrollX[4], ScrollY[4];
+	extern unsigned int MapTileShift;
 }
 
 namespace Video

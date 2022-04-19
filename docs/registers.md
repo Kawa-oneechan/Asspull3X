@@ -53,15 +53,14 @@ The amount of ticks since the system was turned on as a `uint32`.
 
 ### 00009	REG_MAPSET
 
-    EEEE TTTT
-    |||| | |___ Tile shift for layers 1 and 3
-    |||| |_____ Tile shift for layer 2 and 4
+    EEEE ..SS
+    ||||   |___ Shift amount for objects
     ||||_______ Layer 1 enabled
     |||________ Layer 2 enabled
     ||_________ Layer 3 enabled
     |__________ Layer 4 enabled
 
-Tile shift adds `128 << T` to the tile # when rendering, so a shift value of 3 means a whole separate set of 1024 tiles.
+Please refer to `0000B` for more on shift amounts.
 
 ### 0000A	REG_MAPBLEND
 
@@ -69,11 +68,21 @@ Tile shift adds `128 << T` to the tile # when rendering, so a shift value of 3 m
     |    |_____ Enable for these layers
     |__________ Subtract instead of add
 
+### 0000B	REG_MAPSHIFT
+
+	4433 2211
+	| |  | |_____ Shift amount for layer 1
+	| |  |_______ Shift amount for layer 2
+	| |__________ Shift amount for layer 3
+	|____________ Shift amount for layer 4
+
+There are 2048 possible tiles, but map tiles can only address half of that range. The mapshift register shifts the window of tiles used by a given layer in 512 tile increments. A value of 0 means a 0 in the map uses tile 0, a value of 1 makes it use tile 512, and so on.
+
 ### 00010	REG_SCROLLX1
 
 ### 00012	REG_SCROLLY1
 
-Scroll values for the tile map as `int16`. This repeats for each of the four layers up to `001E REG_SCROLLY4`.
+Scroll values for the tile map as `int16`. This repeats for each of the four layers up to `0001E REG_SCROLLY4`.
 
 *The tile map controls are a work in progress.*
 

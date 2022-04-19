@@ -6,11 +6,12 @@ namespace Registers
 	ScreenModeRegister ScreenMode;
 	MapSetRegister MapSet;
 	MapBlendRegister MapBlend;
-	
+
 	int WindowLeft, WindowRight, WindowMask;
 
 	int Fade, Caret;
 	int ScrollX[4], ScrollY[4];
+	unsigned int MapTileShift = 0;
 }
 
 extern "C"
@@ -103,6 +104,7 @@ void ResetMemory()
 	Registers::MapSet.Raw = 0;
 	Registers::ScreenMode.Raw = 0;
 	Registers::WindowLeft = Registers::WindowRight = Registers::WindowMask = 0;
+	Registers::MapTileShift = 0;
 	memset(Registers::ScrollX, 0, sizeof(int) * 4);
 	memset(Registers::ScrollY, 0, sizeof(int) * 4);
 	Sound::Reset();
@@ -123,6 +125,8 @@ unsigned int m68k_read_memory_8(unsigned int address)
 				return Registers::Fade;
 			case 0x09: //TilemapSet
 				return Registers::MapSet.Raw;
+			case 0x0B: //MapShift
+				return Registers::MapTileShift;
 		}
 		return 0;
 	}
@@ -242,6 +246,9 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				break;
 			case 0x0A: //TilemapBlend
 				Registers::MapBlend.Raw = value;
+				break;
+			case 0x0B: //MapShift
+				Registers::MapTileShift = value;
 				break;
 			case 0x44: //MIDI Out
 				Sound::SendMidiByte(value);

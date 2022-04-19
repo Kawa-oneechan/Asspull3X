@@ -141,6 +141,7 @@ namespace Video
 	void RenderObjects(int line, int withPriority)
 	{
 		auto step = Registers::ScreenMode.HalfWidth ? 4 : 2;
+		auto shift = Registers::MapSet.Shift * 512;
 		for (auto i = 0; i < 256; i++)
 		{
 			ObjectA objA;
@@ -456,7 +457,7 @@ namespace Video
 			auto yShift = ((yyy >> 3) << 6);
 			//yShift = 0;
 			auto screenSource = screenBase + (0x000 * (xxx >> 8) + ((xxx & 511) >> 3) + yShift) * 2;
-			auto shift = 0; // 128 << (tileShift[layer] - 1);
+			auto shift = ((Registers::MapTileShift >> (layer * 2)) & 0x03) * 512;
 
 			for (auto x = 0; x < 320; x++)
 			{
