@@ -85,10 +85,11 @@ STRINGTABLE
 
 	(IDS_REGIONS+0), "BIOS"
 	(IDS_REGIONS+1), "Cartouche"
-	(IDS_REGIONS+2), "WRAM"
-	(IDS_REGIONS+3), "Périphérique"
-	(IDS_REGIONS+4), "Registres"
-	(IDS_REGIONS+5), "VRAM"
+	(IDS_REGIONS+2), "SRAM"
+	(IDS_REGIONS+3), "WRAM"
+	(IDS_REGIONS+4), "Périphérique"
+	(IDS_REGIONS+5), "Registres"
+	(IDS_REGIONS+6), "VRAM"
 }
 
 IDR_MAINMENU MENU

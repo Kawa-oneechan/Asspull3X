@@ -141,7 +141,7 @@ namespace UI
 		void ComboSelChange()
 		{
 			int index = SendDlgItemMessage(hWnd, IDC_MEMVIEWERDROP, CB_GETCURSEL, 0, 0);
-			uint32_t areas[] = { BIOS_ADDR, CART_ADDR, WRAM_ADDR + 0x1000, DEVS_ADDR, REGS_ADDR, VRAM_ADDR };
+			uint32_t areas[] = { BIOS_ADDR, CART_ADDR, SRAM_ADDR, WRAM_ADDR + 0x1000, DEVS_ADDR, REGS_ADDR, VRAM_ADDR };
 			ScrollTo(areas[index]);
 		}
 
@@ -179,7 +179,7 @@ namespace UI
 			{
 				MemoryViewer::hWnd = hWnd;
 				//SendDlgItemMessage(hwndDlg, IDC_MEMVIEWEROFFSET, WM_SETFONT, (WPARAM)monoFont, false);
-				for (int i = 0; i < 6; i++)
+				for (int i = 0; i < 7; i++)
 					SendDlgItemMessage(hWnd, IDC_MEMVIEWERDROP, CB_ADDSTRING, 0, (LPARAM)GetString(IDS_REGIONS + i));
 				SendDlgItemMessage(hWnd, IDC_MEMVIEWERDROP, CB_SETCURSEL, 1, 0);
 				SendDlgItemMessage(hWnd, IDC_MEMVIEWEROFFSET, EM_SETLIMITTEXT, 8, 0);
