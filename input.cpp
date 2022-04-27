@@ -1,7 +1,7 @@
 #include "asspull.h"
 
 InputDevice* inputDev;
-char joypad[4];
+unsigned char joypad[4];
 char joyaxes[4];
 
 const unsigned char keyMap[] =
