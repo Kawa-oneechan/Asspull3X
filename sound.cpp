@@ -22,12 +22,16 @@ namespace Sound
 	static SDL_AudioDeviceID saDev;
 
 	opl3_chip opl3 = { 0 };
+	bool resetOPL = false;
 	short mixStream[2048];
 
 	void saCallback(void *userdata, unsigned char* stream, int len)
 	{
-		if (opl3.rateratio == 0)
+		if (opl3.rateratio == 0 || resetOPL)
+		{
 			OPL3_Reset(&opl3, FREQUENCY);
+			resetOPL = false;
+		}
 
 		signed short* str = (signed short*)stream;
 		len /= 2;
@@ -326,6 +330,7 @@ namespace Sound
 		pcmSource[0] = pcmSource[1] = NULL;
 		pcmLength[0] = pcmLength[1] = 0;
 		pcmVolume[0] = pcmVolume[1] = pcmVolume[2] = pcmVolume[3] = 255;
+		resetOPL = true;
 	}
 
 }
