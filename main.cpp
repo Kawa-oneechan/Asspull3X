@@ -242,18 +242,18 @@ void MainLoop()
 				{
 					switch (ev.key.keysym.sym)
 					{
-					case SDLK_UP: joypad[0] |= 1; break;
-					case SDLK_RIGHT: joypad[0] |= 2; break;
-					case SDLK_DOWN: joypad[0] |= 4; break;
-					case SDLK_LEFT: joypad[0] |= 8; break;
-					case SDLK_z: joypad[0] |= 16; break;
-					case SDLK_x: joypad[0] |= 32; break;
-					case SDLK_a: joypad[0] |= 64; break;
-					case SDLK_s: joypad[0] |= 128; break;
-					case SDLK_d: joypad[2] |= 1; break;
-					case SDLK_f: joypad[2] |= 2; break;
-					case SDLK_c: joypad[2] |= 4; break;
-					case SDLK_v: joypad[2] |= 8; break;
+					case SDLK_UP: joypad[0] |= 0x0001; break;
+					case SDLK_RIGHT: joypad[0] |= 0x0002; break;
+					case SDLK_DOWN: joypad[0] |= 0x0004; break;
+					case SDLK_LEFT: joypad[0] |= 0x0008; break;
+					case SDLK_z: joypad[0] |= 0x0010; break;
+					case SDLK_x: joypad[0] |= 0x0020; break;
+					case SDLK_a: joypad[0] |= 0x0040; break;
+					case SDLK_s: joypad[0] |= 0x0080; break;
+					case SDLK_d: joypad[0] |= 0x0100; break;
+					case SDLK_f: joypad[0] |= 0x0200; break;
+					case SDLK_c: joypad[0] |= 0x0400; break;
+					case SDLK_v: joypad[0] |= 0x0800; break;
 					default: k2joyed = false;
 					}
 					if (k2joyed) break;
@@ -271,18 +271,18 @@ void MainLoop()
 				{
 					switch (ev.key.keysym.sym)
 					{
-					case SDLK_UP: joypad[0] &= ~1; break;
-					case SDLK_RIGHT: joypad[0] &= ~2; break;
-					case SDLK_DOWN: joypad[0] &= ~4; break;
-					case SDLK_LEFT: joypad[0] &= ~8; break;
-					case SDLK_z: joypad[0] &= ~16; break;
-					case SDLK_x: joypad[0] &= ~32; break;
-					case SDLK_a: joypad[0] &= ~64; break;
-					case SDLK_s: joypad[0] &= ~128; break;
-					case SDLK_d: joypad[2] &= ~1; break;
-					case SDLK_f: joypad[2] &= ~2; break;
-					case SDLK_c: joypad[2] &= ~4; break;
-					case SDLK_v: joypad[2] &= ~8; break;
+					case SDLK_UP: joypad[0] &= ~0x0001; break;
+					case SDLK_RIGHT: joypad[0] &= ~0x0002; break;
+					case SDLK_DOWN: joypad[0] &= ~0x0004; break;
+					case SDLK_LEFT: joypad[0] &= ~0x0008; break;
+					case SDLK_z: joypad[0] &= ~0x0010; break;
+					case SDLK_x: joypad[0] &= ~0x0020; break;
+					case SDLK_a: joypad[0] &= ~0x0040; break;
+					case SDLK_s: joypad[0] &= ~0x0080; break;
+					case SDLK_d: joypad[0] &= ~0x0100; break;
+					case SDLK_f: joypad[0] &= ~0x0200; break;
+					case SDLK_c: joypad[0] &= ~0x0400; break;
+					case SDLK_v: joypad[0] &= ~0x0800; break;
 					default: k2joyed = false;
 					}
 					if (k2joyed) break;
