@@ -150,8 +150,8 @@ namespace UI
 }
 
 //Move these into InputDevice?
-extern unsigned char joypad[4];
-extern char joyaxes[4];
+extern unsigned short joypad[2];
+extern char joyaxes[2][2];
 
 extern long ticks;
 

@@ -207,7 +207,7 @@ void MainLoop()
 					if (ev.jbutton.button < 4)
 						joypad[ev.jbutton.which] |= 16 << (ev.jbutton.button ^ invertButtons);
 					else
-						joypad[ev.jbutton.which + 2] |= 1 << (ev.jbutton.button - 4);
+						joypad[ev.jbutton.which] |= 1 << (ev.jbutton.button + 4);
 				}
 				break;
 			}
@@ -218,7 +218,7 @@ void MainLoop()
 					if (ev.jbutton.button < 4)
 						joypad[ev.jbutton.which] &= ~(16 << (ev.jbutton.button ^ invertButtons));
 					else
-						joypad[ev.jbutton.which + 2] &= ~(1 << (ev.jbutton.button - 4));
+						joypad[ev.jbutton.which] &= ~(1 << (ev.jbutton.button + 4));
 				}
 				break;
 			}
@@ -230,9 +230,9 @@ void MainLoop()
 			}
 			case SDL_JOYAXISMOTION:
 			{
-				if (ev.jaxis.axis > 2) ev.jaxis.axis -= 3; //map right stick and trigger to left
+				//if (ev.jaxis.axis > 2) ev.jaxis.axis -= 3; //map right stick and trigger to left
 				if (ev.jaxis.which < 2)
-					joyaxes[(ev.jaxis.which * 2) + ev.jaxis.axis] = ev.jaxis.value >> 8;
+					joyaxes[ev.jaxis.which][ev.jaxis.axis] = ev.jaxis.value >> 8;
 				break;
 			}
 			case SDL_KEYDOWN:

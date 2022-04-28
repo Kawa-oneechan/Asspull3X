@@ -1,8 +1,8 @@
 #include "asspull.h"
 
 InputDevice* inputDev;
-unsigned char joypad[4];
-char joyaxes[4];
+unsigned short joypad[2];
+char joyaxes[2][2];
 
 const unsigned char keyMap[] =
 {
@@ -163,21 +163,21 @@ unsigned int InputDevice::Read(unsigned int address)
 		return ret;
 	}
 	case 0x12: //Gamepad 1 digital 1
-		return joypad[2];
+		return (joypad[0] >> 8) & 0xFF;
 	case 0x13: //Gamepad 1 digital 2
-		return joypad[0];
+		return (joypad[0] >> 0) & 0xFF;
 	case 0x14: //Gamepad 1 analog 1
-		return joyaxes[0];
+		return joyaxes[0][0];
 	case 0x15: //Gamepad 1 analog 2
-		return joyaxes[1];
+		return joyaxes[0][1];
 	case 0x16: //Gamepad 2 digital 1
-		return joypad[3];
+		return (joypad[1] >> 8) & 0xFF;
 	case 0x17: //Gamepad 2 digital 2
-		return joypad[1];
+		return (joypad[1] >> 0) & 0xFF;
 	case 0x18: //Gamepad 2 analog 1
-		return joyaxes[2];
+		return joyaxes[1][0];
 	case 0x19: //Gamepad 2 analog 2
-		return joyaxes[3];
+		return joyaxes[1][1];
 	case 0x20: //Mouse
 		return (mouseLatch >> 8) & 0xFF;
 	case 0x21:
