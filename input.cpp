@@ -245,7 +245,9 @@ void InputDevice::Enqueue(SDL_Keysym sym)
 	if (sym.scancode == SDL_SCANCODE_LCTRL) return;
 	if (sym.scancode == SDL_SCANCODE_LALT) return;
 	if (sym.scancode == SDL_SCANCODE_LSHIFT) return;
-	
+	if (sym.scancode == SDL_SCANCODE_LGUI) return;
+	if (sym.scancode == SDL_SCANCODE_RGUI) return;
+
 	if (bufferCursor == 32)
 	{
 		wprintf(L"\x07");
