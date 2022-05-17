@@ -247,6 +247,9 @@ void InputDevice::Enqueue(SDL_Keysym sym)
 	if (sym.scancode == SDL_SCANCODE_LSHIFT) return;
 	if (sym.scancode == SDL_SCANCODE_LGUI) return;
 	if (sym.scancode == SDL_SCANCODE_RGUI) return;
+	if (sym.scancode == SDL_SCANCODE_VOLUMEUP) return;
+	if (sym.scancode == SDL_SCANCODE_VOLUMEDOWN) return;
+	if (sym.scancode == SDL_SCANCODE_MUTE) return;
 
 	if (bufferCursor == 32)
 	{
