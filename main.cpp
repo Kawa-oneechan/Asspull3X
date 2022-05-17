@@ -144,6 +144,43 @@ void SaveCartRAM()
 		Dump(currentSRAM, ramCartridge, sramSize);
 }
 
+int IllegalMangrasp(int i)
+{
+	static unsigned int lastPC = -1;
+	auto pc = m68k_get_reg(NULL, M68K_REG_PC);
+	if (lastPC == pc)
+		return 0;
+	lastPC = pc;
+	auto ppc = m68k_get_reg(NULL, M68K_REG_PPC);
+	auto sp = m68k_get_reg(NULL, M68K_REG_SP);
+	auto a0 = m68k_get_reg(NULL, M68K_REG_A0);
+	auto a1 = m68k_get_reg(NULL, M68K_REG_A1);
+	auto a2 = m68k_get_reg(NULL, M68K_REG_A2);
+	auto a3 = m68k_get_reg(NULL, M68K_REG_A3);
+	auto a4 = m68k_get_reg(NULL, M68K_REG_A4);
+	auto a5 = m68k_get_reg(NULL, M68K_REG_A5);
+	auto a6 = m68k_get_reg(NULL, M68K_REG_A6);
+	auto a7 = m68k_get_reg(NULL, M68K_REG_A7);
+	auto d0 = m68k_get_reg(NULL, M68K_REG_D0);
+	auto d1 = m68k_get_reg(NULL, M68K_REG_D1);
+	auto d2 = m68k_get_reg(NULL, M68K_REG_D2);
+	auto d3 = m68k_get_reg(NULL, M68K_REG_D3);
+	auto d4 = m68k_get_reg(NULL, M68K_REG_D4);
+	auto d5 = m68k_get_reg(NULL, M68K_REG_D5);
+	auto d6 = m68k_get_reg(NULL, M68K_REG_D6);
+	auto d7 = m68k_get_reg(NULL, M68K_REG_D7);
+
+	Log(logError, L"Illegal mangrasp!");
+	Log(L"PC: 0x%08X from 0x%08X, SP: 0x%08X", pc, ppc, sp);
+	Log(L"A0: 0x%08X, A1: 0x%08X, A2: 0x%08X, A3: 0x%08X", a0, a1, a2, a3);
+	Log(L"A4: 0x%08X, A5: 0x%08X, A6: 0x%08X, A7: 0x%08X", a4, a5, a6, a7);
+	Log(L"D0: 0x%08X, D1: 0x%08X, D2: 0x%08X, D3: 0x%08X", d0, d1, d2, d3);
+	Log(L"D4: 0x%08X, D5: 0x%08X, D6: 0x%08X, D7: 0x%08X", d4, d5, d6, d7);
+
+	pauseState = pauseEntering;
+	return 0;
+}
+
 pauseStates pauseState = pauseNot;
 unsigned char* pauseScreen;
 
@@ -158,6 +195,7 @@ void MainLoop()
 	Log(UI::GetString(IDS_RESETTING));
 	m68k_init();
 	m68k_set_cpu_type(M68K_CPU_TYPE_68020);
+	m68k_set_illg_instr_callback(IllegalMangrasp);
 	Sound::Reset();
 	m68k_pulse_reset();
 
