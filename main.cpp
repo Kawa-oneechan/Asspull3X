@@ -517,11 +517,13 @@ void MainLoop()
 				frames++;
 				if (pauseState != 2)
 				{
+					/*
 					if ((interrupts & 0x84) == 0) //if interrupts are enabled and not already in VBlank
 					{
 						interrupts |= 4; //set VBlank signal
 						m68k_set_virq(M68K_IRQ_7, 1);
 					}
+					*/
 				}
 			}
 		}
@@ -534,7 +536,7 @@ void MainLoop()
 		line++;
 		if (line == trueLines)
 		{
-			m68k_set_virq(M68K_IRQ_7, 0);
+			//m68k_set_virq(M68K_IRQ_7, 0);
 			ticks++;
 			line = 0;
 		}
