@@ -438,8 +438,8 @@ enum diskDriveTypes
 class LinePrinter : Device
 {
 private:
-	char line[80];
-	int lineLength;
+	char line[120];
+	int lineLength, visibleLength, padLength;
 	int pageLength;
 public:
 	LinePrinter(void);
