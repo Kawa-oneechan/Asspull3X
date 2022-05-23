@@ -14,6 +14,8 @@ The input device identifies by the value `494F`, for "IO", even though it's only
 
 Returns the last key pressed, or `00` if the input buffer is empty. This also pops the key out of the buffer.
 
+*(Idea: allow "ungetting" a keypress by writing to `INP_KEYIN`?)*
+
 #### 0003	INP_KEYSHIFT
 
 Returns the state of the control, alt, and shift keys.
@@ -126,4 +128,18 @@ Line printers identify by the value `4C50`, for "LP".
 
 #### 0002	Character out
 
-Anything written here is piped directly to the printer.
+Anything written here is piped directly to the printer. You can write with <em>emphasis</em> by writing `\x1B`,`E` and turn emphasis back off with `\x1B`,`e`. Likewise, you can write <u>underlined</u> by writing `\x1B`,`U` and turn it off again with `\x1B`,`u`. So as an example:
+
+````
+I'm not sure you should drink that. \n
+It looks \x1BEbad\x1Be for you. \n
+\n
+Nonsense. It makes me feel \x1BUgreat!\1Bu \n
+Like I could \x1BE\x1BUtake on the world!\x1Bu\x1Be
+````
+
+> I'm not sure you should drink that.
+> It looks *bad* for you.
+> 
+> Nonsense. It makes me feel <u>great!</u>
+> Like I could *<u>take on the world!</u>*

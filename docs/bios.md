@@ -34,7 +34,7 @@ typedef struct IBios
 * `biosVersion`: the BIOS/interface revision in 8.8 fixed point, so `0x0102` means version 1.2.
 * `extensions`: reserved.
 * `Exception`: a function pointer to a generic exception handler, not currently used.
-* `VBlank`: a function pointer called by the BIOS' interrupt dispatcher when not null. May be set by programs as needed.
+* `VBlank`: a function pointer called by ~~the BIOS' interrupt dispatcher~~ `MISC->WaitForVblank` when not null. May be set by programs as needed.
 * `reserved`: exactly that.
 * `DrawChar`: a function pointer to a routine that draws characters,  Automatically set to BIOS-provided routines by the `SetBitmapMode` interface calls.
 * `textLibrary`, `drawingLibrary`, `miscLibrary`, and `diskLibrary`: substructures with function pointers to various interface calls.
@@ -49,25 +49,131 @@ All text library calls can be reached with the `TEXT` shorthand `#define`, like 
 
 #### `int Write(const char* format, ...)`
 
-Writes formatted text to the screen. Equivalent to `printf(format, ...)`, which is in fact a `#define`.
+Writes formatted text to the screen. Equivalent to `printf(format, ...)`, which is in fact a `#define`. Returns the amount of characters actually written.
 
 #### `int Format(char *buffer, const char* format, ...)`
 
-Writes formatted text to memory. Equivalent to `sprintf(buffer, format, ...)` which is *not* a `#define`.
+Writes formatted text to memory. Equivalent to `sprintf(buffer, format, ...)` which is *not* a `#define`. Returns the amount of characters actually written.
 
 #### `void WriteChar(char ch)`
 
 Writes a single character to the screen. Equivalent to `putch(ch)` which is *not* a `#define`.
 
-#### `void SetBold(int32_t bold)`
+#### `void SetCursorPosition(int left, int top)`
 
-If `bold` is nonzero, enables the bold type bit so characters in text mode are rendered as such, clears it otherwise.
+#### `void SetTextColor(int back, int fore)`
 
-#### `void SetCursorPosition(int32_t left, int32_t top)`
+#### `void SetBold(bool bold)`
 
-#### `void SetTextColor(int32_t back, int32_t fore)`
+If `bold` is `true`, enables the bold type bit so characters in text mode are rendered as such, clears it otherwise.
 
 #### `void ClearScreen()`
 
+### Drawing
 
+All drawing library calls can be reached with the `DRAW` shorthand `#define`.
+
+#### `void ResetPalette()`
+
+#### `void DisplayPicture(TImageFile* picData)`
+
+#### `void FadeToBlack()`
+
+#### `void FadeFromBlack()`
+
+#### `void FadeToWhite()`
+
+#### `void FadeFromWhite()`
+
+#### `void DrawString(const char* str, int x, int y, int color)`
+
+#### `void DrawFormat(const char* format, int x, int y, int color, ...)`
+
+#### `void DrawChar(char ch, int x, int y, int color)`
+
+#### `void DrawLine(int x0, int y0, int x1, int y1, int color, uint8_t* dest)`
+
+#### `void FloodFill(int x, int y, int color, uint8_t* dest)`
+
+### Miscellaneous
+
+All miscellaneous library calls can be reached with the `MISC` shorthand `#define`.
+
+#### `void SetTextMode(int flags)`
+
+#### `void SetBitmapMode16(int flags)`
+
+#### `void SetBitmapMode256(int flags)`
+
+#### `void EnableObjects(bool enabled)`
+
+#### `void WaitForVBlank()`
+
+#### `void WaitForVBlanks(int vbls)`
+
+#### `void DmaCopy(void* dst, const void* src, size_t size, int step)`
+
+#### `void DmaClear(void* dst, int src, size_t size, int step)`
+
+#### `void MidiReset()`
+
+#### `void RleUnpack(int8_t* dst, int8_t* src, size_t size)`
+
+### Disk I/O
+
+All disk I/O library calls can be reached with the `DISK` shorthand `#define`.
+
+#### `EFileError OpenFile(TFileHandle* handle, const char* path, char mode);`
+
+#### `EFileError CloseFile(TFileHandle* handle);`
+
+#### `int ReadFile(TFileHandle* handle, void* target, size_t length);`
+
+#### `int WriteFile(TFileHandle* handle, void* source, size_t length);`
+
+#### `uint32_t SeekFile(TFileHandle* handle, uint32_t offset, int origin);`
+
+#### `EFileError TruncateFile(TFileHandle* handle);`
+
+#### `EFileError FlushFile(TFileHandle*);`
+
+#### `uint32_t FilePosition(TFileHandle* handle);`
+
+#### `bool FileEnd(TFileHandle* handle);`
+
+#### `size_t FileSize(TFileHandle* handle);`
+
+#### `EFileError OpenDir(TDirHandle* handle, const char* path);`
+
+#### `EFileError CloseDir(TDirHandle* handle);`
+
+#### `EFileError ReadDir(TDirHandle* handle, TFileInfo* info);`
+
+#### `EFileError FindFirst(TDirHandle* handle, TFileInfo* info, const char* path, const char* pattern);`
+
+#### `EFileError FindNext(TDirHandle* handle, TFileInfo* info);`
+
+#### `EFileError FileStat(const char* path, TFileInfo* info);`
+
+#### `EFileError UnlinkFile(const char* path);`
+
+#### `EFileError RenameFile(const char* from, const char* to);`
+
+#### `EFileError FileTouch(const char* path, TFileInfo* info);`
+
+#### `EFileError FileAttrib(const char* path, char attrib);`
+
+#### `EFileError MakeDir(const char* path);`
+
+#### `EFileError ChangeDir(const char* path);`
+
+#### `EFileError GetCurrentDir(char* path, size_t buflen);`
+
+#### `EFileError GetLabel(char disk, char* buffer, uint32_t* vsn);`
+
+#### `const char* FileErrStr(EFileError);`
+
+#### `uint8_t GetNumDrives();`
+
+#### `uint32_t GetFree(char disk);`
 
