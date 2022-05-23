@@ -77,13 +77,14 @@ All drawing library calls can be reached with the `DRAW` shorthand `#define`.
 
 #### `void DisplayPicture(TImageFile* picData)`
 
-#### `void FadeToBlack()`
+#### `void Fade(bool in, bool toWhite)`
 
-#### `void FadeFromBlack()`
-
-#### `void FadeToWhite()`
-
-#### `void FadeFromWhite()`
+| Effect             | `in`    | `toWhite` |
+| ------------------ | ------- | --------- |
+| fade in from black | `true`  | `false`   |
+| fade out to black  | `false` | `false`   |
+| fade in from white | `true`  | `true`    |
+| fade out to white  | `false` | `true`    |
 
 #### `void DrawString(const char* str, int x, int y, int color)`
 
