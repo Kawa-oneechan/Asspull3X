@@ -19,7 +19,7 @@ typedef struct IBios
 	int16_t extensions;
 	void(*Exception)(void);
 	void(*VBlank)(void);
-	void(*reserved)(void);
+	void(*HBlank)(void);
 	void(*DrawChar)(char ch, int32_t x, int32_t y, int32_t color);
 	ITextLibrary* textLibrary;
 	IDrawingLibrary* drawingLibrary;
@@ -34,8 +34,8 @@ typedef struct IBios
 * `biosVersion`: the BIOS/interface revision in 8.8 fixed point, so `0x0102` means version 1.2.
 * `extensions`: reserved.
 * `Exception`: a function pointer to a generic exception handler, not currently used.
-* `VBlank`: a function pointer called by ~~the BIOS' interrupt dispatcher~~ `MISC->WaitForVblank` when not null. May be set by programs as needed.
-* `reserved`: exactly that.
+* `VBlank`: a function pointer called by the BIOS' interrupt dispatcher when not null. May be set by programs as needed.
+* `HBlank`: as above, but for HBlank.
 * `DrawChar`: a function pointer to a routine that draws characters,  Automatically set to BIOS-provided routines by the `SetBitmapMode` interface calls.
 * `textLibrary`, `drawingLibrary`, `miscLibrary`, and `diskLibrary`: substructures with function pointers to various interface calls.
 * `DrawCharFont`: a pointer to the font graphics data that `DrawChar` may use.
