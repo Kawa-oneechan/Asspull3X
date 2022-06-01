@@ -491,7 +491,7 @@ void MainLoop()
 				cycles -= m68k_execute(cycles / cpuDivider) * cpuDivider;
 			}
 
-			if (line == lines)
+			if (line + 1 == lines)
 			{
 				if (pauseState == pauseEntering) //pausing now!
 				{
