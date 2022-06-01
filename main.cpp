@@ -205,17 +205,16 @@ void MainLoop()
 
 	SDL_Event ev;
 
-	const auto mHz = 16;
+	const auto masterClock = 25200000 * 2;
+	const auto cpuDivider = 3;
+	const auto pixDivider = 2;
 	const auto screenFreq = 60;
 	const auto pixsPerRow = 640;
 	const auto lines = 480;
 	const auto trueLines = 525;
 	const auto trueWidth = 800;
-	const auto Hz = mHz * 1000000;
-	const auto vBlankEvery = Hz / screenFreq;
-	const auto hBlankEvery = vBlankEvery / lines;
-	//const auto vBlankLasts = (trueLines) * hBlankEvery;
-	const auto hBlankLasts = (trueWidth - pixsPerRow);
+	const auto hBlankPixs = trueWidth - pixsPerRow;
+	static_assert(trueWidth * trueLines * screenFreq == masterClock / pixDivider, "pixel clock mismatch");
 
 	auto startTime = 0;
 	auto endTime = 0;
@@ -472,15 +471,22 @@ void MainLoop()
 
 		if (pauseState != 2)
 		{
-			m68k_execute(hBlankEvery);
 			if (line < lines)
 			{
+				m68k_execute(pixsPerRow * pixDivider / cpuDivider);
+
 				HandleHdma(line);
 				Video::RenderLine(line);
 				for (int i = 0; i < MAXDEVS; i++)
 					if (devices[i] != NULL) devices[i]->HBlank();
+
+				m68k_execute(hBlankPixs * pixDivider / cpuDivider);
 			}
-			m68k_execute(hBlankLasts);
+			else
+			{
+				m68k_execute(trueWidth * pixDivider / cpuDivider);
+			}
+
 			if (line == lines)
 			{
 				if (pauseState == pauseEntering) //pausing now!
