@@ -220,6 +220,7 @@ void MainLoop()
 	auto endTime = 0;
 	auto delta = 0;
 	auto frames = 0;
+	auto cycles = 0;
 
 	bool gottaReset = false;
 
@@ -473,18 +474,21 @@ void MainLoop()
 		{
 			if (line < lines)
 			{
-				m68k_execute(pixsPerRow * pixDivider / cpuDivider);
+				cycles += pixsPerRow * pixDivider;
+				cycles -= m68k_execute(cycles / cpuDivider) * cpuDivider;
 
 				HandleHdma(line);
 				Video::RenderLine(line);
 				for (int i = 0; i < MAXDEVS; i++)
 					if (devices[i] != NULL) devices[i]->HBlank();
 
-				m68k_execute(hBlankPixs * pixDivider / cpuDivider);
+				cycles += hBlankPixs * pixDivider;
+				cycles -= m68k_execute(cycles / cpuDivider) * cpuDivider;
 			}
 			else
 			{
-				m68k_execute(trueWidth * pixDivider / cpuDivider);
+				cycles += trueWidth * pixDivider;
+				cycles -= m68k_execute(cycles / cpuDivider) * cpuDivider;
 			}
 
 			if (line == lines)
