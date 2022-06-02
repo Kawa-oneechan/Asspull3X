@@ -181,6 +181,12 @@ int IllegalMangrasp(int i)
 	return 0;
 }
 
+int InterruptAck(int level)
+{
+	m68k_set_virq(level, 0);
+	return M68K_INT_ACK_AUTOVECTOR;
+}
+
 pauseStates pauseState = pauseNot;
 unsigned char* pauseScreen;
 
@@ -196,6 +202,7 @@ void MainLoop()
 	m68k_init();
 	m68k_set_cpu_type(M68K_CPU_TYPE_68020);
 	m68k_set_illg_instr_callback(IllegalMangrasp);
+	m68k_set_int_ack_callback(InterruptAck);
 	Sound::Reset();
 	m68k_pulse_reset();
 
@@ -493,7 +500,16 @@ void MainLoop()
 				for (int i = 0; i < MAXDEVS; i++)
 					if (devices[i] != NULL) devices[i]->HBlank();
 
+				if ((interrupts & 0x80) == 0) //if interrupts are enabled
+				{
+					m68k_set_virq(M68K_IRQ_4, 1);
+				}
+
+				interrupts |= 2; //set HBlank signal
+
 				executeForPixels(hBlankPixs);
+
+				interrupts &= ~2; //clear HBlank signal
 			}
 			else
 			{
@@ -536,13 +552,12 @@ void MainLoop()
 				frames++;
 				if (pauseState != 2)
 				{
-					/*
-					if ((interrupts & 0x84) == 0) //if interrupts are enabled and not already in VBlank
+					if ((interrupts & 0x80) == 0) //if interrupts are enabled
 					{
-						interrupts |= 4; //set VBlank signal
-						m68k_set_virq(M68K_IRQ_7, 1);
+						m68k_set_virq(M68K_IRQ_6, 1);
 					}
-					*/
+
+					interrupts |= 4; //set VBlank signal
 				}
 			}
 		}
@@ -555,7 +570,7 @@ void MainLoop()
 		line++;
 		if (line == trueLines)
 		{
-			//m68k_set_virq(M68K_IRQ_7, 0);
+			interrupts &= ~4; //clear VBlank signal
 			ticks++;
 			line = 0;
 		}

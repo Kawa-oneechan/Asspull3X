@@ -2,13 +2,14 @@
 
 ### 00000	REG_INTRMODE
 
-    X... .V..
-    |     |____ VBlank triggered
+    X... .VH.
+    |     |____ HBlank active
+    |     |____ VBlank active
     |__________ Disable interrupts
 
-Used by the BIOS dispatcher to determine what to call. Applications can set the disable bit to prevent them from firing. Only VBlank is supported for now.
+Applications can set the disable bit to prevent interrupts from firing. The active bits can be used for polling independent of whether interrupts are disabled.
 
-Available defines: `IMODE_DISABLE`, `IMODE_INVBLANK`
+Available defines: `IMODE_DISABLE`, `IMODE_INVBLANK`, `IMODE_INHBLANK`
 
 ### 00001	REG_SCREENMODE
 
