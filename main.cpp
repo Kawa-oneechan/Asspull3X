@@ -205,24 +205,36 @@ void MainLoop()
 
 	SDL_Event ev;
 
-	const auto mHz = 16;
-	const auto screenFreq = 60;
+	const auto cpuClock = 16'000'000;
+
+	// VGA standard 640x480@60Hz
+	const auto pixelClock = 25'175'000;
+	const auto screenFreq = 60; // technically 59.94 Hz
 	const auto pixsPerRow = 640;
 	const auto lines = 480;
 	const auto trueLines = 525;
 	const auto trueWidth = 800;
-	const auto Hz = mHz * 1000000;
-	const auto vBlankEvery = Hz / screenFreq;
-	const auto hBlankEvery = vBlankEvery / lines;
-	//const auto vBlankLasts = (trueLines) * hBlankEvery;
-	const auto hBlankLasts = (trueWidth - pixsPerRow);
+	const auto hBlankPixs = trueWidth - pixsPerRow;
+
+	const auto commonDivisor = GreatestCommonDivisor(cpuClock, pixelClock);
+	const auto cpuScale = pixelClock / commonDivisor;
+	const auto pixScale = cpuClock / commonDivisor;
 
 	auto startTime = 0;
 	auto endTime = 0;
 	auto delta = 0;
 	auto frames = 0;
+	auto cycles = 0LL;
 
 	bool gottaReset = false;
+
+	auto executeForPixels = [&](int pixels)
+	{
+		cycles += (long long)pixels * pixScale;
+		auto requestedCycles = (int)(cycles / cpuScale);
+		auto executedCycles = m68k_execute(requestedCycles);
+		cycles -= (long long)executedCycles * cpuScale;
+	};
 
 	UI::SetStatus(IDS_CLICKTORELEASE); //"Middle-click or RCtrl-P to pause emulation."
 
@@ -472,16 +484,23 @@ void MainLoop()
 
 		if (pauseState != 2)
 		{
-			m68k_execute(hBlankEvery);
 			if (line < lines)
 			{
+				executeForPixels(pixsPerRow);
+
 				HandleHdma(line);
 				Video::RenderLine(line);
 				for (int i = 0; i < MAXDEVS; i++)
 					if (devices[i] != NULL) devices[i]->HBlank();
+
+				executeForPixels(hBlankPixs);
 			}
-			m68k_execute(hBlankLasts);
-			if (line == lines)
+			else
+			{
+				executeForPixels(trueWidth);
+			}
+
+			if (line + 1 == lines)
 			{
 				if (pauseState == pauseEntering) //pausing now!
 				{

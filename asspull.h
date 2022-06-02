@@ -21,6 +21,7 @@ enum logCategories
 };
 
 extern int Lerp(int a, int b, float f);
+extern int GreatestCommonDivisor(int a, int b);
 extern unsigned int RoundUp(unsigned int v);
 extern int Slurp(unsigned char* dest, const WCHAR* filePath, unsigned int* size);
 extern int Dump(const WCHAR* filePath, unsigned char* source, unsigned long size);
