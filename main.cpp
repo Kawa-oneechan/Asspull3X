@@ -205,24 +205,36 @@ void MainLoop()
 
 	SDL_Event ev;
 
-	const auto masterClock = 25200000 * 2;
-	const auto cpuDivider = 3;
-	const auto pixDivider = 2;
-	const auto screenFreq = 60;
+	const auto cpuClock = 16'000'000;
+
+	// VGA standard 640x480@60Hz
+	const auto pixelClock = 25'175'000;
+	const auto screenFreq = 60; // technically 59.94 Hz
 	const auto pixsPerRow = 640;
 	const auto lines = 480;
 	const auto trueLines = 525;
 	const auto trueWidth = 800;
 	const auto hBlankPixs = trueWidth - pixsPerRow;
-	static_assert(trueWidth * trueLines * screenFreq == masterClock / pixDivider, "pixel clock mismatch");
+
+	const auto commonDivisor = GreatestCommonDivisor(cpuClock, pixelClock);
+	const auto cpuScale = pixelClock / commonDivisor;
+	const auto pixScale = cpuClock / commonDivisor;
 
 	auto startTime = 0;
 	auto endTime = 0;
 	auto delta = 0;
 	auto frames = 0;
-	auto cycles = 0;
+	auto cycles = 0LL;
 
 	bool gottaReset = false;
+
+	auto executeForPixels = [&](int pixels)
+	{
+		cycles += (long long)pixels * pixScale;
+		auto requestedCycles = (int)(cycles / cpuScale);
+		auto executedCycles = m68k_execute(requestedCycles);
+		cycles -= (long long)executedCycles * cpuScale;
+	};
 
 	UI::SetStatus(IDS_CLICKTORELEASE); //"Middle-click or RCtrl-P to pause emulation."
 
@@ -474,21 +486,18 @@ void MainLoop()
 		{
 			if (line < lines)
 			{
-				cycles += pixsPerRow * pixDivider;
-				cycles -= m68k_execute(cycles / cpuDivider) * cpuDivider;
+				executeForPixels(pixsPerRow);
 
 				HandleHdma(line);
 				Video::RenderLine(line);
 				for (int i = 0; i < MAXDEVS; i++)
 					if (devices[i] != NULL) devices[i]->HBlank();
 
-				cycles += hBlankPixs * pixDivider;
-				cycles -= m68k_execute(cycles / cpuDivider) * cpuDivider;
+				executeForPixels(hBlankPixs);
 			}
 			else
 			{
-				cycles += trueWidth * pixDivider;
-				cycles -= m68k_execute(cycles / cpuDivider) * cpuDivider;
+				executeForPixels(trueWidth);
 			}
 
 			if (line + 1 == lines)

@@ -7,6 +7,17 @@ int Lerp(int a, int b, float f)
 	return (int)((b - a) * f + a);
 }
 
+int GreatestCommonDivisor(int a, int b)
+{
+	while (b != 0)
+	{
+		int t = b;
+		b = a % b;
+		a = t;
+	}
+	return a;
+}
+
 unsigned int RoundUp(unsigned int v)
 {
 	v--;
