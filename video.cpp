@@ -184,7 +184,7 @@ namespace Video
 			if (objB.FlipHoriz)
 				hPos += (Registers::ScreenMode.HalfWidth ? (effectiveWidth * 2) - 4 : effectiveWidth - 2);
 
-			auto tileBasePic = TILES_ADDR + (objA.Tile * 32);
+			auto tileBasePic = TILES_ADDR + ((objA.Tile + shift) * 32);
 			for (auto col = 0; col < tileWidth; col++)
 			{
 				auto tilePic = tileBasePic;
