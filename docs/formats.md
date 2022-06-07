@@ -30,6 +30,8 @@ The fourth character of the Game ID indicates a region/language, including but n
 | `S`  | Spain                  | Spanish           |
 | `s`  | United States          | Spanish           |
 
+If the region/language is `j`, the internal name is interpreted by the Clunibus emulator as Shift-JIS. Anything else is taken as Windows-1252.
+
 # Disk
 
 A3X programs to be run from disk have the extension `.app`. If the BIOS finds a file `start.app` on a diskette in the built-in diskette drive, that will be executed on boot.

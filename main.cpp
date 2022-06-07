@@ -112,7 +112,7 @@ void LoadROM(const WCHAR* path)
 	char romName[32] = { 0 };
 	memcpy(romName, romCartridge + 8, 24);
 	Discord::SetPresence(romName);
-	UI::SetTitle(romName);
+	UI::SetTitle(romName, romCartridge[0x27] == 'j');
 }
 
 void FindFirstDrive()
@@ -446,7 +446,7 @@ void MainLoop()
 				UI::SaveINI();
 				UI::SetStatus(IDS_CARTEJECTED); //"Cart pulled."
 				Discord::SetPresence(NULL);
-				UI::SetTitle(NULL);
+				UI::SetTitle(NULL, false);
 			}
 			else if (UI::uiCommand == cmdEjectDisk)
 			{
@@ -464,7 +464,7 @@ void MainLoop()
 					ini.SetValue(L"media", L"rom", L"");
 					UI::SaveINI();
 					Discord::SetPresence(NULL);
-					UI::SetTitle(NULL);
+					UI::SetTitle(NULL, false);
 				}
 				Log(UI::GetString(IDS_SYSTEMRESET)); //"Resetting Musashi..."
 				UI::SetStatus(IDS_SYSTEMRESET); //"System reset."
