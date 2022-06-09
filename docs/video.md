@@ -79,7 +79,7 @@ Objects are available in all screen modes. Like tilemaps, their graphics are tak
 
 An object with the double width and height bits set would be functionally the same as an object with the double up bit set.
 
-| Bits              | Size  |
+| Bits set          | Size  |
 | ----------------- | ----- |
 | None              | 8x8   |
 | Width             | 16x8  |

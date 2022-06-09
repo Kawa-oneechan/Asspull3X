@@ -10,7 +10,20 @@ The *Asspull IIIx* supports three sound output devices:
 
 The OPL3 can be driven by writing to `REG_OPLOUT`, connecting directly to the chip. The upper eight bits form the register, the lower eight the value.
 
-*(TODO: include a short guide or just link to a good one?)*
+In the *Clunibus* emulator, OPL3 support is provided by the [*Nuked OPL3* core](https://github.com/nukeykt/Nuked-OPL3).
+
+When reading a guide on how to use the OPL3 (such as [this one](https://www.fit.vutbr.cz/~arnost/opl/opl3.html)), you can safely ignore any reference to "base addresses" -- it's *always* on `REG_OPLOUT`. Where on a PC you might use something like this:
+```c
+outp(0x388, 0xA4);
+outp(0x389, 0x57);
+outp(0x388, 0xB4);
+outp(0x389, 0x31);
+```
+you would do this instead on the *Asspull IIIx*:
+```c
+REG_OPLOUT = 0xA457;
+REG_OPLOUT = 0xB431;
+```
 
 A slightly adjusted version of an [IMF](http://www.vgmpf.com/Wiki/index.php?title=IMF) player by K1n9 Duk3 has been provided with the A3X SDK. You can use this to easily play background music through the OPL3.
 
@@ -34,7 +47,7 @@ If you want to use *stereo* PCM audio for something like background music, using
 
 For ease of use, the following array pointers are available:
 
-| Register          | Array          |
+| Register          | Array pointer  |
 |-------------------|----------------|
 | `REG_PCM1OFFSET`  | `PCMOFFSET[0]` |
 | `REG_PCM2OFFSET`  | `PCMOFFSET[1]` |

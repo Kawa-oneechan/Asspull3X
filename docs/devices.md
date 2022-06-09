@@ -114,7 +114,7 @@ Returns 0 if this is a diskette drive, 1 if it's a hard drive.
 #### 0012	Heads
 #### 0014	Sectors
 
-Read only, return the disk geometry.
+Read only, return the disk geometry. Roughly, the capacity of the disk can be found by multiplying these three values and 512 together. For example, for a diskette drive, this should always be 80 tracks, two heads, and 18 sectors. Given 512 bytes per sector this should add up to 1,474,560 bytes (512 * 18 * 2 * 80).
 
 #### 0200	Sector buffer
 
@@ -128,7 +128,7 @@ Line printers identify by the value `4C50`, for "LP".
 
 #### 0002	Character out
 
-Anything written here is piped directly to the printer. You can write with <em>emphasis</em> by writing `\x1B`,`E` and turn emphasis back off with `\x1B`,`e`. Likewise, you can write <u>underlined</u> by writing `\x1B`,`U` and turn it off again with `\x1B`,`u`. So as an example:
+Anything written here is piped directly to the printer. You can write with <em>emphasis</em> by writing `\x1B` `E` and turn emphasis back off with `\x1B` `e`. Likewise, you can write <u>underlined</u> by writing `\x1B` `U` and turn it off again with `\x1B` `u`. So as an example:
 
 ````
 I'm not sure you should drink that. \n

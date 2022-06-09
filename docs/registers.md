@@ -189,7 +189,7 @@ A pointer. Again repeated until `001DC REG_HDMATARGET8`.
 
 ## Blitter
 
-| register | name            | format                                    |
+| Register | Name            | Format                                    |
 | -------- | --------------- | ----------------------------------------- |
 | 00200    | REG_BLITCONTROL | `.... .... .... .... .... .... .... FFFF` |
 | 00204    | REG_BLITSOURCE  | Pointer or value                          |
