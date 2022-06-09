@@ -1,4 +1,4 @@
-# Asspull IIIx Programmers Guide
+# Asspull IIIx Programmers Guide -- Sound
 
 The *Asspull IIIx* supports three sound output devices:
 
