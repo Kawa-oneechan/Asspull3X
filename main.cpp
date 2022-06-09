@@ -170,14 +170,14 @@ int IllegalMangrasp(int i)
 	auto d6 = m68k_get_reg(NULL, M68K_REG_D6);
 	auto d7 = m68k_get_reg(NULL, M68K_REG_D7);
 
-	Log(logError, L"Illegal mangrasp!");
+	Log(logError, L"Illegal instruction");
 	Log(L"PC: 0x%08X from 0x%08X, SP: 0x%08X", pc, ppc, sp);
 	Log(L"A0: 0x%08X, A1: 0x%08X, A2: 0x%08X, A3: 0x%08X", a0, a1, a2, a3);
 	Log(L"A4: 0x%08X, A5: 0x%08X, A6: 0x%08X, A7: 0x%08X", a4, a5, a6, a7);
 	Log(L"D0: 0x%08X, D1: 0x%08X, D2: 0x%08X, D3: 0x%08X", d0, d1, d2, d3);
 	Log(L"D4: 0x%08X, D5: 0x%08X, D6: 0x%08X, D7: 0x%08X", d4, d5, d6, d7);
 
-	pauseState = pauseEntering;
+	//pauseState = pauseEntering;
 	return 0;
 }
 
