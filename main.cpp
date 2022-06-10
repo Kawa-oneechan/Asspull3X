@@ -18,6 +18,8 @@ int firstDiskDrive = -1;
 
 WCHAR currentROM[FILENAME_MAX], currentSRAM[FILENAME_MAX];
 
+SDL_GameController *controller[2] = { NULL , NULL };
+
 void LoadROM(const WCHAR* path)
 {
 	unsigned int fileSize = 0;
@@ -256,42 +258,13 @@ void MainLoop()
 				quit = true;
 				break;
 			}
-			case SDL_JOYBUTTONDOWN:
+			case SDL_JOYDEVICEADDED:
 			{
-				if (ev.jbutton.which < 2)
-				{
-					//If the button is 0-3 it's ABXY. Any higher must be LB/RB, Back, or Start.
-					if (ev.jbutton.button < 4)
-						joypad[ev.jbutton.which] |= 16 << (ev.jbutton.button ^ invertButtons);
-					else
-						joypad[ev.jbutton.which] |= 1 << (ev.jbutton.button + 4);
-				}
+				//Log(L"Controller %d attached.", ev.cdevice.which);
+				controller[ev.cdevice.which] = SDL_GameControllerOpen(ev.cdevice.which);
 				break;
 			}
-			case SDL_JOYBUTTONUP:
-			{
-				if (ev.jbutton.which < 2)
-				{
-					if (ev.jbutton.button < 4)
-						joypad[ev.jbutton.which] &= ~(16 << (ev.jbutton.button ^ invertButtons));
-					else
-						joypad[ev.jbutton.which] &= ~(1 << (ev.jbutton.button + 4));
-				}
-				break;
-			}
-			case SDL_JOYHATMOTION:
-			{
-				if (ev.jhat.which < 2 && ev.jhat.hat == 0)
-					joypad[ev.jhat.which] = (joypad[ev.jhat.which] & ~15) | ev.jhat.value;
-				break;
-			}
-			case SDL_JOYAXISMOTION:
-			{
-				//if (ev.jaxis.axis > 2) ev.jaxis.axis -= 3; //map right stick and trigger to left
-				if (ev.jaxis.which < 2)
-					joyaxes[ev.jaxis.which][ev.jaxis.axis] = ev.jaxis.value >> 8;
-				break;
-			}
+
 			case SDL_KEYDOWN:
 			{
 				bool k2joyed = true;
@@ -408,6 +381,39 @@ void MainLoop()
 					SDL_ShowCursor(true);
 					SDL_CaptureMouse(SDL_FALSE);
 				}
+			}
+		}
+
+		//So this ground-up rewrite circumvents this weird hotplugging Thing...
+		//... and it opens the way to remapping beyond ABXY/BAYX!
+		for (int i = 0; i < 2; i++)
+		{
+			if (controller[i])
+			{
+				if (!SDL_GameControllerGetAttached(controller[i]))
+				{
+					//Log(L"Controller %d detached.", i);
+					SDL_GameControllerClose(controller[i]);
+					controller[i] = NULL;
+					continue;
+				}
+				joypad[i] = 0;
+				joypad[i] |= SDL_GameControllerGetButton(controller[i], SDL_CONTROLLER_BUTTON_DPAD_UP) << 0;
+				joypad[i] |= SDL_GameControllerGetButton(controller[i], SDL_CONTROLLER_BUTTON_DPAD_RIGHT) << 1;
+				joypad[i] |= SDL_GameControllerGetButton(controller[i], SDL_CONTROLLER_BUTTON_DPAD_DOWN) << 2;
+				joypad[i] |= SDL_GameControllerGetButton(controller[i], SDL_CONTROLLER_BUTTON_DPAD_LEFT) << 3;
+				joypad[i] |= SDL_GameControllerGetButton(controller[i], SDL_CONTROLLER_BUTTON_A) << (invertButtons ? 5 : 4);
+				joypad[i] |= SDL_GameControllerGetButton(controller[i], SDL_CONTROLLER_BUTTON_B) << (invertButtons ? 4 : 5);
+				joypad[i] |= SDL_GameControllerGetButton(controller[i], SDL_CONTROLLER_BUTTON_X) << (invertButtons ? 7 : 6);
+				joypad[i] |= SDL_GameControllerGetButton(controller[i], SDL_CONTROLLER_BUTTON_Y) << (invertButtons ? 6 : 7);
+				joypad[i] |= SDL_GameControllerGetButton(controller[i], SDL_CONTROLLER_BUTTON_LEFTSHOULDER) << 8;
+				joypad[i] |= SDL_GameControllerGetButton(controller[i], SDL_CONTROLLER_BUTTON_RIGHTSHOULDER) << 9;
+				joypad[i] |= SDL_GameControllerGetButton(controller[i], SDL_CONTROLLER_BUTTON_START) << 10;
+				joypad[i] |= SDL_GameControllerGetButton(controller[i], SDL_CONTROLLER_BUTTON_BACK) << 11;
+				joyaxes[i][0] = SDL_GameControllerGetAxis(controller[i], SDL_CONTROLLER_AXIS_LEFTX) >> 8;
+				joyaxes[i][1] = SDL_GameControllerGetAxis(controller[i], SDL_CONTROLLER_AXIS_LEFTY) >> 8;
+				if (abs(joyaxes[i][0]) < 4) joyaxes[i][0] = 0;
+				if (abs(joyaxes[i][1]) < 4) joyaxes[i][1] = 0;
 			}
 		}
 

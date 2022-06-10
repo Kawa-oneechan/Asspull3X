@@ -265,15 +265,6 @@ int main(int argc, char** argv)
 	if (Sound::Initialize() < 0)
 		return 0;
 
-	SDL_Joystick *controller[2] = { NULL , NULL };
-	if (SDL_NumJoysticks() > 0)
-	{
-		Log(L"Trying to hook up joystick...");
-		controller[0] = SDL_JoystickOpen(0);
-		if (SDL_NumJoysticks() > 1)
-			controller[1] = SDL_JoystickOpen(1);
-	}
-
 	Discord::Initialize();
 
 	Preload();
