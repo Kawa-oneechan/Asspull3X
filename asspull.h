@@ -27,6 +27,8 @@ extern int Slurp(unsigned char* dest, const WCHAR* filePath, unsigned int* size)
 extern int Dump(const WCHAR* filePath, unsigned char* source, unsigned long size);
 extern void Log(WCHAR* message, ...);
 extern void Log(logCategories cat, WCHAR* message, ...);
+extern SDL_GameControllerButton SDL_GameControllerGetButtonFromStringW(const WCHAR*);
+extern const WCHAR* SDL_GameControllerGetStringForButtonW(SDL_GameControllerButton);
 
 extern unsigned char* romBIOS;
 extern unsigned char* romCartridge;

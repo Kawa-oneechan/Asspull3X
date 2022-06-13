@@ -11,6 +11,8 @@ int line = 0, interrupts = 0;
 int invertButtons = 0;
 int key2joy = 0;
 
+SDL_GameControllerButton buttonMap[16];
+
 extern unsigned int biosSize, romSize;
 extern long rtcOffset;
 
@@ -398,18 +400,8 @@ void MainLoop()
 					continue;
 				}
 				joypad[i] = 0;
-				joypad[i] |= SDL_GameControllerGetButton(controller[i], SDL_CONTROLLER_BUTTON_DPAD_UP) << 0;
-				joypad[i] |= SDL_GameControllerGetButton(controller[i], SDL_CONTROLLER_BUTTON_DPAD_RIGHT) << 1;
-				joypad[i] |= SDL_GameControllerGetButton(controller[i], SDL_CONTROLLER_BUTTON_DPAD_DOWN) << 2;
-				joypad[i] |= SDL_GameControllerGetButton(controller[i], SDL_CONTROLLER_BUTTON_DPAD_LEFT) << 3;
-				joypad[i] |= SDL_GameControllerGetButton(controller[i], SDL_CONTROLLER_BUTTON_A) << (invertButtons ? 5 : 4);
-				joypad[i] |= SDL_GameControllerGetButton(controller[i], SDL_CONTROLLER_BUTTON_B) << (invertButtons ? 4 : 5);
-				joypad[i] |= SDL_GameControllerGetButton(controller[i], SDL_CONTROLLER_BUTTON_X) << (invertButtons ? 7 : 6);
-				joypad[i] |= SDL_GameControllerGetButton(controller[i], SDL_CONTROLLER_BUTTON_Y) << (invertButtons ? 6 : 7);
-				joypad[i] |= SDL_GameControllerGetButton(controller[i], SDL_CONTROLLER_BUTTON_LEFTSHOULDER) << 8;
-				joypad[i] |= SDL_GameControllerGetButton(controller[i], SDL_CONTROLLER_BUTTON_RIGHTSHOULDER) << 9;
-				joypad[i] |= SDL_GameControllerGetButton(controller[i], SDL_CONTROLLER_BUTTON_START) << 10;
-				joypad[i] |= SDL_GameControllerGetButton(controller[i], SDL_CONTROLLER_BUTTON_BACK) << 11;
+				for (int j = 0; j < 12; j++)
+					joypad[i] |= SDL_GameControllerGetButton(controller[i], buttonMap[j]) << j;
 				joyaxes[i][0] = SDL_GameControllerGetAxis(controller[i], SDL_CONTROLLER_AXIS_LEFTX) >> 8;
 				joyaxes[i][1] = SDL_GameControllerGetAxis(controller[i], SDL_CONTROLLER_AXIS_LEFTY) >> 8;
 				if (abs(joyaxes[i][0]) < 4) joyaxes[i][0] = 0;

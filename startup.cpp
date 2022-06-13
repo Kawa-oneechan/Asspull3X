@@ -21,6 +21,22 @@ extern void LoadROM(const WCHAR* path);
 extern void MainLoop();
 extern FILE* logFile;
 
+extern SDL_GameControllerButton buttonMap[12];
+const WCHAR* buttonNames[] =
+{
+	L"up", L"right", L"down", L"left",
+	L"a", L"b", L"x", L"y",
+	L"leftshoulder", L"rightshoulder",
+	L"start", L"select",
+};
+const WCHAR* buttonDefaults[] =
+{
+	L"dpup", L"dpright", L"dpdown", L"dpleft",
+	L"a", L"b", L"x", L"y",
+	L"leftshoulder", L"rightshoulder",
+	L"start", L"back",
+};
+
 WCHAR paramLoad[512] = { 0 };
 
 struct {
@@ -125,6 +141,15 @@ void GetSettings()
 	LocalFree(argv);
 
 	rtcOffset = ini.GetLongValue(L"misc", L"rtcOffset", 0xDEADC70C);
+
+	auto test = SDL_GameControllerGetStringForButtonW(SDL_CONTROLLER_BUTTON_LEFTSHOULDER);
+	auto test2 = SDL_GameControllerGetButtonFromStringW(L"leftshoulder");
+
+	for (int i = 0; i < 12; i++)
+	{
+		auto button = ini.GetValue(L"buttonMap", buttonNames[i], buttonDefaults[i]);
+		buttonMap[i] = SDL_GameControllerGetButtonFromStringW(button);
+	}
 }
 
 void InitializeDevices()

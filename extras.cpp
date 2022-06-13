@@ -129,3 +129,50 @@ void Log(WCHAR* message, ...)
 	va_end(args);
 	Log(logNormal, buf);
 }
+
+
+//Wide versions of the SDL routines, to save a conversion step.
+
+static const WCHAR* map_StringForControllerButton[] = {
+	L"a",
+	L"b",
+	L"x",
+	L"y",
+	L"back",
+	L"guide",
+	L"start",
+	L"leftstick",
+	L"rightstick",
+	L"leftshoulder",
+	L"rightshoulder",
+	L"dpup",
+	L"dpdown",
+	L"dpleft",
+	L"dpright",
+	L"misc1",
+	L"paddle1",
+	L"paddle2",
+	L"paddle3",
+	L"paddle4",
+	L"touchpad",
+	NULL
+};
+
+SDL_GameControllerButton SDL_GameControllerGetButtonFromStringW(const WCHAR *pchString)
+{
+	int entry;
+	if (!pchString || !pchString[0])
+		return SDL_CONTROLLER_BUTTON_INVALID;
+
+	for (entry = 0; map_StringForControllerButton[entry]; ++entry)
+		if (wcscmp(pchString, map_StringForControllerButton[entry]) == 0)
+			return (SDL_GameControllerButton)entry;
+	return SDL_CONTROLLER_BUTTON_INVALID;
+}
+
+const WCHAR* SDL_GameControllerGetStringForButtonW(SDL_GameControllerButton axis)
+{
+	if (axis > SDL_CONTROLLER_BUTTON_INVALID && axis < SDL_CONTROLLER_BUTTON_MAX)
+		return map_StringForControllerButton[axis];
+	return NULL;
+}
