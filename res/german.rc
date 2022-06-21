@@ -39,10 +39,12 @@ STRINGTABLE
 	IDS_ASSPULLISREADY, "\nAsspull IIIx ist bereit.\nDrücken Sie RStrg+L, um ein ROM zu laden, RStrg+Shift+L, um eine Diskette zu laden.\nDrücken Sie RStrg+U, um ROM zu entladen, RStrg+Shift+U, um Diskette zu entladen.\nDrücken Sie RStrg+R zum Zurücksetzen, RStrg+Shift+R zum Entladen und Zurücksetzen.\nDrücken Sie RStrg+D, um RAM zu leeren, RStrg+S, um einen Bildschirmfoto zu machen.\n\n"
 
 	//More debug-only stuff
-	IDS_LOADINGROM, "ROM %s wird geladen..."
+	IDS_LOADINGROM, "ROM \x1b[96m%s\x1b[0m wird geladen..."
+	IDS_LOADINGBIOS, "BIOS \x1b[96m%s\x1b[0m wird geladen..."
+	IDS_LOADINGSRAM, "SRAM \x1b[96m%s\x1b[0m wird geladen..."
 	IDS_UNLOADINGROM, "ROM entladen..."
 	IDS_UNMOUNTINGDISK, "Diskette aushängen..."
-	IDS_MOUNTINGDISK, "Disk-Image %s wird geladen..."
+	IDS_MOUNTINGDISK, "Disk-Image \x1b[96m%s\x1b[0m wird geladen..."
 	IDS_MOUNTEDVHD, "VHD angehängt. %d * %d * %d * 512 = %d, sollte ~%d sein."
 	IDS_SHADERERROR, "Fehler beim Kompilieren des Shaders!"
 	IDS_TOOMANYSHADERS, "Zu viele Shader angegeben: kann nur %d ausführen, aber %d wurden angefordert."

@@ -39,7 +39,9 @@ STRINGTABLE
 	IDS_ASSPULLISREADY, "\n\x1b[96mAsspull \x1b[91mIII\x1b[94mx\x1b[0m is ready.\nPress RCtrl+L to load a ROM, RCtrl+Shift+L to load a diskette.\nPress RCtrl+U to unload ROM, RCtrl+Shift+U to unload diskette.\nPress RCtrl+R to reset, RCtrl+Shift+R to unload and reset.\nPress RCtrl+D to dump RAM, RCtrl+S to take a screenshot.\n\n"
 
 	//More debug-only stuff
-	IDS_LOADINGROM, "Loading ROM %s..."
+	IDS_LOADINGROM, "Loading ROM \x1b[96m%s\x1b[0m..."
+	IDS_LOADINGBIOS, "Loading BIOS \x1b[96m%s\x1b[0m..."
+	IDS_LOADINGSRAM, "Loading SRAM \x1b[96m%s\x1b[0m..."
 	IDS_UNLOADINGROM, "Unloading ROM..."
 	IDS_UNMOUNTINGDISK, "Unmounting diskette..."
 	IDS_MOUNTINGDISK, "Mounting disk image \x1b[96m%s\x1b[0m..."

@@ -169,7 +169,7 @@ void InitializeDevices()
 		if (!wcscmp(thing, L"diskDrive"))
 		{
 			devices[i] = (Device*)(new DiskDrive(0));
-			Log(L"Attached a \x1b[1mdiskette drive\x1b[0m as device \x1b[1m#%d\x1b[0m.", i);
+			//Log(L"Attached a \x1b[1mdiskette drive\x1b[0m as device \x1b[1m#%d\x1b[0m.", i);
 			thing = ini.GetValue(L"devices/diskDrive", key, L"");
 			if (UI::reloadIMG && wcslen(thing))
 			{
@@ -179,14 +179,14 @@ void InitializeDevices()
 					if (UI::ReportLoadingFail(IDS_DISKIMAGEERROR, err, i, thing, true))
 						UI::EjectDisk(i);
 				}
-				else
-					Log(logNormal, L"Loaded \x1b[96m%s\x1b[0m into device \x1b[1m#%d\x1b[0m.", thing, i);
+				//else
+				//	Log(logNormal, L"Loaded \x1b[96m%s\x1b[0m into device \x1b[1m#%d\x1b[0m.", thing, i);
 			}
 		}
 		else if (!wcscmp(thing, L"hardDrive"))
 		{
 			devices[i] = (Device*)(new DiskDrive(1));
-			Log(logNormal, L"Attached a \x1b[1mhard disk drive\x1b[0m as device \x1b[1m#%d\x1b[0m.", i);
+			//Log(logNormal, L"Attached a \x1b[1mhard disk drive\x1b[0m as device \x1b[1m#%d\x1b[0m.", i);
 			thing = ini.GetValue(L"devices/hardDrive", key, L"");
 			if (UI::reloadIMG && wcslen(thing))
 			{
@@ -196,16 +196,16 @@ void InitializeDevices()
 					if (UI::ReportLoadingFail(IDS_DISKIMAGEERROR, err, i, thing, true))
 						UI::EjectDisk(i);
 				}
-				else
-					Log(logNormal, L"Loaded \x1b[96m%s\x1b[0m into device \x1b[1m#%d\x1b[0m.", thing, i);
+				//else
+				//	Log(logNormal, L"Loaded \x1b[96m%s\x1b[0m into device \x1b[1m#%d\x1b[0m.", thing, i);
 			}
 		}
 		else if (!wcscmp(thing, L"linePrinter"))
 		{
 			devices[i] = (Device*)(new LinePrinter());
-			Log(logNormal, L"Attached a \x1b[1mline printer\x1b[0m as device \x1b[1m#%d\x1b[0m.", i);
+			//Log(logNormal, L"Attached a \x1b[1mline printer\x1b[0m as device \x1b[1m#%d\x1b[0m.", i);
 		}
-		else Log(logWarning, L"Don't know what \x1b[101m\"%s\"\x1b[0m is to connect as device \x1b[1m#%d\x1b[0m.", thing, i);
+		//else Log(logWarning, L"Don't know what \x1b[101m\"%s\"\x1b[0m is to connect as device \x1b[1m#%d\x1b[0m.", thing, i);
 	}
 
 	FindFirstDrive();
@@ -229,19 +229,19 @@ void Preload()
 			return;
 		}
 	}
-	Log(logNormal, L"Loading BIOS \x1b[96m%s\x1b[0m...", thing);
+	Log(logNormal, UI::GetString(IDS_LOADINGBIOS), thing);
 	Slurp(romBIOS, thing, &biosSize);
 	biosSize = RoundUp(biosSize);
 	thing = ini.GetValue(L"media", L"rom", L"");
 	if (UI::reloadROM && wcslen(thing) && paramLoad[0] == 0)
 	{
-		Log(logNormal, L"Loading ROM \x1b[96m%s\x1b[0m...", thing);
+		//Log(logNormal, L"Loading ROM \x1b[96m%s\x1b[0m...", thing);
 		LoadROM(thing);
 		pauseState = pauseNot;
 	}
 	else if (paramLoad[0])
 	{
-		Log(logNormal, L"Command-line loading ROM \x1b[96m%s\x1b[0m...", paramLoad);
+		//Log(logNormal, L"Command-line loading ROM \x1b[96m%s\x1b[0m...", paramLoad);
 		LoadROM((const WCHAR*)paramLoad);
 		pauseState = pauseNot;
 	}

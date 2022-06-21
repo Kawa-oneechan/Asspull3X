@@ -29,7 +29,7 @@ void LoadROM(const WCHAR* path)
 	WCHAR lpath[512];
 	for (int i = 0; i < 512; i++)
 	{
-		lpath[i] =  towlower(path[i]);
+		lpath[i] = towlower(path[i]);
 		if (path[i] == 0)
 			break;
 	}
@@ -37,21 +37,13 @@ void LoadROM(const WCHAR* path)
 	auto ext = wcsrchr(lpath, L'.') + 1;
 	if (!wcscmp(ext, L"ap3"))
 	{
+		Log(logNormal, UI::GetString(IDS_LOADINGROM), path); //"Loading ROM, %s ..."
 		memset(romCartridge, 0, CART_SIZE);
 		auto err = Slurp(romCartridge, path, &romSize);
 		if (err)
 			UI::ReportLoadingFail(IDS_ROMLOADERROR, err, -1, path);
 		else
-		{
 			wcscpy(currentROM, path);
-			wcscpy(currentSRAM, path);
-			ext = wcsrchr(currentSRAM, L'.') + 1;
-			*ext = 0;
-			wcscat(currentSRAM, L"srm");
-			auto sramSize = romCartridge[0x28] * 512;
-			if (sramSize)
-				Slurp(ramCartridge, currentSRAM, nullptr);
-		}
 	}
 	else if (!wcscmp(ext, L"a3z"))
 	{
@@ -80,6 +72,7 @@ void LoadROM(const WCHAR* path)
 				foundSomething = true;
 				romSize = (unsigned int)fs.m_uncomp_size;
 				memset(romCartridge, 0, CART_SIZE);
+				Log(logNormal, UI::GetString(IDS_LOADINGROM), lpath); //"Loading ROM, %s ..."
 				mz_zip_reader_extract_to_mem(&zip, i, romCartridge, romSize, 0);
 				break;
 			}
@@ -113,10 +106,26 @@ void LoadROM(const WCHAR* path)
 	ini.SetValue(L"media", L"rom", path);
 	UI::SaveINI();
 
+	auto sramSize = romCartridge[0x28] * 512;
+	if (sramSize)
+	{
+		wcscpy(currentSRAM, path);
+		ext = wcsrchr(currentSRAM, L'.') + 1;
+		*ext = 0;
+		wcscat(currentSRAM, L"srm");
+		Log(logNormal, UI::GetString(IDS_LOADINGSRAM), currentSRAM); //"Loading SRAM, %s ..."
+		Slurp(ramCartridge, currentSRAM, nullptr);
+	}
+
 	char romName[32] = { 0 };
 	memcpy(romName, romCartridge + 8, 24);
 	Discord::SetPresence(romName);
-	UI::SetTitle(romName, romCartridge[0x27] == 'j');
+	WCHAR wideName[64] = { 0 };
+	if (romCartridge[0x27] != 'j')
+		mbstowcs_s(NULL, wideName, romName, 256);
+	else
+		MultiByteToWideChar(932, 0, romName, -1, wideName, 256);
+	UI::SetTitle(wideName);
 }
 
 void FindFirstDrive()
@@ -421,7 +430,6 @@ void MainLoop()
 			{
 				UI::ShowOpenFileDialog(cmdLoadRom, UI::GetString(IDS_CARTFILTER)); //"Asspull IIIx ROMS (*.ap3)|*.ap3"
 				if (UI::uiCommand == 0) continue;
-				Log(UI::GetString(IDS_LOADINGROM), UI::uiString); //"Loading ROM, %s ..."
 				gottaReset = (*(uint32_t*)romCartridge == 0x21535341);
 				SaveCartRAM();
 				LoadROM(UI::uiString);
@@ -444,7 +452,7 @@ void MainLoop()
 				UI::SaveINI();
 				UI::SetStatus(IDS_CARTEJECTED); //"Cart pulled."
 				Discord::SetPresence(NULL);
-				UI::SetTitle(NULL, false);
+				UI::SetTitle(NULL);
 			}
 			else if (UI::uiCommand == cmdEjectDisk)
 			{
@@ -462,7 +470,7 @@ void MainLoop()
 					ini.SetValue(L"media", L"rom", L"");
 					UI::SaveINI();
 					Discord::SetPresence(NULL);
-					UI::SetTitle(NULL, false);
+					UI::SetTitle(NULL);
 				}
 				Log(UI::GetString(IDS_SYSTEMRESET)); //"Resetting Musashi..."
 				UI::SetStatus(IDS_SYSTEMRESET); //"System reset."

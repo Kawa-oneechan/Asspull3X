@@ -39,10 +39,12 @@ STRINGTABLE
 	IDS_ASSPULLISREADY, "\nAsspull IIIx is klaar.\nDruk op RCtrl+L om een ROM te laden, RCtrl-Shift+L om een diskette te laden.\nDruk op RCtrl+U om ROM te ontkoppelen, RCtrl+Shift+U om diskette uit te werpen.\nDruk op RCtrl+R om te resetten, RCtrl+Shift+R om eerst te onkoppelen.\nDruk op RCtrl+D om RAM te dumpen, RCtrl+S om een schermfoto te maken.\n\n"
 
 	//More debug-only stuff
-	IDS_LOADINGROM, "ROM %s laden..."
+	IDS_LOADINGROM, "ROM \x1b[96m%s\x1b[0m laden..."
+	IDS_LOADINGBIOS, "BIOS \x1b[96m%s\x1b[0m laden..."
+	IDS_LOADINGSRAM, "SRAM \x1b[96m%s\x1b[0m laden..."
 	IDS_UNLOADINGROM, "ROM ontladen..."
 	IDS_UNMOUNTINGDISK, "Diskette uitwerpen..."
-	IDS_MOUNTINGDISK, "Schijfkopie %s koppelen..."
+	IDS_MOUNTINGDISK, "Schijfkopie \x1b[96m%s\x1b[0m koppelen..."
 	IDS_MOUNTEDVHD, "VHD gekoppelt. %d * %d * %d * 512 = %d, zou ~%d moeten zijn."
 	IDS_SHADERERROR, "Fout bij compileren van shader: %d"
 	IDS_TOOMANYSHADERS, "Teveel shaders opgegeven: kan maar %d aan, maar %d is aangevraagd."

@@ -542,7 +542,7 @@ namespace UI
 
 			Presentation::SetThemeColors();
 
-			SetTitle(NULL, false);
+			SetTitle(NULL);
 		}
 		return;
 	}
@@ -778,21 +778,13 @@ namespace UI
 		if (DeviceManager::hWnd != NULL) DeviceManager::UpdatePage();
 	}
 
-	void SetTitle(const char* subtitle, bool sjis)
+	void SetTitle(const WCHAR* subtitle)
 	{
 		WCHAR title[512] = { 0 };
 		if (subtitle == NULL)
 			wcscpy_s(title, 512, GetString(IDS_FULLTITLE));
 		else
-		{
-			WCHAR wSub[256] = { 0 };
-			if (!sjis)
-				mbstowcs_s(NULL, wSub, subtitle, 256);
-			else
-				MultiByteToWideChar(932, 0, subtitle, -1, wSub, 256);
-			wsprintf(title, GetString(IDS_TEMPLATETITLE), wSub);
-		}
-		//SDL_SetWindowTitle(Video::sdlWindow, title);
+			wsprintf(title, GetString(IDS_TEMPLATETITLE), subtitle);
 		SetWindowText(hWndMain, title);
 	}
 

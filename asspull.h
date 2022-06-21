@@ -84,7 +84,7 @@ namespace UI
 	extern void Initialize();
 	extern void Update();
 	extern void ResetPath();
-	extern void SetTitle(const char*, bool);
+	extern void SetTitle(const WCHAR*);
 	extern void Complain(int message);
 	extern void SaveINI();
 
