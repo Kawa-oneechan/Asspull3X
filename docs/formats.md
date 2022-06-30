@@ -29,8 +29,12 @@ The fourth character of the Game ID indicates a region/language, including but n
 | `I`  | Italy                  | Italian           |
 | `S`  | Spain                  | Spanish           |
 | `s`  | United States          | Spanish           |
+| `r`  | Russia                 | Russian           |
+| `b`  | Brazil                 | Portuguese        |
+| `p`  | Portugal               | Portuguese        |
 
-If the region/language is `j`, the internal name is interpreted by the Clunibus emulator as Shift-JIS. Anything else is taken as Windows-1252.
+
+If the region/language is `j`, the internal name is interpreted by the Clunibus emulator as Shift-JIS. If it's `r`, the internal name is interpreted as Windows-1251. Anything else is taken as Windows-1252.
 
 # Disk
 
@@ -51,15 +55,15 @@ As defined in `ass.h`:
 ```c
 typedef struct TImageFile
 {
-	int32_t Identifier;		// Should always be "AIMG".
-	uint8_t BitDepth;		// Should be equal to 4 or 8, for 16 or 256 colors respectively.
-	uint8_t Flags;			// Specifies if the image is compressed, among other things.
-	uint16_t Width;			// The pixel width of the image.
-	uint16_t Height;		// The pixel height of the image.
-	uint16_t Stride;		// Specifies how many bytes make up a full line. Should be half the width for a 4bpp image.
-	int32_t ByteSize;		// The total amount of bytes making up the full image. Should be equal to stride times height.
-	int32_t ColorOffset;	// The offset from the start of the structure to the color data.
-	int32_t ImageOffset;	// The offset from the start of the structure to the image data.
+	int32_t Identifier;   // Should always be "AIMG".
+	uint8_t BitDepth;     // Should be equal to 4 or 8, for 16 or 256 colors respectively.
+	uint8_t Flags;        // Specifies if the image is compressed, among other things.
+	uint16_t Width;       // The pixel width of the image.
+	uint16_t Height;      // The pixel height of the image.
+	uint16_t Stride;      // Specifies how many bytes make up a full line. Should be half the width for a 4bpp image.
+	int32_t ByteSize;     // The total amount of bytes making up the full image. Should be equal to stride times height.
+	int32_t ColorOffset;  // The offset from the start of the structure to the color data.
+	int32_t ImageOffset;  // The offset from the start of the structure to the image data.
 } TImageFile;
 ```
 

@@ -121,10 +121,12 @@ void LoadROM(const WCHAR* path)
 	memcpy(romName, romCartridge + 8, 24);
 	Discord::SetPresence(romName);
 	WCHAR wideName[64] = { 0 };
-	if (romCartridge[0x27] != 'j')
-		mbstowcs_s(NULL, wideName, romName, 256);
-	else
+	if (romCartridge[0x27] == 'j')
 		MultiByteToWideChar(932, 0, romName, -1, wideName, 256);
+	else if (romCartridge[0x27] == 'r')
+		MultiByteToWideChar(1251, 0, romName, -1, wideName, 256);
+	else
+		mbstowcs_s(NULL, wideName, romName, 256);
 	UI::SetTitle(wideName);
 }
 
