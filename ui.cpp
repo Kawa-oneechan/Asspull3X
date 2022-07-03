@@ -683,10 +683,11 @@ namespace UI
 		wcscat(f, e);
 		_wcserror_s(e, ARRAYSIZE(e), err);
 		wsprintf(b, UI::GetString(messageId), f, device);
+		wsprintf(f, UI::GetString(IDS_SHORTTITLE));
 
 		TASKDIALOGCONFIG tdc = { 0 };
 		tdc.cbSize = sizeof(TASKDIALOGCONFIG);
-		tdc.pszWindowTitle = UI::GetString(IDS_SHORTTITLE);
+		tdc.pszWindowTitle = f;
 		tdc.pszMainInstruction = b;
 		tdc.pszContent = e;
 		tdc.dwCommonButtons = TDCBF_OK_BUTTON;

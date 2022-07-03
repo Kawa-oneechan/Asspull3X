@@ -20,7 +20,7 @@ The fourth character of the Game ID indicates a region/language, including but n
 | `0`  | Not for public release | Irrelevant        |
 | `w`  | Worldwide              | English           |
 | `U`  | United States          | American English  |
-| `e`  | European               | Any or many       |
+| `e`  | Europe                 | Any or many       |
 | `j`  | Japan                  | Japanese          |
 | `E`  | United Kingdom         | English           |
 | `F`  | France                 | French            |
