@@ -18,7 +18,7 @@ namespace UI
 		HBITMAP hPromoImage = NULL;
 		HIMAGELIST hDanceIml = NULL;
 		int aboutFrame = 0;
-		RECT aboutRect = { DANCE_X, DANCE_Y, DANCE_X + DANCE_W, DANCE_Y + DANCE_H };
+		const RECT aboutRect = { DANCE_X, DANCE_Y, DANCE_X + DANCE_W, DANCE_Y + DANCE_H };
 
 		void CALLBACK Animate(HWND a, UINT b, UINT_PTR c, DWORD d)
 		{

@@ -218,6 +218,8 @@ namespace Video
 		SDL_Texture* source = sdlTexture;
 		SDL_Texture* target = sdlShader;
 
+		glUseProgram(0);
+
 		for (int i = 0; i < numShaders; i++)
 		{
 			if (i == numShaders - 1)
