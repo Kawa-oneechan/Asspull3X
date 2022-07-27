@@ -14,7 +14,7 @@ STRINGTABLE
 	//File dialog filters. Format is "<description>|<pattern>|<desc>|<pat>" etc
 	IDS_DDFILTER, "Image disque (*.img)|*.img" //floppy diskettes
 	IDS_HDFILTER, "Image disque (*.vhd)|*.vhd" //hard disks
-	IDS_CARTFILTER, "Asspull IIIx ROMs (*.ap3)|*.ap3" //game cartridges
+	IDS_CARTFILTER, "ROM Asspull IIIx (*.ap3)|*.ap3|ROM compressées (*.a3z,*.zip)|*.a3z;*.zip" //game cartridges
 
 	IDS_CLICKTORELEASE, "RCtrl+P pour suspendre, bouton du milieu pour activer la souris."
 	IDS_SYSTEMRESET, "Réinitialisation du systeme."

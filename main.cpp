@@ -45,7 +45,7 @@ void LoadROM(const WCHAR* path)
 		else
 			wcscpy(currentROM, path);
 	}
-	else if (!wcscmp(ext, L"a3z"))
+	else if (!wcscmp(ext, L"a3z") || !wcscmp(ext, L"zip"))
 	{
 		mz_zip_archive zip;
 		memset(&zip, 0, sizeof(zip));

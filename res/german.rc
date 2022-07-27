@@ -14,7 +14,7 @@ STRINGTABLE
 	//File dialog filters. Format is "<description>|<pattern>|<desc>|<pat>" etc
 	IDS_DDFILTER, "Disk images (*.img)|*.img" //floppy diskettes
 	IDS_HDFILTER, "Disk images (*.vhd)|*.vhd" //hard disks
-	IDS_CARTFILTER, "Asspull IIIx ROMs (*.ap3)|*.ap3" //game cartridges
+	IDS_CARTFILTER, "Asspull IIIx-ROMs (*.ap3)|*.ap3|Komprimierte ROMs (*.a3z,*.zip)|*.a3z;*.zip" //game cartridges
 
 	IDS_CLICKTORELEASE, "RCtrl+P um die Emulation zu stoppen. Mittlere Maustaste zum Aktivieren der Maus."
 	IDS_SYSTEMRESET, "System zurückgesetzt."
