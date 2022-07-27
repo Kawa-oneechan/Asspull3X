@@ -13,6 +13,7 @@ LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
 
 IDI_APP ICON ".\\res\\app.ico"
 IDI_ROM ICON ".\\res\\ap3.ico"
+IDI_ZIP ICON ".\\res\\a3z.ico"
 
 IDB_ABOUT PNG ".\\res\\about.png"
 IDB_DANCE PNG ".\\res\\dance.png"

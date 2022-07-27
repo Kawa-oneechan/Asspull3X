@@ -64,6 +64,7 @@
 
 #define IDI_APP 1
 #define IDI_ROM 2
+#define IDI_ZIP 3
 
 #define IDD_ABOUT 201
 #define IDD_DEVICES 202
