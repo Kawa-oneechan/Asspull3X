@@ -45,6 +45,8 @@ struct {
 } langs[64];
 int langCt = 0;
 
+extern void AssociateFiletypes();
+
 BOOL CALLBACK GetLangProc(HMODULE mod, LPCTSTR type, LPCTSTR name, WORD lang, LONG_PTR lParam)
 {
 	langs[langCt].num = lang;
@@ -132,6 +134,11 @@ void GetSettings()
 				UI::reloadIMG = false;
 			else if (!wcscmp(argv[i], L"--nodiscord"))
 				Discord::enabled = false;
+			else if (!wcscmp(argv[i], L"--associate"))
+			{
+				AssociateFiletypes();
+				_exit(1);
+			}
 		}
 		else if (i == 1)
 		{
@@ -255,6 +262,18 @@ int main(int argc, char** argv)
 #endif
 {
 	argc, argv;
+
+	GetModuleFileName(NULL, UI::startingPath, 256);
+	WCHAR* lastSlash = wcsrchr(UI::startingPath, L'\\');
+	*lastSlash = 0;
+	if (!wcsncmp(lastSlash - 5, L"Debug", 6))
+	{
+		lastSlash = wcsrchr(UI::startingPath, L'\\');
+		*lastSlash = 0;
+	}
+
+	GetSettings();
+
 #if _CONSOLE
 	SetConsoleCP(CP_UTF8);
 	auto throwAway = _setmode(_fileno(stdout), _O_U16TEXT); throwAway;
@@ -267,17 +286,6 @@ int main(int argc, char** argv)
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_VIDEO_OPENGL | SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER) < 0)
 		return 0;
 
-	GetModuleFileName(NULL, UI::startingPath, 256);
-	WCHAR* lastSlash = wcsrchr(UI::startingPath, L'\\');
-	*lastSlash = 0;
-	if (!wcsncmp(lastSlash - 5, L"Debug", 6))
-	{
-		lastSlash = wcsrchr(UI::startingPath, L'\\');
-		*lastSlash = 0;
-	}
-
-	GetSettings();
-	
 	if (Video::Initialize() < 0)
 		return 0;
 

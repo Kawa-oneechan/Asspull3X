@@ -1,6 +1,7 @@
 #include "..\asspull.h"
 
 extern int invertButtons;
+extern void AssociateFiletypes();
 
 namespace UI
 {
@@ -9,6 +10,7 @@ namespace UI
 		using namespace Presentation;
 
 		HWND hWnd = NULL;
+		RECT shieldIcon;
 
 		BOOL CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
@@ -56,11 +58,18 @@ namespace UI
 				CheckDlgButton(hWnd, IDC_RELOAD, UI::reloadROM);
 				CheckDlgButton(hWnd, IDC_REMOUNT, UI::reloadIMG);
 				SetDlgItemText(hWnd, IDC_BIOSPATH, ini.GetValue(L"media", L"bios", L""));
+
+				//SendDlgItemMessage(hWnd, IDC_LINK, BCM_SETSHIELD, 0, TRUE);
+				GetIconPos(hWnd, IDC_LINK, &shieldIcon, -20, 0);
 				return true;
 			}
 			case WM_PAINT:
 			{
-				DrawWindowBk(hWnd, true);
+				PAINTSTRUCT ps;
+				HDC hdc = BeginPaint(hWnd, &ps);
+				DrawWindowBk(hWnd, true, &ps, hdc);
+				ImageList_Draw(Images::hIml, IML_SHIELD, hdc, shieldIcon.left, shieldIcon.top, ILD_NORMAL);
+				EndPaint(hWnd, &ps);
 				return true;
 			}
 			case WM_NOTIFY:
@@ -90,6 +99,14 @@ namespace UI
 					case IDC_BIOSBROWSE:
 						return DrawDarkButton(hWnd, nmc);
 					}
+				}
+				else if (((LPNMHDR)lParam)->code == NM_CLICK)
+				{
+					PNMLINK pNMLink = (PNMLINK)lParam;
+					LITEM item = pNMLink->item;
+					if ((((LPNMHDR)lParam)->hwndFrom == GetDlgItem(hWnd, IDC_LINK)) && (item.iLink == 0))
+						AssociateFiletypes();
+					break;
 				}
 			}
 			case WM_CTLCOLORSTATIC:
@@ -124,6 +141,11 @@ namespace UI
 				{
 					switch (LOWORD(wParam))
 					{
+					case IDC_LINK:
+					{
+						AssociateFiletypes();
+						return false;
+					}
 					case IDC_BIOSBROWSE:
 					{
 						WCHAR thePath[FILENAME_MAX] = { 0 };

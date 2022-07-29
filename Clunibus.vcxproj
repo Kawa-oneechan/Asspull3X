@@ -106,6 +106,7 @@
     <ClInclude Include="SimpleIni.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="fileassoc.cpp" />
     <ClCompile Include="device.cpp" />
     <ClCompile Include="discord.cpp" />
     <ClCompile Include="diskdrive.cpp" />
