@@ -1,6 +1,5 @@
 #include "asspull.h"
 #include "resource.h"
-#include "miniz.h"
 #include <io.h>
 #include <fcntl.h>
 #include <commctrl.h>

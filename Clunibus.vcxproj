@@ -98,12 +98,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="asspull.h" />
-    <ClInclude Include="miniz.h" />
+    <ClInclude Include="support\miniz.h" />
     <ClInclude Include="musashi\m68k.h" />
     <ClInclude Include="musashi\m68kconf.h" />
-    <ClInclude Include="opl3.h" />
+    <ClInclude Include="support\opl3.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="SimpleIni.h" />
+    <ClInclude Include="support\SimpleIni.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="fileassoc.cpp" />
@@ -120,13 +120,13 @@
     <ClCompile Include="extras.cpp" />
     <ClCompile Include="input.cpp" />
     <ClCompile Include="memory.cpp" />
-    <ClCompile Include="miniz.c" />
+    <ClCompile Include="support\miniz.c" />
     <ClCompile Include="musashi\m68kcpu.c" />
     <ClCompile Include="musashi\m68kops.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="opengl.cpp" />
-    <ClCompile Include="opl3.c" />
-    <ClCompile Include="picopng.cpp" />
+    <ClCompile Include="support\opl3.c" />
+    <ClCompile Include="support\picopng.cpp" />
     <ClCompile Include="sound.cpp" />
     <ClCompile Include="startup.cpp" />
     <ClCompile Include="ui.cpp" />

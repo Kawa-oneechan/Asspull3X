@@ -6,7 +6,7 @@
 #include <commctrl.h>
 #include "resource.h"
 
-#include "miniz.h"
+#include "support/miniz.h"
 
 namespace Video
 {

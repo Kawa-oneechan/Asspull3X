@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <string>
 #include <SDL.h>
-#include "SimpleIni.h"
+#include "support/SimpleIni.h"
 #include "resource.h"
 #include <Windows.h>
 #include <commdlg.h>

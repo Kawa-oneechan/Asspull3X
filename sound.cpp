@@ -1,7 +1,7 @@
 #include "asspull.h"
 #include <vector>
 #include <Windows.h>
-#include "opl3.h"
+#include "support/opl3.h"
 
 #define FREQUENCY 44100
 #define FORMAT AUDIO_S16MSB

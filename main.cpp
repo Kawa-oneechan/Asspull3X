@@ -1,6 +1,6 @@
 #include "asspull.h"
 #include "resource.h"
-#include "miniz.h"
+#include "support/miniz.h"
 
 extern "C" {
 #include "musashi/m68k.h"
