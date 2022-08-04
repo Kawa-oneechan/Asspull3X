@@ -341,6 +341,14 @@ namespace UI
 				auto b = image[i + 2];
 				image[i + 0] = b;
 				image[i + 2] = r;
+
+				//clean up messy alpha channels
+				if (image[i + 3] == 0)
+				{
+					image[i + 0] = 0;
+					image[i + 1] = 0;
+					image[i + 2] = 0;
+				}
 			}
 
 			auto bitmap = CreateBitmap(width, height, 1, 32, &image[0]);
