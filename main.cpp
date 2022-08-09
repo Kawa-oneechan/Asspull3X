@@ -120,7 +120,7 @@ void LoadROM(const WCHAR* path)
 	char romName[32] = { 0 };
 	memcpy(romName, romCartridge + 8, 24);
 	Discord::SetPresence(romName);
-	WCHAR wideName[64] = { 0 };
+	WCHAR wideName[256] = { 0 };
 	if (romCartridge[0x27] == 'j')
 		MultiByteToWideChar(932, 0, romName, -1, wideName, 256);
 	else if (romCartridge[0x27] == 'r')
