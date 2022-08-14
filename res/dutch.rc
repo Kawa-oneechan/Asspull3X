@@ -167,7 +167,7 @@ END
 	#define OPTIONS_KEY2JOY "Toetsenbord as gamepad"
 #define OPTIONS_MEDIA "Media"
 	#define OPTIONS_RELOADROM "Herlaad ROM"
-	#define OPTIONS_RELOADDISK "Herlaad schijfkopie"
+	#define OPTIONS_RELOADDISK "Herlaad schijfkopie�n"
 	#define OPTIONS_BIOS "BIOS bestand"
 
 #define SHADERS_TITLE "Shaders"

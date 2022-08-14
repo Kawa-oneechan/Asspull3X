@@ -167,7 +167,7 @@ END
 	#define OPTIONS_KEY2JOY "Keyboard gamepad"
 #define OPTIONS_MEDIA "Media"
 	#define OPTIONS_RELOADROM "Reload ROM"
-	#define OPTIONS_RELOADDISK "Reload disk image"
+	#define OPTIONS_RELOADDISK "Reload disk images"
 	#define OPTIONS_BIOS "BIOS file"
 
 #define SHADERS_TITLE "Shaders"

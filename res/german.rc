@@ -167,7 +167,7 @@ END
 	#define OPTIONS_KEY2JOY "Tastatur als Gamepad"
 #define OPTIONS_MEDIA "Medien"
 	#define OPTIONS_RELOADROM "ROM neu laden"
-	#define OPTIONS_RELOADDISK "Disk-Image neu laden"
+	#define OPTIONS_RELOADDISK "Disk-Images neu laden"
 	#define OPTIONS_BIOS "BIOS-Datei"
 
 #define SHADERS_TITLE "Shader"

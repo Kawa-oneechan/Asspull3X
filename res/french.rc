@@ -169,7 +169,7 @@ END
 	#define OPTIONS_KEY2JOY "Clavier comme manette de jeu"
 #define OPTIONS_MEDIA "Média"
 	#define OPTIONS_RELOADROM "Recharger la ROM"
-	#define OPTIONS_RELOADDISK "Recharger l'image disque"
+	#define OPTIONS_RELOADDISK "Recharger les images disque"
 	#define OPTIONS_BIOS "Fichier BIOS"
 
 #define SHADERS_TITLE "Shaders"
