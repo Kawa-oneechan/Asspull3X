@@ -73,6 +73,15 @@ namespace UI
 		extern HBITMAP LoadPNGResource(int);
 	}
 
+	namespace Tooltips
+	{
+		extern void Initialize();
+
+		extern void CreateTooltips(HWND hWndClient, ...);
+
+		extern void DestroyTooltips();
+	}
+
 	namespace About
 	{
 		extern void Show();

@@ -586,6 +586,7 @@ void MainLoop()
 
 	SaveCartRAM();
 	Sound::Reset();
+	UI::Tooltips::DestroyTooltips();
 	for (int i = 0; i < MAXDEVS; i++)
 		if (devices[i] != NULL) delete devices[i];
 	delete[] pauseScreen;

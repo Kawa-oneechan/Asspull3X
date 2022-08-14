@@ -357,6 +357,44 @@ namespace UI
 		}
 	}
 
+	namespace Tooltips
+	{
+		HWND hWndTooltips;
+
+		void Initialize()
+		{
+			hWndTooltips = CreateWindowEx(WS_EX_TOPMOST, TOOLTIPS_CLASS, NULL, WS_POPUP | TTS_NOPREFIX /* | TTS_BALLOON */, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, hWndMain, NULL, hInstance, NULL);
+			SetWindowPos(hWndTooltips, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+		}
+
+		void CreateTooltips(HWND hWndClient, ...)
+		{
+			va_list args;
+			va_start(args, hWndClient);
+
+			int dlgItem = va_arg(args, int);
+			while (dlgItem)
+			{
+				TOOLINFO ti =
+				{
+					sizeof(TOOLINFO), TTF_IDISHWND | TTF_SUBCLASS, hWndClient,
+					(UINT_PTR)GetDlgItem(hWndClient, dlgItem),
+					{ 0, 0, 0, 0 }, hInstance,
+					MAKEINTRESOURCE(IDS_TOOLTIPS + dlgItem)
+				};
+				SendMessage(hWndTooltips, TTM_ADDTOOL, 0, (LPARAM)&ti);
+				dlgItem = va_arg(args, int);
+			}
+
+			va_end(args);
+		}
+
+		void DestroyTooltips()
+		{
+			DestroyWindow(hWndTooltips);
+		}
+	}
+
 	WNDPROC SDLWinProc = NULL;
 	LRESULT WndProc(HWND hWnd, unsigned int message, WPARAM wParam, LPARAM lParam)
 	{
@@ -552,6 +590,7 @@ namespace UI
 			Presentation::statusFont = CreateFont(14, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, L"Segoe UI");
 
 			Presentation::SetThemeColors();
+			Tooltips::Initialize();
 
 			SetTitle(NULL);
 		}

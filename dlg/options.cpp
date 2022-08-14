@@ -61,6 +61,8 @@ namespace UI
 
 				//SendDlgItemMessage(hWnd, IDC_LINK, BCM_SETSHIELD, 0, TRUE);
 				GetIconPos(hWnd, IDC_LINK, &shieldIcon, -20, 0);
+
+				Tooltips::CreateTooltips(hWnd, IDC_ASPECT, IDC_KEY2JOY, IDC_RELOAD, IDC_REMOUNT, 0);
 				return true;
 			}
 			case WM_PAINT:

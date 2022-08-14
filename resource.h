@@ -61,6 +61,7 @@
 #define IDS_DEVICES1 200
 #define IDS_DEVICES2 250
 #define IDS_REGIONS 300
+#define IDS_TOOLTIPS 500
 
 #define IDI_APP 1
 #define IDI_ROM 2
