@@ -95,8 +95,8 @@ STRINGTABLE
 
 	(IDS_TOOLTIPS+IDC_ASPECT), "In 200 or 400 line mode, stretch to 4:3 instead of letterboxing."
 	(IDS_TOOLTIPS+IDC_KEY2JOY), "Allow using ZXCVASDF and the arrow keys in lieu of a real controller."
-	(IDS_TOOLTIPS+IDC_RELOAD), "Next time the application is started, automatically reload the last ROM if possible."
-	(IDS_TOOLTIPS+IDC_REMOUNT), "Next time the application is started, automatically reload any disk images."
+	(IDS_TOOLTIPS+IDC_RELOAD), "Automatically reload the previous ROM if possible on application startup."
+	(IDS_TOOLTIPS+IDC_REMOUNT), "Automatically reload any disk images on application startup."
 }
 
 IDR_MAINMENU MENU

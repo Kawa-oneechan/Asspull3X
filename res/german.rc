@@ -92,6 +92,11 @@ STRINGTABLE
 	(IDS_REGIONS+4), "Geräte"
 	(IDS_REGIONS+5), "Register"
 	(IDS_REGIONS+6), "VRAM"
+
+	(IDS_TOOLTIPS+IDC_ASPECT), "Im 200- oder 400-Zeilen-Modus auf 4:3 strecken, anstatt schwarze Balken hinzuzufügen."
+	(IDS_TOOLTIPS+IDC_KEY2JOY), "Ermöglicht die Verwendung von ZXCVASDF und den Pfeiltasten anstelle eines echten Controllers."
+	(IDS_TOOLTIPS+IDC_RELOAD), "Wenn möglich, laden Sie das vorherige ROM automatisch neu, wenn die Anwendung gestartet wird."
+	(IDS_TOOLTIPS+IDC_REMOUNT), "Laden Sie nach Möglichkeit alle vorherigen Disk-Images automatisch neu, wenn die Anwendung gestartet wird."
 }
 
 IDR_MAINMENU MENU

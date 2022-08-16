@@ -92,6 +92,11 @@ STRINGTABLE
 	(IDS_REGIONS+4), "Périphérique"
 	(IDS_REGIONS+5), "Registres"
 	(IDS_REGIONS+6), "VRAM"
+
+	(IDS_TOOLTIPS+IDC_ASPECT), "Dans le mode 200 ou 400 lignes, étirer en 4:3 à la place du letterboxing."
+	(IDS_TOOLTIPS+IDC_KEY2JOY), "Permet d'utiliser ZXCVASDF et les touches directionnelles au lieu d'une manette."
+	(IDS_TOOLTIPS+IDC_RELOAD), "Au démarrage de l'application, recharger automatiquement la ROM si possible."
+	(IDS_TOOLTIPS+IDC_REMOUNT), "Au démarrage de l'application, recharger automatiquement toutes les images disques"
 }
 
 IDR_MAINMENU MENU

@@ -92,6 +92,11 @@ STRINGTABLE
 	(IDS_REGIONS+4), "Apparaten"
 	(IDS_REGIONS+5), "Registers"
 	(IDS_REGIONS+6), "VRAM"
+
+	(IDS_TOOLTIPS+IDC_ASPECT), "In 200 or 400 lijn-modus, rek uit naar 4:3 in plaats van zwarte balken te plaatsen."
+	(IDS_TOOLTIPS+IDC_KEY2JOY), "Gebruik ZXCVASDF en de pijltjestoetsen bij gebrek aan een controller."
+	(IDS_TOOLTIPS+IDC_RELOAD), "Herlaad automatisch de laatstgebruikte ROM bij het opstarten."
+	(IDS_TOOLTIPS+IDC_REMOUNT), "Herlaad automatisch de laatstgebruikte diskettes bij het opstarten."
 }
 
 IDR_MAINMENU MENU
