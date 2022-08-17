@@ -106,12 +106,12 @@ void GetSettings()
 	{
 		//try as a string
 		auto locStr = ini.GetValue(L"misc", L"lang", L"en-us");
-		for (auto &l : langs)
-			if (!_wcsnicmp(locStr, l.code, 2))
-				langID = l.num;
-		for (auto &l : langs)
-			if (!_wcsnicmp(locStr, l.code, 5))
-				langID = l.num;
+		for (int i = 0; i < langCt; i++)
+			if (!_wcsnicmp(locStr, langs[i].code, 2))
+				langID = langs[i].num;
+		for (int i = 0; i < langCt; i++)
+			if (!_wcsnicmp(locStr, langs[i].code, 5))
+				langID = langs[i].num;
 	}
 	if (langID != 0)
 	{
