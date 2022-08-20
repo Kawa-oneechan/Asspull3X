@@ -64,14 +64,7 @@ void LinePrinter::Write(unsigned int address, unsigned int value)
 				wprintf(L"o|----------------------------------------------------------------------------------|o\n");
 			pageLength = 0;
 		}
-		else if ((char)value == '\n')
-		{
-			memset(line, 0, 120);
-			visibleLength = 0;
-			lineLength = 0;
-			padLength = 80;
-		}
-		else if (visibleLength == 80 || (char)value == '\r')
+		else if (visibleLength == 80 || (char)value == '\n')
 		{
 			WCHAR wLine[120] = { 0 };
 			mbstowcs_s(NULL, wLine, line, 80);
@@ -79,10 +72,16 @@ void LinePrinter::Write(unsigned int address, unsigned int value)
 				wprintf(L"\x1b[%d;90m\u2022\u00A6\x1b[%d;30m %*s \x1b[%d;90m\u00A6\u2022\x1B[0m\n", bg, bg, -padLength, wLine, bg);
 			else
 				wprintf(L"o| %*s |o\n", -padLength, wLine);
-			Write(2, '\n');
 			pageLength++;
 			if (pageLength == 30)
 				Write(2, '\f');
+			memset(line, 0, 120);
+			visibleLength = 0;
+			lineLength = 0;
+			padLength = 80;
+		}
+		else if ((char)value == '\r')
+		{
 		}
 		else
 		{
