@@ -22,6 +22,7 @@ namespace UI
 	HWND hWndStatusBar;
 	HMENU menuBar;
 	int statusBarHeight = 0;
+	bool hideUI = false;
 
 	int uiCommand;
 	WCHAR uiString[512];
@@ -505,7 +506,8 @@ namespace UI
 		if (hddIconTimer)
 			hddIconTimer--;
 
-		DrawStatusBar();
+		if (!hideUI)
+			DrawStatusBar();
 	}
 
 	void Initialize()
@@ -855,5 +857,22 @@ namespace UI
 	{
 		ResetPath();
 		ini.SaveFile(settingsFile, false);
+	}
+
+	void HideUI(bool newHideState)
+	{
+		if (!hideUI && newHideState)
+		{
+			SDL_SetWindowFullscreen(Video::sdlWindow, SDL_WINDOW_FULLSCREEN_DESKTOP);
+			SetMenu(hWndMain, NULL);
+			ShowWindow(hWndStatusBar, SW_HIDE);
+		}
+		else
+		{
+			SDL_SetWindowFullscreen(Video::sdlWindow, 0);
+			SetMenu(hWndMain, menuBar);
+			ShowWindow(hWndStatusBar, SW_SHOW);
+		}
+		hideUI = newHideState;
 	}
 }

@@ -20,6 +20,7 @@ namespace UI
 	extern WCHAR uiStatus[512];
 	extern WCHAR uiString[512];
 	extern bool fpsVisible, fpsCap, reloadROM, reloadIMG;
+	extern bool hideUI;
 
 	extern bool wasPaused;
 
@@ -46,6 +47,7 @@ namespace UI
 	extern void SetTitle(const WCHAR*);
 	extern void Complain(int message);
 	extern void SaveINI();
+	extern void HideUI(bool hide);
 
 	namespace Presentation
 	{

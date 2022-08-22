@@ -245,16 +245,17 @@ namespace Video
 			if (i == numShaders - 1)
 			{
 				SDL_GetWindowSize(sdlWindow, &winWidth, &winHeight);
-				winHeight -= UI::statusBarHeight;
+				if (!UI::hideUI)
+					winHeight -= UI::statusBarHeight;
 				if (winWidth < 640)
 				{
 					winWidth = 640;
-					SDL_SetWindowSize(sdlWindow, 640, winHeight + UI::statusBarHeight);
+					SDL_SetWindowSize(sdlWindow, 640, winHeight + (UI::hideUI ? 0 : UI::statusBarHeight));
 				}
 				if (winHeight < 480)
 				{
 					winHeight = 480;
-					SDL_SetWindowSize(sdlWindow, winWidth, 480 + UI::statusBarHeight);
+					SDL_SetWindowSize(sdlWindow, winWidth, 480 + (UI::hideUI ? 0 : UI::statusBarHeight));
 				}
 
 				auto maxScaleX = floorf(winWidth / 640.0f);
@@ -265,7 +266,8 @@ namespace Video
 				offsetX = (int)floorf((winWidth - scrWidth) * 0.5f);
 				offsetY = (int)floorf((winHeight - scrHeight) * 0.5f);
 
-				offsetY += UI::statusBarHeight;
+				if (!UI::hideUI)
+					offsetY += UI::statusBarHeight;
 
 				float imgH = 1.0f;
 				if (numShaders == 1 && (stretch200 && (Registers::ScreenMode.Mode == 1 || Registers::ScreenMode.Mode == 2) && Registers::ScreenMode.Aspect))

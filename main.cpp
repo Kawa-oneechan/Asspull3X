@@ -365,6 +365,10 @@ void MainLoop()
 						else if (pauseState == pauseYes)
 							pauseState = pauseNot;
 					}
+					else if (ev.key.keysym.sym == SDLK_F10)
+					{
+						UI::HideUI(!UI::hideUI);
+					}
 				}
 				else
 				{
