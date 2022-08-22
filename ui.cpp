@@ -198,46 +198,36 @@ namespace UI
 
 		namespace Windows10
 		{
-			typedef void (WINAPI * fnRtlGetNtVersionNumbers) (LPDWORD major, LPDWORD minor, LPDWORD build);
-			bool IsWin10()
-			{
-				auto mHd = GetModuleHandleW(L"ntdll.dll");
-				//shouldn't happen but let's keep code analysis happy.
-				if (mHd == NULL) return false;
-				auto RtlGetNtVersionNumbers = (fnRtlGetNtVersionNumbers)GetProcAddress(mHd, "RtlGetNtVersionNumbers");
-				if (RtlGetNtVersionNumbers)
-				{
-					DWORD major, minor, build;
-					RtlGetNtVersionNumbers(&major, &minor, &build);
-					build &= ~0xF0000000;
-					if (major == 10 && minor == 0 && build > 18360)
-						return true;
-				}
-				return false;
-			}
-
 			int MatchTheme()
 			{
-				if (!IsWin10()) return 0;
 				DWORD nResult;
 				HKEY key;
-				if (RegOpenKeyEx(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", 0, KEY_READ, &key)) return 0;
+				auto result = RegOpenKeyEx(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", 0, KEY_READ, &key);
+				if (result != ERROR_SUCCESS)
+					return -1;
 				DWORD dwBufferSize = sizeof(DWORD);
-				RegQueryValueEx(key, L"AppsUseLightTheme", 0, NULL, (LPBYTE)&nResult, &dwBufferSize);
+				result = RegQueryValueEx(key, L"AppsUseLightTheme", 0, NULL, (LPBYTE)&nResult, &dwBufferSize);
 				RegCloseKey(key);
+				if (result != ERROR_SUCCESS)
+					return -1;
 				//AppsUseLightTheme == 0 means light, and that's the inverse of our list.
 				return !nResult;
 			}
 
+			bool IsWin10()
+			{
+				return MatchTheme() != -1;
+			}
+
 			COLORREF GetAccent(COLORREF not10)
 			{
-				if (!IsWin10())
-					return not10;
 				DWORD nResult;
 				HKEY key;
-				if (RegOpenKeyEx(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\DWM", 0, KEY_READ, &key)) return not10;
+				if (RegOpenKeyEx(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\DWM", 0, KEY_READ, &key))
+					return not10;
 				DWORD dwBufferSize = sizeof(DWORD);
-				RegQueryValueEx(key, L"AccentColor", 0, NULL, (LPBYTE)&nResult, &dwBufferSize);
+				if (RegQueryValueEx(key, L"AccentColor", 0, NULL, (LPBYTE)&nResult, &dwBufferSize))
+					nResult = not10;
 				RegCloseKey(key);
 				nResult &= 0xFFFFFF;
 				if (nResult == 0x000000) //you chose black?
