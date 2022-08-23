@@ -13,7 +13,6 @@ CSimpleIni ini;
 
 extern unsigned int biosSize, romSize;
 extern long rtcOffset;
-extern int invertButtons;
 extern int firstDiskDrive;
 
 extern void LoadROM(const WCHAR* path);
@@ -96,7 +95,6 @@ void GetSettings()
 	UI::fpsVisible = ini.GetBoolValue(L"video", L"showFps", true);
 	UI::reloadROM = ini.GetBoolValue(L"misc", L"reloadRom", false);
 	UI::reloadIMG = ini.GetBoolValue(L"misc", L"reloadImg", false);
-	invertButtons = (int)ini.GetBoolValue(L"input", L"invertButtons", false);
 	key2joy = (int)ini.GetBoolValue(L"input", L"key2joy", true);
 	Discord::enabled = ini.GetBoolValue(L"misc", L"discord", false);
 

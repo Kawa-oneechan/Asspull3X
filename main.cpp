@@ -8,7 +8,6 @@ extern "C" {
 
 bool quit = 0;
 int line = 0, interrupts = 0;
-int invertButtons = 0;
 int key2joy = 0;
 
 SDL_GameControllerButton buttonMap[16];
