@@ -449,6 +449,13 @@ namespace UI
 		GetClientRect(hWndMain, &sbRect);
 		sbRect.bottom = statusBarHeight;
 
+		if (hideUI)
+		{
+			//FillRect(statusDC, &sbRect, (HBRUSH)GetStockObject(BLACK_BRUSH));
+			BitBlt(statusRealDC, 0, 0, sbRect.right, sbRect.bottom, NULL, 0, 0, BLACKNESS);
+			return;
+		}
+
 		auto hdc = statusDC;
 
 		FillRect(hdc, &sbRect, Presentation::hbrBack);
@@ -861,19 +868,18 @@ namespace UI
 
 	void HideUI(bool newHideState)
 	{
-		//static RECT r;
+		static RECT r;
 		if (!hideUI && newHideState)
 		{
-			//GetWindowRect(hWndMain, &r);
-			//SetWindowPos(hWndMain, 0, r.left, r.top, r.right - r.left, r.bottom - r.top - (statusBarHeight * 2), 0);
+			GetWindowRect(hWndMain, &r);
+			SDL_SetWindowFullscreen(Video::sdlWindow, SDL_WINDOW_FULLSCREEN_DESKTOP);
 			SetMenu(hWndMain, NULL);
-			ShowWindow(hWndStatusBar, SW_HIDE);
 		}
 		else
 		{
-			//SetWindowPos(hWndMain, 0, r.left, r.top, r.right - r.left, r.bottom - r.top, 0);
+			SDL_SetWindowFullscreen(Video::sdlWindow, 0);
+			SetWindowPos(hWndMain, 0, r.left, r.top, r.right - r.left, r.bottom - r.top, 0);
 			SetMenu(hWndMain, menuBar);
-			ShowWindow(hWndStatusBar, SW_SHOW);
 		}
 		hideUI = newHideState;
 	}
