@@ -861,15 +861,17 @@ namespace UI
 
 	void HideUI(bool newHideState)
 	{
+		//static RECT r;
 		if (!hideUI && newHideState)
 		{
-			SDL_SetWindowFullscreen(Video::sdlWindow, SDL_WINDOW_FULLSCREEN_DESKTOP);
+			//GetWindowRect(hWndMain, &r);
+			//SetWindowPos(hWndMain, 0, r.left, r.top, r.right - r.left, r.bottom - r.top - (statusBarHeight * 2), 0);
 			SetMenu(hWndMain, NULL);
 			ShowWindow(hWndStatusBar, SW_HIDE);
 		}
 		else
 		{
-			SDL_SetWindowFullscreen(Video::sdlWindow, 0);
+			//SetWindowPos(hWndMain, 0, r.left, r.top, r.right - r.left, r.bottom - r.top, 0);
 			SetMenu(hWndMain, menuBar);
 			ShowWindow(hWndStatusBar, SW_SHOW);
 		}
