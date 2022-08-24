@@ -57,8 +57,6 @@ namespace UI
 				CheckDlgButton(hWnd, IDC_REMOUNT, UI::reloadIMG);
 				SetDlgItemText(hWnd, IDC_BIOSPATH, ini.GetValue(L"media", L"bios", L""));
 
-				EnableWindow(GetDlgItem(hWnd, IDC_REMAPBUTTONS), false);
-
 				GetIconPos(hWnd, IDC_LINK, &shieldIcon, -20, 0);
 
 				Tooltips::CreateTooltips(hWnd, IDC_ASPECT, IDC_KEY2JOY, IDC_RELOAD, IDC_REMOUNT, 0);
@@ -153,6 +151,11 @@ namespace UI
 						GetWindowText(GetDlgItem(hWnd, IDC_BIOSPATH), thePath, FILENAME_MAX);
 						if (ShowFileDlg(false, thePath, 256, L"A3X BIOS files (*.apb)|*.apb"))
 							SetWindowText(GetDlgItem(hWnd, IDC_BIOSPATH), thePath);
+						return false;
+					}
+					case IDC_REMAPBUTTONS:
+					{
+						UI::ButtonMaps::Show();
 						return false;
 					}
 					case IDOK:

@@ -109,6 +109,7 @@
     <ClInclude Include="ui.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="dlg\buttonmaps.cpp" />
     <ClCompile Include="fileassoc.cpp" />
     <ClCompile Include="device.cpp" />
     <ClCompile Include="discord.cpp" />

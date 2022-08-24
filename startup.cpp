@@ -151,7 +151,7 @@ void GetSettings()
 
 	for (int i = 0; i < 12; i++)
 	{
-		auto button = ini.GetValue(L"buttonMap", buttonNames[i], buttonDefaults[i]);
+		auto button = ini.GetValue(L"input", buttonNames[i], buttonDefaults[i]);
 		buttonMap[i] = SDL_GameControllerGetButtonFromStringW(button);
 	}
 }

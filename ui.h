@@ -120,4 +120,9 @@ namespace UI
 		extern void Show();
 		extern HWND hWnd;
 	}
+	namespace ButtonMaps
+	{
+		extern void Show();
+		extern HWND hWnd;
+	}
 }
