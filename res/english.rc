@@ -215,4 +215,6 @@ END
 #define SHADERS_MOVEUP "Move up"
 #define SHADERS_MOVEDOWN "Move down"
 
+#define BUTTONS_TITLE "Button maps"
+
 #include "dialogs.rc"

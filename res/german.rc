@@ -93,6 +93,37 @@ STRINGTABLE
 	(IDS_REGIONS+5), "Register"
 	(IDS_REGIONS+6), "VRAM"
 
+	//A3X buttons to map TO
+	(IDS_BUTTONS + 0), "Oben"
+	(IDS_BUTTONS + 1), "Rechts"
+	(IDS_BUTTONS + 2), "Unten"
+	(IDS_BUTTONS + 3), "Links"
+	(IDS_BUTTONS + 4), "A"
+	(IDS_BUTTONS + 5), "B"
+	(IDS_BUTTONS + 6), "X"
+	(IDS_BUTTONS + 7), "Y"
+	(IDS_BUTTONS + 8), "Linke Schulter"
+	(IDS_BUTTONS + 9), "Rechte Schulter"
+	(IDS_BUTTONS + 10), "Start"
+	(IDS_BUTTONS + 11), "Auswahl"
+
+	//XInput buttons to map FROM
+	(IDS_BUTTONSFROM + 0), "A"
+	(IDS_BUTTONSFROM + 1), "B"
+	(IDS_BUTTONSFROM + 2), "X"
+	(IDS_BUTTONSFROM + 3), "Y"
+	(IDS_BUTTONSFROM + 4), "Zurück"
+	(IDS_BUTTONSFROM + 5), "Guide"
+	(IDS_BUTTONSFROM + 6), "Start"
+	(IDS_BUTTONSFROM + 7), "Linke Stick"
+	(IDS_BUTTONSFROM + 8), "Rechte Stick"
+	(IDS_BUTTONSFROM + 9), "Linke Schulter"
+	(IDS_BUTTONSFROM + 10), "Rechte Schulter"
+	(IDS_BUTTONSFROM + 11), "Oben"
+	(IDS_BUTTONSFROM + 12), "Unten"
+	(IDS_BUTTONSFROM + 13), "Links"
+	(IDS_BUTTONSFROM + 14), "Rechts"
+
 	(IDS_TOOLTIPS+IDC_ASPECT), "Im 200- oder 400-Zeilen-Modus auf 4:3 strecken, anstatt schwarze Balken hinzuzufügen."
 	(IDS_TOOLTIPS+IDC_KEY2JOY), "Ermöglicht die Verwendung von ZXCVASDF und den Pfeiltasten anstelle eines echten Controllers."
 	(IDS_TOOLTIPS+IDC_RELOAD), "Wenn möglich, laden Sie das vorherige ROM automatisch neu, wenn die Anwendung gestartet wird."
@@ -183,5 +214,7 @@ END
 #define SHADERS_REMOVE "Lösch"
 #define SHADERS_MOVEUP "Aufst."
 #define SHADERS_MOVEDOWN "Abwärts"
+
+#define BUTTONS_TITLE "Zuordnung"
 
 #include "dialogs.rc"

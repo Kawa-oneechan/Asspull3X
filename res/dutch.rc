@@ -93,6 +93,37 @@ STRINGTABLE
 	(IDS_REGIONS+5), "Registers"
 	(IDS_REGIONS+6), "VRAM"
 
+	//A3X buttons to map TO
+	(IDS_BUTTONS + 0), "Omhoog"
+	(IDS_BUTTONS + 1), "Rechts"
+	(IDS_BUTTONS + 2), "Omlaag"
+	(IDS_BUTTONS + 3), "Links"
+	(IDS_BUTTONS + 4), "A"
+	(IDS_BUTTONS + 5), "B"
+	(IDS_BUTTONS + 6), "X"
+	(IDS_BUTTONS + 7), "Y"
+	(IDS_BUTTONS + 8), "Linkerschouder"
+	(IDS_BUTTONS + 9), "Rechterschouder"
+	(IDS_BUTTONS + 10), "Start"
+	(IDS_BUTTONS + 11), "Select"
+
+	//XInput buttons to map FROM
+	(IDS_BUTTONSFROM + 0), "A"
+	(IDS_BUTTONSFROM + 1), "B"
+	(IDS_BUTTONSFROM + 2), "X"
+	(IDS_BUTTONSFROM + 3), "Y"
+	(IDS_BUTTONSFROM + 4), "Terug"
+	(IDS_BUTTONSFROM + 5), "Gids"
+	(IDS_BUTTONSFROM + 6), "Start"
+	(IDS_BUTTONSFROM + 7), "Linkerstick"
+	(IDS_BUTTONSFROM + 8), "Rechterstick"
+	(IDS_BUTTONSFROM + 9), "Linkerschouder"
+	(IDS_BUTTONSFROM + 10), "Rechterschouder"
+	(IDS_BUTTONSFROM + 11), "Omhoog"
+	(IDS_BUTTONSFROM + 12), "Omlaag"
+	(IDS_BUTTONSFROM + 13), "Links"
+	(IDS_BUTTONSFROM + 14), "Rechts"
+
 	(IDS_TOOLTIPS+IDC_ASPECT), "In 200 or 400 lijn-modus, rek uit naar 4:3 in plaats van zwarte balken te plaatsen."
 	(IDS_TOOLTIPS+IDC_KEY2JOY), "Gebruik ZXCVASDF en de pijltjestoetsen bij gebrek aan een controller."
 	(IDS_TOOLTIPS+IDC_RELOAD), "Herlaad automatisch de laatstgebruikte ROM bij het opstarten."
@@ -183,5 +214,7 @@ END
 #define SHADERS_REMOVE "Verwijder"
 #define SHADERS_MOVEUP "Omhoog"
 #define SHADERS_MOVEDOWN "Omlaag"
+
+#define BUTTONS_TITLE "Knoppenindeling"
 
 #include "dialogs.rc"

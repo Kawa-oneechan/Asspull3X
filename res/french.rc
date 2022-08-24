@@ -93,6 +93,37 @@ STRINGTABLE
 	(IDS_REGIONS+5), "Registres"
 	(IDS_REGIONS+6), "VRAM"
 
+	//A3X buttons to map TO
+	(IDS_BUTTONS + 0), "Up"
+	(IDS_BUTTONS + 1), "Right"
+	(IDS_BUTTONS + 2), "Down"
+	(IDS_BUTTONS + 3), "Left"
+	(IDS_BUTTONS + 4), "A"
+	(IDS_BUTTONS + 5), "B"
+	(IDS_BUTTONS + 6), "X"
+	(IDS_BUTTONS + 7), "Y"
+	(IDS_BUTTONS + 8), "Left shoulder"
+	(IDS_BUTTONS + 9), "Right shoulder"
+	(IDS_BUTTONS + 10), "Start"
+	(IDS_BUTTONS + 11), "Select"
+
+	//XInput buttons to map FROM
+	(IDS_BUTTONSFROM + 0), "A"
+	(IDS_BUTTONSFROM + 1), "B"
+	(IDS_BUTTONSFROM + 2), "X"
+	(IDS_BUTTONSFROM + 3), "Y"
+	(IDS_BUTTONSFROM + 4), "Back"
+	(IDS_BUTTONSFROM + 5), "Guide"
+	(IDS_BUTTONSFROM + 6), "Start"
+	(IDS_BUTTONSFROM + 7), "Left stick"
+	(IDS_BUTTONSFROM + 8), "Right stick"
+	(IDS_BUTTONSFROM + 9), "Left shoulder"
+	(IDS_BUTTONSFROM + 10), "Right shoulder"
+	(IDS_BUTTONSFROM + 11), "Up"
+	(IDS_BUTTONSFROM + 12), "Down"
+	(IDS_BUTTONSFROM + 13), "Left"
+	(IDS_BUTTONSFROM + 14), "Right"
+
 	(IDS_TOOLTIPS+IDC_ASPECT), "Dans le mode 200 ou 400 lignes, étirer en 4:3 à la place du letterboxing."
 	(IDS_TOOLTIPS+IDC_KEY2JOY), "Permet d'utiliser ZXCVASDF et les touches directionnelles au lieu d'une manette."
 	(IDS_TOOLTIPS+IDC_RELOAD), "Au démarrage de l'application, recharger automatiquement la ROM si possible."
@@ -185,5 +216,7 @@ END
 #define SHADERS_REMOVE "Supprimer"
 #define SHADERS_MOVEUP "Haut"
 #define SHADERS_MOVEDOWN "Bas"
+
+#define BUTTONS_TITLE "Modifier le mappage"
 
 #include "dialogs.rc"
