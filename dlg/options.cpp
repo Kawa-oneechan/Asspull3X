@@ -96,7 +96,7 @@ namespace UI
 					case IDCANCEL:
 					case IDC_REMAPBUTTONS:
 					case IDC_BIOSBROWSE:
-						return DrawDarkButton(hWnd, nmc);
+						return DrawButton(hWnd, nmc);
 					}
 				}
 				else if (((LPNMHDR)lParam)->code == NM_CLICK)

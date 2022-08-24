@@ -204,7 +204,7 @@ namespace UI
 					{
 					case IDOK:
 					case IDC_DDINSERT:
-					case IDC_DDEJECT: return DrawDarkButton(hWnd, nmc);
+					case IDC_DDEJECT: return DrawButton(hWnd, nmc);
 						break;
 					}
 				}

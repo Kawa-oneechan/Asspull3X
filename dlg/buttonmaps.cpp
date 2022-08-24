@@ -64,7 +64,7 @@ namespace UI
 					{
 					case IDOK:
 					case IDCANCEL:
-						return DrawDarkButton(hWnd, nmc);
+						return DrawButton(hWnd, nmc);
 						break;
 					}
 				}

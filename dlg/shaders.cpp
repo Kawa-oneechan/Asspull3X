@@ -74,7 +74,7 @@ namespace UI
 					case IDC_REMOVESHADER:
 					case IDC_MOVESHADERUP:
 					case IDC_MOVESHADERDOWN:
-						return DrawDarkButton(hWnd, nmc);
+						return DrawButton(hWnd, nmc);
 						break;
 					}
 				}

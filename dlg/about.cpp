@@ -110,7 +110,7 @@ namespace UI
 					int idFrom = nmc->hdr.idFrom;
 					switch (idFrom)
 					{
-					case IDOK: return Presentation::DrawDarkButton(hWnd, nmc);
+					case IDOK: return Presentation::DrawButton(hWnd, nmc);
 						break;
 					}
 				}

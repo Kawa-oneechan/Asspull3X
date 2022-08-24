@@ -58,7 +58,7 @@ namespace UI
 		extern void DrawWindowBk(HWND hwndDlg, bool stripe);
 		extern void DrawWindowBk(HWND hwndDlg, bool stripe, PAINTSTRUCT* ps, HDC hdc);
 		extern void DrawCheckbox(HWND hwndDlg, LPNMCUSTOMDRAW dis);
-		extern bool DrawDarkButton(HWND hwndDlg, LPNMCUSTOMDRAW dis);
+		extern bool DrawButton(HWND hwndDlg, LPNMCUSTOMDRAW dis);
 		extern bool DrawComboBox(LPDRAWITEMSTRUCT dis);
 		extern void GetIconPos(HWND hwndDlg, int ctlID, RECT* iconRect, int leftOffset, int topOffset);
 		namespace Windows10

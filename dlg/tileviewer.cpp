@@ -278,7 +278,7 @@ namespace UI
 						return true;
 					}
 					else if (nmc->hdr.idFrom == IDC_REFRESH)
-						return DrawDarkButton(hWnd, nmc);
+						return DrawButton(hWnd, nmc);
 				}
 			}
 			case WM_CTLCOLORSTATIC:

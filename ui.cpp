@@ -124,7 +124,7 @@ namespace UI
 			}
 		}
 
-		bool DrawDarkButton(HWND hwndDlg, LPNMCUSTOMDRAW nmc)
+		bool DrawButton(HWND hwndDlg, LPNMCUSTOMDRAW nmc)
 		{
 			if (theme == 0)
 				return false; //don't draw jack
