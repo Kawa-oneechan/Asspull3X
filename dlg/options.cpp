@@ -32,10 +32,10 @@ namespace UI
 				CheckDlgButton(hWnd, IDC_ASPECT, Video::stretch200);
 				CheckDlgButton(hWnd, IDC_SHOWFPS, fpsVisible);
 
-				for (int i = 0; i < 2; i++)
+				for (int i = 0; i < 3; i++)
 					SendDlgItemMessage(hWnd, IDC_THEME, CB_ADDSTRING, 0, (LPARAM)GetString(IDS_THEMES + i));
 				if (Presentation::Windows10::IsWin10())
-					SendDlgItemMessage(hWnd, IDC_THEME, CB_ADDSTRING, 0, (LPARAM)GetString(IDS_THEMES + 2));
+					SendDlgItemMessage(hWnd, IDC_THEME, CB_ADDSTRING, 0, (LPARAM)GetString(IDS_THEMES + 3));
 				SendDlgItemMessage(hWnd, IDC_THEME, CB_SETCURSEL, ini.GetLongValue(L"misc", L"theme", 0), 0);
 
 				int midiDevs = midiOutGetNumDevs();
