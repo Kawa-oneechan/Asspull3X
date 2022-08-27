@@ -74,8 +74,7 @@ STRINGTABLE
 
 	(IDS_THEMES+0), "Licht"
 	(IDS_THEMES+1), "Donker"
-	(IDS_THEMES+2), "Terugblik"
-	(IDS_THEMES+3), "Volgens systeem"
+	(IDS_THEMES+2), "Volgens systeem"
 
 	(IDS_DEVICES1+0), "Niets"
 	(IDS_DEVICES1+1), "Diskettestation"

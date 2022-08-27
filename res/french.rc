@@ -74,8 +74,7 @@ STRINGTABLE
 
 	(IDS_THEMES+0), "Claire"
 	(IDS_THEMES+1), "Sombre"
-	(IDS_THEMES+2), "Retour"
-	(IDS_THEMES+3), "Système"
+	(IDS_THEMES+2), "Système"
 
 	(IDS_DEVICES1+0), "Aucun"
 	(IDS_DEVICES1+1), "Lecteur disquette"

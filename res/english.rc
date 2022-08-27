@@ -74,8 +74,7 @@ STRINGTABLE
 
 	(IDS_THEMES+0), "Light"
 	(IDS_THEMES+1), "Dark"
-	(IDS_THEMES+2), "Throwback"
-	(IDS_THEMES+3), "Match system"
+	(IDS_THEMES+2), "Match system"
 
 	(IDS_DEVICES1+0), "Nothing"
 	(IDS_DEVICES1+1), "Diskette drive"

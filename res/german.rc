@@ -74,8 +74,7 @@ STRINGTABLE
 
 	(IDS_THEMES+0), "Hell"
 	(IDS_THEMES+1), "Dunkel"
-	(IDS_THEMES+2), "Rückblick"
-	(IDS_THEMES+3), "Wie das System"
+	(IDS_THEMES+2), "Wie das System"
 
 	(IDS_DEVICES1+0), "Nichts"
 	(IDS_DEVICES1+1), "Diskettenlaufwerk"

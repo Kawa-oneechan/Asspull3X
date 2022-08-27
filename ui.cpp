@@ -62,14 +62,6 @@ namespace UI
 				auto h = rect.bottom;
 				GetClientRect(hwndDlg, &rect);
 				rect.bottom -= h;
-				if (theme == 2) //throwback, draw one of those etched lines instead of a stripe
-				{
-					FillRect(hdc, &ps->rcPaint, hbrBack);
-					rect.left += 8;
-					rect.right -= 8;
-					DrawEdge(hdc, &rect, EDGE_ETCHED, BF_BOTTOM);
-					return;
-				}
 				FillRect(hdc, &ps->rcPaint, hbrStripe);
 				FillRect(hdc, &rect, hbrBack);
 			}
@@ -144,37 +136,6 @@ namespace UI
 				SetBkColor(nmc->hdc, rgbBack);
 				SetTextColor(nmc->hdc, nmc->uItemState & CDIS_DISABLED ? rgbListBk : rgbText);
 
-				if (theme == 2) //Throwback
-				{
-					SetTextColor(nmc->hdc, nmc->uItemState & CDIS_DISABLED ? RGB(128, 128, 128) : RGB(0, 0, 0));
-
-					HBRUSH border = CreateSolidBrush(RGB(0, 0, 0));
-					HBRUSH back = CreateSolidBrush(RGB(192, 192, 192));
-					InflateRect(&nmc->rc, -1, 0);
-					FillRect(nmc->hdc, &nmc->rc, border);
-					InflateRect(&nmc->rc, 1, -1);
-					FillRect(nmc->hdc, &nmc->rc, border);
-					InflateRect(&nmc->rc, -1, 0);
-					FillRect(nmc->hdc, &nmc->rc, back);
-					DrawEdge(nmc->hdc, &nmc->rc, nmc->uItemState & CDIS_SELECTED ? EDGE_SUNKEN : EDGE_RAISED, BF_RECT);
-
-					if (nmc->uItemState & CDIS_FOCUS)
-					{
-						InflateRect(&nmc->rc, -3, -3);
-						DrawFocusRect(nmc->hdc, &nmc->rc);
-					}
-
-					DeleteObject(border);
-					DeleteObject(back);
-
-					SetBkColor(nmc->hdc, RGB(192, 192, 192));
-					WCHAR text[256];
-					GetDlgItemText(hwndDlg, idFrom, text, 255);
-					DrawText(nmc->hdc, text, -1, &nmc->rc, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
-
-					SetWindowLongPtr(hwndDlg, DWLP_MSGRESULT, (LONG_PTR)CDRF_SKIPDEFAULT);
-					return true;
-				}
 				HBRUSH border = CreateSolidBrush(rgbText);
 
 				FillRect(nmc->hdc, &nmc->rc, border);
@@ -280,7 +241,7 @@ namespace UI
 		{
 			theme = ini.GetLongValue(L"misc", L"theme", 0);
 
-			if (theme == 3) //match
+			if (theme == 2) //match
 				theme = Windows10::MatchTheme();
 
 			switch (theme)
@@ -303,17 +264,6 @@ namespace UI
 				rgbList = RGB(255, 255, 255);
 				rgbHeader = Windows10::GetAccent(RGB(0x8E, 0xCA, 0xF8));
 				rgbListBk = RGB(76, 74, 72);
-				break;
-			}
-			case 2: //throwback
-			{
-				rgbBack = RGB(192, 192, 192);
-				rgbStripe = RGB(192, 192, 192);
-				rgbText = RGB(0, 0, 0);
-				rgbList = RGB(0, 0, 0);
-				rgbHeader = RGB(0, 0, 0);
-				rgbListBk = RGB(255, 255, 255);
-				break;
 			}
 			//this space for rent
 			}
@@ -331,7 +281,6 @@ namespace UI
 			if (MemoryViewer::hWnd != NULL) RedrawWindow(MemoryViewer::hWnd, NULL, NULL, RDW_INVALIDATE);
 			//Being called right before the options window is closed, we don't need to bother with it.
 			//if (Options::hWnd != NULL) RedrawWindow(Options::hWnd, NULL, NULL, RDW_INVALIDATE);
-			if (ButtonMaps::hWnd != NULL) RedrawWindow(ButtonMaps::hWnd, NULL, NULL, RDW_INVALIDATE);
 		}
 	}
 
