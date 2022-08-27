@@ -111,6 +111,13 @@ namespace UI
 
 				DrawThemeBackground(hTheme, nmc->hdc, BP_CHECKBOX, stateID, &r, NULL);
 
+				if (theme == 1) //dark
+				{
+					InflateRect(&r, -1, -1);
+					InvertRect(nmc->hdc, &r);
+					InflateRect(&r, 1, 1);
+				}
+
 				nmc->rc.left += 3 + s.cx;
 
 				WCHAR text[256];
@@ -281,6 +288,7 @@ namespace UI
 			if (MemoryViewer::hWnd != NULL) RedrawWindow(MemoryViewer::hWnd, NULL, NULL, RDW_INVALIDATE);
 			//Being called right before the options window is closed, we don't need to bother with it.
 			//if (Options::hWnd != NULL) RedrawWindow(Options::hWnd, NULL, NULL, RDW_INVALIDATE);
+			if (ButtonMaps::hWnd != NULL) RedrawWindow(ButtonMaps::hWnd, NULL, NULL, RDW_INVALIDATE);
 		}
 	}
 
