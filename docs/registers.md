@@ -3,7 +3,7 @@
 ### 00000	REG_INTRMODE
 
     X... .VH.
-    |     |____ HBlank active
+    |     ||___ HBlank active
     |     |____ VBlank active
     |__________ Disable interrupts
 
