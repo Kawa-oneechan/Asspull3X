@@ -105,8 +105,12 @@ An object with the double width and height bits set would be functionally the sa
 9. Map 4
 10. Objects with priority 0
 
-#### Other modes
+#### Bitmap modes
+1. Objects with priority 1
+2. Any non-zero pixel value
+3. Objects with priority 0
 
-1. Stuff
-2. Objects with any priority
+#### Text mode
 
+1. The text screen
+2. Objects

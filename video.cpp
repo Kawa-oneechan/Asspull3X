@@ -358,6 +358,10 @@ namespace Video
 			}
 			sourceLine = line - 40;
 		}
+		for (auto col = 0; col < 640; col++)
+			RenderPixel(line, col, 0, 0);
+		RenderObjects(line, 1);
+
 		auto effective = BMP_ADDR + (Registers::ScreenMode.HalfHeight ? sourceLine / 2 : sourceLine);
 		auto p = 0;
 		for (auto col = 0; col < 640; col += (Registers::ScreenMode.HalfWidth ? 4 : 2))
@@ -368,18 +372,24 @@ namespace Video
 			auto r = (twoPix >> 4) & 0x0F;
 			if (!Registers::ScreenMode.HalfWidth)
 			{
-				RenderPixel(line, col + 0, l, 0);
-				RenderPixel(line, col + 1, r, 0);
+				if (l) RenderPixel(line, col + 0, l, 0);
+				if (r) RenderPixel(line, col + 1, r, 0);
 			}
 			else
 			{
-				RenderPixel(line, col + 0, l, 0);
-				RenderPixel(line, col + 1, l, 0);
-				RenderPixel(line, col + 2, r, 0);
-				RenderPixel(line, col + 3, r, 0);
+				if (l)
+				{
+					RenderPixel(line, col + 0, l, 0);
+					RenderPixel(line, col + 1, l, 0);
+				}
+				if (r)
+				{
+					RenderPixel(line, col + 2, r, 0);
+					RenderPixel(line, col + 3, r, 0);
+				}
 			}
 		}
-		RenderObjects(line, -1);
+		RenderObjects(line, 0);
 	}
 
 	void RenderBitmapMode2(int line)
@@ -396,23 +406,35 @@ namespace Video
 			}
 			sourceLine = line - 40;
 		}
+		for (auto col = 0; col < 640; col++)
+			RenderPixel(line, col, 0, 0);
+		RenderObjects(line, 1);
+
 		auto effective = BMP_ADDR + (Registers::ScreenMode.HalfHeight ? sourceLine / 2 : sourceLine);
 		auto p = 0;
 		for (auto col = 0; col < 640; col++)
 		{
 			auto pixel = ramVideo[effective * imgWidth + p];
 			p++;
-			if (!Registers::ScreenMode.HalfWidth)
+			if (pixel)
 			{
-				RenderPixel(line, col, pixel, 0);
+				if (!Registers::ScreenMode.HalfWidth)
+				{
+					RenderPixel(line, col, pixel, 0);
+				}
+				else
+				{
+					RenderPixel(line, col++, pixel, 0);
+					RenderPixel(line, col, pixel, 0);
+				}
 			}
 			else
 			{
-				RenderPixel(line, col++, pixel, 0);
-				RenderPixel(line, col, pixel, 0);
+				if (Registers::ScreenMode.HalfWidth)
+					col++;
 			}
 		}
-		RenderObjects(line, -1);
+		RenderObjects(line, 0);
 	}
 
 	void RenderTileMode(int line)
