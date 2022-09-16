@@ -214,7 +214,7 @@ void MainLoop()
 
 	Log(UI::GetString(IDS_RESETTING));
 	m68k_init();
-	m68k_set_cpu_type(M68K_CPU_TYPE_68020);
+	m68k_set_cpu_type(M68K_CPU_TYPE_68030);
 	m68k_set_illg_instr_callback(IllegalMangrasp);
 	m68k_set_int_ack_callback(InterruptAck);
 	Sound::Reset();
@@ -226,7 +226,7 @@ void MainLoop()
 
 	SDL_Event ev;
 
-	const auto cpuClock = 16'000'000;
+	const auto cpuClock = 32'000'000;
 
 	// VGA standard 640x480@60Hz
 	const auto pixelClock = 25'175'000;
