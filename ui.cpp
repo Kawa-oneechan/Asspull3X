@@ -7,6 +7,7 @@ processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #include <commdlg.h>
 #include <Uxtheme.h>
 #include <vsstyle.h>
+#include <time.h>
 
 #include <vector>
 extern int decodePNG(std::vector<unsigned char>& out_image, unsigned long& image_width, unsigned long& image_height, const unsigned char* in_png, size_t in_size, bool convert_to_rgba32 = true);
@@ -238,7 +239,13 @@ namespace UI
 					nResult = not10;
 				RegCloseKey(key);
 				nResult &= 0xFFFFFF;
-				if (nResult == 0x000000) //you chose black?
+				
+				int r = (unsigned char)nResult;
+				int g = (unsigned char)(nResult >> 8);
+				int b = (unsigned char)(nResult >> 16);
+				//the one helpful thing from MS Docs on darkmode :3
+				int brightness = (5 * g) + (2 * r) + b;
+				if (brightness < (8 * 128))
 					nResult = not10; //fall back
 				return nResult;
 			}
@@ -286,8 +293,7 @@ namespace UI
 			if (About::hWnd != NULL) RedrawWindow(About::hWnd, NULL, NULL, RDW_INVALIDATE);
 			if (DeviceManager::hWnd != NULL) RedrawWindow(DeviceManager::hWnd, NULL, NULL, RDW_INVALIDATE);
 			if (MemoryViewer::hWnd != NULL) RedrawWindow(MemoryViewer::hWnd, NULL, NULL, RDW_INVALIDATE);
-			//Being called right before the options window is closed, we don't need to bother with it.
-			//if (Options::hWnd != NULL) RedrawWindow(Options::hWnd, NULL, NULL, RDW_INVALIDATE);
+			if (Options::hWnd != NULL) RedrawWindow(Options::hWnd, NULL, NULL, RDW_INVALIDATE);
 			if (ButtonMaps::hWnd != NULL) RedrawWindow(ButtonMaps::hWnd, NULL, NULL, RDW_INVALIDATE);
 		}
 	}
@@ -417,6 +423,24 @@ namespace UI
 					uiCommand = 0;
 				}
 				return 0;
+			}
+		}
+		case WM_SETTINGCHANGE:
+		{
+			if (strcmp((const char*)lParam, "ImmersiveColorSet"))
+			{
+				if (ini.GetLongValue(L"misc", L"theme", 0) == 2)
+				{
+					//Lightly throttle the five or six identical WM.
+					static __time64_t lastColorChange = 0;
+					__time64_t now;
+					_time64(&now);
+					if (now >= lastColorChange + 1)
+					{
+						lastColorChange = now;
+						Presentation::SetThemeColors();
+					}
+				}
 			}
 		}
 		default:
