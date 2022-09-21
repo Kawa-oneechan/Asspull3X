@@ -1,6 +1,5 @@
 #include "asspull.h"
 #include "resource.h"
-#include "support/miniz.h"
 
 extern "C" {
 #include "musashi/m68k.h"
@@ -20,143 +19,6 @@ int firstDiskDrive = -1;
 WCHAR currentROM[FILENAME_MAX], currentSRAM[FILENAME_MAX];
 
 SDL_GameController *controller[2] = { NULL , NULL };
-
-void LoadROM(const WCHAR* path)
-{
-	unsigned int fileSize = 0;
-
-	WCHAR lpath[512];
-	for (int i = 0; i < 512; i++)
-	{
-		lpath[i] = towlower(path[i]);
-		if (path[i] == 0)
-			break;
-	}
-
-	auto ext = wcsrchr(lpath, L'.') + 1;
-	if (!wcscmp(ext, L"ap3"))
-	{
-		Log(logNormal, UI::GetString(IDS_LOADINGROM), path); //"Loading ROM, %s ..."
-		memset(romCartridge, 0, CART_SIZE);
-		auto err = Slurp(romCartridge, path, &romSize);
-		if (err)
-			UI::ReportLoadingFail(IDS_ROMLOADERROR, err, -1, path);
-		else
-			wcscpy(currentROM, path);
-	}
-	else if (!wcscmp(ext, L"a3z") || !wcscmp(ext, L"zip"))
-	{
-		mz_zip_archive zip;
-		memset(&zip, 0, sizeof(zip));
-		char zipPath[512] = { 0 };
-		wcstombs(zipPath, path, 512);
-		mz_zip_reader_init_file(&zip, zipPath, 0);
-
-		bool foundSomething = false;
-		for (int i = 0; i < (int)mz_zip_reader_get_num_files(&zip); i++)
-		{
-			mz_zip_archive_file_stat fs;
-			if (!mz_zip_reader_file_stat(&zip, i, &fs))
-			{
-				mz_zip_reader_end(&zip);
-				return;
-			}
-
-			if (!strchr(fs.m_filename, '.'))
-				continue;
-
-			auto ext2 = strrchr(fs.m_filename, '.') + 1;
-			if (!_stricmp(ext2, "ap3"))
-			{
-				foundSomething = true;
-				romSize = (unsigned int)fs.m_uncomp_size;
-				memset(romCartridge, 0, CART_SIZE);
-				Log(logNormal, UI::GetString(IDS_LOADINGROM), lpath); //"Loading ROM, %s ..."
-				mz_zip_reader_extract_to_mem(&zip, i, romCartridge, romSize, 0);
-				break;
-			}
-		}
-		mz_zip_reader_end(&zip);
-		if (!foundSomething)
-		{
-			UI::SetStatus(IDS_NOTHINGINZIP); //"No single AP3 file found in archive."
-			return;
-		}
-	}
-
-#if _CONSOLE
-	fileSize = romSize;
-	romSize = RoundUp(romSize);
-	if (romSize != fileSize)
-		Log(logWarning, UI::GetString(IDS_BADSIZE), fileSize, fileSize, romSize, romSize); //"File size is not a power of two: is %d (0x%08X), should be %d (0x%08X)."
-
-	unsigned int c1 = 0;
-	unsigned int c2 = (romCartridge[0x20] << 24) | (romCartridge[0x21] << 16) | (romCartridge[0x22] << 8) | (romCartridge[0x23] << 0);
-	for (unsigned int i = 0; i < romSize; i++)
-	{
-		if (i == 0x20)
-			i += 4; //skip the checksum itself
-		c1 += romCartridge[i];
-	}
-	if (c1 != c2)
-		Log(logWarning, UI::GetString(IDS_BADCHECKSUM), c2, c1); //"Checksum mismatch: is 0x%08X, should be 0x%08X."
-#endif
-
-	ini.SetValue(L"media", L"rom", path);
-	UI::SaveINI();
-
-	auto sramSize = romCartridge[0x28] * 512;
-	if (sramSize)
-	{
-		wcscpy(currentSRAM, path);
-		ext = wcsrchr(currentSRAM, L'.') + 1;
-		*ext = 0;
-		wcscat(currentSRAM, L"srm");
-		Log(logNormal, UI::GetString(IDS_LOADINGSRAM), currentSRAM); //"Loading SRAM, %s ..."
-		Slurp(ramCartridge, currentSRAM, nullptr);
-	}
-
-	char romName[32] = { 0 };
-	memcpy(romName, romCartridge + 8, 24);
-	Discord::SetPresence(romName);
-	WCHAR wideName[256] = { 0 };
-	if (romCartridge[0x27] == 'j')
-		MultiByteToWideChar(932, 0, romName, -1, wideName, 256);
-	else if (romCartridge[0x27] == 'r')
-		MultiByteToWideChar(1251, 0, romName, -1, wideName, 256);
-	else
-		mbstowcs_s(NULL, wideName, romName, 256);
-	UI::SetTitle(wideName);
-}
-
-void FindFirstDrive()
-{
-	int old = firstDiskDrive;
-	firstDiskDrive = -1;
-	bool firstIsHDD = false;
-	for (int i = 0; i < MAXDEVS; i++)
-	{
-		if (devices[i] != nullptr && devices[i]->GetID() == DEVID_DISKDRIVE)
-		{
-			if (((DiskDrive*)devices[i])->GetType() == ddHardDisk && firstDiskDrive == -1)
-			{
-				firstIsHDD = true;
-				firstDiskDrive = i;
-				continue;
-			}
-			firstDiskDrive = i;
-			//if (old != i) Log(L"First disk drive is now #%d.", i);
-			return;
-		}
-	}
-}
-
-void SaveCartRAM()
-{
-	auto sramSize = romCartridge[0x28] * 512;
-	if (sramSize)
-		Dump(currentSRAM, ramCartridge, sramSize);
-}
 
 int IllegalMangrasp(int i)
 {
@@ -488,8 +350,8 @@ void MainLoop()
 			}
 			else if (UI::uiCommand == cmdDump)
 			{
-				Dump(L"wram.bin", ramInternal, WRAM_SIZE);
-				Dump(L"vram.bin", ramVideo, VRAM_SIZE);
+				SaveFile(L"wram.bin", ramInternal, WRAM_SIZE);
+				SaveFile(L"vram.bin", ramVideo, VRAM_SIZE);
 				UI::SetStatus(IDS_DUMPEDRAM); //"Dumping core..."
 			}
 			else if (UI::uiCommand == cmdScreenshot)

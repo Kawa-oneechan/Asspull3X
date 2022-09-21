@@ -23,8 +23,11 @@ enum logCategories
 extern int Lerp(int a, int b, float f);
 extern int GreatestCommonDivisor(int a, int b);
 extern unsigned int RoundUp(unsigned int v);
-extern int Slurp(unsigned char* dest, const WCHAR* filePath, unsigned int* size);
-extern int Dump(const WCHAR* filePath, unsigned char* source, unsigned long size);
+extern int LoadFile(unsigned char* dest, const WCHAR* filePath, unsigned int* size);
+extern int SaveFile(const WCHAR* filePath, unsigned char* source, unsigned long size);
+extern void LoadROM(const WCHAR* path);
+extern void FindFirstDrive();
+extern void SaveCartRAM();
 extern void Log(WCHAR* message, ...);
 extern void Log(logCategories cat, WCHAR* message, ...);
 extern SDL_GameControllerButton SDL_GameControllerGetButtonFromStringW(const WCHAR*);

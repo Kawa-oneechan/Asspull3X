@@ -234,7 +234,7 @@ void Preload()
 		}
 	}
 	Log(logNormal, UI::GetString(IDS_LOADINGBIOS), thing);
-	Slurp(romBIOS, thing, &biosSize);
+	LoadFile(romBIOS, thing, &biosSize);
 	biosSize = RoundUp(biosSize);
 	thing = ini.GetValue(L"media", L"rom", L"");
 	if (UI::reloadROM && wcslen(thing) && paramLoad[0] == 0)
