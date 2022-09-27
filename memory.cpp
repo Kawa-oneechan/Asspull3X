@@ -326,7 +326,8 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 			addr &= 0x7FFFF;
 			if (addr >= VRAM_SIZE)
 				break;
-			ramVideo[addr] = (unsigned char)value; break;
+			ramVideo[addr] = (unsigned char)value;
+			break;
 	}
 }
 
