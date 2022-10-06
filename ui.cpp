@@ -24,6 +24,7 @@ namespace UI
 	HMENU menuBar;
 	int statusBarHeight = 0;
 	bool hideUI = false;
+	bool startFullscreen = false;
 
 	int uiCommand;
 	WCHAR uiString[512];
@@ -624,6 +625,9 @@ namespace UI
 			Tooltips::Initialize();
 
 			SetTitle(NULL);
+
+			if (startFullscreen)
+				HideUI(true);
 		}
 		return;
 	}

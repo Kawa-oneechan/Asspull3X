@@ -21,6 +21,7 @@ namespace UI
 	extern WCHAR uiString[512];
 	extern bool fpsVisible, fpsCap, reloadROM, reloadIMG;
 	extern bool hideUI;
+	extern bool startFullscreen;
 
 	extern bool wasPaused;
 

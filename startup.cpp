@@ -131,6 +131,8 @@ void GetSettings()
 				UI::reloadIMG = false;
 			else if (!wcscmp(argv[i], L"--nodiscord"))
 				Discord::enabled = false;
+			else if (!wcscmp(argv[i], L"--fullscreen"))
+				UI::startFullscreen = true;
 			else if (!wcscmp(argv[i], L"--associate"))
 			{
 				AssociateFiletypes();
