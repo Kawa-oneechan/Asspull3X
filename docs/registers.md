@@ -32,7 +32,7 @@ In modes 1 and 2, the bitmap modes:
     |||    |___ Mode (1 - 16 color, 2 - 256 color)
     |||________ Screen height (0 - 480 pixels, 1 - 240 pixels)
     ||_________ Screen width (0 - 640 pixels, 1 - 320 pixels)
-    |__________ Aspect mode (0 - 400 pixels, 1 - 200 pixels)
+    |__________ Aspect mode (0 - 480/240 pixels, 1 - 400/200 pixels)
 
 Mode 3, tile mode, has no further settings. It is *always* 320 by 240.
 
