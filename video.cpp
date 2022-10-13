@@ -95,6 +95,17 @@ namespace Video
 		} \
 	}
 
+#define LETTERBOX \
+	{ \
+		if (line < 40 || line > 439) \
+		{ \
+			for (auto col = 0; col < 640 * 4; col++) \
+				pixels[(line * 640 * 4) + col] = (line == 39 || line == 440) ? 0x50 : 0; \
+			return; \
+		} \
+		sourceLine = line - 40; \
+	}
+
 	static inline void RenderPixel(int row, int column, int color, int win)
 	{
 		auto snes = (ramVideo[PAL_ADDR + ((color) * 2) + 0] << 8) + ramVideo[PAL_ADDR + ((color) * 2) + 1];
@@ -282,15 +293,19 @@ namespace Video
 
 	void RenderTextMode(int line)
 	{
+		auto sourceLine = line;
+		if (Registers::ScreenMode.Aspect && !stretch200)
+			LETTERBOX;
+
 		auto width = Registers::ScreenMode.HalfWidth ? 40 : 80;
 		auto height = Registers::ScreenMode.HalfHeight ? 50 : 100;
 		auto celHeight = Registers::ScreenMode.HalfHeight ? 16 : 8;
-		auto bgY = line / celHeight;
+		auto bgY = sourceLine / celHeight;
 		auto tileIndex = TEXT_ADDR + (((bgY % height) * width) * 2);
-		auto font = FONT_ADDR + (Registers::ScreenMode.Aspect ? 0x800 : 0);
+		auto font = FONT_ADDR + (Registers::ScreenMode.Bold ? 0x800 : 0);
 		if (Registers::ScreenMode.HalfHeight)
-			font = FONT_ADDR + 0x1000 + (Registers::ScreenMode.Aspect ? 0x1000 : 0);
-		auto tileY = line % (Registers::ScreenMode.HalfHeight ? 16 : 8); //8;
+			font = FONT_ADDR + 0x1000 + (Registers::ScreenMode.Bold ? 0x1000 : 0);
+		auto tileY = sourceLine % (Registers::ScreenMode.HalfHeight ? 16 : 8); //8;
 
 		//if (gfxTextHigh)
 		//	tileY = (line2 / 2) % 8;
@@ -330,7 +345,7 @@ namespace Video
 			int cp = Registers::Caret & 0x3FFF;
 			int cr = cp / width;
 			int ch = Registers::Caret & 0x4000 ? -1 : celHeight - 3;
-			if (bgY == cr && line % celHeight > ch)
+			if (bgY == cr && sourceLine % celHeight > ch)
 			{
 				int cc = cp % width;
 				int ca = ramVideo[TEXT_ADDR + (cp * 2) + 1];
@@ -349,15 +364,8 @@ namespace Video
 		auto imgWidth = Registers::ScreenMode.HalfWidth ? 160 : 320; //image is 160 or 320 bytes wide
 		auto sourceLine = line; // gfxTextBold ? (int)(line * 0.835) : line;
 		if (Registers::ScreenMode.Aspect && !stretch200)
-		{
-			if (line < 40 || line > 439)
-			{
-				for (auto col = 0; col < 640 * 4; col++)
-					pixels[(line * 640 * 4) + col] = 0;
-				return;
-			}
-			sourceLine = line - 40;
-		}
+			LETTERBOX;
+
 		for (auto col = 0; col < 640; col++)
 			RenderPixel(line, col, 0, 0);
 		RenderObjects(line, 1);
@@ -397,15 +405,8 @@ namespace Video
 		auto imgWidth = Registers::ScreenMode.HalfWidth ? 320 : 640;
 		auto sourceLine = line; // gfxTextBold ? (int)(line * 0.835) : line;
 		if (Registers::ScreenMode.Aspect && !stretch200)
-		{
-			if (line < 40 || line > 439)
-			{
-				for (auto col = 0; col < 640 * 4; col++)
-					pixels[(line * 640 * 4) + col] = 0;
-				return;
-			}
-			sourceLine = line - 40;
-		}
+			LETTERBOX;
+
 		for (auto col = 0; col < 640; col++)
 			RenderPixel(line, col, 0, 0);
 		RenderObjects(line, 1);

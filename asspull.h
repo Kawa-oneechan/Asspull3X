@@ -68,7 +68,8 @@ namespace Registers
 			struct
 			{
 				unsigned char Mode : 2;
-				unsigned char : 2;
+				unsigned char : 1;
+				unsigned char Bold : 1;
 				unsigned char Blink : 1;
 				unsigned char HalfHeight : 1;
 				unsigned char HalfWidth : 1;

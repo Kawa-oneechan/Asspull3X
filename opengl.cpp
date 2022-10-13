@@ -218,6 +218,10 @@ namespace Video
 		SDL_Texture* source = sdlTexture;
 		SDL_Texture* target = sdlShader;
 
+		bool aspect = Registers::ScreenMode.Aspect;
+		if (Registers::ScreenMode.Mode > 2)
+			aspect = false;
+
 		glUseProgram(0);
 
 		for (int i = 0; i < numShaders; i++)
@@ -270,7 +274,7 @@ namespace Video
 					offsetY += UI::statusBarHeight;
 
 				float imgH = 1.0f;
-				if (numShaders == 1 && (stretch200 && (Registers::ScreenMode.Mode == 1 || Registers::ScreenMode.Mode == 2) && Registers::ScreenMode.Aspect))
+				if (numShaders == 1 && (stretch200 && Registers::ScreenMode.Mode < 3 && aspect))
 					imgH = 0.830f;
 
 				glViewport(offsetX, offsetY, scrWidth, scrHeight);
@@ -288,7 +292,7 @@ namespace Video
 			else
 			{
 				float imgH = 1.0f;
-				if (i == 0 && stretch200 && (Registers::ScreenMode.Mode == 1 || Registers::ScreenMode.Mode == 2) && Registers::ScreenMode.Aspect)
+				if (i == 0 && stretch200 && Registers::ScreenMode.Mode < 3 && aspect)
 					imgH = 0.830f;
 
 				glViewport(0, 0, 640, 480);
