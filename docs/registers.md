@@ -20,11 +20,12 @@ The exact meaning of the higher bits varies according to the screen mode.
 
 In mode 0, text mode:
 
-    BWHb ..00
+    AWHb B.00
+    |||| |_____ Font variant (0 - thin, 1 - bold)
     ||||_______ Enable blinking
     |||________ Font height (0 - 8px, 1 - 16px) and line count (0 - 60 lines, 1 - 30)
     ||_________ Font width (0 - 8px, 1 - stretch to 16px) and column count (0 - 80 cols, 1 - 40 cols)
-    |__________ Font variant (0 - thin, 1 - bold)
+    |__________ Aspect mode (0 - 60/30 lines, 1 - 50/25 lines)
 
 In modes 1 and 2, the bitmap modes:
 
