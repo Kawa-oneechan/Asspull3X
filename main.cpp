@@ -364,32 +364,26 @@ void MainLoop()
 
 		if (pauseState != 2)
 		{
+			executeForPixels(pixsPerRow);
+
 			if (line < lines)
 			{
-				executeForPixels(pixsPerRow);
-
 				HandleHdma(line);
 				Video::RenderLine(line);
-				for (int i = 0; i < MAXDEVS; i++)
-					if (devices[i] != NULL) devices[i]->HBlank();
-
-				if ((interrupts & 0x80) == 0) //if interrupts are enabled
-				{
-					m68k_set_virq(M68K_IRQ_4, 1);
-				}
-
-				interrupts |= 2; //set HBlank signal
-
-				executeForPixels(hBlankPixs);
-
-				interrupts &= ~2; //clear HBlank signal
-			}
-			else
-			{
-				executeForPixels(trueWidth);
 			}
 
-			if (line + 1 == lines)
+			for (int i = 0; i < MAXDEVS; i++)
+				if (devices[i] != NULL) devices[i]->HBlank();
+
+			if ((interrupts & 0x80) == 0) //if interrupts are enabled
+				m68k_set_virq(M68K_IRQ_4, 1);
+			interrupts |= 2; //set HBlank signal
+			executeForPixels(hBlankPixs);
+			interrupts &= ~2; //clear HBlank signal
+
+			line++;
+
+			if (line == lines)
 			{
 				if (pauseState == pauseEntering) //pausing now!
 				{
@@ -426,12 +420,16 @@ void MainLoop()
 				if (pauseState != 2)
 				{
 					if ((interrupts & 0x80) == 0) //if interrupts are enabled
-					{
 						m68k_set_virq(M68K_IRQ_6, 1);
-					}
 
 					interrupts |= 4; //set VBlank signal
 				}
+			}
+			else if (line == trueLines)
+			{
+				interrupts &= ~4; //clear VBlank signal
+				ticks++;
+				line = 0;
 			}
 		}
 		else if (pauseState == 2)
@@ -439,13 +437,6 @@ void MainLoop()
 			memcpy(Video::pixels, pauseScreen, SCREENBUFFERSIZE);
 			UI::LetItSnow();
 			Video::VBlank();
-		}
-		line++;
-		if (line == trueLines)
-		{
-			interrupts &= ~4; //clear VBlank signal
-			ticks++;
-			line = 0;
 		}
 	}
 
