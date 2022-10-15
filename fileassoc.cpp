@@ -34,13 +34,14 @@ cleanup:
 
 void AssociateFiletypes()
 {
+	WCHAR appPath[2048];
+
 	if (!IsAdmin())
 	{
-		WCHAR myself[2048];
-		GetModuleFileName(NULL, myself, 2048);
+		GetModuleFileName(NULL, appPath, 2048);
 		SHELLEXECUTEINFO sei = { sizeof(sei) };
 		sei.lpVerb = L"runas";
-		sei.lpFile = myself;
+		sei.lpFile = appPath;
 		sei.lpParameters = L"--associate";
 		sei.hwnd = NULL;
 		sei.nShow = SW_NORMAL;
@@ -73,7 +74,6 @@ void AssociateFiletypes()
 	else
 		return;
 
-	WCHAR appPath[2048];
 	GetModuleFileName(NULL, appPath, 2048);
 	WCHAR commandPath[2048];
 	wsprintf(commandPath, L"\"%s\" \"%%1\"", appPath);
@@ -94,9 +94,8 @@ void AssociateFiletypes()
 		res = RegCreateKeyEx(key, L"DefaultIcon", 0, L"", REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &key2, &disp);
 		if (res == ERROR_SUCCESS)
 		{
-			WCHAR iconPath[2048];
-			wsprintf(iconPath, L"%s,1", appPath);
-			res = RegSetValueEx(key2, L"", 0, REG_SZ, (const UCHAR *)iconPath, wcslen(iconPath) * 2);
+			wsprintf(commandPath, L"%s,1", appPath);
+			res = RegSetValueEx(key2, L"", 0, REG_SZ, (const UCHAR *)commandPath, wcslen(commandPath) * 2);
 			RegCloseKey(key2);
 		}
 		else
@@ -107,6 +106,7 @@ void AssociateFiletypes()
 	else
 		return;
 
+	wsprintf(commandPath, L"\"%s\" \"%%1\"", appPath);
 	res = RegCreateKeyEx(HKEY_CLASSES_ROOT, L"clunibusz", 0, L"", REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &key, &disp);
 	if (res == ERROR_SUCCESS)
 	{
@@ -123,9 +123,8 @@ void AssociateFiletypes()
 		res = RegCreateKeyEx(key, L"DefaultIcon", 0, L"", REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &key2, &disp);
 		if (res == ERROR_SUCCESS)
 		{
-			WCHAR iconPath[2048];
-			wsprintf(iconPath, L"%s,2", appPath);
-			res = RegSetValueEx(key2, L"", 0, REG_SZ, (const UCHAR *)iconPath, wcslen(iconPath) * 2);
+			wsprintf(commandPath, L"%s,2", appPath);
+			res = RegSetValueEx(key2, L"", 0, REG_SZ, (const UCHAR *)commandPath, wcslen(commandPath) * 2);
 			RegCloseKey(key2);
 		}
 		else
