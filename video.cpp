@@ -151,6 +151,10 @@ namespace Video
 
 	void RenderObjects(int line, int withPriority)
 	{
+		auto sourceLine = line; // gfxTextBold ? (int)(line * 0.835) : line;
+		if (Registers::ScreenMode.Aspect && !stretch200)
+			sourceLine = line - 40;
+
 		auto step = Registers::ScreenMode.HalfWidth ? 4 : 2;
 		auto shift = Registers::MapSet.Shift * 512;
 		for (auto i = 0; i < 256; i++)
@@ -185,7 +189,7 @@ namespace Video
 			short effectiveWidth = tileWidth * 8;
 			effectiveHeight *= ((Registers::ScreenMode.HalfHeight && Registers::ScreenMode.Mode > 0) ? 2 : 1);
 
-			if (line < vPos || line >= vPos + effectiveHeight)
+			if (sourceLine < vPos || sourceLine >= vPos + effectiveHeight)
 				continue;
 
 			short renderWidth = (Registers::ScreenMode.HalfWidth ? 16 : 8);
@@ -199,7 +203,7 @@ namespace Video
 			for (auto col = 0; col < tileWidth; col++)
 			{
 				auto tilePic = tileBasePic;
-				auto part = (line - vPos);
+				auto part = (sourceLine - vPos);
 				if (objB.FlipVert) part = effectiveHeight - 1 - part;
 
 				if (Registers::ScreenMode.HalfHeight && Registers::ScreenMode.Mode > 0)
