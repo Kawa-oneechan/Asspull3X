@@ -13,6 +13,37 @@ namespace UI
 
 		int currentPage = -1;
 		
+		void GetDevListItem(int i, int* icon, WCHAR* text)
+		{
+			if (devices[i] == NULL)
+			{
+				wsprintf(text, L"%d. %s", i, GetString(IDS_DEVICES1 + 0)); //"Nothing"
+				*icon = IML_CROSS;
+			}
+			else
+			{
+				switch (devices[i]->GetID())
+				{
+				case DEVID_DISKDRIVE:
+					if (((DiskDrive*)devices[i])->GetType() == ddDiskette)
+					{
+						wsprintf(text, L"%d. %s", i, GetString(IDS_DEVICES1 + 1)); //"Diskette drive"
+						*icon = IML_DISKDRIVE;
+					}
+					else
+					{
+						wsprintf(text, L"%d. %s", i, GetString(IDS_DEVICES1 + 2)); //"Hard drive"
+						*icon = IML_HARDDRIVE;
+					}
+					break;
+				case DEVID_LINEPRINTER:
+					wsprintf(text, L"%d. %s", i, GetString(IDS_DEVICES1 + 3)); //"Line printer"
+					*icon = IML_PRINTER;
+					break;
+				}
+			}
+		}
+
 		void UpdatePage()
 		{
 			int devNum = SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_GETCURSEL, 0, 0) + 1;
@@ -72,44 +103,26 @@ namespace UI
 
 		void UpdateList()
 		{
-			int selection = 0;
-			if (SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_GETCOUNT, 0, 0))
-				selection = SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_GETCURSEL, 0, 0);
 			WCHAR item[64] = { 0 };
+			int icon = 0;
+			int selection = 0;
+
+			if (SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_GETCOUNT, 0, 0))
+			{
+				selection = SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_GETCURSEL, 0, 0);
+				GetDevListItem(selection + 1, &icon, item);
+				SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_INSERTSTRING, selection, (LPARAM)item);
+				SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_DELETESTRING, selection + 1, 0);
+				SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_SETITEMDATA, selection, (LPARAM)icon);
+				SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_SETCURSEL, selection, 0);
+				UpdatePage();
+				return;
+			}
+
 			SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_RESETCONTENT, 0, 0);
-			numDrives = 0;
 			for (int i = 1; i < MAXDEVS; i++)
 			{
-				int icon = 0;
-				if (devices[i] == NULL)
-				{
-					wsprintf(item, L"%d. %s", i, GetString(IDS_DEVICES1 + 0)); //"Nothing"
-					icon = IML_CROSS;
-				}
-				else
-				{
-					switch (devices[i]->GetID())
-					{
-					case DEVID_DISKDRIVE:
-						if (((DiskDrive*)devices[i])->GetType() == ddDiskette)
-						{
-							wsprintf(item, L"%d. %s", i, GetString(IDS_DEVICES1 + 1)); //"Diskette drive"
-							icon = IML_DISKDRIVE;
-							numDrives++;
-						}
-						else
-						{
-							wsprintf(item, L"%d. %s", i, GetString(IDS_DEVICES1 + 2)); //"Hard drive"
-							icon = IML_HARDDRIVE;
-							numDrives++;
-						}
-						break;
-					case DEVID_LINEPRINTER:
-						wsprintf(item, L"%d. %s", i, GetString(IDS_DEVICES1 + 3)); //"Line printer"
-						icon = IML_PRINTER;
-						break;
-					}
-				}
+				GetDevListItem(i, &icon, item);
 				SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_ADDSTRING, 0, (LPARAM)item);
 				SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_SETITEMDATA, i - 1, (LPARAM)icon);
 			}
