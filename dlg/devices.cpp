@@ -11,10 +11,16 @@ namespace UI
 		HBITMAP hShrugImage;
 		int numDrives;
 
+		int currentPage = -1;
+		
 		void UpdatePage()
 		{
 			int devNum = SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_GETCURSEL, 0, 0) + 1;
 			auto device = devices[devNum];
+
+			if (devNum == currentPage)
+				return;
+			currentPage = devNum;
 
 			//Don't allow changing device #0 from disk drive
 			//EnableWindow(GetDlgItem(hWnd, IDC_DEVTYPE), (devNum > 0));
