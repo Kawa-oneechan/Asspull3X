@@ -17,6 +17,17 @@ namespace UI
 		void UpdateList()
 		{
 			WCHAR work[256] = { 0 };
+			
+			if (SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_GETCOUNT, 0, 0))
+			{
+				int i = SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_GETCURSEL, 0, 0);
+				wcscpy(work, GetString(IDS_BUTTONS + i));
+				wcscat(work, L"\t");
+				wcscat(work, GetString(IDS_BUTTONSFROM + newMap[i]));
+				SendDlgItemMessage(hWnd, IDC_COMBO1, LB_INSERTSTRING, i, (LPARAM)work);
+				SendDlgItemMessage(hWnd, IDC_COMBO1, LB_DELETESTRING, i + 1, 0);
+			}
+
 			SendDlgItemMessage(hWnd, IDC_COMBO1, LB_RESETCONTENT, 0, 0);
 			for (int i = 0; i < 12; i++)
 			{
