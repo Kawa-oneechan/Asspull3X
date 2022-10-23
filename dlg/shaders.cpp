@@ -1,7 +1,5 @@
 #include "..\asspull.h"
 
-//TODO: there's a bug in removing the last shader. Needs study.
-
 namespace UI
 {
 	namespace Shaders
