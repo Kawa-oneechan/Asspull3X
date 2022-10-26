@@ -250,6 +250,236 @@ namespace UI
 					nResult = not10; //fall back
 				return nResult;
 			}
+
+			namespace DarkMenuBar
+			{
+
+#pragma region Bar
+				bool UAHWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT* lr);
+
+#define WM_UAHDESTROYWINDOW    0x0090
+#define WM_UAHDRAWMENU         0x0091
+#define WM_UAHDRAWMENUITEM     0x0092
+#define WM_UAHINITMENU         0x0093
+#define WM_UAHMEASUREMENUITEM  0x0094
+#define WM_UAHNCPAINTMENUPOPUP 0x0095
+
+				typedef union tagUAHMENUITEMMETRICS
+				{
+					struct {
+						DWORD cx;
+						DWORD cy;
+					} rgsizeBar[2];
+					struct {
+						DWORD cx;
+						DWORD cy;
+					} rgsizePopup[4];
+				} UAHMENUITEMMETRICS;
+				
+				typedef struct tagUAHMENUPOPUPMETRICS
+				{
+					DWORD rgcx[4];
+					DWORD fUpdateMaxWidths : 2;
+				} UAHMENUPOPUPMETRICS;
+
+				typedef struct tagUAHMENU
+				{
+					HMENU hmenu;
+					HDC hdc;
+					DWORD dwFlags;
+				} UAHMENU;
+
+				typedef struct tagUAHMENUITEM
+				{
+					int iPosition;
+					UAHMENUITEMMETRICS umim;
+					UAHMENUPOPUPMETRICS umpm;
+				} UAHMENUITEM;
+
+				typedef struct UAHDRAWMENUITEM
+				{
+					DRAWITEMSTRUCT dis; // itemID looks uninitialized
+					UAHMENU um;
+					UAHMENUITEM umi;
+				} UAHDRAWMENUITEM;
+
+				typedef struct tagUAHMEASUREMENUITEM
+				{
+					MEASUREITEMSTRUCT mis;
+					UAHMENU um;
+					UAHMENUITEM umi;
+				} UAHMEASUREMENUITEM;
+
+				static HTHEME g_menuTheme = nullptr;
+
+				void UAHDrawMenuNCBottomLine(HWND hWnd)
+				{
+					MENUBARINFO mbi = { sizeof(mbi) };
+					if (!GetMenuBarInfo(hWnd, OBJID_MENU, 0, &mbi))
+					{
+						return;
+					}
+
+					RECT rcClient = { 0 };
+					GetClientRect(hWnd, &rcClient);
+					MapWindowPoints(hWnd, nullptr, (POINT*)&rcClient, 2);
+
+					RECT rcWindow = { 0 };
+					GetWindowRect(hWnd, &rcWindow);
+
+					OffsetRect(&rcClient, -rcWindow.left, -rcWindow.top);
+
+					// the rcBar is offset by the window rect
+					RECT rcAnnoyingLine = rcClient;
+					rcAnnoyingLine.bottom = rcAnnoyingLine.top;
+					rcAnnoyingLine.top--;
+
+
+					HDC hdc = GetWindowDC(hWnd);
+					FillRect(hdc, &rcAnnoyingLine, hbrStripe);
+					ReleaseDC(hWnd, hdc);
+				}
+
+				bool UAHWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT* lr)
+				{
+					switch (message)
+					{
+					case WM_UAHDRAWMENU:
+					{
+						UAHMENU* pUDM = (UAHMENU*)lParam;
+						RECT rc = { 0 };
+						{
+							MENUBARINFO mbi = { sizeof(mbi) };
+							GetMenuBarInfo(hWnd, OBJID_MENU, 0, &mbi);
+
+							RECT rcWindow;
+							GetWindowRect(hWnd, &rcWindow);
+
+							rc = mbi.rcBar;
+							OffsetRect(&rc, -rcWindow.left, -rcWindow.top);
+						}
+
+						FillRect(pUDM->hdc, &rc, hbrBack);
+
+						return true;
+					}
+					case WM_UAHDRAWMENUITEM:
+					{
+						UAHDRAWMENUITEM* pUDMI = (UAHDRAWMENUITEM*)lParam;
+
+						HBRUSH* pbrBackground = &hbrBack;
+
+						wchar_t menuString[256] = { 0 };
+						MENUITEMINFO mii = { sizeof(mii), MIIM_STRING };
+						{
+							mii.dwTypeData = menuString;
+							mii.cch = (sizeof(menuString) / 2) - 1;
+
+							GetMenuItemInfo(pUDMI->um.hmenu, pUDMI->umi.iPosition, TRUE, &mii);
+						}
+
+						DWORD dwFlags = DT_CENTER | DT_SINGLELINE | DT_VCENTER;
+
+						int iTextStateID = 0;
+						int iBackgroundStateID = 0;
+						{
+							if ((pUDMI->dis.itemState & ODS_INACTIVE) | (pUDMI->dis.itemState & ODS_DEFAULT))
+							{
+								iTextStateID = MPI_NORMAL;
+								iBackgroundStateID = MPI_NORMAL;
+							}
+							if (pUDMI->dis.itemState & ODS_HOTLIGHT)
+							{
+								iTextStateID = MPI_HOT;
+								iBackgroundStateID = MPI_HOT;
+
+								pbrBackground = &hbrStripe;
+							}
+							if (pUDMI->dis.itemState & ODS_SELECTED)
+							{
+								iTextStateID = MPI_HOT;
+								iBackgroundStateID = MPI_HOT;
+
+								pbrBackground = &hbrStripe;
+							}
+							if ((pUDMI->dis.itemState & ODS_GRAYED) || (pUDMI->dis.itemState & ODS_DISABLED))
+							{
+								iTextStateID = MPI_DISABLED;
+								iBackgroundStateID = MPI_DISABLED;
+							}
+							if (pUDMI->dis.itemState & ODS_NOACCEL)
+							{
+								dwFlags |= DT_HIDEPREFIX;
+							}
+						}
+
+						if (!g_menuTheme)
+							g_menuTheme = OpenThemeData(hWnd, L"Menu");
+
+						DTTOPTS opts = { sizeof(opts), DTT_TEXTCOLOR, iTextStateID != MPI_DISABLED ? rgbText : RGB(0x6D, 0x6D, 0x6D) };
+
+						FillRect(pUDMI->um.hdc, &pUDMI->dis.rcItem, *pbrBackground);
+						DrawThemeTextEx(g_menuTheme, pUDMI->um.hdc, MENU_BARITEM, MBI_NORMAL, menuString, mii.cch, dwFlags, &pUDMI->dis.rcItem, &opts);
+
+						return true;
+					}
+					case WM_UAHMEASUREMENUITEM:
+					{
+						UAHMEASUREMENUITEM* pMmi = (UAHMEASUREMENUITEM*)lParam;
+						*lr = DefWindowProc(hWnd, message, wParam, lParam);
+						//pMmi->mis.itemWidth = (pMmi->mis.itemWidth * 4) / 3;
+						return true;
+					}
+					case WM_THEMECHANGED:
+					{
+						if (g_menuTheme)
+						{
+							CloseThemeData(g_menuTheme);
+							g_menuTheme = nullptr;
+						}
+						return false;
+					}
+					case WM_NCPAINT:
+					case WM_NCACTIVATE:
+						*lr = DefWindowProc(hWnd, message, wParam, lParam);
+						UAHDrawMenuNCBottomLine(hWnd);
+						return true;
+						break;
+					default:
+						return false;
+					}
+				}
+#pragma endregion
+#pragma region Dropdown
+				enum PreferredAppMode
+				{
+					Default,
+					AllowDark,
+					ForceDark,
+					ForceLight,
+					Max
+				};
+				using fnAllowDarkModeForWindow = bool (WINAPI*)(HWND hWnd, bool allow); // ordinal 133
+				using fnSetPreferredAppMode = PreferredAppMode(WINAPI*)(PreferredAppMode appMode); // ordinal 135, in 1903
+				using fnFlushMenuThemes = void (WINAPI*)(void); //ordinal 136
+#pragma endregion
+
+				void HandleMenu()
+				{
+					if (!IsWin10())
+						return;
+
+					auto hUxtheme = LoadLibraryExW(L"uxtheme.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
+					auto AllowDarkModeForWindow = (fnAllowDarkModeForWindow)GetProcAddress(hUxtheme, MAKEINTRESOURCEA(133));
+					auto SetPreferredAppMode = (fnSetPreferredAppMode)GetProcAddress(hUxtheme, MAKEINTRESOURCEA(135));
+					auto FlushMenuThemes = (fnFlushMenuThemes)GetProcAddress(hUxtheme, MAKEINTRESOURCEA(136));
+					AllowDarkModeForWindow(hWndMain, true);
+					SetPreferredAppMode(theme ? PreferredAppMode::ForceDark : PreferredAppMode::ForceLight);
+					FlushMenuThemes();
+					SendMessageW(hWndMain, WM_THEMECHANGED, 0, 0);
+					FreeLibrary(hUxtheme);
+				}
+			}
 		}
 
 		void SetThemeColors()
@@ -291,6 +521,9 @@ namespace UI
 			hbrList = CreateSolidBrush(rgbListBk);
 			hpnStripe = CreatePen(PS_SOLID, 1, rgbStripe);
 
+			Windows10::DarkMenuBar::HandleMenu();
+
+			RedrawWindow(hWndMain, NULL, NULL, RDW_INVALIDATE | RDW_FRAME);
 			if (About::hWnd != NULL) RedrawWindow(About::hWnd, NULL, NULL, RDW_INVALIDATE);
 			if (DeviceManager::hWnd != NULL) RedrawWindow(DeviceManager::hWnd, NULL, NULL, RDW_INVALIDATE);
 			if (MemoryViewer::hWnd != NULL) RedrawWindow(MemoryViewer::hWnd, NULL, NULL, RDW_INVALIDATE);
@@ -406,6 +639,12 @@ namespace UI
 	{
 		//We get to do a lotta fancy fuckery now that this is a Win32 wndproc and not
 		//SDL's watered-down one.
+
+		LRESULT lr = 0;
+		if (theme == 1 && Presentation::Windows10::DarkMenuBar::UAHWndProc(hWnd, message, wParam, lParam, &lr)) {
+			return lr;
+		}
+
 		switch (message)
 		{
 		case WM_COMMAND:
