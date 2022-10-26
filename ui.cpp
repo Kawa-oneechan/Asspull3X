@@ -44,7 +44,8 @@ namespace UI
 		HFONT headerFont = NULL, monoFont = NULL, statusFont = NULL;
 		HBRUSH hbrBack = NULL, hbrStripe = NULL, hbrList = NULL;
 		HPEN hpnStripe = NULL;
-		COLORREF rgbBack = NULL, rgbStripe = NULL, rgbText = NULL, rgbHeader = NULL, rgbList = NULL, rgbListBk = NULL;
+		COLORREF rgbBack = NULL, rgbStripe = NULL, rgbText = NULL, rgbTextD = NULL;
+		COLORREF rgbHeader = NULL, rgbList = NULL, rgbListBk = NULL;
 
 		void DrawWindowBk(HWND hwndDlg, bool stripe)
 		{
@@ -82,7 +83,7 @@ namespace UI
 			case CDDS_PREERASE:
 			{
 				SetBkColor(nmc->hdc, rgbBack);
-				SetTextColor(nmc->hdc, nmc->uItemState & CDIS_DISABLED ? rgbListBk : rgbText);
+				SetTextColor(nmc->hdc, nmc->uItemState & CDIS_DISABLED ? rgbTextD : rgbText);
 
 				HTHEME hTheme = OpenThemeData(nmc->hdr.hwndFrom, L"BUTTON");
 				if (!hTheme)
@@ -143,7 +144,7 @@ namespace UI
 			case CDDS_PREPAINT:
 			{
 				SetBkColor(nmc->hdc, rgbBack);
-				SetTextColor(nmc->hdc, nmc->uItemState & CDIS_DISABLED ? rgbListBk : rgbText);
+				SetTextColor(nmc->hdc, nmc->uItemState & CDIS_DISABLED ? rgbTextD : rgbText);
 
 				HBRUSH border = CreateSolidBrush(rgbText);
 
@@ -416,7 +417,7 @@ namespace UI
 						if (!g_menuTheme)
 							g_menuTheme = OpenThemeData(hWnd, L"Menu");
 
-						DTTOPTS opts = { sizeof(opts), DTT_TEXTCOLOR, iTextStateID != MPI_DISABLED ? rgbText : RGB(0x6D, 0x6D, 0x6D) };
+						DTTOPTS opts = { sizeof(opts), DTT_TEXTCOLOR, iTextStateID != MPI_DISABLED ? rgbText : rgbTextD };
 
 						FillRect(pUDMI->um.hdc, &pUDMI->dis.rcItem, *pbrBackground);
 						DrawThemeTextEx(g_menuTheme, pUDMI->um.hdc, MENU_BARITEM, MBI_NORMAL, menuString, mii.cch, dwFlags, &pUDMI->dis.rcItem, &opts);
@@ -496,6 +497,7 @@ namespace UI
 				rgbBack = RGB(255, 255, 255);
 				rgbStripe = RGB(240, 240, 240);
 				rgbText = RGB(0, 0, 0);
+				rgbTextD = RGB(131, 131, 131);
 				rgbList = RGB(0, 0, 0);
 				rgbHeader = Windows10::GetAccent(RGB(0x00, 0x33, 0x99));
 				rgbListBk = RGB(255, 255, 255);
@@ -503,12 +505,13 @@ namespace UI
 			}
 			case 1: //dark
 			{
-				rgbBack = RGB(42, 42, 42);
-				rgbStripe = RGB(76, 74, 72);
+				rgbBack = RGB(43, 43, 43);
+				rgbStripe = RGB(65, 65, 65);
 				rgbText = RGB(255, 255, 255);
+				rgbTextD = RGB(109, 109, 109);
 				rgbList = RGB(255, 255, 255);
 				rgbHeader = Windows10::GetAccent(RGB(0x8E, 0xCA, 0xF8));
-				rgbListBk = RGB(76, 74, 72);
+				rgbListBk = RGB(65, 65, 65);
 			}
 			//this space for rent
 			}
