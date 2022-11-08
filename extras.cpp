@@ -66,6 +66,9 @@ void LoadROM(const WCHAR* path)
 {
 	unsigned int fileSize = 0;
 
+	if (!path[0])
+		return;
+
 	WCHAR lpath[512];
 	for (int i = 0; i < 512; i++)
 	{

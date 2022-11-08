@@ -198,7 +198,7 @@ void MainLoop()
 					else if (ev.key.keysym.sym == SDLK_u)
 						UI::uiCommand = (ev.key.keysym.mod & KMOD_SHIFT) ? cmdEjectDisk : cmdUnloadRom;
 					else if (ev.key.keysym.sym == SDLK_r)
-						UI::uiCommand = cmdReset;
+						UI::uiCommand = (ev.key.keysym.mod & KMOD_ALT) ? cmdReloadRom : cmdReset;
 					else if (ev.key.keysym.sym == SDLK_d)
 						UI::uiCommand = cmdDump;
 					else if (ev.key.keysym.sym == SDLK_s)
@@ -300,6 +300,11 @@ void MainLoop()
 				gottaReset = (*(uint32_t*)romCartridge == 0x21535341);
 				SaveCartRAM();
 				LoadROM(UI::uiString);
+			}
+			else if (UI::uiCommand == cmdReloadRom)
+			{
+				LoadROM(ini.GetValue(L"media", L"rom", L""));
+				gottaReset = true;
 			}
 			else if (UI::uiCommand == cmdInsertDisk)
 			{

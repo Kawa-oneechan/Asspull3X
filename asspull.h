@@ -189,6 +189,7 @@ enum uiCommands
 	cmdInsertDisk,
 	cmdEjectDisk,
 	cmdCreateDisk,
+	cmdReloadRom,
 };
 
 #define MAXSHADERS 8

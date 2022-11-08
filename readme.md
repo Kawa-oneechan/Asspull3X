@@ -18,6 +18,7 @@ The emulator passes all presses of the *left* Control key to the A3X, while the 
 | Ctrl U       | Unload ROM
 | Ctrl Shift U | Unload disk image
 | Ctrl R       | Reset the emulation
+| Ctrl Alt R   | Reload last ROM, then reset emulation
 | Ctrl D       | Dump memory to `wram.bin` and `vram.bin`
 | Ctrl S       | Take a screenshot
 | Ctrl A       | Toggle aspect correction
