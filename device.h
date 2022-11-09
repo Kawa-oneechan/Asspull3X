@@ -41,6 +41,7 @@ public:
 	int GetType();
 	bool IsMounted();
 };
+//0x0144: 1.44 MB, even if it's a hard disk drive
 #define DEVID_DISKDRIVE 0x0144
 enum diskDriveTypes
 {
@@ -63,6 +64,7 @@ public:
 	void HBlank();
 	void VBlank();
 };
+//0x4C50: LP for Line Printer
 #define DEVID_LINEPRINTER 0x4C50
 
 class InputDevice : Device
@@ -82,6 +84,7 @@ public:
 	void VBlank();
 	void Enqueue(SDL_Keysym sym);
 };
+//0x494F: IO for Input Output, even though it's only input
 #define DEVID_INPUT 0x494F
 
 #define READ_DEVID(x) \
