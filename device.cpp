@@ -49,10 +49,29 @@ unsigned int LinePrinter::Read(unsigned int address)
 	return 0;
 }
 
+#include <io.h>
+#include <fcntl.h>
+
 void LinePrinter::Write(unsigned int address, unsigned int value)
 {
+	//TODO: look into printing to PNG files.
+
 	if (address == 2)
 	{
+		auto hWnd = GetConsoleWindow();
+		if (hWnd == NULL)
+		{
+			//Apparently we have no console window. Debug with a detached process, Release build?
+			AllocConsole();
+			freopen("CON", "w", stdout);
+			SetConsoleCP(CP_UTF8);
+			auto throwAway = _setmode(_fileno(stdout), _O_U16TEXT); throwAway;
+			DWORD mode = 0;
+			GetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), &mode);
+			mode |= 4;
+			SetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), mode);
+		}
+
 		DWORD mode = 0;
 		GetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), &mode);
 		int bg = pageLength % 4 < 2 ? 107 : 47;
