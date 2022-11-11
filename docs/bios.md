@@ -27,6 +27,9 @@ typedef struct IBios
 	IDiskLibrary* diskLibrary;
 	char* DrawCharFont;
 	uint16_t DrawCharHeight;
+	uint8_t* LinePrinter;
+	TIOState io;
+	TLocale locale;
 } IBios;
 ```
 
@@ -36,10 +39,11 @@ typedef struct IBios
 * `Exception`: a function pointer to a generic exception handler, not currently used.
 * `VBlank`: a function pointer called by the BIOS' interrupt dispatcher when not null. May be set by programs as needed.
 * `HBlank`: as above, but for HBlank.
-* `DrawChar`: a function pointer to a routine that draws characters,  Automatically set to BIOS-provided routines by the `SetBitmapMode` interface calls.
+* `DrawChar`: a function pointer to a routine that draws characters,  Automatically set to BIOS-provided routines by the `SetupDrawChar` interface call.
 * `textLibrary`, `drawingLibrary`, `miscLibrary`, and `diskLibrary`: substructures with function pointers to various interface calls.
 * `DrawCharFont`: a pointer to the font graphics data that `DrawChar` may use.
 * `DrawCharHeight`: used by `DrawChar`, least significant byte holds the cell height and most significant the line height.
+* `LinePrinter`: a pointer to the [line printer device](devices.md#line-printer), if one is attached. The BIOS sets this on startup.
 
 ## Libraries
 
@@ -55,6 +59,10 @@ Writes formatted text to the screen. Equivalent to `printf(format, ...)`, which 
 
 Writes formatted text to memory. Equivalent to `sprintf(buffer, format, ...)` which is *not* a `#define`. Returns the amount of characters actually written.
 
+#### `int VFormat(char *buffer, const char* format, va_list args)`
+
+Equivalent to `vsprintf(buffer, format, args)`.
+
 #### `void WriteChar(char ch)`
 
 Writes a single character to the screen. Equivalent to `putch(ch)` which is *not* a `#define`.
@@ -62,10 +70,6 @@ Writes a single character to the screen. Equivalent to `putch(ch)` which is *not
 #### `void SetCursorPosition(int left, int top)`
 
 #### `void SetTextColor(int back, int fore)`
-
-#### `void SetBold(bool bold)`
-
-If `bold` is `true`, enables the bold type bit so characters in text mode are rendered as such, clears it otherwise.
 
 #### `void ClearScreen()`
 
@@ -81,10 +85,14 @@ All drawing library calls can be reached with the `DRAW` shorthand `#define`.
 
 | Effect             | `in`    | `toWhite` |
 | ------------------ | ------- | --------- |
-| fade in from black | `true`  | `false`   |
-| fade out to black  | `false` | `false`   |
-| fade in from white | `true`  | `true`    |
-| fade out to white  | `false` | `true`    |
+| Fade in from black | `true`  | `false`   |
+| Fade out to black  | `false` | `false`   |
+| Fade in from white | `true`  | `true`    |
+| Fade out to white  | `false` | `true`    |
+
+#### `void SetupDrawChar()`
+
+Ensures `interface->DrawChar` is set correctly. Failure to call this at least once may cause the system to hang.
 
 #### `void DrawString(const char* str, int x, int y, int color)`
 
@@ -100,14 +108,6 @@ All drawing library calls can be reached with the `DRAW` shorthand `#define`.
 
 All miscellaneous library calls can be reached with the `MISC` shorthand `#define`.
 
-#### `void SetTextMode(int flags)`
-
-#### `void SetBitmapMode16(int flags)`
-
-#### `void SetBitmapMode256(int flags)`
-
-#### `void EnableObjects(bool enabled)`
-
 #### `void WaitForVBlank()`
 
 #### `void WaitForVBlanks(int vbls)`
@@ -118,7 +118,28 @@ All miscellaneous library calls can be reached with the `MISC` shorthand `#defin
 
 #### `void MidiReset()`
 
+#### `void OplReset()`
+
 #### `void RleUnpack(int8_t* dst, int8_t* src, size_t size)`
+
+#### `char* GetLocaleStr(ELocale category, int item)`
+
+Returns strings according to `interface->locale`.
+
+| Category   | Item  | Returns                 | Example        |
+|------------|-------|-------------------------|----------------|
+| `LC_CODE`  | n/a  | The locale's identifier | "en_US"         |
+| `LC_DAYS`  | 0-6  | Abbreviated day names   | "Mon"           |
+| `LC_MONS`  | 0-11 | Abbreviated month names | "Jan"           |
+| `LC_DAYF`  | 0-6  | Full day names          | "Monday"        |
+| `LC_MONF`  | 0-11 | Full month names        | "January"       |
+| `LC_DATES` | n/a  | Short date format       | "%Y-%m-%d"      |
+| `LC_DATEF` | n/a  | Long date format        | "%A, %B %d, %Y" |
+| `LC_TIMES` | n/a  | Short time format       | "%H:%M"         |
+| `LC_TIMEF` | n/a  | Long time format        | "%H:%M:%S"      |
+| `LC_CURR`  | n/a  | Currency symbol         | "$"             |
+
+Other things can be taken directly from `interface->locale`.
 
 ### Disk I/O
 
