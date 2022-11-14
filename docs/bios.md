@@ -14,36 +14,36 @@ The `IBios` structure looks like this:
 ```cpp
 typedef struct IBios
 {
-	long AssBang;
+	long assBang;
 	int16_t biosVersion;
 	int16_t extensions;
-	void(*Exception)(void);
-	void(*VBlank)(void);
-	void(*HBlank)(void);
-	void(*DrawChar)(char ch, int32_t x, int32_t y, int32_t color);
+	void(*exception)(void);
+	void(*vBlank)(void);
+	void(*hBlank)(void);
+	void(*drawChar)(char ch, int32_t x, int32_t y, int32_t color);
 	ITextLibrary* textLibrary;
 	IDrawingLibrary* drawingLibrary;
 	IMiscLibrary* miscLibrary;
 	IDiskLibrary* diskLibrary;
-	char* DrawCharFont;
-	uint16_t DrawCharHeight;
-	uint8_t* LinePrinter;
+	char* drawCharFont;
+	uint16_t drawCharHeight;
+	uint8_t* linePrinter;
 	TIOState io;
 	TLocale locale;
 } IBios;
 ```
 
-* `AssBang`: the word "ASS!" spelled out in ASCII.
+* `assBang`: the word "ASS!" spelled out in ASCII.
 * `biosVersion`: the BIOS/interface revision in 8.8 fixed point, so `0x0102` means version 1.2.
 * `extensions`: reserved.
-* `Exception`: a function pointer to a generic exception handler, not currently used.
-* `VBlank`: a function pointer called by the BIOS' interrupt dispatcher when not null. May be set by programs as needed.
-* `HBlank`: as above, but for HBlank.
-* `DrawChar`: a function pointer to a routine that draws characters,  Automatically set to BIOS-provided routines by the `SetupDrawChar` interface call.
+* `exception`: a function pointer to a generic exception handler, not currently used.
+* `vBlank`: a function pointer called by the BIOS' interrupt dispatcher when not null. May be set by programs as needed.
+* `hBlank`: as above, but for HBlank.
+* `drawChar`: a function pointer to a routine that draws characters,  Automatically set to BIOS-provided routines by the `SetupDrawChar` interface call.
 * `textLibrary`, `drawingLibrary`, `miscLibrary`, and `diskLibrary`: substructures with function pointers to various interface calls.
-* `DrawCharFont`: a pointer to the font graphics data that `DrawChar` may use.
-* `DrawCharHeight`: used by `DrawChar`, least significant byte holds the cell height and most significant the line height.
-* `LinePrinter`: a pointer to the [line printer device](devices.md#line-printer), if one is attached. The BIOS sets this on startup.
+* `drawCharFont`: a pointer to the font graphics data that `drawChar` may use.
+* `drawCharHeight`: used by `drawChar`, least significant byte holds the cell height and most significant the line height.
+* `linePrinter`: a pointer to the [line printer device](devices.md#line-printer), if one is attached. The BIOS sets this on startup.
 
 ## Libraries
 
@@ -84,7 +84,7 @@ All drawing library calls can be reached with the `DRAW` shorthand `#define`.
 #### `void Fade(bool in, bool toWhite)`
 
 | Effect             | `in`    | `toWhite` |
-| ------------------ | ------- | --------- |
+|--------------------|---------|-----------|
 | Fade in from black | `true`  | `false`   |
 | Fade out to black  | `false` | `false`   |
 | Fade in from white | `true`  | `true`    |
