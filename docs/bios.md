@@ -141,9 +141,25 @@ Returns strings according to `interface->locale`.
 
 Other things can be taken directly from `interface->locale`.
 
+#### `void* HeapAlloc(size_t size)`
+
+Works like `malloc` in standard C, and there's a `#define` so you can use that name instead. If `size` is zero, `NULL` is returned.
+
+#### `void HeapFree(void* ptr);`
+
+Works like `free` in standard C, and there's a `#define` so you can use that name instead.
+
+#### `void* HeapReAlloc(void* ptr, size_t size);`
+
+Works like `realloc` in standard C, and there's a `#define` so you can use that name instead.
+
+#### `void* HeapCAlloc(size_t nelem, size_t elsize);`
+
+Works like `calloc` in standard C, and there's a `#define` so you can use that name instead.
+
 ### Disk I/O
 
-All disk I/O library calls can be reached with the `DISK` shorthand `#define`.
+All disk I/O library calls can be reached with the `DISK` shorthand `#define`. Because these don't work like in standard C, `ass-std.c` can be included in the project to provide more standard-like wrappers.
 
 #### `EFileError OpenFile(TFileHandle* handle, const char* path, char mode);`
 
