@@ -222,6 +222,7 @@ void Preload()
 	const WCHAR* thing = ini.GetValue(L"media", L"bios", L""); //"roms\\ass-bios.apb");
 	if (!wcslen(thing))
 	{
+askForBIOS:
 		//thing = "roms\\ass-bios.apb";
 		WCHAR thePath[FILENAME_MAX] = L"roms\\ass-bios.apb";
 		if (UI::ShowFileDlg(false, thePath, 256, L"A3X BIOS files (*.apb)|*.apb"))
@@ -236,7 +237,8 @@ void Preload()
 		}
 	}
 	Log(logNormal, UI::GetString(IDS_LOADINGBIOS), thing);
-	LoadFile(romBIOS, thing, &biosSize);
+	if (LoadFile(romBIOS, thing, &biosSize))
+		goto askForBIOS;
 	biosSize = RoundUp(biosSize);
 	thing = ini.GetValue(L"media", L"rom", L"");
 	if (UI::reloadROM && wcslen(thing) && paramLoad[0] == 0)
