@@ -46,12 +46,13 @@ The keyboard gamepad control feature reassigns the arrow keys and certain letter
 The canonical (if nonexistant) A3X controller has the same ABXY layout as the Xbox, and any XInput gamepad should work (though the main author only has an old Logitech F310 to test with). Just in case, there's some ability to remap the buttons.
 
 ## Acknowledgments
+* French localization help by Thomas_⑨.
+* Hungarian localization help by Letrune.
 * Massive interrupt help by [Invertego](https://github.com/invertego).
 * OpenGL shader thing based on [an example by Augusto Ruiz](https://github.com/AugustoRuiz/sdl2glsl).
 * PAL Composite shader by Viacheslav Slavinsky.
 * CRT shader by Timothy Lottes.
-* French localization help by Thomas_⑨.
-* Hungarian localization help by Letrune.
+* [CRTView](https://github.com/mattiasgustavsson/crtview) shaders by Mattias Gustavsson.
 * [miniz](https://github.com/richgel999/miniz) library by Rich Geldreich.
 * [SimpleIni](https://github.com/brofield/simpleini) library by Brodie Thiesfield.
 
