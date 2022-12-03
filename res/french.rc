@@ -148,6 +148,7 @@ BEGIN
 	BEGIN
 		MENUITEM "Options", 1010
 		MENUITEM "Shaders", 1011
+		MENUITEM "Manette de jeu", 1018
 		MENUITEM SEPARATOR
 		MENUITEM "Péripheriques", 1012
 		MENUITEM "Visionneuse Mémoire", 1007
@@ -200,9 +201,6 @@ END
 	#define OPTIONS_SOUND "MIC et OPL3"
 	#define OPTIONS_MUSIC "Musique MIDI"
 	#define OPTIONS_MIDIDEVICE "Péripherique MIDI"
-#define OPTIONS_INPUT "Entrées"
-	#define OPTIONS_KEY2JOY "Clavier comme manette de jeu"
-	#define OPTIONS_BUTTONMAP "Modifier le mappage"
 #define OPTIONS_MEDIA "Média"
 	#define OPTIONS_RELOADROM "Recharger la ROM"
 	#define OPTIONS_RELOADDISK "Recharger les images disque"
@@ -210,13 +208,14 @@ END
 	#define OPTIONS_ASSOCIATE "<a>Associer des types de fichiers</a>"
 
 #define SHADERS_TITLE "Shaders"
-#define SHADERS_AVAILABLE "Disponible"
-#define SHADERS_INUSE "En cours d'utilisation"
-#define SHADERS_ADD "Ajouter"
-#define SHADERS_REMOVE "Supprimer"
-#define SHADERS_MOVEUP "Haut"
-#define SHADERS_MOVEDOWN "Bas"
+	#define SHADERS_AVAILABLE "Disponible"
+	#define SHADERS_INUSE "En cours d'utilisation"
+	#define SHADERS_ADD "Ajouter"
+	#define SHADERS_REMOVE "Supprimer"
+	#define SHADERS_MOVEUP "Haut"
+	#define SHADERS_MOVEDOWN "Bas"
 
-#define BUTTONS_TITLE "Modifier le mappage"
+#define BUTTONS_TITLE "Manette de jeu"
+	#define BUTTONS_KEY2JOY "Utiliser le clavier comme manette de jeu (RCtrl+K)"
 
 #include "dialogs.rc"

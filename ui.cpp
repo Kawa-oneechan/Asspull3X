@@ -655,15 +655,19 @@ namespace UI
 			if (wParam > 1000 && wParam < 2000)
 			{
 				uiCommand = (int)(wParam - 1000);
-				if (uiCommand >= cmdMemViewer && uiCommand <= cmdTileViewer)
+				if (uiCommand >= cmdMemViewer && uiCommand <= cmdButtonMapper)
 				{
 					void(*commands[])(void) = {
 						MemoryViewer::Show, PalViewer::Show, About::Show,
 						Options::Show, Shaders::Show, DeviceManager::Show,
-						TileViewer::Show,
+						TileViewer::Show, nullptr, nullptr, nullptr, nullptr,
+						UI::ButtonMaps::Show,
 					};
-					commands[uiCommand - cmdMemViewer]();
-					uiCommand = 0;
+					if (commands[uiCommand - cmdMemViewer] != nullptr)
+					{
+						commands[uiCommand - cmdMemViewer]();
+						uiCommand = 0;
+					}
 				}
 				return 0;
 			}

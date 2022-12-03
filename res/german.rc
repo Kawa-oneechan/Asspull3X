@@ -148,6 +148,7 @@ BEGIN
 	BEGIN
 		MENUITEM "Optionen", 1010
 		MENUITEM "Shader", 1011
+		MENUITEM "Gamepad", 1018
 		MENUITEM SEPARATOR
 		MENUITEM "Geräte", 1012
 		MENUITEM "RAM-Viewer", 1007
@@ -198,9 +199,6 @@ END
 	#define OPTIONS_SOUND "PCM und OPL3"
 	#define OPTIONS_MUSIC "MIDI-Musik"
 	#define OPTIONS_MIDIDEVICE "MIDI-Gerät"
-#define OPTIONS_INPUT "Eingabe"
-	#define OPTIONS_KEY2JOY "Tastatur als Gamepad"
-	#define OPTIONS_BUTTONMAP "Zuordnung bearbeiten"
 #define OPTIONS_MEDIA "Medien"
 	#define OPTIONS_RELOADROM "ROM neu laden"
 	#define OPTIONS_RELOADDISK "Disk-Images neu laden"
@@ -208,13 +206,14 @@ END
 	#define OPTIONS_ASSOCIATE "<a>Dateitypen zuordnen</a>"
 
 #define SHADERS_TITLE "Shader"
-#define SHADERS_AVAILABLE "Verfügbar"
-#define SHADERS_INUSE "Im Einsatz"
-#define SHADERS_ADD "Hinzuf."
-#define SHADERS_REMOVE "Lösch"
-#define SHADERS_MOVEUP "Aufst."
-#define SHADERS_MOVEDOWN "Abwärts"
+	#define SHADERS_AVAILABLE "Verfügbar"
+	#define SHADERS_INUSE "Im Einsatz"
+	#define SHADERS_ADD "Hinzuf."
+	#define SHADERS_REMOVE "Lösch"
+	#define SHADERS_MOVEUP "Aufst."
+	#define SHADERS_MOVEDOWN "Abwärts"
 
-#define BUTTONS_TITLE "Zuordnung"
+#define BUTTONS_TITLE "Gamepad"
+	#define BUTTONS_KEY2JOY "Verwenden Sie die Tastatur als Gamepad (RStrg+K)"
 
 #include "dialogs.rc"

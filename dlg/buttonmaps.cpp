@@ -65,7 +65,10 @@ namespace UI
 				SendDlgItemMessage(hWnd, IDC_COMBO1, LB_SETCURSEL, 0, 0);
 				SendDlgItemMessage(hWnd, IDC_COMBO2, CB_SETCURSEL, buttonMap[0], 0);
 
+				CheckDlgButton(hWnd, IDC_KEY2JOY, ini.GetBoolValue(L"input", L"key2joy", false));
+
 				GetIconPos(hWnd, IDC_SHRUG, &controlRect, 0, 0);
+				Tooltips::CreateTooltips(hWnd, IDC_KEY2JOY, 0);
 				return true;
 			}
 			case WM_NOTIFY:
@@ -78,6 +81,9 @@ namespace UI
 					int idFrom = nmc->hdr.idFrom;
 					switch (idFrom)
 					{
+					case IDC_KEY2JOY:
+						DrawCheckbox(hWnd, nmc);
+						return true;
 					case IDOK:
 					case IDCANCEL:
 						return DrawButton(hWnd, nmc);
@@ -149,6 +155,8 @@ namespace UI
 							buttonMap[i] = newMap[i];
 							ini.SetValue(L"input", buttonNames[i], SDL_GameControllerGetStringForButtonW(newMap[i]));
 						}
+						key2joy = (IsDlgButtonChecked(hWnd, IDC_KEY2JOY) == 1) ? 1 : 0;
+						ini.SetBoolValue(L"input", L"key2joy", key2joy == 1);
 						ini.SaveFile(settingsFile, false);
 						DestroyWindow(hWnd);
 						ButtonMaps::hWnd = NULL;

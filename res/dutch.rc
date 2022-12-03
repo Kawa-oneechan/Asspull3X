@@ -148,6 +148,7 @@ BEGIN
 	BEGIN
 		MENUITEM "Opties", 1010
 		MENUITEM "Shaders", 1011
+		MENUITEM "Gamepad", 1018
 		MENUITEM SEPARATOR
 		MENUITEM "Apparaten", 1012
 		MENUITEM "Geheugen", 1007
@@ -198,9 +199,6 @@ END
 	#define OPTIONS_SOUND "PCM en OPL3"
 	#define OPTIONS_MUSIC "MIDI muziek"
 	#define OPTIONS_MIDIDEVICE "MIDI apparaat"
-#define OPTIONS_INPUT "Invoer"
-	#define OPTIONS_KEY2JOY "Toetsenbord as gamepad"
-	#define OPTIONS_BUTTONMAP "Bewerk knoppen"
 #define OPTIONS_MEDIA "Media"
 	#define OPTIONS_RELOADROM "Herlaad ROM"
 	#define OPTIONS_RELOADDISK "Herlaad schijfkopieën"
@@ -208,13 +206,14 @@ END
 	#define OPTIONS_ASSOCIATE "<a>Bestandstypen koppelen</a>"
 
 #define SHADERS_TITLE "Shaders"
-#define SHADERS_AVAILABLE "Beschikbaar"
-#define SHADERS_INUSE "In gebruik"
-#define SHADERS_ADD "Voeg toe"
-#define SHADERS_REMOVE "Verwijder"
-#define SHADERS_MOVEUP "Omhoog"
-#define SHADERS_MOVEDOWN "Omlaag"
+	#define SHADERS_AVAILABLE "Beschikbaar"
+	#define SHADERS_INUSE "In gebruik"
+	#define SHADERS_ADD "Voeg toe"
+	#define SHADERS_REMOVE "Verwijder"
+	#define SHADERS_MOVEUP "Omhoog"
+	#define SHADERS_MOVEDOWN "Omlaag"
 
-#define BUTTONS_TITLE "Knoppenindeling"
+#define BUTTONS_TITLE "Gamepad"
+	#define BUTTONS_KEY2JOY "Gebruik toetsenbord as gamepad (RCtrl+K)"
 
 #include "dialogs.rc"

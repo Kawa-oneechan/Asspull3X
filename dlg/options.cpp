@@ -51,15 +51,13 @@ namespace UI
 				CheckDlgButton(hWnd, IDC_MUSIC, ini.GetBoolValue(L"audio", L"music", true));
 				SendDlgItemMessage(hWnd, IDC_MIDIDEV, CB_SETCURSEL, dev, 0);
 
-				CheckDlgButton(hWnd, IDC_KEY2JOY, ini.GetBoolValue(L"input", L"key2joy", false));
-
 				CheckDlgButton(hWnd, IDC_RELOAD, UI::reloadROM);
 				CheckDlgButton(hWnd, IDC_REMOUNT, UI::reloadIMG);
 				SetDlgItemText(hWnd, IDC_BIOSPATH, ini.GetValue(L"media", L"bios", L""));
 
 				GetIconPos(hWnd, IDC_LINK, &shieldIcon, -20, 0);
 
-				Tooltips::CreateTooltips(hWnd, IDC_ASPECT, IDC_KEY2JOY, IDC_RELOAD, IDC_REMOUNT, 0);
+				Tooltips::CreateTooltips(hWnd, IDC_ASPECT, IDC_RELOAD, IDC_REMOUNT, 0);
 				return true;
 			}
 			case WM_PAINT:
@@ -86,7 +84,6 @@ namespace UI
 					case IDC_REMOUNT:
 					case IDC_SOUND:
 					case IDC_MUSIC:
-					case IDC_KEY2JOY:
 					{
 						DrawCheckbox(hWnd, nmc);
 						return true;
@@ -94,7 +91,6 @@ namespace UI
 					break;
 					case IDOK:
 					case IDCANCEL:
-					case IDC_REMAPBUTTONS:
 					case IDC_BIOSBROWSE:
 						return DrawButton(hWnd, nmc);
 					}
@@ -153,11 +149,6 @@ namespace UI
 							SetWindowText(GetDlgItem(hWnd, IDC_BIOSPATH), thePath);
 						return false;
 					}
-					case IDC_REMAPBUTTONS:
-					{
-						UI::ButtonMaps::Show();
-						return false;
-					}
 					case IDOK:
 					{
 						WCHAR thePath[FILENAME_MAX] = { 0 };
@@ -171,7 +162,6 @@ namespace UI
 						Video::stretch200 = (IsDlgButtonChecked(hWnd, IDC_ASPECT) == 1);
 						UI::reloadROM = (IsDlgButtonChecked(hWnd, IDC_RELOAD) == 1);
 						UI::reloadIMG = (IsDlgButtonChecked(hWnd, IDC_REMOUNT) == 1);
-						key2joy = (IsDlgButtonChecked(hWnd, IDC_KEY2JOY) == 1) ? 1 : 0;
 						auto enableSound = (IsDlgButtonChecked(hWnd, IDC_SOUND) == 1);
 						auto enableMusic = (IsDlgButtonChecked(hWnd, IDC_MUSIC) == 1);
 
@@ -182,7 +172,6 @@ namespace UI
 						ini.SetBoolValue(L"audio", L"music", enableMusic);
 						ini.SetBoolValue(L"misc", L"reloadRom", UI::reloadROM);
 						ini.SetBoolValue(L"misc", L"reloadImg", UI::reloadIMG);
-						ini.SetBoolValue(L"input", L"key2joy", key2joy == 1);
 						ini.SaveFile(settingsFile, false);
 						DestroyWindow(hWnd);
 						Options::hWnd = NULL;

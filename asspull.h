@@ -190,6 +190,7 @@ enum uiCommands
 	cmdEjectDisk,
 	cmdCreateDisk,
 	cmdReloadRom,
+	cmdButtonMapper,
 };
 
 #define MAXSHADERS 8

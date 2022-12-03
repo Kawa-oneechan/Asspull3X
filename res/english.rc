@@ -148,6 +148,7 @@ BEGIN
 	BEGIN
 		MENUITEM "Options", 1010
 		MENUITEM "Shaders", 1011
+		MENUITEM "Gamepad", 1018
 		MENUITEM SEPARATOR
 		MENUITEM "Devices", 1012
 		MENUITEM "Memory viewer", 1007
@@ -198,9 +199,6 @@ END
 	#define OPTIONS_SOUND "PCM and OPL3"
 	#define OPTIONS_MUSIC "MIDI music"
 	#define OPTIONS_MIDIDEVICE "MIDI device"
-#define OPTIONS_INPUT "Input"
-	#define OPTIONS_KEY2JOY "Keyboard gamepad"
-	#define OPTIONS_BUTTONMAP "Edit button mapping"
 #define OPTIONS_MEDIA "Media"
 	#define OPTIONS_RELOADROM "Reload ROM"
 	#define OPTIONS_RELOADDISK "Reload disk images"
@@ -208,13 +206,14 @@ END
 	#define OPTIONS_ASSOCIATE "<a>Associate filetypes</a>"
 
 #define SHADERS_TITLE "Shaders"
-#define SHADERS_AVAILABLE "Available"
-#define SHADERS_INUSE "In use"
-#define SHADERS_ADD "Add"
-#define SHADERS_REMOVE "Remove"
-#define SHADERS_MOVEUP "Move up"
-#define SHADERS_MOVEDOWN "Move down"
+	#define SHADERS_AVAILABLE "Available"
+	#define SHADERS_INUSE "In use"
+	#define SHADERS_ADD "Add"
+	#define SHADERS_REMOVE "Remove"
+	#define SHADERS_MOVEUP "Move up"
+	#define SHADERS_MOVEDOWN "Move down"
 
-#define BUTTONS_TITLE "Button maps"
+#define BUTTONS_TITLE "Gamepad"
+	#define BUTTONS_KEY2JOY "Use keyboard as gamepad (RCtrl+K)"
 
 #include "dialogs.rc"
