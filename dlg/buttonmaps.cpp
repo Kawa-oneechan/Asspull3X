@@ -10,6 +10,8 @@ namespace UI
 		using namespace Presentation;
 
 		HWND hWnd = NULL;
+		HBITMAP hController = NULL;
+		RECT controlRect;
 		SDL_GameControllerButton newMap[16];
 
 		void UpdateList()
@@ -42,6 +44,7 @@ namespace UI
 			{
 			case WM_CLOSE:
 			{
+				DeleteObject(hController);
 				DestroyWindow(hWnd);
 				ButtonMaps::hWnd = NULL;
 				return true;
@@ -52,6 +55,8 @@ namespace UI
 				for (int i = 0; i < 16; i++)
 					newMap[i] = buttonMap[i];
 
+				hController = Images::LoadPNGResource(IDB_CTRLR);
+
 				const int tabs[] = { 64 };
 				SendDlgItemMessage(hWnd, IDC_COMBO1, LB_SETTABSTOPS, 1, (LPARAM)&tabs);
 				for (int i = 0; i < 14; i++)
@@ -59,6 +64,8 @@ namespace UI
 				UpdateList();
 				SendDlgItemMessage(hWnd, IDC_COMBO1, LB_SETCURSEL, 0, 0);
 				SendDlgItemMessage(hWnd, IDC_COMBO2, CB_SETCURSEL, buttonMap[0], 0);
+
+				GetIconPos(hWnd, IDC_SHRUG, &controlRect, 0, 0);
 				return true;
 			}
 			case WM_NOTIFY:
@@ -81,7 +88,16 @@ namespace UI
 			}
 			case WM_PAINT:
 			{
-				DrawWindowBk(hWnd, true);
+				PAINTSTRUCT ps;
+				HDC hdc = BeginPaint(hWnd, &ps);
+				DrawWindowBk(hWnd, true, &ps, hdc);
+				auto hdcMem = CreateCompatibleDC(hdc);
+				auto oldBitmap = SelectObject(hdcMem, hController);
+				BLENDFUNCTION ftn = { AC_SRC_OVER, 0, 255, AC_SRC_ALPHA };
+				AlphaBlend(hdc, controlRect.left, controlRect.top, 346, 163, hdcMem, 0, 0, 346, 163, ftn);
+				SelectObject(hdcMem, oldBitmap);
+				DeleteDC(hdcMem);
+				EndPaint(hWnd, &ps);
 				return true;
 			}
 			case WM_CTLCOLORLISTBOX:

@@ -7,6 +7,7 @@
 #define IDB_DANCE 104
 #define IDB_ICONS 105
 #define IDB_SHRUG 106
+#define IDB_CTRLR 107
 
 #define IDS_FULLTITLE 1
 #define IDS_DDFILTER 2
