@@ -22,8 +22,8 @@ IDB_SHRUG PNG ".\\res\\shrug.png"
 IDB_CTRLR PNG ".\\res\\controller.png"
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 1,0,0,1
-PRODUCTVERSION 1,0,0,1
+FILEVERSION 0,7,0,0
+PRODUCTVERSION 0,7,0,0
 FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
 FILEFLAGS 0x1L
@@ -42,10 +42,10 @@ BEGIN
 			VALUE "FileDescription", "Asspull IIIx Fantasy Computer emulator"
 			VALUE "FileVersion", "1.0.0.1"
 			VALUE "InternalName", "Clunibus.exe"
-			VALUE "LegalCopyright", "© 2020 Firrhna Productions"
+			VALUE "LegalCopyright", "© 2022 Firrhna Productions"
 			VALUE "OriginalFilename", "Clunibus.exe"
 			VALUE "ProductName", "Clunibus"
-			VALUE "ProductVersion", "1.0.0.1"
+			VALUE "ProductVersion", "0.7.0.0"
 		END
 	END
 	BLOCK "VarFileInfo"
