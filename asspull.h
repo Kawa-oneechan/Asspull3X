@@ -26,7 +26,6 @@ extern unsigned int RoundUp(unsigned int v);
 extern int LoadFile(unsigned char* dest, const WCHAR* filePath, unsigned int* size);
 extern int SaveFile(const WCHAR* filePath, unsigned char* source, unsigned long size);
 extern void LoadROM(const WCHAR* path);
-extern void FindFirstDrive();
 extern void SaveCartRAM();
 extern void Log(WCHAR* message, ...);
 extern void Log(logCategories cat, WCHAR* message, ...);
@@ -40,8 +39,7 @@ extern unsigned char* ramVideo;
 extern unsigned char* ramInternal;
 
 extern int key2joy;
-extern int firstDiskDrive;
-extern void FindFirstDrive();
+extern int activeDiskDrive;
 
 #define SCREENBUFFERSIZE (640 * 480 * 4)
 

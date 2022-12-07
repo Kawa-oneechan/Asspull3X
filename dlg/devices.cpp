@@ -179,7 +179,6 @@ namespace UI
 				ini.SetValue(L"devices", key, L"linePrinter");
 				break;
 			}
-			FindFirstDrive();
 			ini.SaveFile(settingsFile, false);
 			UpdateList();
 		}

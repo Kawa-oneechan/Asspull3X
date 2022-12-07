@@ -173,28 +173,6 @@ void LoadROM(const WCHAR* path)
 	UI::SetTitle(wideName);
 }
 
-void FindFirstDrive()
-{
-	int old = firstDiskDrive;
-	firstDiskDrive = -1;
-	bool firstIsHDD = false;
-	for (int i = 0; i < MAXDEVS; i++)
-	{
-		if (devices[i] != nullptr && devices[i]->GetID() == DEVID_DISKDRIVE)
-		{
-			if (((DiskDrive*)devices[i])->GetType() == ddHardDisk && firstDiskDrive == -1)
-			{
-				firstIsHDD = true;
-				firstDiskDrive = i;
-				continue;
-			}
-			firstDiskDrive = i;
-			//if (old != i) Log(L"First disk drive is now #%d.", i);
-			return;
-		}
-	}
-}
-
 void SaveCartRAM()
 {
 	auto sramSize = romCartridge[0x28] * 512;

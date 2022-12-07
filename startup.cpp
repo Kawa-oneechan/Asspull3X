@@ -13,7 +13,7 @@ CSimpleIni ini;
 
 extern unsigned int biosSize, romSize;
 extern long rtcOffset;
-extern int firstDiskDrive;
+extern int activeDiskDrive;
 
 extern void LoadROM(const WCHAR* path);
 extern void MainLoop();
@@ -213,8 +213,6 @@ void InitializeDevices()
 		}
 		//else Log(logWarning, L"Don't know what \x1b[101m\"%s\"\x1b[0m is to connect as device \x1b[1m#%d\x1b[0m.", thing, i);
 	}
-
-	FindFirstDrive();
 }
 
 void Preload()

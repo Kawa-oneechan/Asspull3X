@@ -14,7 +14,7 @@ SDL_GameControllerButton buttonMap[16];
 extern unsigned int biosSize, romSize;
 extern long rtcOffset;
 
-int firstDiskDrive = -1;
+int activeDiskDrive = -1;
 
 WCHAR currentROM[FILENAME_MAX], currentSRAM[FILENAME_MAX];
 
@@ -230,6 +230,13 @@ void MainLoop()
 					{
 						UI::HideUI(!UI::hideUI);
 					}
+					else if (ev.key.keysym.sym >= SDLK_1 && ev.key.keysym.sym <= SDLK_4)
+					{
+						activeDiskDrive = ev.key.keysym.sym - SDLK_1;
+						WCHAR lol[128] = { 0 };
+						wsprintf(lol, L"Switched to drive %c:.", 'A' + activeDiskDrive);
+						UI::SetStatus(lol);
+					}
 				}
 				else
 				{
@@ -308,12 +315,22 @@ void MainLoop()
 			}
 			else if (UI::uiCommand == cmdInsertDisk)
 			{
-				if (firstDiskDrive == -1)
-					UI::SetStatus(IDS_NODISKDRIVE); //"No disk drive."
-				else if (((DiskDrive*)devices[firstDiskDrive])->IsMounted())
-					UI::SetStatus(IDS_UNMOUNTFIRST); //"Unmount the medium first."
-				else
-					UI::InsertDisk(firstDiskDrive);
+				for (int i = 0, j = 0; i < 16; i++)
+				{
+					if (devices[i]->GetID() == DEVID_DISKDRIVE)
+					{
+						if (j == activeDiskDrive)
+						{
+							if (((DiskDrive*)devices[i])->IsMounted())
+								UI::SetStatus(IDS_UNMOUNTFIRST); //"Unmount the medium first."
+							else
+								UI::InsertDisk(i);
+							break;
+						}
+						j++;
+					}
+				}
+				
 			}
 			else if (UI::uiCommand == cmdUnloadRom)
 			{
@@ -328,10 +345,19 @@ void MainLoop()
 			}
 			else if (UI::uiCommand == cmdEjectDisk)
 			{
-				if (firstDiskDrive == -1)
-					UI::SetStatus(IDS_NODISKDRIVE); //"No disk drive."
-				else if (((DiskDrive*)devices[firstDiskDrive])->IsMounted())
-					UI::EjectDisk(firstDiskDrive);
+				for (int i = 0, j = 0; i < 16; i++)
+				{
+					if (devices[i]->GetID() == DEVID_DISKDRIVE)
+					{
+						if (j == activeDiskDrive)
+						{
+							if (((DiskDrive*)devices[i])->IsMounted())
+								UI::EjectDisk(i);
+							break;
+						}
+						j++;
+					}
+				}
 			}
 			else if (UI::uiCommand == cmdReset)
 			{
