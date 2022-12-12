@@ -103,18 +103,6 @@ Any pixel on the given layer that falls outside of the window clipping edges is 
 
 The left and right edges for the window clipping effect set up by `REG_WINMASK`.
 
-### 00044	REG_MIDIOUT
-
-Send a byte through the MIDI OUT port.
-
-### 00048	REG_OPLOUT
-
-Sends a register-value pair to the OPL3/YMF262.
-
-    RRRR RRRR VVVV VVVV
-    |         |__________ Value
-    |____________________ Register
-
 ### 00054	REG_CARET
 
     EB.. PPPP PPPP PPPP
@@ -127,24 +115,6 @@ Only rendered in text mode.
 ### 00060	REG_TIMET
 
 The only 64-bit value in the system. Emulator-wise, reading the first half latches the current host system time so there's no sudden shifts when you read the second half. Writing the first half likewise latches, and the real time clock isn't actually *set* until the second half is written. If reading returns a null value, the RTC hasn't been set and doesn't tick.
-
-### 00070	REG_PCM1OFFSET
-
-A pointer to a chunk of 8-bit 11025 Hz unsigned PCM audio for channel 1. Writing to this register only latches its value, it doesn't actually start playing anything. This is immediately followed by an identical register for channel 2, `00074 REG_PCM2OFFSET`.
-
-The PCM offsets are also available via the `PCMOFFSET` array, and the first one as `REG_PCMOFFSET`.
-
-### 00078	REG_PCM1LENGTH
-
-The first 31 bytes are the length of the PCM audio chunk in `REG_PCM1OFFSET`. The most significant specifies if the sound should repeat automatically. Sound playback starts when this register is written to. This is immediately followed by an identical register for channel 2, `0007C REG_PCM2LENGTH`.
-
-The PCM lengths are also available via the `PCMLENGTH` array, and the first one as `REG_PCMLENGTH`.
-
-### 00080	REG_PCM1VOLUMEL
-
-A value from zero to 255 denoting the volume to play PCM channel 1 at, on the left speaker. This is immediately followed by an identical register for the right speaker, `00081 REG_PCM1VOLUMER`, then the same pair for channel 2.
-
-The PCM volume controls are also available via the `PCMVOLUME` array, and the first channels' as `REG_PCMVOLUMEL` and `REG_PCMVOLUMER`.
 
 ### 00100	REG_DMASOURCE
 

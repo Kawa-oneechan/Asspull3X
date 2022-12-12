@@ -161,7 +161,7 @@ void GetSettings()
 void InitializeDevices()
 {
 	//Absolutely always load Input as #0
-	inputDev = new InputDevice();
+	inputDev = new InputOutputDevice();
 	devices[0] = (Device*)inputDev;
 
 	for (int i = 1; i < MAXDEVS; i++)

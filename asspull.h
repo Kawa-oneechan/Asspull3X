@@ -45,7 +45,7 @@ extern void FindFirstDrive();
 
 #define SCREENBUFFERSIZE (640 * 480 * 4)
 
-//Move these into InputDevice?
+//Move these into InputOutputDevice?
 extern unsigned short joypad[2];
 extern char joyaxes[2][2];
 

@@ -250,17 +250,6 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 			case 0x0B: //MapShift
 				Registers::MapTileShift = value;
 				break;
-			case 0x44: //MIDI Out
-				Sound::SendMidiByte(value);
-				break;
-			case 0x80: //PCM Volume
-			case 0x81:
-			case 0x82:
-			case 0x83:
-			{
-				Sound::pcmVolume[reg - 0x80] = value;
-				break;
-			}
 			case 0x10A: //DMA Control
 			{
 				if ((value & 1) == 0) return;
@@ -359,9 +348,6 @@ void m68k_write_memory_16(unsigned int address, unsigned int value)
 			case 0x24:
 				Registers::WindowRight = value;
 				break;
-			case 0x48: //OPL3 out
-				Sound::SendOPL(value);
-				break;
 			case 0x54:
 				Registers::Caret = value;
 				break;
@@ -403,21 +389,6 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 					UI::SaveINI();
 				}
 				break;
-			case 0x70: //PCM Offset
-			case 0x74:
-			{
-				auto channel = (reg - 0x70) / 4;
-				Sound::pcmSource[channel] = value;
-				break;
-			}
-			case 0x78: //PCM Length + Repeat
-			case 0x7C:
-			{
-				auto channel = (reg - 0x78) / 4;
-				Sound::pcmPlayed[channel] = Sound::pcmLength[channel] = value & 0x7FFFFFFF;
-				Sound::pcmRepeat[channel] = (value & 0x80000000) != 0;
-				break;
-			}
 			case 0x180: //HDMA Control
 			case 0x184:
 			case 0x188:

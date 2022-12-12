@@ -1,6 +1,6 @@
 #include "asspull.h"
 
-InputDevice* inputDev;
+InputOutputDevice* inputDev;
 unsigned short joypad[2];
 char joyaxes[2][2];
 
@@ -108,7 +108,7 @@ const unsigned char keyMap[] =
 	0x53, //kp.
 };
 
-InputDevice::InputDevice()
+InputOutputDevice::InputOutputDevice()
 {
 	bufferCursor = 0;
 	for (int i = 0; i < 32; i++)
@@ -117,11 +117,11 @@ InputDevice::InputDevice()
 	mouseLatch = 0;
 }
 
-InputDevice::~InputDevice()
+InputOutputDevice::~InputOutputDevice()
 {
 }
 
-unsigned int InputDevice::Read(unsigned int address)
+unsigned int InputOutputDevice::Read(unsigned int address)
 {
 	READ_DEVID(DEVID_INPUT);
 	switch (address)
@@ -197,21 +197,103 @@ unsigned int InputDevice::Read(unsigned int address)
 	return 0;
 }
 
-void InputDevice::Write(unsigned int address, unsigned int value)
+void InputOutputDevice::Write(unsigned int address, unsigned int value)
 {
-	if (address == 0x00)
+	static unsigned int oplLatch = 0;
+	static unsigned int pcmLatch = 0;
+	switch (address)
+	{
+	case 0x00: //Reset keyboard buffer
 	{
 		for (int i = 0; i < 32; i++)
 			buffer[i] = 0;
 		bufferCursor = 0;
+		return;
+	}
+	case 0x04: //MIDI Out
+	{
+		Sound::SendMidiByte(value);
+		break;
+	}
+	case 0x05: //OPL3 out
+	{
+		oplLatch = value;
+		break;
+	}
+	case 0x06:
+	{
+		Sound::SendOPL((oplLatch << 8) | value);
+		oplLatch = 0;
+		break;
+	}
+	case 0x10: //PCM Offset
+	case 0x14:
+	{
+		pcmLatch = value << 24;
+		break;
+	}
+	case 0x11:
+	case 0x15:
+	{
+		pcmLatch |= value << 16;
+		break;
+	}
+	case 0x12:
+	case 0x16:
+	{
+		pcmLatch |= value << 8;
+		break;
+	}
+	case 0x13:
+	case 0x17:
+	{
+		pcmLatch |= value << 0;
+		Sound::pcmSource[address == 0x13 ? 0 : 1] = value;
+		break;
+	}
+	case 0x18: //PCM Length + Repeat
+	case 0x1C:
+	{
+		pcmLatch = value << 24;
+		break;
+	}
+	case 0x19:
+	case 0x1D:
+	{
+		pcmLatch |= value << 16;
+		break;
+	}
+	case 0x1A:
+	case 0x1E:
+	{
+		pcmLatch |= value << 8;
+		break;
+	}
+	case 0x1B:
+	case 0x1F:
+	{
+		pcmLatch |= value << 0;
+		auto channel = (address == 0x1B ? 0 : 1);
+		Sound::pcmPlayed[channel] = Sound::pcmLength[channel] = value & 0x7FFFFFFF;
+		Sound::pcmRepeat[channel] = (value & 0x80000000) != 0;
+		break;
+	}
+	case 0x20: //PCM Volume
+	case 0x21:
+	case 0x22:
+	case 0x23:
+	{
+		Sound::pcmVolume[address - 0x20] = value;
+		break;
+	}
 	}
 }
 
-int InputDevice::GetID() { return DEVID_INPUT; }
+int InputOutputDevice::GetID() { return DEVID_INPUT; }
 
-void InputDevice::HBlank() {}
+void InputOutputDevice::HBlank() {}
 
-void InputDevice::VBlank()
+void InputOutputDevice::VBlank()
 {
 	if (!UI::mouseLocked)
 		return;
@@ -237,7 +319,7 @@ void InputDevice::VBlank()
 	mouseLatch = ((b & 1) << 14) | ((b & 4) << 13) | (dy << 13) | (y << 7) | (dx << 6) | x;
 }
 
-void InputDevice::Enqueue(SDL_Keysym sym)
+void InputOutputDevice::Enqueue(SDL_Keysym sym)
 {
 	if (sym.scancode == SDL_SCANCODE_RCTRL) return;
 	if (sym.scancode == SDL_SCANCODE_RALT) return;

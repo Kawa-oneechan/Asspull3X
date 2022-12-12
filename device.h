@@ -67,7 +67,7 @@ public:
 //0x4C50: LP for Line Printer
 #define DEVID_LINEPRINTER 0x4C50
 
-class InputDevice : Device
+class InputOutputDevice : Device
 {
 private:
 	unsigned int buffer[32];
@@ -75,8 +75,8 @@ private:
 	int lastMouseX, lastMouseY;
 	unsigned int mouseLatch;
 public:
-	InputDevice(void);
-	~InputDevice(void);
+	InputOutputDevice(void);
+	~InputOutputDevice(void);
 	unsigned int Read(unsigned int address);
 	void Write(unsigned int address, unsigned int value);
 	int GetID();
@@ -84,7 +84,7 @@ public:
 	void VBlank();
 	void Enqueue(SDL_Keysym sym);
 };
-//0x494F: IO for Input Output, even though it's only input
+//0x494F: IO for Input Output
 #define DEVID_INPUT 0x494F
 
 #define READ_DEVID(x) \
@@ -92,7 +92,7 @@ public:
 	else if (address == 1) return (x & 0xFF);
 
 extern Device* devices[MAXDEVS];
-extern InputDevice* inputDev;
+extern InputOutputDevice* inputDev;
 
 namespace Discord
 {

@@ -2,13 +2,14 @@
 
 Each of the sixteen blocks of `8000` bytes starting from `2000000` may or may not map to a device. The first two bytes of each block identify what kind of device it is. If those bytes are the value `0000` or `FFFF` there is no device.
 
-### Input devices
+### Input/output devices
 
-The input device is hard wired as device #0. As such, it can safely have its components defined.
+The I/O device is hard wired as device #0. As such, it can safely have its components defined.
+It handles both input through the keyboard, mouse, and joypads, and output through the OPL3, MIDI-OUT, and dual PCM channels. As such, its registers act differently depending on if you're *reading* or *writing*.
 
 #### 0000	Identifier
 
-The input device identifies by the value `494F`, for "IO", even though it's only input.
+The input device identifies by the value `494F`, for "IO".
 
 #### 0002	INP_KEYIN
 
@@ -87,7 +88,35 @@ A list of 256 individual bytes reflecting the state of up to 256 individual keys
 | Ex   |      |      |      |      |      |      |      |      |      |       |      |      |      |      |      |      |
 | Fx   |      |      |      |      |      |      |      |      |      |       |      |      |      |      |      |      |
 
+#### 0004 REG_MIDIOUT
 
+Send a byte through the MIDI OUT port.
+
+#### 0005 REG_OPLOUT
+
+Sends a register-value pair to the OPL3/YMF262.
+
+    RRRR RRRR VVVV VVVV
+    |         |__________ Value
+    |____________________ Register
+
+#### 0010 REG_PCM1OFFSET
+
+A pointer to a chunk of 8-bit 11025 Hz unsigned PCM audio for channel 1. Writing to this register only latches its value, it doesn't actually start playing anything. This is immediately followed by an identical register for channel 2, `0014 REG_PCM2OFFSET`.
+
+The PCM offsets are also available via the `PCMOFFSET` array, and the first one as `REG_PCMOFFSET`.
+
+#### 0018	REG_PCM1LENGTH
+
+The first 31 bits are the length of the PCM audio chunk in `REG_PCM1OFFSET`. The most significant specifies if the sound should repeat automatically. Sound playback starts when this register is written to. This is immediately followed by an identical register for channel 2, `001C REG_PCM2LENGTH`.
+
+The PCM lengths are also available via the `PCMLENGTH` array, and the first one as `REG_PCMLENGTH`.
+
+#### 0020 REG_PCM1VOLUMEL
+
+A value from zero to 255 denoting the volume to play PCM channel 1 at, on the left speaker. This is immediately followed by an identical register for the right speaker, `0021 REG_PCM1VOLUMER`, then the same pair for channel 2.
+
+The PCM volume controls are also available via the `PCMVOLUME` array, and the first channels' as `REG_PCMVOLUMEL` and `REG_PCMVOLUMER`.
 
 ### Disk drive
 
