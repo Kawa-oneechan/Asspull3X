@@ -93,12 +93,3 @@ public:
 
 extern Device* devices[MAXDEVS];
 extern InputOutputDevice* inputDev;
-
-namespace Discord
-{
-	extern bool enabled;
-
-	extern void Initialize();
-	extern void SetPresence(char* gameName);
-	extern void Shutdown();
-}

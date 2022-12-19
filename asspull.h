@@ -168,6 +168,15 @@ namespace Sound
 	extern void Reset();
 }
 
+namespace Discord
+{
+	extern bool enabled;
+
+	extern void Initialize();
+	extern void SetPresence(char* gameName);
+	extern void Shutdown();
+}
+
 extern CSimpleIni ini;
 
 enum uiCommands
