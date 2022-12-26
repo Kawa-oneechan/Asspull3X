@@ -1,5 +1,39 @@
 #include "asspull.h"
 
+/*
+I/O CONTROLLER "FONDA"
+----------------------
+OUTPUTS
+ * 0x0000: ID, 0x494F 'IO'
+ * 0x0002: Keyboard buffer. Reading pops one byte value off the stack.
+ * 0x0003: Keyboard shift states. & 1 for Shift, & 2 for Alt, & 4 for Ctrl.
+ * 0x0010: Gamepad states. & 1 for digital-only P1, & 2 for analog P2,
+ *         & 16 for digital P2, & 32 for analog P2.
+ * 0x0012: P1 gamepad button state, part 1.
+ * 0x0013: P1 gamepad button state, part 2.
+ * 0x0014: P1 gamepad analog stick, axis 1.
+ * 0x0015: P1 gamepad analog stick, axis 2.
+ * 0x0016: P2 gamepad button state, part 1.
+ * 0x0017: P2 gamepad button state, part 2.
+ * 0x0018: P2 gamepad analog stick, axis 1.
+ * 0x0019: P2 gamepad analog stick, axis 2.
+ * 0x0020: Mouse state, 16 bits.
+ * 0x0040: 256 bytes of live keyboard state.
+
+INPUTS
+ * 0x0000: Reset keyboard buffer.
+ * 0x0004: MIDI out.
+ * 0x0005: OPL3 out, 16 bits.
+ * 0x0010: PCM 1 offset, 32 bits.
+ * 0x0014: PCM 2 offset.
+ * 0x0018: PCM 1 length and repeat, triggers playback.
+ * 0x001C: PCM 2 length and repeat.
+ * 0x0020: PCM 1 volume (TODO)
+
+INTERRUPTS
+ * VBlank: updates mouse state.
+*/
+
 InputOutputDevice* inputDev;
 unsigned short joypad[2];
 char joyaxes[2][2];

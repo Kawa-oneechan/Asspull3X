@@ -10,7 +10,6 @@ extern "C" unsigned int m68k_read_memory_8(unsigned int address);
 
 namespace Sound
 {
-
 	HMIDIOUT midiDevice = 0;
 
 	int programs[16] = { 0 };

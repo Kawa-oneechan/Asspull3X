@@ -1,5 +1,28 @@
 #include "asspull.h"
-#include "resource.h"
+
+/*
+DISK DRIVE CONTROLLER "SIMMONS"
+-------------------------------
+
+OUTPUTS
+ * 0x0000: ID, 0x0144 as in 1.44 MB
+ * 0x0002: 16 bit number of sector to seek to. Seek happens on read/write.
+ * 0x0004: Status. & 1 for disk presence, & 2 for error state.
+ * 0x0005: Media type. 0 for diskette, 1 for hard disk.
+ * 0x0010: Number of tracks on medium, 16 bits.
+ * 0x0012: Number of heads, 16 bits.
+ * 0x0014: Number of sectors, 16 bits.
+ * 0x0200: 512 byte sector buffer
+
+INPUTS
+ * 0x0002: 16 bit number of sector to seek to. Seek happens on read/write.
+ * 0x0004: Command. If 4, seeks to target sector and reads 512 bytes into buffer.
+ *         If 8, seeks to target sector and writes buffer.
+ * 0x0200: 512 byte sector buffer
+
+INTERRUPTS
+ * None
+*/
 
 #define SECTOR_SIZE 512
 

@@ -124,6 +124,7 @@
     <ClCompile Include="extras.cpp" />
     <ClCompile Include="input.cpp" />
     <ClCompile Include="memory.cpp" />
+    <ClCompile Include="printer.cpp" />
     <ClCompile Include="support\miniz.c" />
     <ClCompile Include="musashi\m68kcpu.c" />
     <ClCompile Include="musashi\m68kops.c" />
