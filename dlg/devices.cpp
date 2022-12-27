@@ -97,8 +97,7 @@ namespace UI
 				}
 			}
 
-			//if (numDrives > 4 || firstDev)
-			InvalidateRect(hWnd, NULL, true);
+			InvalidateRect(hWnd, &shrugIcon, true);
 		}
 
 		void UpdateList()
@@ -206,7 +205,7 @@ namespace UI
 					SendDlgItemMessage(hWnd, IDC_DEVTYPE, CB_ADDSTRING, 0, (LPARAM)GetString(IDS_DEVICES1 + i));
 					SendDlgItemMessage(hWnd, IDC_DEVTYPE, CB_SETITEMDATA, i, deviceIcons[i]);
 				}
-				GetIconPos(hWnd, IDC_SHRUG, &shrugIcon, 0, 0);
+				GetIconPos(hWnd, IDC_SHRUG, &shrugIcon, 0, 0, 64);
 				hShrugImage = Images::LoadPNGResource(IDB_SHRUG);
 				UpdateList();
 				return true;
@@ -230,7 +229,7 @@ namespace UI
 				}
 			}
 			case WM_ERASEBKGND:
-				return false;
+				return true; //now that's what I call cargo culting!
 			case WM_PAINT:
 			{
 				PAINTSTRUCT ps;

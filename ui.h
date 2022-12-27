@@ -61,7 +61,7 @@ namespace UI
 		extern void DrawCheckbox(HWND hwndDlg, LPNMCUSTOMDRAW dis);
 		extern bool DrawButton(HWND hwndDlg, LPNMCUSTOMDRAW dis);
 		extern bool DrawComboBox(LPDRAWITEMSTRUCT dis);
-		extern void GetIconPos(HWND hwndDlg, int ctlID, RECT* iconRect, int leftOffset, int topOffset);
+		extern void GetIconPos(HWND hwndDlg, int ctlID, RECT* iconRect, int leftOffset, int topOffset, int size = 16);
 		namespace Windows10
 		{
 			extern bool IsWin10();

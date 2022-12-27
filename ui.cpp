@@ -194,7 +194,7 @@ namespace UI
 			return true;
 		}
 
-		void GetIconPos(HWND hwndDlg, int ctlID, RECT* iconRect, int leftOffset, int topOffset)
+		void GetIconPos(HWND hwndDlg, int ctlID, RECT* iconRect, int leftOffset, int topOffset, int size)
 		{
 			POINT t;
 			GetWindowRect(GetDlgItem(hwndDlg, ctlID), iconRect);
@@ -203,8 +203,8 @@ namespace UI
 			ScreenToClient(hwndDlg, &t);
 			iconRect->left = t.x + leftOffset;
 			iconRect->top = t.y + topOffset;
-			iconRect->right = iconRect->left + 16;
-			iconRect->bottom = iconRect->top + 16;
+			iconRect->right = iconRect->left + size;
+			iconRect->bottom = iconRect->top + size;
 		}
 
 		namespace Windows10
