@@ -51,44 +51,15 @@ unsigned int LinePrinter::Read(unsigned int address)
 
 void LinePrinter::Write(unsigned int address, unsigned int value)
 {
-	//TODO: look into printing to PNG files.
-
 	if (address == 2)
 	{
-		auto hWnd = GetConsoleWindow();
-		if (hWnd == NULL)
+		FILE* prnFile = nullptr;
+		if (visibleLength == 80 || (char)value == '\n')
 		{
-			//Apparently we have no console window. Debug with a detached process, Release build?
-			AllocConsole();
-			FILE* pOut = nullptr;
-			freopen_s(&pOut, "CON", "w", stdout);
-			SetConsoleCP(CP_UTF8);
-			auto throwAway = _setmode(_fileno(stdout), _O_U16TEXT); throwAway;
-			DWORD mode = 0;
-			GetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), &mode);
-			mode |= 4;
-			SetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), mode);
-		}
-
-		DWORD mode = 0;
-		GetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), &mode);
-		int bg = pageLength % 4 < 2 ? 107 : 47;
-		if ((char)value == '\f')
-		{
-			if (mode & 4)
-				wprintf(L"\x1b[%d;90m\u2022\u00A6----------------------------------------------------------------------------------\u00A6\u2022\x1B[0m\n", bg);
-			else
-				wprintf(L"o|----------------------------------------------------------------------------------|o\n");
-			pageLength = 0;
-		}
-		else if (visibleLength == 80 || (char)value == '\n')
-		{
+			fopen_s(&prnFile, "printer.txt", "a, ccs=UNICODE");
 			WCHAR wLine[120] = { 0 };
 			mbstowcs_s(NULL, wLine, line, 80);
-			if (mode & 4)
-				wprintf(L"\x1b[%d;90m\u2022\u00A6\x1b[%d;30m %*s \x1b[%d;90m\u00A6\u2022\x1B[0m\n", bg, bg, -padLength, wLine, bg);
-			else
-				wprintf(L"o| %*s |o\n", -padLength, wLine);
+			fwprintf(prnFile, L"%s\n", wLine);
 			pageLength++;
 			if (pageLength == 30)
 				Write(2, '\f');
@@ -96,6 +67,7 @@ void LinePrinter::Write(unsigned int address, unsigned int value)
 			visibleLength = 0;
 			lineLength = 0;
 			padLength = 80;
+			fclose(prnFile);
 		}
 		else if ((char)value == '\r')
 		{
