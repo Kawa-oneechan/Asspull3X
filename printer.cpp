@@ -60,7 +60,8 @@ void LinePrinter::Write(unsigned int address, unsigned int value)
 		{
 			//Apparently we have no console window. Debug with a detached process, Release build?
 			AllocConsole();
-			freopen("CON", "w", stdout);
+			FILE* pOut = nullptr;
+			freopen_s(&pOut, "CON", "w", stdout);
 			SetConsoleCP(CP_UTF8);
 			auto throwAway = _setmode(_fileno(stdout), _O_U16TEXT); throwAway;
 			DWORD mode = 0;
