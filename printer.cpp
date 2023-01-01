@@ -58,7 +58,7 @@ void LinePrinter::Write(unsigned int address, unsigned int value)
 		fseek(prnFile, 0, SEEK_END);
 		auto fs = ftell(prnFile);
 		if (fs == 0)
-			fwprintf(prnFile, L"<style>*{white-space:pre;font-family:monospace;}</style>");
+			fwprintf(prnFile, L"<style>body{font:12pt monospace;white-space:pre;border:solid;border-width:1 4 0;padding:1em;width:44em;height:min-content;}hr{border:dotted;border-width:0 0 1 0;margin:0.5em -1em;}</style>");
 
 		if ((char)value == '\r')
 		{
