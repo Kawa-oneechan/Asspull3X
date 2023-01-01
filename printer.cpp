@@ -81,68 +81,71 @@ void LinePrinter::Write(unsigned int address, unsigned int value)
 				wprintf(L"o|----------------------------------------------------------------------------------|o\n");
 			pageLength = 0;
 		}
-		else if (visibleLength == 80 || (char)value == '\n')
-		{
-			WCHAR wLine[120] = { 0 };
-			mbstowcs_s(NULL, wLine, line, 80);
-			if (mode & 4)
-				wprintf(L"\x1b[%d;90m\u2022\u00A6\x1b[%d;30m %*s \x1b[%d;90m\u00A6\u2022\x1B[0m\n", bg, bg, -padLength, wLine, bg);
-			else
-				wprintf(L"o| %*s |o\n", -padLength, wLine);
-			pageLength++;
-			if (pageLength == 30)
-				Write(2, '\f');
-			memset(line, 0, 120);
-			visibleLength = 0;
-			lineLength = 0;
-			padLength = 80;
-		}
 		else if ((char)value == '\r')
 		{
 		}
 		else
 		{
-			line[lineLength++] = (char)value;
-			visibleLength++;
-			if (line[lineLength - 2] == 0x1B)
+			if ((char)value != '\n')
 			{
-				switch (line[lineLength - 1])
+				line[lineLength++] = (char)value;
+				visibleLength++;
+				if (line[lineLength - 2] == 0x1B)
 				{
-				case 'E':
-				{
-					line[lineLength - 1] = '[';
-					line[lineLength++] = '1';
-					line[lineLength++] = 'm';
-					padLength += 4;
-					break;
+					switch (line[lineLength - 1])
+					{
+					case 'E':
+					{
+						line[lineLength - 1] = '[';
+						line[lineLength++] = '1';
+						line[lineLength++] = 'm';
+						padLength += 4;
+						break;
+					}
+					case 'e':
+					{
+						line[lineLength - 1] = '[';
+						line[lineLength++] = '2';
+						line[lineLength++] = '2';
+						line[lineLength++] = 'm';
+						padLength += 5;
+						break;
+					}
+					case 'U':
+					{
+						line[lineLength - 1] = '[';
+						line[lineLength++] = '4';
+						line[lineLength++] = 'm';
+						padLength += 4;
+						break;
+					}
+					case 'u':
+					{
+						line[lineLength - 1] = '[';
+						line[lineLength++] = '2';
+						line[lineLength++] = '4';
+						line[lineLength++] = 'm';
+						padLength += 5;
+						break;
+					}
+					}
 				}
-				case 'e':
-				{
-					line[lineLength - 1] = '[';
-					line[lineLength++] = '2';
-					line[lineLength++] = '2';
-					line[lineLength++] = 'm';
-					padLength += 5;
-					break;
-				}
-				case 'U':
-				{
-					line[lineLength - 1] = '[';
-					line[lineLength++] = '4';
-					line[lineLength++] = 'm';
-					padLength += 4;
-					break;
-				}
-				case 'u':
-				{
-					line[lineLength - 1] = '[';
-					line[lineLength++] = '2';
-					line[lineLength++] = '4';
-					line[lineLength++] = 'm';
-					padLength += 5;
-					break;
-				}
-				}
+			}
+			if (visibleLength == 80 || (char)value == '\n')
+			{
+				WCHAR wLine[120] = { 0 };
+				mbstowcs_s(NULL, wLine, line, 80);
+				if (mode & 4)
+					wprintf(L"\x1b[%d;90m\u2022\u00A6\x1b[%d;30m %*s \x1b[%d;90m\u00A6\u2022\x1B[0m\n", bg, bg, -padLength, wLine, bg);
+				else
+					wprintf(L"o| %*s |o\n", -padLength, wLine);
+				pageLength++;
+				if (pageLength == 30)
+					Write(2, '\f');
+				memset(line, 0, 120);
+				visibleLength = 0;
+				lineLength = 0;
+				padLength = 80;
 			}
 		}
 	}
