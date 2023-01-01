@@ -63,6 +63,10 @@ void LinePrinter::Write(unsigned int address, unsigned int value)
 		if ((char)value == '\r')
 		{
 		}
+		else if ((char)value == '\f')
+		{
+			fwprintf(prnFile, L"<hr>");
+		}
 		else
 		{
 			if ((char)value != '\n')
