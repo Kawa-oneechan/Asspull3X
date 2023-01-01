@@ -30,7 +30,7 @@ CONTROL CODES
 
 LinePrinter::LinePrinter()
 {
-	memset(line, 0, 80);
+	memset(line, 0, 120);
 	lineLength = 0;
 	visibleLength = 0;
 	padLength = 80;
@@ -100,6 +100,7 @@ void LinePrinter::Write(unsigned int address, unsigned int value)
 						line[lineLength++] = '1';
 						line[lineLength++] = 'm';
 						padLength += 4;
+						visibleLength -= 2;
 						break;
 					}
 					case 'e':
@@ -109,6 +110,7 @@ void LinePrinter::Write(unsigned int address, unsigned int value)
 						line[lineLength++] = '2';
 						line[lineLength++] = 'm';
 						padLength += 5;
+						visibleLength -= 2;
 						break;
 					}
 					case 'U':
@@ -117,6 +119,7 @@ void LinePrinter::Write(unsigned int address, unsigned int value)
 						line[lineLength++] = '4';
 						line[lineLength++] = 'm';
 						padLength += 4;
+						visibleLength -= 2;
 						break;
 					}
 					case 'u':
@@ -126,6 +129,7 @@ void LinePrinter::Write(unsigned int address, unsigned int value)
 						line[lineLength++] = '4';
 						line[lineLength++] = 'm';
 						padLength += 5;
+						visibleLength -= 2;
 						break;
 					}
 					}
@@ -133,8 +137,8 @@ void LinePrinter::Write(unsigned int address, unsigned int value)
 			}
 			if (visibleLength == 80 || (char)value == '\n')
 			{
-				WCHAR wLine[120] = { 0 };
-				mbstowcs_s(NULL, wLine, line, 80);
+				WCHAR wLine[128] = { 0 };
+				mbstowcs_s(NULL, wLine, line, 80 + padLength);
 				if (mode & 4)
 					wprintf(L"\x1b[%d;90m\u2022\u00A6\x1b[%d;30m %*s \x1b[%d;90m\u00A6\u2022\x1B[0m\n", bg, bg, -padLength, wLine, bg);
 				else
