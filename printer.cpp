@@ -30,7 +30,7 @@ CONTROL CODES
 
 LinePrinter::LinePrinter()
 {
-	memset(line, 0, 80);
+	memset(line, 0, 120);
 	lineLength = 0;
 	visibleLength = 0;
 	padLength = 80;
@@ -54,67 +54,74 @@ void LinePrinter::Write(unsigned int address, unsigned int value)
 	if (address == 2)
 	{
 		FILE* prnFile = nullptr;
-		if (visibleLength == 80 || (char)value == '\n')
-		{
-			fopen_s(&prnFile, "printer.txt", "a, ccs=UNICODE");
-			WCHAR wLine[120] = { 0 };
-			mbstowcs_s(NULL, wLine, line, 80);
-			fwprintf(prnFile, L"%s\n", wLine);
-			pageLength++;
-			if (pageLength == 30)
-				Write(2, '\f');
-			memset(line, 0, 120);
-			visibleLength = 0;
-			lineLength = 0;
-			padLength = 80;
-			fclose(prnFile);
-		}
-		else if ((char)value == '\r')
+		if ((char)value == '\r')
 		{
 		}
 		else
 		{
-			line[lineLength++] = (char)value;
-			visibleLength++;
-			if (line[lineLength - 2] == 0x1B)
+			if ((char)value != '\n')
 			{
-				switch (line[lineLength - 1])
+				line[lineLength++] = (char)value;
+				visibleLength++;
+				if (line[lineLength - 2] == 0x1B)
 				{
-				case 'E':
-				{
-					line[lineLength - 1] = '[';
-					line[lineLength++] = '1';
-					line[lineLength++] = 'm';
-					padLength += 4;
-					break;
+					switch (line[lineLength - 1])
+					{
+					case 'E':
+					{
+						line[lineLength - 1] = '[';
+						line[lineLength++] = '1';
+						line[lineLength++] = 'm';
+						padLength += 4;
+						visibleLength -= 2;
+						break;
+					}
+					case 'e':
+					{
+						line[lineLength - 1] = '[';
+						line[lineLength++] = '2';
+						line[lineLength++] = '2';
+						line[lineLength++] = 'm';
+						padLength += 5;
+						visibleLength -= 2;
+						break;
+					}
+					case 'U':
+					{
+						line[lineLength - 1] = '[';
+						line[lineLength++] = '4';
+						line[lineLength++] = 'm';
+						padLength += 4;
+						visibleLength -= 2;
+						break;
+					}
+					case 'u':
+					{
+						line[lineLength - 1] = '[';
+						line[lineLength++] = '2';
+						line[lineLength++] = '4';
+						line[lineLength++] = 'm';
+						padLength += 5;
+						visibleLength -= 2;
+						break;
+					}
+					}
 				}
-				case 'e':
-				{
-					line[lineLength - 1] = '[';
-					line[lineLength++] = '2';
-					line[lineLength++] = '2';
-					line[lineLength++] = 'm';
-					padLength += 5;
-					break;
-				}
-				case 'U':
-				{
-					line[lineLength - 1] = '[';
-					line[lineLength++] = '4';
-					line[lineLength++] = 'm';
-					padLength += 4;
-					break;
-				}
-				case 'u':
-				{
-					line[lineLength - 1] = '[';
-					line[lineLength++] = '2';
-					line[lineLength++] = '4';
-					line[lineLength++] = 'm';
-					padLength += 5;
-					break;
-				}
-				}
+			}
+			if (visibleLength == 80 || (char)value == '\n')
+			{
+				fopen_s(&prnFile, "printer.txt", "a, ccs=UNICODE");
+				WCHAR wLine[128] = { 0 };
+				mbstowcs_s(NULL, wLine, line, 80 + padLength);
+				fwprintf(prnFile, L"%s\n", wLine);
+				pageLength++;
+				if (pageLength == 30)
+					Write(2, '\f');
+				memset(line, 0, 120);
+				visibleLength = 0;
+				lineLength = 0;
+				padLength = 80;
+				fclose(prnFile);
 			}
 		}
 	}
