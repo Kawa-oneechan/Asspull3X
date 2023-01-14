@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <commctrl.h>
 #include <ShlObj.h>
+#include <time.h>
 
 extern "C" {
 #include "musashi/m68k.h"
@@ -146,7 +147,10 @@ void GetSettings()
 	}
 	LocalFree(argv);
 
-	rtcOffset = ini.GetLongValue(L"misc", L"rtcOffset", 0xDEADC70C);
+	auto rtcEpoch = 441763200 - time(NULL);
+	rtcOffset = ini.GetLongValue(L"misc", L"rtcOffset", rtcEpoch);
+	if (rtcOffset == rtcEpoch)
+		ini.SetLongValue(L"misc", L"rtcOffset", rtcEpoch);
 
 	auto test = SDL_GameControllerGetStringForButtonW(SDL_CONTROLLER_BUTTON_LEFTSHOULDER);
 	auto test2 = SDL_GameControllerGetButtonFromStringW(L"leftshoulder");

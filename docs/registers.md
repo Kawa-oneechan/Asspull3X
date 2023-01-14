@@ -114,7 +114,7 @@ Only rendered in text mode.
 
 ### 00060	REG_TIMET
 
-The only 64-bit value in the system. Emulator-wise, reading the first half latches the current host system time so there's no sudden shifts when you read the second half. Writing the first half likewise latches, and the real time clock isn't actually *set* until the second half is written. If reading returns a null value, the RTC hasn't been set and doesn't tick.
+The only 64-bit value in the system. Emulator-wise, reading the first half latches the current host system time so there's no sudden shifts when you read the second half. Writing the first half likewise latches, and the real time clock isn't actually *set* until the second half is written. On first run, the emulator will reset the RTC to 1984-01-01 00:00:00 GMT.
 
 ### 00100	REG_DMASOURCE
 

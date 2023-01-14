@@ -203,7 +203,7 @@ unsigned int m68k_read_memory_32(unsigned int address)
 			case 0x04: //Ticks
 				return (int)ticks;
 			case 0x60: //Time_T (top half)
-				timelatch = (rtcOffset == 0xDEADC70C) ? 0 : (time(NULL) + rtcOffset);
+				timelatch = time(NULL) + rtcOffset;
 				return (int)(timelatch >> 32);
 			case 0x64: //Time_T (bottom half)
 				return (int)timelatch;
