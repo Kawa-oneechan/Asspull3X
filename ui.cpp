@@ -1091,7 +1091,7 @@ namespace UI
 			else
 				ini.SetValue(L"devices/hardDrive", key, uiString);
 			SaveINI();
-			if (DeviceManager::hWnd != NULL) DeviceManager::UpdatePage();
+			if (DeviceManager::hWnd != NULL) DeviceManager::UpdatePage(true);
 		}
 	}
 
@@ -1107,7 +1107,7 @@ namespace UI
 		ResetPath();
 		ini.SaveFile(settingsFile, false);
 		SetStatus(IDS_DISKEJECTED); //"Disk ejected."
-		if (DeviceManager::hWnd != NULL) DeviceManager::UpdatePage();
+		if (DeviceManager::hWnd != NULL) DeviceManager::UpdatePage(true);
 	}
 
 	void SetTitle(const WCHAR* subtitle)

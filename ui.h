@@ -102,7 +102,7 @@ namespace UI
 	}
 	namespace DeviceManager
 	{
-		extern void UpdatePage();
+		extern void UpdatePage(bool force);
 		extern void Show();
 		extern HWND hWnd;
 	}

@@ -44,12 +44,12 @@ namespace UI
 			}
 		}
 
-		void UpdatePage()
+		void UpdatePage(bool force = false)
 		{
 			int devNum = SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_GETCURSEL, 0, 0) + 1;
 			auto device = devices[devNum];
 
-			if (devNum == currentPage)
+			if (devNum == currentPage && !force)
 				return;
 			currentPage = devNum;
 
@@ -307,18 +307,15 @@ namespace UI
 				if (HIWORD(wParam) == LBN_SELCHANGE && LOWORD(wParam) == IDC_DEVLIST)
 				{
 					UpdatePage();
-					return true;
 				}
 				if (HIWORD(wParam) == CBN_SELCHANGE && LOWORD(wParam) == IDC_DEVTYPE)
 				{
 					SwitchDevice();
-					return true;
 				}
 				else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_DDINSERT)
 				{
 					int devID = SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_GETCURSEL, 0, 0) + 1;
 					InsertDisk(devID);
-					return true;
 				}
 				else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_DDEJECT)
 				{
@@ -330,7 +327,6 @@ namespace UI
 					DestroyWindow(hWnd);
 					hWnd = NULL;
 					if (!wasPaused) pauseState = pauseNot;
-					return true;
 				}
 			}
 			}
