@@ -114,7 +114,7 @@ namespace UI
 				SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_DELETESTRING, selection + 1, 0);
 				SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_SETITEMDATA, selection, (LPARAM)icon);
 				SendDlgItemMessage(hWnd, IDC_DEVLIST, LB_SETCURSEL, selection, 0);
-				UpdatePage();
+				UpdatePage(true);
 				return;
 			}
 
