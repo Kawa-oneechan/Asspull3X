@@ -321,6 +321,7 @@ namespace Sound
 	void SendOPL(unsigned short message)
 	{
 		//	Log(L"REG_OPLOUT = 0x%04X;", message);
+		if (saDev == NULL) return;
 		OPL3_WriteReg(&opl3, message >> 8, message & 0xFF);
 	}
 
