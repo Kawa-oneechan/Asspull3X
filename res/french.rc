@@ -2,6 +2,8 @@
 
 LANGUAGE LANG_FRENCH, SUBLANG_FRENCH
 
+IDB_POWER PNG ".\\res\\turnedoff-fr.png"
+
 //Note: "RCtrl" is the Control key on the *right* of the keyboard.
 //The left is visible to the A3X, the right controls the emulator.
 

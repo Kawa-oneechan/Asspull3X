@@ -43,6 +43,7 @@ struct {
 	int num;
 } langs[64];
 int langCt = 0;
+int langID = 0;
 
 extern void AssociateFiletypes();
 
@@ -100,7 +101,7 @@ void GetSettings()
 	Discord::enabled = ini.GetBoolValue(L"misc", L"discord", false);
 
 	EnumResourceLanguages(NULL, RT_MENU, MAKEINTRESOURCE(IDR_MAINMENU), GetLangProc, 0);
-	int langID = (int)ini.GetLongValue(L"misc", L"lang", 0);
+	langID = (int)ini.GetLongValue(L"misc", L"lang", 0);
 	if (langID == 0)
 	{
 		//try as a string

@@ -12,6 +12,8 @@ processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #include <vector>
 extern int decodePNG(std::vector<unsigned char>& out_image, unsigned long& image_width, unsigned long& image_height, const unsigned char* in_png, size_t in_size, bool convert_to_rgba32 = true);
 
+extern int langID;
+
 namespace UI
 {
 	WCHAR settingsFile[FILENAME_MAX];
@@ -567,7 +569,7 @@ namespace UI
 		{
 			unsigned long size;
 
-			auto find = FindResource(NULL, MAKEINTRESOURCE(id), L"PNG");
+			auto find = FindResourceEx(NULL, L"PNG", MAKEINTRESOURCE(id), langID);
 			if (find == NULL) return { 0 };
 			auto res = LoadResource(NULL, find);
 			if (res == NULL) return { 0 };
