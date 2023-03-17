@@ -563,21 +563,21 @@ namespace UI
 			return hbm;
 		}
 
-		HBITMAP LoadPNGResource(int id)
+		std::vector<unsigned char> LoadPNGResource(int id, unsigned long *width, unsigned long *height)
 		{
-			unsigned long size, width, height;
+			unsigned long size;
 
 			auto find = FindResource(NULL, MAKEINTRESOURCE(id), L"PNG");
-			if (find == NULL) return NULL;
+			if (find == NULL) return { 0 };
 			auto res = LoadResource(NULL, find);
-			if (res == NULL) return NULL;
+			if (res == NULL) return { 0 };
 			auto lock = LockResource(res);
 			size = SizeofResource(NULL, find);
 
 			std::vector<unsigned char> image;
-			decodePNG(image, width, height, (const unsigned char*)lock, size);
+			decodePNG(image, *width, *height, (const unsigned char*)lock, size);
 
-			for (unsigned long i = 0; i < (width * height * 4); i += 4)
+			for (unsigned long i = 0; i < (*width * *height * 4); i += 4)
 			{
 				auto r = image[i + 0];
 				auto b = image[i + 2];
@@ -592,9 +592,14 @@ namespace UI
 					image[i + 2] = 0;
 				}
 			}
+			return image;
+		}
 
+		HBITMAP LoadPNGResource(int id)
+		{
+			unsigned long width, height;
+			auto image = LoadPNGResource(id, &width, &height);
 			auto bitmap = CreateBitmap(width, height, 1, 32, &image[0]);
-
 			return bitmap;
 		}
 	}

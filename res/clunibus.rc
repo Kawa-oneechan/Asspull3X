@@ -20,10 +20,11 @@ IDB_DANCE PNG ".\\res\\dance.png"
 IDB_ICONS PNG ".\\res\\imglist.png"
 IDB_SHRUG PNG ".\\res\\shrug.png"
 IDB_CTRLR PNG ".\\res\\controller.png"
+IDB_POWER PNG ".\\res\\turnedoff.png"
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 0,7,0,0
-PRODUCTVERSION 0,7,0,0
+FILEVERSION 0,7,0,2
+PRODUCTVERSION 0,7,0,2
 FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
 FILEFLAGS 0x1L
@@ -45,7 +46,7 @@ BEGIN
 			VALUE "LegalCopyright", "© 2022 Firrhna Productions"
 			VALUE "OriginalFilename", "Clunibus.exe"
 			VALUE "ProductName", "Clunibus"
-			VALUE "ProductVersion", "0.7.0.0"
+			VALUE "ProductVersion", "0.7.0.2"
 		END
 	END
 	BLOCK "VarFileInfo"

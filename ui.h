@@ -1,6 +1,8 @@
 #pragma once
 #include <Windows.h>
 
+#include <vector>
+
 namespace UI
 {
 	extern int uiCommand;
@@ -74,6 +76,7 @@ namespace UI
 		extern HIMAGELIST hIml;
 		extern HBITMAP GetImageListImage(int);
 		extern HBITMAP LoadPNGResource(int);
+		extern std::vector<unsigned char> LoadPNGResource(int, unsigned long *, unsigned long *);
 	}
 
 	namespace Tooltips

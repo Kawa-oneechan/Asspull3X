@@ -36,7 +36,7 @@ STRINGTABLE
 	IDS_BADSIZE, "Bestandsgrootte is geen macht van twee: is %d (0x%08X), moet %d (0x%08X) zijn."
 	IDS_BADCHECKSUM, "Controlesom komt niet overeen: is 0x%08X, moet 0x%08X zijn."
 	IDS_RESETTING, "Musashi resetten..." //Musashi is the 68020 emulator core
-	IDS_ASSPULLISREADY, "\nAsspull IIIx is klaar.\nDruk op RCtrl+L om een ROM te laden, RCtrl-Shift+L om een diskette te laden.\nDruk op RCtrl+U om ROM te ontkoppelen, RCtrl+Shift+U om diskette uit te werpen.\nDruk op RCtrl+R om te resetten, RCtrl+Shift+R om eerst te onkoppelen.\nDruk op RCtrl+D om RAM te dumpen, RCtrl+S om een schermfoto te maken.\n\n"
+	IDS_ASSPULLISREADY, "\nAsspull IIIx is klaar.\nDruk op RCtrl+L om een ROM te laden, RCtrl+Shift+L om een diskette te laden.\nDruk op RCtrl+U om ROM te ontkoppelen, RCtrl+Shift+U om diskette uit te werpen.\nDruk op RCtrl+Q om op te starten, RCtrl+R om te resetten, RCtrl+Shift+R om eerst te onkoppelen.\nDruk op RCtrl+D om RAM te dumpen, RCtrl+S om een schermfoto te maken.\n\n"
 
 	//More debug-only stuff
 	IDS_LOADINGROM, "ROM \x1b[96m%s\x1b[0m laden..."
@@ -140,6 +140,7 @@ BEGIN
 		MENUITEM "Voer diskette in\x85\tRCtrl+Shift+L", 1013
 		MENUITEM "Werp diskette uit\tRCtrl+Shift+U", 1014
 		MENUITEM SEPARATOR
+		MENUITEM "Zet aan/uit\tRCtrl+Q", 1019
 		MENUITEM "Herstart\tRCtrl+R", 1003
 		MENUITEM SEPARATOR
 		MENUITEM "Afsluiten", 1006

@@ -249,7 +249,7 @@ askForBIOS:
 	{
 		//Log(logNormal, L"Loading ROM \x1b[96m%s\x1b[0m...", thing);
 		LoadROM(thing);
-		pauseState = pauseNot;
+		//pauseState = pauseNot;
 	}
 	else if (paramLoad[0])
 	{

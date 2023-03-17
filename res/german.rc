@@ -36,7 +36,7 @@ STRINGTABLE
 	IDS_BADSIZE, "Die Dateigröße ist keine Zweierpotenz: ist %d (0x%08X), sollte %d (0x%08X) sein."
 	IDS_BADCHECKSUM, "Nichtübereinstimmung der Prüfsumme: ist 0x%08X, sollte 0x%08X sein."
 	IDS_RESETTING, "Zurücksetzen von Musashi..." //Musashi is the 68020 emulator core
-	IDS_ASSPULLISREADY, "\nAsspull IIIx ist bereit.\nDrücken Sie RStrg+L, um ein ROM zu laden, RStrg+Shift+L, um eine Diskette zu laden.\nDrücken Sie RStrg+U, um ROM zu entladen, RStrg+Shift+U, um Diskette zu entladen.\nDrücken Sie RStrg+R zum Zurücksetzen, RStrg+Shift+R zum Entladen und Zurücksetzen.\nDrücken Sie RStrg+D, um RAM zu leeren, RStrg+S, um einen Bildschirmfoto zu machen.\n\n"
+	IDS_ASSPULLISREADY, "\nAsspull IIIx ist bereit.\nDrücken Sie RStrg+L, um ein ROM zu laden, RStrg+Shift+L, um eine Diskette zu laden.\nDrücken Sie RStrg+U, um ROM zu entladen, RStrg+Shift+U, um Diskette zu entladen.\nDrücken Sie RStrg+Q zum Einschalten, RStrg+R zum Zurücksetzen, RStrg+Shift+R zum Entladen und Zurücksetzen.\nDrücken Sie RStrg+D, um RAM zu leeren, RStrg+S, um einen Bildschirmfoto zu machen.\n\n"
 
 	//More debug-only stuff
 	IDS_LOADINGROM, "ROM \x1b[96m%s\x1b[0m wird geladen..."
@@ -140,6 +140,7 @@ BEGIN
 		MENUITEM "Diskette einlegen\x85\tRStrg+Shift+L", 1014
 		MENUITEM "Diskette auswerfen\tRStrg+Shift+U", 1015
 		MENUITEM SEPARATOR
+		MENUITEM "Ein/ausschalten\tRStrg+Q", 1019
 		MENUITEM "Neustart\tRStrg+R", 1003
 		MENUITEM SEPARATOR
 		MENUITEM "Beenden", 1006

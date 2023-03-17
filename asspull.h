@@ -53,6 +53,7 @@ extern long ticks;
 
 enum pauseStates
 {
+	pauseTurnedOff,
 	pauseNot,
 	pauseEntering,
 	pauseYes,
@@ -200,6 +201,7 @@ enum uiCommands
 	cmdCreateDisk,
 	cmdReloadRom,
 	cmdButtonMapper,
+	cmdTurnOnOrOff,
 };
 
 #define MAXSHADERS 8

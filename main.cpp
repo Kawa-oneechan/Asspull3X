@@ -63,8 +63,19 @@ int InterruptAck(int level)
 	return M68K_INT_ACK_AUTOVECTOR;
 }
 
-pauseStates pauseState = pauseNot;
+void Reset()
+{
+	m68k_init();
+	m68k_set_cpu_type(M68K_CPU_TYPE_68030);
+	m68k_set_illg_instr_callback(IllegalMangrasp);
+	m68k_set_int_ack_callback(InterruptAck);
+	Sound::Reset();
+	m68k_pulse_reset();
+}
+
+pauseStates pauseState = pauseTurnedOff;
 unsigned char* pauseScreen;
+unsigned char* turnedOffScreen;
 
 void MainLoop()
 {
@@ -74,13 +85,19 @@ void MainLoop()
 		return;
 	}
 
-	Log(UI::GetString(IDS_RESETTING));
-	m68k_init();
-	m68k_set_cpu_type(M68K_CPU_TYPE_68030);
-	m68k_set_illg_instr_callback(IllegalMangrasp);
-	m68k_set_int_ack_callback(InterruptAck);
-	Sound::Reset();
-	m68k_pulse_reset();
+	if ((turnedOffScreen = new unsigned char[SCREENBUFFERSIZE]()) == nullptr)
+	{
+		UI::Complain(IDS_PAUSEFAIL);
+		return;
+	}
+	else
+	{
+		unsigned long w, h;
+		auto png = UI::Images::LoadPNGResource(IDB_POWER, &w, &h);
+		memcpy(turnedOffScreen, &png[0], SCREENBUFFERSIZE);
+	}
+
+	Reset();
 
 #if _CONSOLE
 	wprintf(UI::GetString(IDS_ASSPULLISREADY)); //"Asspull IIIx is ready."...
@@ -230,6 +247,26 @@ void MainLoop()
 					{
 						UI::HideUI(!UI::hideUI);
 					}
+					else if (ev.key.keysym.sym == SDLK_q)
+					{
+						//HACK: detecting SDLK_q stopped when trying to put this in a UICommand. Should investigate.
+					fuckywuckyHacky:
+						UI::uiCommand = 0;
+						if (pauseState == pauseTurnedOff)
+						{
+							pauseState = pauseNot;
+							Log(UI::GetString(IDS_RESETTING));
+							Reset();
+						}
+						else if (pauseState == pauseNot)
+						{
+							pauseState = pauseTurnedOff;
+							Sound::Reset();
+							Discord::SetPresence(NULL);
+							UI::SetTitle(NULL);
+							UI::SetStatus(L"Turned off.");
+						}
+					}
 				}
 				else
 				{
@@ -363,11 +400,20 @@ void MainLoop()
 			{
 				Video::Screenshot();
 			}
+			else if (UI::uiCommand == cmdTurnOnOrOff)
+			{
+				goto fuckywuckyHacky;
+			}
 			UI::uiCommand = 0;
 			UI::uiString[0] = 0;
 		}
 
-		if (pauseState != 2)
+		if (pauseState == pauseTurnedOff)
+		{
+			memcpy(Video::pixels, turnedOffScreen, SCREENBUFFERSIZE);
+			Video::VBlank();
+		}
+		else if (pauseState != pauseYes)
 		{
 			executeForPixels(pixsPerRow);
 
@@ -437,7 +483,7 @@ void MainLoop()
 				line = 0;
 			}
 		}
-		else if (pauseState == 2)
+		else if (pauseState == pauseYes)
 		{
 			memcpy(Video::pixels, pauseScreen, SCREENBUFFERSIZE);
 			UI::LetItSnow();

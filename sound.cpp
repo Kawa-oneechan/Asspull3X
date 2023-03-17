@@ -38,7 +38,7 @@ namespace Sound
 		for (int i = 0; i < len; i++)
 			str[i] = 0;
 
-		if (pauseState != 0)
+		if (pauseState == pauseTurnedOff || pauseState == pauseYes)
 			return;
 
 		short samples[4] = { 0 };
