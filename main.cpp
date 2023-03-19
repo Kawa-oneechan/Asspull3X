@@ -136,7 +136,7 @@ void MainLoop()
 		cycles -= (long long)executedCycles * cpuScale;
 	};
 
-	UI::SetStatus(IDS_CLICKTORELEASE); //"Middle-click or RCtrl-P to pause emulation."
+	UI::SetStatus(IDS_CLICKTORELEASE); //"Middle-click or RCtrl+P to pause emulation."
 
 	while (!quit)
 	{

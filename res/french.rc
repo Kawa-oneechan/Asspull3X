@@ -23,7 +23,7 @@ STRINGTABLE
 
 	IDS_NOTPLAYING, "Ne joue pas actuellement" //Discord integration: you're running the thing but don't have a game loaded
 
-	IDS_EJECTFIRST, "Retirer la disquette en premier avec RCtrl-Shift-U."
+	IDS_EJECTFIRST, "Retirer la disquette en premier avec RCtrl+Shift+U."
 	IDS_DISKEJECTED, "Disque ejecté."
 	IDS_NODISKDRIVE, "Aucun lecteur de disque."
 	IDS_UNMOUNTFIRST, "Veuillez ejecter le pépriphique."

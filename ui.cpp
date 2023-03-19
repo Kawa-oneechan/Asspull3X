@@ -1084,7 +1084,7 @@ namespace UI
 		_itow_s(devId, key, 16, 10);
 		auto ret = ((DiskDrive*)devices[devId])->Mount(uiString);
 		if (ret == -1)
-			SetStatus(IDS_EJECTFIRST); //"Eject the diskette first, with Ctrl-Shift-U."
+			SetStatus(IDS_EJECTFIRST); //"Eject the diskette first, with RCtrl+Shift+U."
 		else if (ret != 0)
 		{
 			//Log(L"Error %d trying to open disk image.", ret);
