@@ -50,17 +50,7 @@ extern void AssociateFiletypes();
 BOOL CALLBACK GetLangProc(HMODULE mod, LPCTSTR type, LPCTSTR name, WORD lang, LONG_PTR lParam)
 {
 	langs[langCt].num = lang;
-
-	WCHAR work[32] = { 0 };
-	GetLocaleInfo(MAKELCID(lang, SORT_DEFAULT), LOCALE_SENGLANGUAGE, work, 32);
-	_wcslwr_s(work, 32);
-	work[2] = L'-';
-	work[3] = 0;
-	GetLocaleInfo(MAKELCID(lang, SORT_DEFAULT), LOCALE_SABBREVCTRYNAME, work + 3, 32);
-	_wcsupr_s(work + 3, 32 - 3);
-	work[5] = 0;
-	wcscpy(langs[langCt].code, work);
-
+	GetLocaleInfo(MAKELCID(lang, SORT_DEFAULT), LOCALE_SNAME, langs[langCt].code, 16);
 	langCt++;
 	if (langCt == 64)
 		return FALSE;
