@@ -2,7 +2,7 @@
 
 LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
 
-IDB_POWER PNG ".\\res\\turnedoff-de.png"
+//IDB_POWER PNG ".\\res\\turnedoff-de.png"
 
 //Note: "RCtrl" is the Control key on the *right* of the keyboard.
 //The left is visible to the A3X, the right controls the emulator.

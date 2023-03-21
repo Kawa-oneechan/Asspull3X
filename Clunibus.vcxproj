@@ -178,11 +178,6 @@
     <None Include="res\shrug.png" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\turnedoff-de.png" />
-    <Image Include="res\turnedoff-fr.png" />
-    <Image Include="res\turnedoff-hu.png" />
-    <Image Include="res\turnedoff-jp.png" />
-    <Image Include="res\turnedoff-nl.png" />
     <Image Include="res\turnedoff.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
