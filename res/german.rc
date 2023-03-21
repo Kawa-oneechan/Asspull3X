@@ -142,7 +142,7 @@ BEGIN
 		MENUITEM "Diskette einlegen\x85\tRStrg+Shift+L", 1014
 		MENUITEM "Diskette auswerfen\tRStrg+Shift+U", 1015
 		MENUITEM SEPARATOR
-		MENUITEM "Ein/ausschalten\tRStrg+Q", 1019
+		MENUITEM "Ein/ausschalten\tRStrg+Q", 1018
 		MENUITEM "Neustart\tRStrg+R", 1003
 		MENUITEM SEPARATOR
 		MENUITEM "Beenden", 1006
@@ -151,7 +151,7 @@ BEGIN
 	BEGIN
 		MENUITEM "Optionen", 1010
 		MENUITEM "Shader", 1011
-		MENUITEM "Gamepad", 1018
+		MENUITEM "Gamepad", 1019
 		MENUITEM SEPARATOR
 		MENUITEM "Geräte", 1012
 		MENUITEM "RAM-Viewer", 1007

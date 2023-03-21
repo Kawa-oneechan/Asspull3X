@@ -140,7 +140,7 @@ BEGIN
 		MENUITEM "Insert disk\x85\tRCtrl+Shift+L", 1014
 		MENUITEM "Eject disk\tRCtrl+Shift+U", 1015
 		MENUITEM SEPARATOR
-		MENUITEM "Turn on/off\tRCtrl+Q", 1019
+		MENUITEM "Turn on/off\tRCtrl+Q", 1018
 		MENUITEM "Reset\tRCtrl+R", 1003
 		MENUITEM SEPARATOR
 		MENUITEM "Exit", 1006
@@ -149,7 +149,7 @@ BEGIN
 	BEGIN
 		MENUITEM "Options", 1010
 		MENUITEM "Shaders", 1011
-		MENUITEM "Gamepad", 1018
+		MENUITEM "Gamepad", 1019
 		MENUITEM SEPARATOR
 		MENUITEM "Devices", 1012
 		MENUITEM "Memory viewer", 1007

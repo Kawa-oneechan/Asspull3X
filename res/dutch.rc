@@ -139,10 +139,10 @@ BEGIN
 		MENUITEM "Laad ROM\x85\tRCtrl+L", 1001
 		MENUITEM "Ontlaad ROM\tRCtrl+U", 1002
 		MENUITEM SEPARATOR
-		MENUITEM "Voer diskette in\x85\tRCtrl+Shift+L", 1013
-		MENUITEM "Werp diskette uit\tRCtrl+Shift+U", 1014
+		MENUITEM "Voer diskette in\x85\tRCtrl+Shift+L", 1014
+		MENUITEM "Werp diskette uit\tRCtrl+Shift+U", 1015
 		MENUITEM SEPARATOR
-		MENUITEM "Zet aan/uit\tRCtrl+Q", 1019
+		MENUITEM "Zet aan/uit\tRCtrl+Q", 1018
 		MENUITEM "Herstart\tRCtrl+R", 1003
 		MENUITEM SEPARATOR
 		MENUITEM "Afsluiten", 1006
@@ -151,7 +151,7 @@ BEGIN
 	BEGIN
 		MENUITEM "Opties", 1010
 		MENUITEM "Shaders", 1011
-		MENUITEM "Gamepad", 1018
+		MENUITEM "Gamepad", 1019
 		MENUITEM SEPARATOR
 		MENUITEM "Apparaten", 1012
 		MENUITEM "Geheugen", 1007
@@ -178,7 +178,7 @@ END
 #define ABOUT_TITLE "E Clunibus Tractum" //"Pulled out of the arse" in Latin, Kawa's pretentious motto
 #define ABOUT_OKAY "Cool"
 #define ABOUT_HEADER "Clunibus \x97 Asspull IIIx Fantasy Computer Emulator" //\x97 is an em-dash
-#define ABOUT_BODY "Systeemontwerp en emulator door Kawa.\n\nMet dank een groeten aan iedereen op de bcord." //Feel free to add "\n\nLANG translation by YOU."
+#define ABOUT_BODY "Systeemontwerp en emulator door Kawa.\n\nMet dank en groeten aan iedereen op de bcord." //Feel free to add "\n\nLANG translation by YOU."
 #define ABOUT_GITLINK "<a>GitHub pagina</a>" //Keep the <a></a> to make it look like the clickable link it is
 
 #define DEVICES_TITLE "Apparaten"

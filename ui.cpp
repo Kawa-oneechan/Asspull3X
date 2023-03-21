@@ -668,7 +668,7 @@ namespace UI
 						MemoryViewer::Show, PalViewer::Show, About::Show,
 						Options::Show, Shaders::Show, DeviceManager::Show,
 						TileViewer::Show, nullptr, nullptr, nullptr, nullptr,
-						UI::ButtonMaps::Show,
+						nullptr, UI::ButtonMaps::Show,
 					};
 					if (commands[uiCommand - cmdMemViewer] != nullptr)
 					{
@@ -850,7 +850,7 @@ namespace UI
 			SetMenuInfo(menuBar, &mainInfo);
 
 			MENUITEMINFO miInfo = { sizeof(MENUITEMINFO), MIIM_BITMAP };
-			for (int i = 0; i < 20; i++)
+			for (int i = 0; i < 24; i++)
 			{
 				//auto hBmp = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(1000 + i), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
 				auto hBmp = Images::GetImageListImage(IML_MENUSTART + i);
