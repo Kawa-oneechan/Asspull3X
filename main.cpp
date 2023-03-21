@@ -410,6 +410,8 @@ void MainLoop()
 
 		if (pauseState == pauseTurnedOff)
 		{
+			//for (auto i = 0; i < SCREENBUFFERSIZE / 4; i++)
+			//	Video::pixels[(i * 4) + 0] = Video::pixels[(i * 4) + 1] = Video::pixels[(i * 4) + 2] = rand() % 255;
 			memcpy(Video::pixels, turnedOffScreen, SCREENBUFFERSIZE);
 			Video::VBlank();
 		}

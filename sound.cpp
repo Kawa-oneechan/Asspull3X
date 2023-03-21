@@ -331,6 +331,19 @@ namespace Sound
 		pcmLength[0] = pcmLength[1] = 0;
 		pcmVolume[0] = pcmVolume[1] = pcmVolume[2] = pcmVolume[3] = 255;
 		resetOPL = true;
+
+		if (midiDevice)
+		{
+			for (auto kon = keyOns.begin(); kon != keyOns.end(); ++kon)
+			{
+				auto message = *kon & ~0x10; //turn it into a koff
+				midiOutShortMsg(midiDevice, message);
+			}
+			keyOns.clear();
+
+			midiOutReset(midiDevice);
+		}
+
 	}
 
 }
