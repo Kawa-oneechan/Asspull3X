@@ -249,23 +249,7 @@ void MainLoop()
 					}
 					else if (ev.key.keysym.sym == SDLK_q)
 					{
-						//HACK: detecting SDLK_q stopped when trying to put this in a UICommand. Should investigate.
-					fuckywuckyHacky:
-						UI::uiCommand = 0;
-						if (pauseState == pauseTurnedOff)
-						{
-							pauseState = pauseNot;
-							Log(UI::GetString(IDS_RESETTING));
-							Reset();
-						}
-						else if (pauseState == pauseNot)
-						{
-							pauseState = pauseTurnedOff;
-							Sound::Reset();
-							Discord::SetPresence(NULL);
-							UI::SetTitle(NULL);
-							UI::SetStatus(L"Turned off.");
-						}
+						UI::uiCommand = cmdTurnOnOrOff;
 					}
 				}
 				else
@@ -370,7 +354,7 @@ void MainLoop()
 				else if (((DiskDrive*)devices[firstDiskDrive])->IsMounted())
 					UI::EjectDisk(firstDiskDrive);
 			}
-			else if (UI::uiCommand == cmdReset)
+			else if (UI::uiCommand == cmdReset && pauseState != pauseTurnedOff)
 			{
 				if (SDL_GetModState() & KMOD_SHIFT)
 				{
@@ -402,7 +386,21 @@ void MainLoop()
 			}
 			else if (UI::uiCommand == cmdTurnOnOrOff)
 			{
-				goto fuckywuckyHacky;
+				UI::uiCommand = 0;
+				if (pauseState == pauseTurnedOff)
+				{
+					pauseState = pauseNot;
+					Log(UI::GetString(IDS_RESETTING));
+					Reset();
+				}
+				else if (pauseState == pauseNot)
+				{
+					pauseState = pauseTurnedOff;
+					Sound::Reset();
+					Discord::SetPresence(NULL);
+					UI::SetTitle(NULL);
+					UI::SetStatus(L"Turned off.");
+				}
 			}
 			UI::uiCommand = 0;
 			UI::uiString[0] = 0;
