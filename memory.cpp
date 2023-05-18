@@ -44,6 +44,7 @@ int blitAddrA, blitAddrB, blitKey;
 long ticks = 0;
 time_t timelatch, timesetlatch;
 long rtcOffset = 0;
+int dmaLines = 0;
 
 extern int scale, offsetX, offsetY, statusBarHeight;
 
@@ -258,6 +259,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				auto asValue = ((value >> 3) & 1) == 1;
 				auto dataWidth = (value >> 4) & 3;
 				auto increaseStep = (dataWidth == 0) ? 1 : (dataWidth == 1) ? 2 : 4;
+				dmaLines = dmaLength >> (2 + dataWidth);
 				//Log(L"DMA: $%08X to $%08X, length $%08X, %d wide, %s. %s %s.", dmaSource, dmaTarget, dmaLength, increaseStep, asValue ? L"memset" : L"memcpy", increaseSource ? L"s++" : L"   ", increaseTarget ? L"t++" : L"");
 				while (dmaLength > 0)
 				{

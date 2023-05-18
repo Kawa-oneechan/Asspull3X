@@ -13,6 +13,7 @@ SDL_GameControllerButton buttonMap[16];
 
 extern unsigned int biosSize, romSize;
 extern long rtcOffset;
+extern int dmaLines;
 
 int firstDiskDrive = -1;
 
@@ -415,7 +416,16 @@ void MainLoop()
 		}
 		else if (pauseState != pauseYes)
 		{
-			executeForPixels(pixsPerRow);
+			if (dmaLines == 0)
+			{
+				//Registers::Fade = 0;
+				executeForPixels(pixsPerRow);
+			}
+			else
+			{
+				//Registers::Fade = 0x88;
+				dmaLines--;
+			}
 
 			if (line < lines)
 			{

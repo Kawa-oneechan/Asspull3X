@@ -273,6 +273,7 @@ namespace UI
 				if (delta > 0)
 					inc = -inc;
 				ScrollTo(offset + inc);
+				return false;
 			}
 			}
 			return false;
