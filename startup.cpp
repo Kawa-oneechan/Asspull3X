@@ -66,19 +66,13 @@ void GetSettings()
 	
 	PWSTR path = NULL;
 	auto res = SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, NULL, &path); res;
-	wcscpy(UI::settingsFile, path);
-	wcscat(UI::settingsFile, L"\\Clunibus.ini");
+	wcscpy(UI::settingsFile, L"Clunibus.ini");
 	auto atts = GetFileAttributes(UI::settingsFile);
 	if (atts == INVALID_FILE_ATTRIBUTES)
 	{
-		wcscpy(UI::settingsFile, L"Clunibus.ini");
+		wcscpy(UI::settingsFile, path);
+		wcscat(UI::settingsFile, L"\\Clunibus.ini");
 		atts = GetFileAttributes(UI::settingsFile);
-		if (atts == INVALID_FILE_ATTRIBUTES)
-		{
-			//Local file doesn't exist? Then revert back to appdata and pretend.
-			wcscpy(UI::settingsFile, path);
-			wcscat(UI::settingsFile, L"\\Clunibus.ini");
-		}
 	}
 	CoTaskMemFree(path);
 
@@ -138,7 +132,7 @@ void GetSettings()
 	}
 	LocalFree(argv);
 
-	auto rtcEpoch = 441763200 - time(NULL);
+	auto rtcEpoch = 441763200 - (long)time(NULL);
 	rtcOffset = ini.GetLongValue(L"misc", L"rtcOffset", rtcEpoch);
 	if (rtcOffset == rtcEpoch)
 		ini.SetLongValue(L"misc", L"rtcOffset", rtcEpoch);
