@@ -128,9 +128,10 @@ void LoadROM(const WCHAR* path)
 		}
 	}
 
-#if _CONSOLE
 	fileSize = romSize;
 	romSize = RoundUp(romSize);
+	//Invertigo: need to set romSize regardless of build, lest mirroring in m68k_read_memory_8 break.
+#if _CONSOLE
 	if (romSize != fileSize)
 		Log(logWarning, UI::GetString(IDS_BADSIZE), fileSize, fileSize, romSize, romSize); //"File size is not a power of two: is %d (0x%08X), should be %d (0x%08X)."
 
