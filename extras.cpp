@@ -210,6 +210,8 @@ void Log(logCategories cat, WCHAR* message, ...)
 	WCHAR buf[1024] = { 0 };
 	vswprintf(buf, 1024, message, args);
 	va_end(args);
+	if (buf[0] == 0)
+		return;
 #if _CONSOLE
 	DWORD mode = 0;
 	auto std = GetStdHandle(STD_OUTPUT_HANDLE);
