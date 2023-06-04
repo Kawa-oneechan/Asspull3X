@@ -13,6 +13,7 @@ The emulator passes all presses of the *left* Control key to the A3X, while the 
 
 | Key          | Effect 
 |--------------|--------
+| Ctrl Q       | Turn the emulated machine on or off
 | Ctrl L       | Load ROM
 | Ctrl Shift L | Load disk image
 | Ctrl U       | Unload ROM
