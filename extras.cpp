@@ -34,6 +34,78 @@ unsigned int RoundUp(unsigned int v)
 	return v;
 }
 
+void ApplyBPS(char* patch, long patchSize)
+{
+	unsigned char* target = NULL;
+	unsigned int srcOff = 4, dstOff = 0;
+
+	auto decode = [&]() -> unsigned int
+	{
+		unsigned int data = 0, shift = 1;
+		while (true)
+		{
+			auto x = patch[srcOff++];
+			data += (x & 0x7f) * shift;
+			if (x & 0x80) break;
+			shift <<= 7;
+			data += shift;
+		}
+		return data;
+	};
+
+	if (*((uint32_t*)patch) != 0x31535042 || decode() != romSize)
+	{
+		//TODO: localize this.
+		Log(logError, L"BPS patch header invalid. Patch is not applied.");
+		return;
+	}
+
+	auto targetSize = decode();
+	target = new unsigned char[targetSize];
+	srcOff += decode();
+
+	unsigned int srcRelOff = 0, dstRelOff = 0;
+	while ((signed)srcOff < patchSize - 12)
+	{
+		auto length = decode();
+		auto mode = length & 3;
+		length = (length >> 2) + 1;
+		switch (mode)
+		{
+		case 0:
+			while (length--)
+				target[dstOff++] = romCartridge[dstOff];
+			break;
+		case 1:
+			while (length--)
+				target[dstOff++] = patch[srcOff++];
+			break;
+		case 2:
+		case 3:
+			int offset = decode();
+			offset = offset & 1 ? -(offset >> 1) : (offset >> 1);
+			if (mode == 2)
+			{
+				srcRelOff += offset;
+				while (length--)
+					target[dstOff++] = romCartridge[srcRelOff++];
+			}
+			else
+			{
+				dstRelOff += offset;
+				while (length--)
+					target[dstOff++] = target[dstRelOff++];
+			}
+		}
+	}
+
+	//Do I care about the checksums?
+
+	memcpy_s(romCartridge, romSize, target, targetSize);
+	//TODO: localize this too.
+	Log(L"BPS patch applied.");
+}
+
 int LoadFile(unsigned char* dest, const WCHAR* filePath, unsigned int* size)
 {
 	FILE* file = NULL;
@@ -128,6 +200,25 @@ void LoadROM(const WCHAR* path)
 		}
 	}
 
+	WCHAR baseName[256] = { 0 };
+	for (auto i = 0; lpath[i] != L'.'; i++)
+		baseName[i] = lpath[i];
+	auto baseNameLen = lstrlen(baseName);
+	lstrcat(baseName, L".bps");
+	FILE* bpsFile = NULL;
+	_wfopen_s(&bpsFile, baseName, L"r+b");
+	if (bpsFile != NULL)
+	{
+		fseek(bpsFile, 0, SEEK_END);
+		long bpsSize = ftell(bpsFile);
+		auto bpsData = new char[bpsSize];
+		fseek(bpsFile, 0, SEEK_SET);
+		fread(bpsData, 1, bpsSize, bpsFile);
+		fclose(bpsFile);
+		ApplyBPS(bpsData, bpsSize);
+	}
+	baseName[baseNameLen] = 0;
+	
 	fileSize = romSize;
 	romSize = RoundUp(romSize);
 	//Invertigo: need to set romSize regardless of build, lest mirroring in m68k_read_memory_8 break.
