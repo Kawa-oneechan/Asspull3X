@@ -56,7 +56,7 @@ void ApplyBPS(char* patch, long patchSize)
 	if (*((uint32_t*)patch) != 0x31535042 || decode() != romSize)
 	{
 		//TODO: localize this.
-		Log(logError, L"BPS patch header invalid. Patch is not applied.");
+		Log(logError, UI::GetString(IDS_BPSHEADERFAILED));
 		return;
 	}
 
@@ -102,8 +102,7 @@ void ApplyBPS(char* patch, long patchSize)
 	//Do I care about the checksums?
 
 	memcpy_s(romCartridge, romSize, target, targetSize);
-	//TODO: localize this too.
-	Log(L"BPS patch applied.");
+	Log(UI::GetString(IDS_BPSPATCHAPPLIED));
 }
 
 int LoadFile(unsigned char* dest, const WCHAR* filePath, unsigned int* size)

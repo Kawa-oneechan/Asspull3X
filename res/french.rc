@@ -54,7 +54,10 @@ STRINGTABLE
 	IDS_RENDERERFAILED, "Création du moteur de rendu impossible: %s"
 	IDS_TSK, "Parfait..." //ignore, IDS_TSK is #69.
 	IDS_TEXTUREFAILED, "Creation de la texture impossible: %s"
+	IDS_BPSHEADERFAILED, "L'entête du patch BPS est invalide. La modification n'a pas été appliqué."
+	IDS_BPSPATCHAPPLIED, "Le patch BPS a été appliqué."
 #endif
+
 	IDS_PNGFAILED, "Impossible d'écrire le PNG."
 	IDS_DISCORDDLL, "Discord est actif mais aucune DLL n'a été trouvée."
 	IDS_SCREENSHOT, "Clic-clac! %s sauvegardé."

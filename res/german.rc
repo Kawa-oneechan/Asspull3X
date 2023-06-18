@@ -54,7 +54,10 @@ STRINGTABLE
 	IDS_RENDERERFAILED, "Renderer konnte nicht erstellt werden: %s"
 	IDS_TSK, "Schön." //ignore, IDS_TSK is #69.
 	IDS_TEXTUREFAILED, "Textur konnte nicht erstellt werden: %s"
+	IDS_BPSHEADERFAILED, "BPS-Patch-Header ungültig. Patch wird nicht angewendet."
+	IDS_BPSPATCHAPPLIED, "BPS-Patch angewendet."
 #endif
+
 	IDS_PNGFAILED, "PNG konnte nicht geschrieben werden."
 	IDS_DISCORDDLL, "Discord ist aktiviert, aber die DLL ist nicht hier." //missing discord-rpc.dll
 	IDS_SCREENSHOT, "Schnapp! %s gespeichert."
