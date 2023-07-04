@@ -761,7 +761,7 @@ namespace UI
 		DrawText(hdc, statusText, wcslen(statusText), &sbText, DT_END_ELLIPSIS);
 
 		int x = sbRect.right - 24;
-		ImageList_Draw(Images::hIml, pauseState == 0 ? IML_PLAY : IML_PAUSE, hdc, x, 3, ILD_NORMAL);
+		ImageList_Draw(Images::hIml, IML_PAUSESTATUS + pauseState, hdc, x, 3, ILD_NORMAL);
 		x -= 20;
 		if (::key2joy)
 		{
