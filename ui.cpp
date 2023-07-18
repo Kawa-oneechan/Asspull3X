@@ -828,7 +828,7 @@ namespace UI
 			hInstance = info.info.win.hinstance;
 
 			SDLWinProc = (WNDPROC)GetWindowLongPtr(hWndMain, GWLP_WNDPROC);
-			SetWindowLongPtr(hWndMain, GWLP_WNDPROC, (LONG)WndProc);
+			SetWindowLongPtr(hWndMain, GWLP_WNDPROC, (LONG_PTR)WndProc);
 
 			InitCommonControls();
 
