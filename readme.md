@@ -46,6 +46,48 @@ The keyboard gamepad control feature reassigns the arrow keys and certain letter
 
 The canonical (if nonexistant) A3X controller has the same ABXY layout as the Xbox, and any XInput gamepad should work (though the main author only has an old Logitech F310 to test with). Just in case, there's some ability to remap the buttons.
 
+## Command line
+The following command line arguments can be passed, besides the path to an `.ap3` ROM file:
+
+| Argument       | Effect
+|----------------|--------
+| `--fpscap`     | Disables the FPS cap
+| `--noreload`   | Disables automatic reload of the last used `.ap3` file
+| `--noremount`  | Disables automatic reload of the last used disk images
+| `--nodiscord`  | Disables Discord rich presence features
+| `--fullscreen` | Start in full screen
+| `--poweron`    | Start powered on (implied if a starting `.ap3` is given
+| `--associate`  | For internal use, associates `.ap3` and `.a3z` files
+
+## Settings
+By default, settings are stored in `%LocalAppData%\Clunibus.ini`. If such a file is present in the same folder as `Clunibus.exe`, that will be used instead.
+
+As an `.ini` file, the settings stored are as follows:
+
+| Group       | Key          | Meaning
+|-------------|--------------|---------
+| `[misc]`    | `discord`    | If `true`, enables Discord rich presence features
+|             | `lang`       | Specifies the UI language
+|             | `reloadImg`  | If `true`, remount disk images
+|             | `reloadRom`  | If `true`, reload the last `.ap3` file on startup
+|             | `rtcOffset`  | How many seconds to add to the system time
+|             | `theme`      | `0` for light, `1` for dark, `2` to match Windows
+| `[media]`   | `bios`       | The path to the A3X BIOS ROM
+|             | `rom`        | The path to the last ROM file
+| `[devices]` | 1-15         | The type of device for a given slot
+| `[audio]`   | `midiDevice` | Which device to use for MIDI output, by number
+|             | `music`      | If `true`, MIDI sound is enabled
+|             | `sound`      | If `true`, OPL3 and PCM sound is enabled
+| `[video]`   | `fpsCap`     | If `true`, goes no higher than 60 FPS
+|             | `shader`-num | The name of the shader file in the chain
+|             | `shaders`    | The amount of shaders in the chain
+|             | `showFps`    | If `true`, shows the current FPS in the status bar
+|             | `stretch200` | If `true`, aspect-corrects 200 and 400 line modes
+| `[input]`   | `key2joy`    | If `true`, allows using the keyboard as a gamepad
+|             | button name  | Maps a given real gamepad button to an A3X one
+
+For devices like disk drives, extra groups track which disk image is mounted for each.
+
 ## Acknowledgments
 * French localization help by Thomas_⑨.
 * Hungarian localization help by Letrune.
