@@ -63,7 +63,7 @@ void GetSettings()
 	ini.SetMultiKey(false);
 	ini.SetMultiLine(false);
 	ini.SetUnicode(true);
-	
+
 	PWSTR path = NULL;
 	auto res = SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, NULL, &path); res;
 	wcscpy(UI::settingsFile, L"Clunibus.ini");
@@ -102,7 +102,7 @@ void GetSettings()
 		//no need to check if a resource with this langID exists, it'll just default out.
 		SetThreadUILanguage(langID);
 	}
-	
+
 	int argc = 0;
 	auto argv = CommandLineToArgvW(GetCommandLine(), &argc);
 	for (int i = 1; i < argc; i++)
@@ -119,6 +119,8 @@ void GetSettings()
 				Discord::enabled = false;
 			else if (!wcscmp(argv[i], L"--fullscreen"))
 				UI::startFullscreen = true;
+			else if (!wcscmp(argv[i], L"--poweron"))
+				pauseState = pauseNot;
 			else if (!wcscmp(argv[i], L"--associate"))
 			{
 				AssociateFiletypes();
@@ -136,9 +138,6 @@ void GetSettings()
 	rtcOffset = ini.GetLongValue(L"misc", L"rtcOffset", rtcEpoch);
 	if (rtcOffset == rtcEpoch)
 		ini.SetLongValue(L"misc", L"rtcOffset", rtcEpoch);
-
-	auto test = SDL_GameControllerGetStringForButtonW(SDL_CONTROLLER_BUTTON_LEFTSHOULDER);
-	auto test2 = SDL_GameControllerGetButtonFromStringW(L"leftshoulder");
 
 	for (int i = 0; i < 12; i++)
 	{

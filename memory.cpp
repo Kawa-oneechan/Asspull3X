@@ -487,8 +487,22 @@ void HandleBlitter(unsigned int function)
 
 				if (!fourBitSource && !fourBitTarget)
 				{
-					if (!(colorKey && val == blitKey))
+					if (!colorKey)
 						write(blitAddrB, val);
+					else
+					{
+						int fullKey = blitKey << 4 | blitKey;
+						int valHere = read(blitAddrB);
+						if (val != fullKey)
+						{
+							if ((val & 0x0F) == blitKey)
+								write(blitAddrB, (valHere & 0x0F) | (val & 0xF0));
+							else if ((val & 0xF0) == blitKey << 4)
+								write(blitAddrB, (valHere & 0xF0) | (val & 0x0F));
+							else
+								write(blitAddrB, val);
+						}
+					}
 				}
 				else if (fourBitSource && fourBitTarget)
 				{
