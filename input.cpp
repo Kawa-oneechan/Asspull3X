@@ -330,7 +330,10 @@ void InputOutputDevice::HBlank() {}
 void InputOutputDevice::VBlank()
 {
 	if (!UI::mouseLocked)
+	{
+		lastMouseX = lastMouseY = 0;
 		return;
+	}
 
 	POINT pos;
 
