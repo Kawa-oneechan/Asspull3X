@@ -271,6 +271,18 @@ void MainLoop()
 					UI::mouseLocked = !UI::mouseLocked;
 					SDL_ShowCursor(!UI::mouseLocked);
 					SDL_CaptureMouse((SDL_bool)UI::mouseLocked);
+					if (UI::mouseLocked)
+					{
+						RECT rect;
+						GetClientRect(UI::hWndMain, &rect);
+						ClientToScreen(UI::hWndMain, (LPPOINT)&rect);
+						ClientToScreen(UI::hWndMain, (LPPOINT)&rect + 1);
+						ClipCursor(&rect);
+					}
+					else
+					{
+						ClipCursor(NULL);
+					}
 				}
 			case SDL_WINDOWEVENT:
 				if (ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
