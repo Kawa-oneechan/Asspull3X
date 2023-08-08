@@ -840,28 +840,41 @@ namespace UI
 
 			menuBar = LoadMenu(hInstance, MAKEINTRESOURCE(IDR_MAINMENU));
 
-			MENUINFO mainInfo =
+			bool drunk = false;
 			{
-				sizeof(MENUINFO),
-				MIM_APPLYTOSUBMENUS | MIM_STYLE,
-				/* MNS_MODELESS | */ MNS_AUTODISMISS,
-				0,
-				NULL,
-				NULL,
-				0
-			};
-			SetMenuInfo(menuBar, &mainInfo);
-
-			MENUITEMINFO miInfo = { sizeof(MENUITEMINFO), MIIM_BITMAP };
-			for (int i = 0; i < 24; i++)
-			{
-				//auto hBmp = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(1000 + i), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
-				auto hBmp = Images::GetImageListImage(IML_MENUSTART + i);
-				if (hBmp == NULL)
-					continue;
-				miInfo.hbmpItem = hBmp;
-				SetMenuItemInfo(menuBar, 1000 + i, FALSE, &miInfo);
+				using fnWineGetVersion = const char *(CDECL*)(void);
+				HMODULE hntdll = GetModuleHandle(L"ntdll.dll");
+				auto wineGetVersion = (fnWineGetVersion)GetProcAddress(hntdll, "wine_get_version");
+				if (wineGetVersion)
+					drunk = true;
 			}
+
+			if (!drunk)
+			{
+				MENUINFO mainInfo =
+				{
+					sizeof(MENUINFO),
+					MIM_APPLYTOSUBMENUS | MIM_STYLE,
+					/* MNS_MODELESS | */ MNS_AUTODISMISS,
+					0,
+					NULL,
+					NULL,
+					0
+				};
+				SetMenuInfo(menuBar, &mainInfo);
+
+				MENUITEMINFO miInfo = { sizeof(MENUITEMINFO), MIIM_BITMAP };
+				for (int i = 0; i < 24; i++)
+				{
+					//auto hBmp = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(1000 + i), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_CREATEDIBSECTION);
+					auto hBmp = Images::GetImageListImage(IML_MENUSTART + i);
+					if (hBmp == NULL)
+						continue;
+					miInfo.hbmpItem = hBmp;
+					SetMenuItemInfo(menuBar, 1000 + i, FALSE, &miInfo);
+				}
+			}
+
 			SetMenu(hWndMain, menuBar);
 
 			hWndStatusBar = CreateWindowEx(0, L"STATIC", NULL, WS_CHILD | WS_VISIBLE | SS_OWNERDRAW, 0, 0, 0, 0, hWndMain, 0, hInstance, NULL);
