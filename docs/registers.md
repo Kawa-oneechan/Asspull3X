@@ -114,7 +114,7 @@ Only rendered in text mode.
 
 ### 00060	REG_TIMET
 
-The only 64-bit value in the system. Emulator-wise, reading the first half latches the current host system time so there's no sudden shifts when you read the second half. Writing the first half likewise latches, and the real time clock isn't actually *set* until the second half is written. On first run, the emulator will reset the RTC to 1984-01-01 00:00:00 GMT.
+Returns or sets the current date and time in as seconds since the Unix epoch, from 1970-01-01 00:00:00. That is, this is a 32-bits `time_t` value. On first run, the emulator will reset the RTC to 1984-01-01 00:00:00 GMT. This *will* cause problems in the year 2038, but this is supposed to be a system from the early 90s.
 
 ### 00100	REG_DMASOURCE
 

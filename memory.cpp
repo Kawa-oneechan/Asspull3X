@@ -42,7 +42,6 @@ unsigned int blitLength;
 int blitAddrA, blitAddrB, blitKey;
 
 long ticks = 0;
-time_t timelatch, timesetlatch;
 long rtcOffset = 0;
 int dmaLines = 0;
 
@@ -203,11 +202,8 @@ unsigned int m68k_read_memory_32(unsigned int address)
 		{
 			case 0x04: //Ticks
 				return (int)ticks;
-			case 0x60: //Time_T (top half)
-				timelatch = time(NULL) + rtcOffset;
-				return (int)(timelatch >> 32);
-			case 0x64: //Time_T (bottom half)
-				return (int)timelatch;
+			case 0x60: //Time_T
+				return (int)time(NULL) + rtcOffset;
 			case 0x100: //DMA Source
 				return dmaSource;
 			case 0x104: //DMA Target
@@ -369,16 +365,8 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 			case 0x108: //DMA Length
 				dmaLength = value;
 				break;
-			case 0x60: //Time_T (top half)
-				timelatch = time(NULL);
-				if ((signed int)value == -1)
-					value = 0;
-				timesetlatch = value;
-				break;
-			case 0x64: //Time_T (bottom half)
-				timesetlatch <<= 32;
-				timesetlatch |= value;
-				rtcOffset = (long)(timesetlatch - timelatch);
+			case 0x60: //Time_T
+				rtcOffset = (long)(value - time(NULL));
 				{
 					ini.SetLongValue(L"misc", L"rtcOffset", rtcOffset);
 					UI::SaveINI();
