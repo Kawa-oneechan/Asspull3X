@@ -28,7 +28,7 @@ INTERRUPTS
 
 DiskDrive::DiskDrive(int newType)
 {
-	if ((data = new unsigned char[SECTOR_SIZE]()) == NULL) return;
+	data = new unsigned char[SECTOR_SIZE]();
 	sector = 0;
 	error = 0;
 	capacity = 0;
