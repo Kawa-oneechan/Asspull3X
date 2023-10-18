@@ -54,6 +54,7 @@ STRINGTABLE
 	IDS_TEXTUREFAILED, "Could not create texture: %s"
 	IDS_BPSHEADERFAILED, "BPS patch header invalid. Patch is not applied."
 	IDS_BPSPATCHAPPLIED, "BPS patch applied."
+	IDS_BPSPATCHFAILED, "Could not allocate memory for patched ROM. Patch is not applied."
 #endif
 
 	IDS_PNGFAILED, "Failed to write PNG."

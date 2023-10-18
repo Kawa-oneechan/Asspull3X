@@ -844,9 +844,12 @@ namespace UI
 			{
 				using fnWineGetVersion = const char *(CDECL*)(void);
 				HMODULE hntdll = GetModuleHandle(L"ntdll.dll");
-				auto wineGetVersion = (fnWineGetVersion)GetProcAddress(hntdll, "wine_get_version");
-				if (wineGetVersion)
-					drunk = true;
+				if (hntdll)
+				{
+					auto wineGetVersion = (fnWineGetVersion)GetProcAddress(hntdll, "wine_get_version");
+					if (wineGetVersion)
+						drunk = true;
+				}
 			}
 
 			if (!drunk)

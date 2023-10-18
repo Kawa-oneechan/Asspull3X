@@ -36,7 +36,6 @@ unsigned int RoundUp(unsigned int v)
 
 void ApplyBPS(char* patch, long patchSize)
 {
-	unsigned char* target = NULL;
 	unsigned int srcOff = 4, dstOff = 0;
 
 	auto decode = [&]() -> unsigned int
@@ -55,13 +54,17 @@ void ApplyBPS(char* patch, long patchSize)
 
 	if (*((uint32_t*)patch) != 0x31535042 || decode() != romSize)
 	{
-		//TODO: localize this.
 		Log(logError, UI::GetString(IDS_BPSHEADERFAILED));
 		return;
 	}
 
 	auto targetSize = decode();
-	target = new unsigned char[targetSize];
+	auto target = new unsigned char[targetSize]();
+	if (target == nullptr)
+	{
+		Log(logError, L"Couldn't allocate space for patch.");
+		return;
+	}
 	srcOff += decode();
 
 	unsigned int srcRelOff = 0, dstRelOff = 0;
