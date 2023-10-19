@@ -56,7 +56,7 @@ STRINGTABLE
 	IDS_TEXTUREFAILED, "Kon geen textuur maken: %s"
 	IDS_BPSHEADERFAILED, "BPS patch ongeldig. Patch is niet toegepast."
 	IDS_BPSPATCHAPPLIED, "BPS patch toegepast."
-	IDS_BPSHEADERFAILED, "Geen geheugen voor aangepaste ROM. Patch is niet toegepast."
+	IDS_BPSPATCHFAILED, "Geen geheugen voor aangepaste ROM. Patch is niet toegepast."
 #endif
 
 	IDS_PNGFAILED, "Kan PNG niet schrijven."

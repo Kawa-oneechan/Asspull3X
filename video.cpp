@@ -153,10 +153,10 @@ namespace Video
 	{
 		auto sourceLine = line; // gfxTextBold ? (int)(line * 0.835) : line;
 		if (Registers::ScreenMode.Aspect && !stretch200)
-			sourceLine = line - 40;
+			LETTERBOX;
 
-		auto step = Registers::ScreenMode.HalfWidth ? 4 : 2;
-		auto shift = Registers::MapSet.Shift * 512;
+		const auto step = Registers::ScreenMode.HalfWidth ? 4 : 2;
+		const auto shift = Registers::MapSet.Shift * 512;
 		for (auto i = 0; i < 256; i++)
 		{
 			ObjectA objA;
@@ -192,7 +192,7 @@ namespace Video
 			if (sourceLine < vPos || sourceLine >= vPos + effectiveHeight)
 				continue;
 
-			short renderWidth = (Registers::ScreenMode.HalfWidth ? 16 : 8);
+			const short renderWidth = (Registers::ScreenMode.HalfWidth ? 16 : 8);
 			if (hPos + (effectiveWidth * (Registers::ScreenMode.HalfWidth ? 2 : 1)) <= 0 || hPos > 640)
 				continue;
 
@@ -301,10 +301,10 @@ namespace Video
 		if (Registers::ScreenMode.Aspect && !stretch200)
 			LETTERBOX;
 
-		auto width = Registers::ScreenMode.HalfWidth ? 40 : 80;
-		auto height = Registers::ScreenMode.HalfHeight ? 50 : 100;
-		auto celHeight = Registers::ScreenMode.HalfHeight ? 16 : 8;
-		auto bgY = sourceLine / celHeight;
+		const auto width = Registers::ScreenMode.HalfWidth ? 40 : 80;
+		const auto height = Registers::ScreenMode.HalfHeight ? 50 : 100;
+		const auto celHeight = Registers::ScreenMode.HalfHeight ? 16 : 8;
+		const auto bgY = sourceLine / celHeight;
 		auto tileIndex = TEXT_ADDR + (((bgY % height) * width) * 2);
 		auto font = FONT_ADDR + (Registers::ScreenMode.Bold ? 0x800 : 0);
 		if (Registers::ScreenMode.HalfHeight)
@@ -346,14 +346,14 @@ namespace Video
 
 		if (Registers::Caret & 0x8000 && BLINK)
 		{
-			int cp = Registers::Caret & 0x3FFF;
-			int cr = cp / width;
-			int ch = Registers::Caret & 0x4000 ? -1 : celHeight - 3;
+			const int cp = Registers::Caret & 0x3FFF;
+			const int cr = cp / width;
+			const int ch = Registers::Caret & 0x4000 ? -1 : celHeight - 3;
 			if (bgY == cr && sourceLine % celHeight > ch)
 			{
-				int cc = cp % width;
-				int ca = ramVideo[TEXT_ADDR + (cp * 2) + 1];
-				int cw = Registers::ScreenMode.HalfWidth ? 16 : 8;
+				const int cc = cp % width;
+				const int ca = ramVideo[TEXT_ADDR + (cp * 2) + 1];
+				const int cw = Registers::ScreenMode.HalfWidth ? 16 : 8;
 				for (auto col = 0; col < cw; col++)
 				{
 					RenderPixel(line, (cc * cw) + col, ca & 0xF, 0);
@@ -365,7 +365,7 @@ namespace Video
 
 	void RenderBitmapMode1(int line)
 	{
-		auto imgWidth = Registers::ScreenMode.HalfWidth ? 160 : 320; //image is 160 or 320 bytes wide
+		const auto imgWidth = Registers::ScreenMode.HalfWidth ? 160 : 320; //image is 160 or 320 bytes wide
 		auto sourceLine = line; // gfxTextBold ? (int)(line * 0.835) : line;
 		if (Registers::ScreenMode.Aspect && !stretch200)
 			LETTERBOX;
@@ -374,14 +374,14 @@ namespace Video
 			RenderPixel(line, col, 0, 0);
 		RenderObjects(line, 1);
 
-		auto effective = BMP_ADDR + (Registers::ScreenMode.HalfHeight ? sourceLine / 2 : sourceLine);
+		const auto effective = BMP_ADDR + (Registers::ScreenMode.HalfHeight ? sourceLine / 2 : sourceLine);
 		auto p = 0;
 		for (auto col = 0; col < 640; col += (Registers::ScreenMode.HalfWidth ? 4 : 2))
 		{
-			auto twoPix = ramVideo[effective * imgWidth + p];
+			const auto twoPix = ramVideo[effective * imgWidth + p];
 			p++;
-			auto l = (twoPix >> 0) & 0x0F;
-			auto r = (twoPix >> 4) & 0x0F;
+			const auto l = (twoPix >> 0) & 0x0F;
+			const auto r = (twoPix >> 4) & 0x0F;
 			if (!Registers::ScreenMode.HalfWidth)
 			{
 				if (l) RenderPixel(line, col + 0, l, 0);
@@ -406,7 +406,7 @@ namespace Video
 
 	void RenderBitmapMode2(int line)
 	{
-		auto imgWidth = Registers::ScreenMode.HalfWidth ? 320 : 640;
+		const auto imgWidth = Registers::ScreenMode.HalfWidth ? 320 : 640;
 		auto sourceLine = line; // gfxTextBold ? (int)(line * 0.835) : line;
 		if (Registers::ScreenMode.Aspect && !stretch200)
 			LETTERBOX;
@@ -415,11 +415,11 @@ namespace Video
 			RenderPixel(line, col, 0, 0);
 		RenderObjects(line, 1);
 
-		auto effective = BMP_ADDR + (Registers::ScreenMode.HalfHeight ? sourceLine / 2 : sourceLine);
+		const auto effective = BMP_ADDR + (Registers::ScreenMode.HalfHeight ? sourceLine / 2 : sourceLine);
 		auto p = 0;
 		for (auto col = 0; col < 640; col++)
 		{
-			auto pixel = ramVideo[effective * imgWidth + p];
+			const auto pixel = ramVideo[effective * imgWidth + p];
 			p++;
 			if (pixel)
 			{
@@ -445,7 +445,7 @@ namespace Video
 	void RenderTileMode(int line)
 	{
 		if (line % 2 == 1) return;
-		auto sourceLine = line / 2;
+		const auto sourceLine = line / 2;
 		const auto charBase = TILES_ADDR;
 		auto screenBase = MAP1_ADDR;
 		const auto sizeX = 512;
