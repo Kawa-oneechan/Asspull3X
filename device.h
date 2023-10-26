@@ -4,7 +4,7 @@
 #include <Windows.h>
 
 #define MAXDEVS 16
-#define DEVBLOCK 0x8000
+#define DEVBLOCK 0x8000 //32 KiB
 
 class Device
 {

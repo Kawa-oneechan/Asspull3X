@@ -1,14 +1,15 @@
 #pragma once
 
 //Define memory map
-#define BIOS_SIZE	0x00020000
-#define CART_SIZE	0x00FC0000
+#define BIOS_SIZE	0x00020000 //128 KiB
+#define CART_SIZE	0x00FC0000 //15.75 MiB (16 MiB - 128 KiB for BIOS and SRAM)
 #define SRAM_SIZE	0x00020000
-#define WRAM_SIZE	0x00400000
-#define DEVS_SIZE	(DEV_BLOCK * MAXDEVS) //0x0080000
-#define REGS_SIZE	0x000FFFFF
-#define VRAM_SIZE	0x00080000
-#define STAC_SIZE	0x00010000
+#define WRAM_SIZE	0x00400000 //4 MiB
+#define DEVS_SIZE	(DEV_BLOCK * MAXDEVS) //0x0080000, 32 KiB * 16 = 512 KiB
+//#define REGS_SIZE	0x00100000 //1 MiB.
+#define REGS_SIZE	0x00000400 //1 KiB.
+#define VRAM_SIZE	0x00080000 //512 KiB
+#define STAC_SIZE	0x00010000 //64 KiB, only here for sanity checks
 
 #define TEXT_SIZE	((80 * 60) * 2)	//640x480 mode has 8x8 character cells, so 80�60 characters.
 #define BITMAP_SIZE	(640 * 480)		//640x480 mode in 256 colors.
@@ -23,7 +24,7 @@
 #define CART_ADDR	0x00020000
 #define SRAM_ADDR	0x00FE0000
 #define WRAM_ADDR	0x01000000
-#define STAC_ADDR	0x013F0000
+#define STAC_ADDR	0x013F0000 //only here for sanity checks
 #define DEVS_ADDR	0x02000000
 #define REGS_ADDR	0x0D000000
 #define VRAM_ADDR	0x0E000000
