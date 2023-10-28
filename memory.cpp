@@ -475,6 +475,12 @@ void HandleBlitter(unsigned int function)
 
 				if (!fourBitSource && !fourBitTarget)
 				{
+					if (!(colorKey && val == blitKey))
+						write(blitAddrB, val);
+				}
+				/*
+				//TODO: mixed depths
+				{
 					if (!colorKey)
 						write(blitAddrB, val);
 					else
@@ -492,6 +498,7 @@ void HandleBlitter(unsigned int function)
 						}
 					}
 				}
+				*/
 				else if (fourBitSource && fourBitTarget)
 				{
 					auto old = read(blitAddrB);
