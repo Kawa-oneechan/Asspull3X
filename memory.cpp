@@ -114,7 +114,7 @@ unsigned int m68k_read_memory_8(unsigned int address)
 {
 	if (address >= REGS_ADDR && address < REGS_ADDR + REGS_SIZE)
 	{
-		auto reg = address & REGS_SIZE;
+		auto reg = address & 0x000FFFFF;
 		switch (reg)
 		{
 			case 0x00: //Interrupts
