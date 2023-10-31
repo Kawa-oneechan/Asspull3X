@@ -123,6 +123,7 @@ void MainLoop()
 
 	auto startTime = 0;
 	auto endTime = 0;
+	auto fpsTime = SDL_GetTicks();
 	auto delta = 0;
 	auto frames = 0;
 	auto cycles = 0LL;
@@ -483,7 +484,12 @@ void MainLoop()
 				auto averageFPS = frames / (SDL_GetTicks() / 1000.0f);
 				if (averageFPS > 2000000)
 					averageFPS = 0;
-				UI::SetFPS((int)averageFPS);
+				if (endTime - fpsTime >= 1000)
+				{
+					fpsTime = endTime;
+					UI::SetFPS(frames);
+					frames = 0;
+				}
 				if (UI::fpsCap && delta < 20)
 					SDL_Delay(20 - delta);
 				startTime = endTime;
