@@ -684,7 +684,7 @@ namespace UI
 		}
 		case WM_SETTINGCHANGE:
 		{
-			if (strcmp((const char*)lParam, "ImmersiveColorSet"))
+			if (!strcmp((const char*)lParam, "ImmersiveColorSet"))
 			{
 				if (ini.GetLongValue(L"misc", L"theme", 0) == 2)
 				{
@@ -933,7 +933,7 @@ namespace UI
 		WCHAR cwd[MAX_PATH];
 		GetCurrentDirectory(MAX_PATH, cwd);
 
-		if ((!toSave && (GetOpenFileName(&ofn) == TRUE)) || (toSave && (GetSaveFileName(&ofn) == TRUE)))
+		if ((!toSave && (GetOpenFileName(&ofn) != FALSE)) || (toSave && (GetSaveFileName(&ofn) != FALSE)))
 		{
 			SetCurrentDirectory(cwd);
 			wcscpy_s(target, max, ofn.lpstrFile);
@@ -1040,7 +1040,7 @@ namespace UI
 		wcscat(f, e);
 		_wcserror_s(e, ARRAYSIZE(e), err);
 		wsprintf(b, UI::GetString(messageId), f, device);
-		wsprintf(f, UI::GetString(IDS_SHORTTITLE));
+		wsprintf(f, L"%s", UI::GetString(IDS_SHORTTITLE));
 
 		TASKDIALOGCONFIG tdc = { 0 };
 		tdc.cbSize = sizeof(TASKDIALOGCONFIG);
@@ -1052,7 +1052,7 @@ namespace UI
 
 		if (offerToForget)
 		{
-			wsprintf(g, UI::GetString(IDS_FORGETABOUTDISK));
+			wsprintf(g, L"%s", UI::GetString(IDS_FORGETABOUTDISK));
 			tdc.pszVerificationText = g;
 		}
 		int forget;

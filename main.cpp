@@ -80,6 +80,7 @@ unsigned char* turnedOffScreen;
 
 void MainLoop()
 {
+	/*
 	if ((pauseScreen = new unsigned char[SCREENBUFFERSIZE]()) == nullptr)
 	{
 		UI::Complain(IDS_PAUSEFAIL);
@@ -97,11 +98,18 @@ void MainLoop()
 		auto png = UI::Images::LoadPNGResource(IDB_POWER, &w, &h);
 		memcpy(turnedOffScreen, &png[0], SCREENBUFFERSIZE);
 	}
+	*/
+	pauseScreen = new unsigned char[SCREENBUFFERSIZE]();
+	turnedOffScreen = new unsigned char[SCREENBUFFERSIZE]();
+
+	unsigned long w, h;
+	auto png = UI::Images::LoadPNGResource(IDB_POWER, &w, &h);
+	memcpy(turnedOffScreen, &png[0], SCREENBUFFERSIZE);
 
 	Reset();
 
 #if _CONSOLE
-	wprintf(UI::GetString(IDS_ASSPULLISREADY)); //"Asspull IIIx is ready."...
+	wprintf(L"%s", UI::GetString(IDS_ASSPULLISREADY)); //"Asspull IIIx is ready."...
 #endif
 
 	SDL_Event ev;
@@ -285,13 +293,14 @@ void MainLoop()
 						ClipCursor(NULL);
 					}
 				}
+				break;
 			case SDL_WINDOWEVENT:
 				if (ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
 					UI::ResizeStatusBar();
 				else if (ev.window.event == SDL_WINDOWEVENT_FOCUS_LOST)
 				{
 					UI::mouseLocked = false;
-					SDL_ShowCursor(true);
+					SDL_ShowCursor(SDL_TRUE);
 					SDL_CaptureMouse(SDL_FALSE);
 				}
 			}
@@ -331,7 +340,7 @@ void MainLoop()
 			if (UI::uiCommand == cmdLoadRom)
 			{
 				UI::ShowOpenFileDialog(cmdLoadRom, UI::GetString(IDS_CARTFILTER)); //"Asspull IIIx ROMS (*.ap3)|*.ap3"
-				if (UI::uiCommand == 0) continue;
+				if (UI::uiCommand == 0) continue; //-V547
 				gottaReset = (*(uint32_t*)romCartridge == 0x21535341);
 				SaveCartRAM();
 				LoadROM(UI::uiString);
@@ -476,9 +485,9 @@ void MainLoop()
 				for (int i = 0; i < MAXDEVS; i++)
 					if (devices[i] != NULL) devices[i]->VBlank();
 
-				if (!startTime)
-					startTime = SDL_GetTicks();
-				else
+//				if (!startTime)
+//					startTime = SDL_GetTicks();
+//				else
 					delta = endTime - startTime;
 
 				auto averageFPS = frames / (SDL_GetTicks() / 1000.0f);
@@ -511,7 +520,7 @@ void MainLoop()
 				line = 0;
 			}
 		}
-		else if (pauseState == pauseYes)
+		else //if (pauseState == pauseYes)
 		{
 			memcpy(Video::pixels, pauseScreen, SCREENBUFFERSIZE);
 			UI::LetItSnow();

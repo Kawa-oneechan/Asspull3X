@@ -173,7 +173,7 @@ void DiskDrive::Write(unsigned int address, unsigned int value)
 			return;
 		//TODO: don't allow seeking out of bounds.
 		fseek(file, sector * SECTOR_SIZE, SEEK_SET);
-		error = false;
+		error = 0;
 		if (value == 4)
 			error = (fread(data, 1, SECTOR_SIZE, file) == 0);
 		else if (value == 8)

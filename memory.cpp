@@ -84,11 +84,17 @@ void HandleHdma(int currentLine)
 
 int InitMemory()
 {
+/*
 	if ((romBIOS = new unsigned char[BIOS_SIZE]()) == NULL) return -1;
 	if ((romCartridge = new unsigned char[CART_SIZE]()) == NULL) return -1;
 	if ((ramCartridge = new unsigned char[SRAM_SIZE]()) == NULL) return -1;
 	if ((ramInternal = new unsigned char[WRAM_SIZE]()) == NULL) return -1;
 	if ((ramVideo = new unsigned char[VRAM_SIZE]()) == NULL) return -1;
+*/
+	romBIOS = new unsigned char[BIOS_SIZE]();
+	romCartridge = new unsigned char[CART_SIZE]();
+	ramInternal = new unsigned char[WRAM_SIZE]();
+	ramVideo = new unsigned char[VRAM_SIZE]();
 	return 0;
 }
 
@@ -150,9 +156,9 @@ unsigned int m68k_read_memory_8(unsigned int address)
 			return 0;
 		}
 		case 0xE:
-			addr &= 0x7FFFF;
-			if (addr >= VRAM_SIZE)
-				return 0;
+			addr &= (VRAM_SIZE - 1);
+//			if (addr >= VRAM_SIZE)
+//				return 0;
 			return ramVideo[addr];
 	}
 	return 0;
@@ -303,9 +309,9 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 			}
 			break;
 		case 0xE:
-			addr &= 0x7FFFF;
-			if (addr >= VRAM_SIZE)
-				break;
+			addr &= (VRAM_SIZE - 1);
+//			if (addr >= VRAM_SIZE)
+//				break;
 			ramVideo[addr] = (unsigned char)value;
 			break;
 	}
@@ -521,7 +527,7 @@ void HandleBlitter(unsigned int function)
 				write(blitAddrB, blitAddrA);
 				blitAddrB += (1 << width);
 			}
-			else if (fun == 3) //Invert
+			else //if (fun == 3) //Invert
 			{
 				m68k_write_memory_8(blitAddrB, ~m68k_read_memory_8(blitAddrB));
 				blitAddrB++;

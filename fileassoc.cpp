@@ -29,7 +29,7 @@ cleanup:
 	if (dwError != ERROR_SUCCESS)
 		return false;
 
-	return res == TRUE;
+	return res != FALSE;
 }
 
 void AssociateFiletypes()

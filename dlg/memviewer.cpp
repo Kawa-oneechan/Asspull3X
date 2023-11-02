@@ -211,6 +211,7 @@ namespace UI
 						KillTimer(hWnd, 1);
 					return true;
 				}
+				break;
 			}
 			case WM_DRAWITEM:
 			{
@@ -221,7 +222,7 @@ namespace UI
 				}
 				else if (wParam == IDC_MEMVIEWERDROP)
 					return DrawComboBox((LPDRAWITEMSTRUCT)lParam);
-				return false;
+				break;
 			}
 			case WM_PAINT:
 			{
@@ -241,6 +242,7 @@ namespace UI
 					else if (nmc->hdr.idFrom == IDC_REFRESH)
 						return DrawButton(hWnd, nmc);
 				}
+				break;
 			}
 			case WM_CTLCOLORSTATIC:
 			{

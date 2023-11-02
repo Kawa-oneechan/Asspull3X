@@ -88,7 +88,6 @@ namespace UI
 						DrawCheckbox(hWnd, nmc);
 						return true;
 					}
-					break;
 					case IDOK:
 					case IDCANCEL:
 					case IDC_BIOSBROWSE:
@@ -101,8 +100,8 @@ namespace UI
 					LITEM item = pNMLink->item;
 					if ((((LPNMHDR)lParam)->hwndFrom == GetDlgItem(hWnd, IDC_LINK)) && (item.iLink == 0))
 						AssociateFiletypes();
-					break;
 				}
+				break;
 			}
 			case WM_CTLCOLORSTATIC:
 			{
@@ -128,6 +127,7 @@ namespace UI
 			{
 				if (wParam == IDC_THEME || wParam == IDC_MIDIDEV)
 					return DrawComboBox((LPDRAWITEMSTRUCT)lParam);
+				break;
 			}
 			case WM_COMMAND:
 			{

@@ -208,11 +208,11 @@ void InitializeDevices()
 void Preload()
 {
 	const WCHAR* thing = ini.GetValue(L"media", L"bios", L""); //"roms\\ass-bios.apb");
+	WCHAR thePath[FILENAME_MAX] = L"roms\\ass-bios.apb";
 	if (!wcslen(thing))
 	{
 askForBIOS:
 		//thing = "roms\\ass-bios.apb";
-		WCHAR thePath[FILENAME_MAX] = L"roms\\ass-bios.apb";
 		if (UI::ShowFileDlg(false, thePath, 256, L"A3X BIOS files (*.apb)|*.apb"))
 		{
 			thing = thePath;

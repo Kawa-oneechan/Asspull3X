@@ -48,7 +48,10 @@ namespace Discord
 			return;
 		WCHAR wName[128] = { 0 };
 		if (gameName == NULL)
+		{
 			wcscpy(wName, UI::GetString(IDS_NOTPLAYING));
+			gameName = "";
+		}
 		else
 			mbstowcs(wName, gameName, ARRAYSIZE(wName));
 		Log(L"Discord: \"%s\"", wName);

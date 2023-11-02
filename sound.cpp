@@ -123,7 +123,7 @@ namespace Sound
 				Log(L"Could not open MIDI device #%d: bad device ID.", devID);
 				return 1; //Negative would mean to stop loading but who cares?
 			}
-			else if (res == MMSYSERR_BADDEVICEID)
+			else if (res == MMSYSERR_ALLOCATED)
 			{
 				Log(L"Could not open MIDI device #%d: device already allocated.", devID);
 				return 2; //If we *do* fail to open a device, we'll just run silent, pffft.

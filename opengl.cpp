@@ -123,9 +123,12 @@ namespace Video
 			if (logLength > 0)
 			{
 				GLchar *log = (GLchar*)malloc(logLength + 4);
-				glGetShaderInfoLog(result, logLength, &logLength, log);
-				ComplainAboutShaders(file, log, logLength);
-				free(log);
+				if (log != nullptr)
+				{
+					glGetShaderInfoLog(result, logLength, &logLength, log);
+					ComplainAboutShaders(file, log, logLength);
+					free(log);
+				}
 			}
 			glDeleteShader(result);
 			result = 0;
@@ -179,7 +182,7 @@ namespace Video
 
 		auto source = ReadTextFile(fragFile);
 		fragShaderId = compileShader(source, fragFile, GL_FRAGMENT_SHADER);
-		delete[] source;
+		free(source);
 
 		if (vtxShaderId && fragShaderId)
 		{
@@ -407,11 +410,14 @@ namespace Video
 			return -2;
 		}
 
+		/*
 		if ((pixels = new unsigned char[SCREENBUFFERSIZE]()) == nullptr)
 		{
 			UI::Complain(IDS_SCREENFAIL);
 			return -2;
 		}
+		*/
+		pixels = new unsigned char[SCREENBUFFERSIZE]();
 
 		return 0;
 	}
@@ -430,7 +436,7 @@ namespace Video
 		WCHAR snap[128];
 		__time64_t now;
 		_time64(&now);
-		wsprintf(snap, L"%I64u.png", now);
+		wsprintf(snap, L"%I64.png", now);
 
 		auto shot = new char[4 * scrWidth * scrHeight]();
 		glReadPixels(offsetX, offsetY, scrWidth, scrHeight, GL_RGB, GL_UNSIGNED_BYTE, shot);

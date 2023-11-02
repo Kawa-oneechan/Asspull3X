@@ -68,34 +68,33 @@ namespace UI
 				unsigned char *start = bmpData + row * 16 * w * 4 + col * 16 * 4;
 				for (int i = 0; i < 16; i++)
 				{
-					*start++ = 255 - *start;
-					*start++ = 255 - *start;
-					*start++ = 255 - *start;
-					start++;
+					start[0] = 255 - start[0];
+					start[1] = 255 - start[1];
+					start[2] = 255 - start[2];
+					start += 4;
 				}
 				start += skip;
 				for (int i = 1; i < 15; i++)
 				{
-					*start++ = 255 - *start;
-					*start++ = 255 - *start;
-					*start++ = 255 - *start;
-					start++;
+					start[0] = 255 - start[0];
+					start[1] = 255 - start[1];
+					start[2] = 255 - start[2];
+					start += 4;
 					start += 14 * 4;
-					*start++ = 255 - *start;
-					*start++ = 255 - *start;
-					*start++ = 255 - *start;
-					start++;
+					start[0] = 255 - start[0];
+					start[1] = 255 - start[1];
+					start[2] = 255 - start[2];
+					start += 4;
 					start += skip;
 				}
 				for (int i = 0; i < 16; i++)
 				{
-					*start++ = 255 - *start;
-					*start++ = 255 - *start;
-					*start++ = 255 - *start;
-					start++;
+					start[0] = 255 - start[0];
+					start[1] = 255 - start[1];
+					start[2] = 255 - start[2];
+					start += 4;
 				}
 			}
-
 
 			bmpInfo.bmiHeader.biWidth = w;
 			bmpInfo.bmiHeader.biHeight = -h;

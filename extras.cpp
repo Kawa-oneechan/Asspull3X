@@ -60,11 +60,13 @@ void ApplyBPS(char* patch, long patchSize)
 
 	auto targetSize = decode();
 	auto target = new unsigned char[targetSize]();
+	/*
 	if (target == nullptr)
 	{
 		Log(logError, L"Couldn't allocate space for patch.");
 		return;
 	}
+	*/
 	srcOff += decode();
 
 	unsigned int srcRelOff = 0, dstRelOff = 0;
@@ -77,11 +79,18 @@ void ApplyBPS(char* patch, long patchSize)
 		{
 		case 0:
 			while (length--)
-				target[dstOff++] = romCartridge[dstOff];
+			{
+				target[dstOff] = romCartridge[dstOff];
+				dstOff++;
+			}
 			break;
 		case 1:
 			while (length--)
-				target[dstOff++] = patch[srcOff++];
+			{
+				target[dstOff] = patch[srcOff];
+				dstOff++;
+				srcOff++;
+			}
 			break;
 		case 2:
 		case 3:
@@ -91,13 +100,21 @@ void ApplyBPS(char* patch, long patchSize)
 			{
 				srcRelOff += offset;
 				while (length--)
-					target[dstOff++] = romCartridge[srcRelOff++];
+				{
+					target[dstOff] = romCartridge[srcRelOff];
+					dstOff++;
+					srcRelOff++;
+				}
 			}
 			else
 			{
 				dstRelOff += offset;
 				while (length--)
-					target[dstOff++] = target[dstRelOff++];
+				{
+					target[dstOff] = target[dstRelOff];
+					dstOff++;
+					dstRelOff++;
+				}
 			}
 		}
 	}
@@ -105,6 +122,7 @@ void ApplyBPS(char* patch, long patchSize)
 	//Do I care about the checksums?
 
 	memcpy_s(romCartridge, romSize, target, targetSize);
+	delete[] target;
 	Log(UI::GetString(IDS_BPSPATCHAPPLIED));
 }
 
@@ -255,7 +273,7 @@ void LoadROM(const WCHAR* path)
 	}
 
 	char romName[32] = { 0 };
-	memcpy(romName, romCartridge + 8, 24);
+	memcpy_s(romName, 32, romCartridge + 8, 24);
 	Discord::SetPresence(romName);
 	WCHAR wideName[256] = { 0 };
 	if (romCartridge[0x27] == 'j')
@@ -313,6 +331,7 @@ void Log(logCategories cat, WCHAR* message, ...)
 	{
 		switch (cat)
 		{
+		case logNormal: break; //no special treatment.
 		case logWarning: wprintf(L"\x1b[93m\u26A0 \x1B[1m"); break;
 		case logError: wprintf(L"\x1b[101m\u26D4 \x1B[1m"); break;
 		}
@@ -322,6 +341,7 @@ void Log(logCategories cat, WCHAR* message, ...)
 	{
 		switch (cat)
 		{
+		case logNormal: break;
 		case logWarning: SetConsoleTextAttribute(std, 14); wprintf(L"\u26A0 "); break;
 		case logError: SetConsoleTextAttribute(std, 12); wprintf(L"\u26D4 "); break;
 		}
@@ -354,8 +374,7 @@ void Log(logCategories cat, WCHAR* message, ...)
 		}
 		*n = 0;
 
-		fwprintf(logFile, buf);
-		fwprintf(logFile, L"\n");
+		fwprintf(logFile, L"%s\n", buf);
 		fflush(logFile);
 	}
 }

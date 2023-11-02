@@ -262,18 +262,24 @@ void InputOutputDevice::Write(unsigned int address, unsigned int value)
 	}
 	case 0x10: //PCM Offset
 	case 0x14:
+	case 0x18: //PCM Length + Repeat
+	case 0x1C:
 	{
 		pcmLatch = value << 24;
 		break;
 	}
 	case 0x11:
 	case 0x15:
+	case 0x19:
+	case 0x1D:
 	{
 		pcmLatch |= value << 16;
 		break;
 	}
 	case 0x12:
 	case 0x16:
+	case 0x1A:
+	case 0x1E:
 	{
 		pcmLatch |= value << 8;
 		break;
@@ -283,24 +289,6 @@ void InputOutputDevice::Write(unsigned int address, unsigned int value)
 	{
 		pcmLatch |= value << 0;
 		Sound::pcmSource[address == 0x13 ? 0 : 1] = value;
-		break;
-	}
-	case 0x18: //PCM Length + Repeat
-	case 0x1C:
-	{
-		pcmLatch = value << 24;
-		break;
-	}
-	case 0x19:
-	case 0x1D:
-	{
-		pcmLatch |= value << 16;
-		break;
-	}
-	case 0x1A:
-	case 0x1E:
-	{
-		pcmLatch |= value << 8;
 		break;
 	}
 	case 0x1B:

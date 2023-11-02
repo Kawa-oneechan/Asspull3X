@@ -134,9 +134,12 @@ namespace Video
 			b = (pixels[target + 0] + ((b << 3) + (b >> 2))) / 2;
 			g = (pixels[target + 1] + ((g << 3) + (g >> 2))) / 2;
 			r = (pixels[target + 2] + ((r << 3) + (r >> 2))) / 2;
-			pixels[target + 0] = (unsigned char)((b > 255) ? 255 : b);
-			pixels[target + 1] = (unsigned char)((g > 255) ? 255 : g);
-			pixels[target + 2] = (unsigned char)((r > 255) ? 255 : r);
+//			pixels[target + 0] = (unsigned char)((b > 255) ? 255 : b);
+//			pixels[target + 1] = (unsigned char)((g > 255) ? 255 : g);
+//			pixels[target + 2] = (unsigned char)((r > 255) ? 255 : r);
+			pixels[target + 0] = (unsigned char)b;
+			pixels[target + 1] = (unsigned char)g;
+			pixels[target + 2] = (unsigned char)r;
 		}
 		else
 		{
@@ -163,7 +166,7 @@ namespace Video
 			objA.Raw = (unsigned short)((ramVideo[OBJ1_ADDR + 0 + (i * 2)] << 8) | (ramVideo[OBJ1_ADDR + 1 + (i * 2)] << 0));
 			if (objA.Raw == 0)
 				continue;
-			if (!objA.Enabled)
+			if (!objA.Enabled) //-V614
 				continue;
 			ObjectB objB;
 			objB.Raw = (unsigned int)(
@@ -171,18 +174,18 @@ namespace Video
 				(ramVideo[OBJ2_ADDR + 1 + (i * 4)] << 16) |
 				(ramVideo[OBJ2_ADDR + 2 + (i * 4)] << 8) |
 				(ramVideo[OBJ2_ADDR + 3 + (i * 4)] << 0));
-			if (withPriority > -1 && objB.Priority != withPriority)
+			if (withPriority > -1 && objB.Priority != withPriority) //-V614
 				continue;
 
-			short hPos = objB.Horizontal * (Registers::ScreenMode.HalfWidth ? 2 : 1);
-			short vPos = objB.Vertical * (Registers::ScreenMode.HalfHeight ? 2 : 1);
+			short hPos = objB.Horizontal * (Registers::ScreenMode.HalfWidth ? 2 : 1); //-V614
+			short vPos = objB.Vertical * (Registers::ScreenMode.HalfHeight ? 2 : 1); //-V614
 
 			short tileHeight = 1;
-			if (objB.DoubleHeight) tileHeight *= 2;
-			if (objB.DoubleUp) tileHeight *= 2;
+			if (objB.DoubleHeight) tileHeight *= 2; //-V614
+			if (objB.DoubleUp) tileHeight *= 2; //-V614
 
 			short tileWidth = 1;
-			if (objB.DoubleWidth) tileWidth *= 2;
+			if (objB.DoubleWidth) tileWidth *= 2; //-V614
 			if (objB.DoubleUp) tileWidth *= 2;
 
 			short effectiveHeight = tileHeight * 8;
@@ -196,15 +199,15 @@ namespace Video
 			if (hPos + (effectiveWidth * (Registers::ScreenMode.HalfWidth ? 2 : 1)) <= 0 || hPos > 640)
 				continue;
 
-			if (objB.FlipHoriz)
+			if (objB.FlipHoriz) //-V614
 				hPos += (Registers::ScreenMode.HalfWidth ? (effectiveWidth * 2) - 4 : effectiveWidth - 2);
 
-			auto tileBasePic = TILES_ADDR + ((objA.Tile + shift) * 32);
+			auto tileBasePic = TILES_ADDR + ((objA.Tile + shift) * 32); //-V614
 			for (auto col = 0; col < tileWidth; col++)
 			{
 				auto tilePic = tileBasePic;
 				auto part = (sourceLine - vPos);
-				if (objB.FlipVert) part = effectiveHeight - 1 - part;
+				if (objB.FlipVert) part = effectiveHeight - 1 - part; //-V614
 
 				if (Registers::ScreenMode.HalfHeight && Registers::ScreenMode.Mode > 0)
 					part /= 2;
@@ -224,7 +227,7 @@ namespace Video
 						continue;
 					auto l = (twoPix >> 0) & 0x0F;
 					auto r = (twoPix >> 4) & 0x0F;
-					if (l) l += objA.Palette * 16;
+					if (l) l += objA.Palette * 16; //-V614
 					if (r) r += objA.Palette * 16;
 					if (objB.FlipHoriz)
 					{
@@ -233,7 +236,7 @@ namespace Video
 						r = lt;
 					}
 
-					if (objA.Blend == 0)
+					if (objA.Blend == 0) //-V614
 					{
 						if (!Registers::ScreenMode.HalfWidth)
 						{
@@ -493,16 +496,16 @@ namespace Video
 				auto tileX = xxx & 7;
 				auto tileY = yyy & 7;
 
-				if (mapTile.FlipHoriz) tileX = 7 - tileX;
-				if (mapTile.FlipVert) tileY = 7 - tileY;
+				if (mapTile.FlipHoriz) tileX = 7 - tileX; //-V614
+				if (mapTile.FlipVert) tileY = 7 - tileY; //-V614
 
-				auto color = (int)ramVideo[charBase + ((mapTile.Tile + shift) << 5) + (tileY << 2) + (tileX >> 1)];
+				auto color = (int)ramVideo[charBase + ((mapTile.Tile + shift) << 5) + (tileY << 2) + (tileX >> 1)]; //-V614
 				if ((tileX & 1) == 1) color >>= 4;
 				color &= 0x0F;
 
 				if (color)
 				{
-					if (color) color += mapTile.Palette * 16;
+					color += mapTile.Palette * 16; //-V614
 					if (Registers::MapBlend.Enabled & (1 << layer))
 					{
 						auto sub = (Registers::MapBlend.Subtract & (1 << layer)) != 0;

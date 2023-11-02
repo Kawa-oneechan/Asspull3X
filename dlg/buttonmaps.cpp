@@ -91,6 +91,7 @@ namespace UI
 					}
 				}
 				}
+				return false;
 			}
 			case WM_PAINT:
 			{
@@ -126,6 +127,7 @@ namespace UI
 			{
 				if (wParam == IDC_COMBO2)
 					return DrawComboBox((LPDRAWITEMSTRUCT)lParam);
+				return false;
 			}
 			case WM_COMMAND:
 			{

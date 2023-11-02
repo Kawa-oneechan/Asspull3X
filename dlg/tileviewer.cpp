@@ -78,31 +78,31 @@ namespace UI
 				unsigned char *start = bmpData + row * 8 * w * 4 + col * 8 * 4;
 				for (int i = 0; i < 8; i++)
 				{
-					*start++ = 255 - *start;
-					*start++ = 255 - *start;
-					*start++ = 255 - *start;
-					start++;
+					start[0] = 255 - start[0];
+					start[1] = 255 - start[1];
+					start[2] = 255 - start[2];
+					start += 4;
 				}
 				start += skip;
 				for (int i = 1; i < 7; i++)
 				{
-					*start++ = 255 - *start;
-					*start++ = 255 - *start;
-					*start++ = 255 - *start;
-					start++;
+					start[0] = 255 - start[0];
+					start[1] = 255 - start[1];
+					start[2] = 255 - start[2];
+					start += 4;
 					start += 6 * 4;
-					*start++ = 255 - *start;
-					*start++ = 255 - *start;
-					*start++ = 255 - *start;
-					start++;
+					start[0] = 255 - start[0];
+					start[1] = 255 - start[1];
+					start[2] = 255 - start[2];
+					start += 4;
 					start += skip;
 				}
 				for (int i = 0; i < 8; i++)
 				{
-					*start++ = 255 - *start;
-					*start++ = 255 - *start;
-					*start++ = 255 - *start;
-					start++;
+					start[0] = 255 - start[0];
+					start[1] = 255 - start[1];
+					start[2] = 255 - start[2];
+					start += 4;
 				}
 			}
 

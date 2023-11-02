@@ -73,10 +73,10 @@ namespace UI
 					case IDC_MOVESHADERUP:
 					case IDC_MOVESHADERDOWN:
 						return DrawButton(hWnd, nmc);
-						break;
 					}
 				}
 				}
+				break;
 			}
 			case WM_PAINT:
 			{
