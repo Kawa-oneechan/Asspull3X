@@ -157,7 +157,7 @@ namespace UI
 			WCHAR key[8] = { 0 };
 			_itow(devNum, key, 10);
 
-			if (devices[devNum] != NULL) delete devices[devNum];
+			delete devices[devNum];
 			switch (newType)
 			{
 			case 0:
@@ -166,15 +166,15 @@ namespace UI
 				ini.Delete(L"devices", key, true);
 				break;
 			case 1:
-				devices[devNum] = (Device*)(new DiskDrive(0));
+				devices[devNum] = new DiskDrive(0);
 				ini.SetValue(L"devices", key, L"diskDrive");
 				break;
 			case 2:
-				devices[devNum] = (Device*)(new DiskDrive(1));
+				devices[devNum] = new DiskDrive(1);
 				ini.SetValue(L"devices", key, L"hardDrive");
 				break;
 			case 3:
-				devices[devNum] = (Device*)(new LinePrinter());
+				devices[devNum] = new LinePrinter();
 				ini.SetValue(L"devices", key, L"linePrinter");
 				break;
 			}

@@ -150,7 +150,7 @@ void InitializeDevices()
 {
 	//Absolutely always load Input as #0
 	inputDev = new InputOutputDevice();
-	devices[0] = (Device*)inputDev;
+	devices[0] = inputDev;
 
 	for (int i = 1; i < MAXDEVS; i++)
 	{
@@ -162,7 +162,7 @@ void InitializeDevices()
 		if (!wcslen(thing)) continue;
 		if (!wcscmp(thing, L"diskDrive"))
 		{
-			devices[i] = (Device*)(new DiskDrive(0));
+			devices[i] = new DiskDrive(0);
 			//Log(L"Attached a \x1b[1mdiskette drive\x1b[0m as device \x1b[1m#%d\x1b[0m.", i);
 			thing = ini.GetValue(L"devices/diskDrive", key, L"");
 			if (UI::reloadIMG && wcslen(thing))
@@ -179,7 +179,7 @@ void InitializeDevices()
 		}
 		else if (!wcscmp(thing, L"hardDrive"))
 		{
-			devices[i] = (Device*)(new DiskDrive(1));
+			devices[i] = new DiskDrive(1);
 			//Log(logNormal, L"Attached a \x1b[1mhard disk drive\x1b[0m as device \x1b[1m#%d\x1b[0m.", i);
 			thing = ini.GetValue(L"devices/hardDrive", key, L"");
 			if (UI::reloadIMG && wcslen(thing))
@@ -196,7 +196,7 @@ void InitializeDevices()
 		}
 		else if (!wcscmp(thing, L"linePrinter"))
 		{
-			devices[i] = (Device*)(new LinePrinter());
+			devices[i] = new LinePrinter();
 			//Log(logNormal, L"Attached a \x1b[1mline printer\x1b[0m as device \x1b[1m#%d\x1b[0m.", i);
 		}
 		//else Log(logWarning, L"Don't know what \x1b[101m\"%s\"\x1b[0m is to connect as device \x1b[1m#%d\x1b[0m.", thing, i);

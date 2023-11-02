@@ -18,7 +18,7 @@ public:
 	virtual void VBlank();
 };
 
-class DiskDrive : Device
+class DiskDrive : public Device
 {
 private:
 	FILE* file;
@@ -49,7 +49,7 @@ enum diskDriveTypes
 	ddHardDisk,
 };
 
-class LinePrinter : Device
+class LinePrinter : public Device
 {
 private:
 	char line[120];
@@ -67,7 +67,7 @@ public:
 //0x4C50: LP for Line Printer
 #define DEVID_LINEPRINTER 0x4C50
 
-class InputOutputDevice : Device
+class InputOutputDevice : public Device
 {
 private:
 	unsigned int buffer[32];

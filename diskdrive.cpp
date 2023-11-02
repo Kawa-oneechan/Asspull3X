@@ -41,7 +41,7 @@ DiskDrive::DiskDrive(int newType)
 
 DiskDrive::~DiskDrive()
 {
-	if (data != NULL) free(data);
+	delete[] data;
 	if (file != NULL) fclose(file);
 }
 

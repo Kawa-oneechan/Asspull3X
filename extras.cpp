@@ -198,11 +198,12 @@ void LoadROM(const WCHAR* path)
 				return;
 			}
 
-			if (!strchr(fs.m_filename, '.'))
+			auto dot = strchr(fs.m_filename, '.');
+
+			if (dot == nullptr)
 				continue;
 
-			auto ext2 = strrchr(fs.m_filename, '.') + 1;
-			if (!_stricmp(ext2, "ap3"))
+			if (!_stricmp(dot + 1, "ap3"))
 			{
 				foundSomething = true;
 				romSize = (unsigned int)fs.m_uncomp_size;
