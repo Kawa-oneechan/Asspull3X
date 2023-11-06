@@ -472,6 +472,8 @@ void HandleBlitter(unsigned int function)
 
 		int val = 0;
 		int striding = 0;
+		int _blitKey = blitKey & 0xFF;
+		int _blitPal = ((blitKey >> 8) & 0xF) << 4;
 
 		while (blitLength > 0)
 		{
@@ -481,30 +483,20 @@ void HandleBlitter(unsigned int function)
 
 				if (!fourBitSource && !fourBitTarget)
 				{
-					if (!(colorKey && val == blitKey))
+					if (!(colorKey && val == _blitKey))
 						write(blitAddrB, val);
 				}
-				/*
-				//TODO: mixed depths
+				else if (fourBitSource && !fourBitTarget)
 				{
-					if (!colorKey)
-						write(blitAddrB, val);
-					else
-					{
-						int fullKey = blitKey << 4 | blitKey;
-						int valHere = read(blitAddrB);
-						if (val != fullKey)
-						{
-							if ((val & 0x0F) == blitKey)
-								write(blitAddrB, (valHere & 0x0F) | (val & 0xF0));
-							else if ((val & 0xF0) == blitKey << 4)
-								write(blitAddrB, (valHere & 0xF0) | (val & 0x0F));
-							else
-								write(blitAddrB, val);
-						}
-					}
+					auto a = (val >> 0) & 0x0F;
+					auto b = (val >> 4) & 0x0F;
+					if (!(colorKey && a == _blitKey))
+						write(blitAddrB, a | _blitPal);
+					blitAddrB += (1 << width);
+					if (!(colorKey && b == _blitKey))
+						write(blitAddrB, b | _blitPal);
+					if (strideSkip) striding++;
 				}
-				*/
 				else if (fourBitSource && fourBitTarget)
 				{
 					auto old = read(blitAddrB);
@@ -513,8 +505,8 @@ void HandleBlitter(unsigned int function)
 					auto bi = (val >> 4) & 0x0F;
 					auto ao = (old >> 0) & 0x0F;
 					auto bo = (old >> 4) & 0x0F;
-					if (!(colorKey && ai == blitKey)) ao = ai;
-					if (!(colorKey && bi == blitKey)) bo = bi;
+					if (!(colorKey && ai == _blitKey)) ao = ai;
+					if (!(colorKey && bi == _blitKey)) bo = bi;
 					val = ao | (bo << 4);
 					write(blitAddrB, val);
 				}

@@ -436,7 +436,7 @@ namespace Video
 		WCHAR snap[128];
 		__time64_t now;
 		_time64(&now);
-		wsprintf(snap, L"%I64.png", now);
+		wsprintf(snap, L"%I64d.png", now);
 
 		auto shot = new char[4 * scrWidth * scrHeight]();
 		glReadPixels(offsetX, offsetY, scrWidth, scrHeight, GL_RGB, GL_UNSIGNED_BYTE, shot);
