@@ -180,9 +180,11 @@ A pointer. Again repeated until `001DC REG_HDMATARGET8`.
 
 * Copies `length` bytes from `source` to `dest`. If `strideskip` is enabled, copies from `source` for `stride` bytes, then skips over `target stride - source stride` bytes, until `length` bytes are copied in total.
 * If `colorkey` is enabled, pixels matching `key` are skipped.
+  * Though `key` is a 32-bit value, only the first 8 matter.
 * If `4-bit source` is set:
   * If `4-bit target` is set, care is taken to work on nibbles.
   * If `4-bit target` is *not* set, the source data is expanded.
+    * In this case, the 9th through 12th bits of `key` define a palette row to use.
 * If `4-bit source` is not set:
   * If `4-bit target` is set, behavior is undefined.
   * If `4-bit target` not set, nothing special is done.
