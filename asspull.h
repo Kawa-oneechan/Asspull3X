@@ -130,6 +130,57 @@ namespace Registers
 	};
 	extern MapBlendRegister MapBlend;
 
+	enum BlitFunctions
+	{
+		None, Copy, Set, Invert
+	};
+	struct BlitControlRegister
+	{
+		union
+		{
+			struct
+			{
+				BlitFunctions Function : 3;
+				unsigned int : 1;
+				unsigned int StrideSkip : 1;
+			};
+			struct
+			{
+				unsigned int : 3;
+				unsigned int : 1;
+				unsigned int : 1;
+				unsigned int Key : 1;
+				unsigned int Source4bit : 1;
+				unsigned int Target4bit : 1;
+				unsigned int SourceStride : 12;
+				unsigned int TargetStride : 12;
+			};
+			struct
+			{
+				unsigned int : 3;
+				unsigned int : 1;
+				unsigned int : 1;
+				unsigned int Width : 2;
+			};
+			unsigned int Raw;
+		};
+	};
+	extern BlitControlRegister BlitControls;
+
+	struct BlitKeyRegister
+	{
+		union
+		{
+			struct
+			{
+				unsigned int Color : 8;
+				unsigned int Palette : 4;
+			};
+			unsigned int Raw;
+		};
+	};
+	extern BlitKeyRegister BlitKey;
+
 	extern int WindowLeft, WindowRight, WindowMask;
 
 	extern int Fade, Caret;

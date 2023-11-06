@@ -6,6 +6,8 @@ namespace Registers
 	ScreenModeRegister ScreenMode;
 	MapSetRegister MapSet;
 	MapBlendRegister MapBlend;
+	BlitControlRegister BlitControls;
+	BlitKeyRegister BlitKey;
 
 	int WindowLeft, WindowRight, WindowMask;
 
@@ -37,9 +39,9 @@ unsigned int dmaLength;
 bool hdmaOn[8], hdmaDouble[8];
 int hdmaSource[8], hdmaTarget[8], hdmaWidth[8], hdmaStart[8], hdmaCount[8];
 
-void HandleBlitter(unsigned int function);
+void HandleBlitter();
 unsigned int blitLength;
-int blitAddrA, blitAddrB, blitKey;
+int blitAddrA, blitAddrB;
 
 long ticks = 0;
 long rtcOffset = 0;
@@ -284,7 +286,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				break;
 			}
 			case 0x210: //Blitter key
-				blitKey = value;
+				Registers::BlitKey.Color = value;
 				break;
 		}
 		return;
@@ -422,7 +424,8 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 				break;
 			}
 			case 0x200: //Blitter function
-				HandleBlitter(value);
+				Registers::BlitControls.Raw = value;
+				HandleBlitter();
 				break;
 			case 0x204: //Blitter address A
 				blitAddrA = value;
@@ -434,7 +437,7 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 				blitLength = value;
 				break;
 			case 0x210: //Blitter key
-				blitKey = value;
+				Registers::BlitKey.Raw = value;
 				break;
 		}
 		return;
@@ -445,99 +448,85 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 	m68k_write_memory_8(address + 3, (value >> 0));
 }
 
-void HandleBlitter(unsigned int function)
+void HandleBlitter()
 {
-	auto fun = function & 0xF;
-	switch (fun)
+	if (Registers::BlitControls.Function == Registers::BlitFunctions::None)
+		return;
+
+	auto width = (Registers::BlitControls.Function == 1) ? 0 : Registers::BlitControls.Width;
+
+	auto read = m68k_read_memory_8;
+	if (width == 1) read = m68k_read_memory_16;
+	else if (width == 2) read = m68k_read_memory_32;
+	auto write = m68k_write_memory_8;
+	if (width == 1) write = m68k_write_memory_16;
+	else if (width == 2) write = m68k_write_memory_32;
+
+	int val = 0;
+	int striding = 0;
+
+	while (blitLength > 0)
 	{
-	case 0: return;
-	case 1: //Blit
-	case 2: //Set
-	case 3: //Invert
-	{
-		auto strideSkip = ((function & 0x10) >> 4) == 1;
-		auto colorKey = ((function & 0x20) >> 5) == 1;
-		auto fourBitSource = ((function & 0x40) >> 6) == 1;
-		auto fourBitTarget = ((function & 0x80) >> 7) == 1;
-		auto width = ((function & 0x80) >> 6) & 4;
-		auto sourceStride = ((function >> 8) & 0xFFF);
-		auto targetStride = ((function >> 20) & 0xFFF);
-
-		auto read = m68k_read_memory_8;
-		if (width == 1) read = m68k_read_memory_16;
-		else if (width == 2) read = m68k_read_memory_32;
-		auto write = m68k_write_memory_8;
-		if (width == 1) write = m68k_write_memory_16;
-		else if (width == 2) write = m68k_write_memory_32;
-
-		int val = 0;
-		int striding = 0;
-		int _blitKey = blitKey & 0xFF;
-		int _blitPal = ((blitKey >> 8) & 0xF) << 4;
-
-		while (blitLength > 0)
+		if (Registers::BlitControls.Function == Registers::BlitFunctions::Copy)
 		{
-			if (fun == 1) //Blit
+			val = read(blitAddrA);
+
+			if (!Registers::BlitControls.Source4bit && !Registers::BlitControls.Target4bit)
 			{
-				val = read(blitAddrA);
-
-				if (!fourBitSource && !fourBitTarget)
-				{
-					if (!(colorKey && val == _blitKey))
-						write(blitAddrB, val);
-				}
-				else if (fourBitSource && !fourBitTarget)
-				{
-					auto a = (val >> 0) & 0x0F;
-					auto b = (val >> 4) & 0x0F;
-					if (!(colorKey && a == _blitKey))
-						write(blitAddrB, a | _blitPal);
-					blitAddrB += (1 << width);
-					if (!(colorKey && b == _blitKey))
-						write(blitAddrB, b | _blitPal);
-					if (strideSkip) striding++;
-				}
-				else if (fourBitSource && fourBitTarget)
-				{
-					auto old = read(blitAddrB);
-
-					auto ai = (val >> 0) & 0x0F;
-					auto bi = (val >> 4) & 0x0F;
-					auto ao = (old >> 0) & 0x0F;
-					auto bo = (old >> 4) & 0x0F;
-					if (!(colorKey && ai == _blitKey)) ao = ai;
-					if (!(colorKey && bi == _blitKey)) bo = bi;
-					val = ao | (bo << 4);
+				if (!(Registers::BlitControls.Key && val == Registers::BlitKey.Color))
 					write(blitAddrB, val);
-				}
-
-				blitAddrA += (1 << width);
+			}
+			else if (Registers::BlitControls.Source4bit && !Registers::BlitControls.Target4bit)
+			{
+				auto a = (val >> 0) & 0x0F;
+				auto b = (val >> 4) & 0x0F;
+				if (!(Registers::BlitControls.Key && a == Registers::BlitKey.Color))
+					write(blitAddrB, a | (Registers::BlitKey.Palette << 4));
 				blitAddrB += (1 << width);
+				if (!(Registers::BlitControls.Key && b == Registers::BlitKey.Color))
+					write(blitAddrB, b | (Registers::BlitKey.Palette << 4));
+				if (Registers::BlitControls.StrideSkip) striding++;
 			}
-			else if (fun == 2) //Set
+			else if (Registers::BlitControls.Source4bit && Registers::BlitControls.Target4bit)
 			{
-				write(blitAddrB, blitAddrA);
-				blitAddrB += (1 << width);
-			}
-			else //if (fun == 3) //Invert
-			{
-				m68k_write_memory_8(blitAddrB, ~m68k_read_memory_8(blitAddrB));
-				blitAddrB++;
+				auto old = read(blitAddrB);
+
+				auto ai = (val >> 0) & 0x0F;
+				auto bi = (val >> 4) & 0x0F;
+				auto ao = (old >> 0) & 0x0F;
+				auto bo = (old >> 4) & 0x0F;
+				if (!(Registers::BlitControls.Key && ai == Registers::BlitKey.Color)) ao = ai;
+				if (!(Registers::BlitControls.Key && bi == Registers::BlitKey.Color)) bo = bi;
+				val = ao | (bo << 4);
+				write(blitAddrB, val);
 			}
 
-			if (strideSkip)
-			{
-				striding++;
-				if (striding == sourceStride)
-				{
-					blitAddrB += (int)(targetStride - sourceStride);
-					striding = 0;
-				}
-			}
-
-			blitLength--;
+			blitAddrA += (1 << width);
+			blitAddrB += (1 << width);
 		}
+		else if (Registers::BlitControls.Function == Registers::BlitFunctions::Set)
+		{
+			write(blitAddrB, blitAddrA);
+			blitAddrB += (1 << width);
+		}
+		else //if (Registers::BlitControls.Function == Registers::BlitFunctions::Invert)
+		{
+			m68k_write_memory_8(blitAddrB, ~m68k_read_memory_8(blitAddrB));
+			blitAddrB++;
+		}
+
+		if (Registers::BlitControls.StrideSkip)
+		{
+			striding++;
+			if (striding == Registers::BlitControls.SourceStride)
+			{
+				blitAddrB += (int)(Registers::BlitControls.TargetStride - Registers::BlitControls.SourceStride);
+				striding = 0;
+			}
+		}
+
+		blitLength--;
 	}
-	break;
-	}
+
+	Registers::BlitControls.Raw = 0;
 }
