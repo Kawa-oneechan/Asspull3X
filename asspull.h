@@ -130,6 +130,28 @@ namespace Registers
 	};
 	extern MapBlendRegister MapBlend;
 
+	struct HDMAControlRegister
+	{
+		union
+		{
+			struct
+			{
+				unsigned int Enable : 1;
+				unsigned int : 3;
+				unsigned int Width : 2;
+				unsigned int : 1;
+				unsigned int DoubleScan : 1;
+				unsigned int Start : 9;
+				unsigned int : 3;
+				unsigned int Count : 9;
+			};
+			unsigned int Raw;
+		};
+		int Source;
+		int Target;
+	};
+	extern HDMAControlRegister HDMAControls[8];
+
 	enum BlitFunctions
 	{
 		None, Copy, Set, Invert
@@ -164,6 +186,9 @@ namespace Registers
 			};
 			unsigned int Raw;
 		};
+		int Source;
+		int Target;
+		int Length;
 	};
 	extern BlitControlRegister BlitControls;
 
