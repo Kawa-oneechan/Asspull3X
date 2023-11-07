@@ -6,7 +6,7 @@ extern "C" {
 }
 
 bool quit = 0;
-int line = 0, interrupts = 0;
+int line = 0;
 int key2joy = 0;
 
 SDL_GameControllerButton buttonMap[16];
@@ -458,11 +458,11 @@ void MainLoop()
 			for (int i = 0; i < MAXDEVS; i++)
 				if (devices[i] != NULL) devices[i]->HBlank();
 
-			if ((interrupts & 0x80) == 0) //if interrupts are enabled
+			if ((Registers::Interrupts & 0x80) == 0) //if interrupts are enabled
 				m68k_set_virq(M68K_IRQ_4, 1);
-			interrupts |= 2; //set HBlank signal
+			Registers::Interrupts |= 2; //set HBlank signal
 			executeForPixels(hBlankPixs);
-			interrupts &= ~2; //clear HBlank signal
+			Registers::Interrupts &= ~2; //clear HBlank signal
 
 			line++;
 
@@ -507,15 +507,15 @@ void MainLoop()
 				frames++;
 				if (pauseState != 2)
 				{
-					if ((interrupts & 0x80) == 0) //if interrupts are enabled
+					if ((Registers::Interrupts & 0x80) == 0) //if interrupts are enabled
 						m68k_set_virq(M68K_IRQ_6, 1);
 
-					interrupts |= 4; //set VBlank signal
+					Registers::Interrupts |= 4; //set VBlank signal
 				}
 			}
 			else if (line == trueLines)
 			{
-				interrupts &= ~4; //clear VBlank signal
+				Registers::Interrupts &= ~4; //clear VBlank signal
 				ticks++;
 				line = 0;
 			}

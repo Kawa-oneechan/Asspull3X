@@ -13,7 +13,6 @@ extern "C" {
 CSimpleIni ini;
 
 extern unsigned int biosSize, romSize;
-extern long rtcOffset;
 extern int firstDiskDrive;
 
 extern void LoadROM(const WCHAR* path);
@@ -135,8 +134,8 @@ void GetSettings()
 	LocalFree(argv);
 
 	auto rtcEpoch = 441763200 - (long)time(NULL);
-	rtcOffset = ini.GetLongValue(L"misc", L"rtcOffset", rtcEpoch);
-	if (rtcOffset == rtcEpoch)
+	Registers::RTCOffset = ini.GetLongValue(L"misc", L"rtcOffset", rtcEpoch);
+	if (Registers::RTCOffset == rtcEpoch)
 		ini.SetLongValue(L"misc", L"rtcOffset", rtcEpoch);
 
 	for (int i = 0; i < 12; i++)

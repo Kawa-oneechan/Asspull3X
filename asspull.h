@@ -62,6 +62,8 @@ extern pauseStates pauseState;
 
 namespace Registers
 {
+	extern int Interrupts;
+
 	struct ScreenModeRegister
 	{
 		union
@@ -130,6 +132,26 @@ namespace Registers
 	};
 	extern MapBlendRegister MapBlend;
 
+	struct DMAControlRegister
+	{
+		union
+		{
+			struct
+			{
+				unsigned int Enable : 1;
+				unsigned int IncreaseSource : 1;
+				unsigned int IncreaseTarget : 1;
+				unsigned int DirectValue : 1;
+				unsigned int Width : 2;
+			};
+			unsigned int Raw;
+		};
+		int Source;
+		int Target;
+		unsigned int Length;
+	};
+	extern DMAControlRegister DMAControl;
+
 	struct HDMAControlRegister
 	{
 		union
@@ -188,7 +210,7 @@ namespace Registers
 		};
 		int Source;
 		int Target;
-		int Length;
+		unsigned Length;
 	};
 	extern BlitControlRegister BlitControls;
 
@@ -211,6 +233,8 @@ namespace Registers
 	extern int Fade, Caret;
 	extern int ScrollX[4], ScrollY[4];
 	extern unsigned int MapTileShift;
+
+	extern long RTCOffset;
 }
 
 namespace Video

@@ -3,9 +3,12 @@
 
 namespace Registers
 {
+	int Interrupts;
+
 	ScreenModeRegister ScreenMode;
 	MapSetRegister MapSet;
 	MapBlendRegister MapBlend;
+	DMAControlRegister DMAControl;
 	HDMAControlRegister HDMAControls[8];
 	BlitControlRegister BlitControls;
 	BlitKeyRegister BlitKey;
@@ -15,6 +18,8 @@ namespace Registers
 	int Fade, Caret;
 	int ScrollX[4], ScrollY[4];
 	unsigned int MapTileShift = 0;
+
+	long RTCOffset;
 }
 
 extern "C"
@@ -35,18 +40,12 @@ unsigned char* ramVideo = NULL;
 
 unsigned int biosSize = 0, romSize = 0;
 
-int dmaSource, dmaTarget;
-unsigned int dmaLength;
-
 void HandleBlitter();
 
 long ticks = 0;
-long rtcOffset = 0;
 int dmaLines = 0;
 
-extern int scale, offsetX, offsetY, statusBarHeight;
-
-extern int line, interrupts;
+extern int line;
 
 void HandleHdma(int currentLine)
 {
@@ -83,15 +82,9 @@ void HandleHdma(int currentLine)
 
 int InitMemory()
 {
-/*
-	if ((romBIOS = new unsigned char[BIOS_SIZE]()) == NULL) return -1;
-	if ((romCartridge = new unsigned char[CART_SIZE]()) == NULL) return -1;
-	if ((ramCartridge = new unsigned char[SRAM_SIZE]()) == NULL) return -1;
-	if ((ramInternal = new unsigned char[WRAM_SIZE]()) == NULL) return -1;
-	if ((ramVideo = new unsigned char[VRAM_SIZE]()) == NULL) return -1;
-*/
 	romBIOS = new unsigned char[BIOS_SIZE]();
 	romCartridge = new unsigned char[CART_SIZE]();
+	ramCartridge = new unsigned char[SRAM_SIZE]();
 	ramInternal = new unsigned char[WRAM_SIZE]();
 	ramVideo = new unsigned char[VRAM_SIZE]();
 	return 0;
@@ -128,7 +121,7 @@ unsigned int m68k_read_memory_8(unsigned int address)
 		switch (reg)
 		{
 			case 0x00: //Interrupts
-				return interrupts;
+				return Registers::Interrupts;
 			case 0x01: //Screen Mode
 				return Registers::ScreenMode.Raw;
 			case 0x08: //ScreenFade
@@ -213,13 +206,13 @@ unsigned int m68k_read_memory_32(unsigned int address)
 			case 0x04: //Ticks
 				return (int)ticks;
 			case 0x60: //Time_T
-				return (int)time(NULL) + rtcOffset;
+				return (int)time(NULL) + Registers::RTCOffset;
 			case 0x100: //DMA Source
-				return dmaSource;
+				return Registers::DMAControl.Source;
 			case 0x104: //DMA Target
-				return dmaTarget;
+				return Registers::DMAControl.Target;
 			case 0x108: //DMA Length
-				return dmaLength;
+				return Registers::DMAControl.Length;
 			//TODO: HDMA. Fun!
 		}
 		return 0;
@@ -240,7 +233,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 		switch (reg)
 		{
 			case 0x00: //Interrupts
-				interrupts = value;
+				Registers::Interrupts = value;
 				break;
 			case 0x01: //ScreenMode
 				Registers::ScreenMode.Raw = u8;
@@ -259,31 +252,43 @@ void m68k_write_memory_8(unsigned int address, unsigned int value)
 				break;
 			case 0x10A: //DMA Control
 			{
+				/*
 				if ((value & 1) == 0) return;
 				auto increaseSource = ((value >> 1) & 1) == 1;
 				auto increaseTarget = ((value >> 2) & 1) == 1;
 				auto asValue = ((value >> 3) & 1) == 1;
 				auto dataWidth = (value >> 4) & 3;
-				auto increaseStep = (dataWidth == 0) ? 1 : (dataWidth == 1) ? 2 : 4;
-				dmaLines = dmaLength >> (2 + dataWidth);
+				*/
+				Registers::DMAControl.Raw = value;
+				auto width = Registers::DMAControl.Width;
+				auto increaseStep = (width == 0) ? 1 : (width == 1) ? 2 : 4;
+				dmaLines = Registers::DMAControl.Length >> (2 + width);
 				//Log(L"DMA: $%08X to $%08X, length $%08X, %d wide, %s. %s %s.", dmaSource, dmaTarget, dmaLength, increaseStep, asValue ? L"memset" : L"memcpy", increaseSource ? L"s++" : L"   ", increaseTarget ? L"t++" : L"");
-				while (dmaLength > 0)
+				while (Registers::DMAControl.Length > 0)
 				{
-					if (asValue)
+					if (Registers::DMAControl.DirectValue)
 					{
-						if (dataWidth == 0) m68k_write_memory_8(dmaTarget, dmaSource);
-						else if (dataWidth == 1) m68k_write_memory_16(dmaTarget, dmaSource);
-						else if (dataWidth == 2) m68k_write_memory_32(dmaTarget, dmaSource);
+						if (width == 0)
+							m68k_write_memory_8(Registers::DMAControl.Target, Registers::DMAControl.Source);
+						else if (width == 1)
+							m68k_write_memory_16(Registers::DMAControl.Target, Registers::DMAControl.Source);
+						else if (width == 2)
+							m68k_write_memory_32(Registers::DMAControl.Target, Registers::DMAControl.Source);
 					}
 					else
 					{
-						if (dataWidth == 0) m68k_write_memory_8(dmaTarget, m68k_read_memory_8(dmaSource));
-						else if (dataWidth == 1) m68k_write_memory_16(dmaTarget, m68k_read_memory_16(dmaSource));
-						else if (dataWidth == 2) m68k_write_memory_32(dmaTarget, m68k_read_memory_32(dmaSource));
+						if (width == 0)
+							m68k_write_memory_8(Registers::DMAControl.Target, m68k_read_memory_8(Registers::DMAControl.Source));
+						else if (width == 1)
+							m68k_write_memory_16(Registers::DMAControl.Target, m68k_read_memory_16(Registers::DMAControl.Source));
+						else if (width == 2)
+							m68k_write_memory_32(Registers::DMAControl.Target, m68k_read_memory_32(Registers::DMAControl.Source));
 					}
-					dmaLength--;
-					if (increaseSource) dmaSource += increaseStep;
-					if (increaseTarget) dmaTarget += increaseStep;
+					Registers::DMAControl.Length--;
+					if (Registers::DMAControl.IncreaseSource)
+						Registers::DMAControl.Source += increaseStep;
+					if (Registers::DMAControl.IncreaseTarget)
+						Registers::DMAControl.Target += increaseStep;
 				}
 				break;
 			}
@@ -367,18 +372,18 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 		switch (reg)
 		{
 			case 0x100: //DMA Source
-				dmaSource = value;
+				Registers::DMAControl.Source = value;
 				break;
 			case 0x104: //DMA Target
-				dmaTarget = value;
+				Registers::DMAControl.Target = value;
 				break;
 			case 0x108: //DMA Length
-				dmaLength = value;
+				Registers::DMAControl.Length = value;
 				break;
 			case 0x60: //Time_T
-				rtcOffset = (long)(value - time(NULL));
+				Registers::RTCOffset = (long)(value - time(NULL));
 				{
-					ini.SetLongValue(L"misc", L"rtcOffset", rtcOffset);
+					ini.SetLongValue(L"misc", L"rtcOffset", Registers::RTCOffset);
 					UI::SaveINI();
 				}
 				break;
