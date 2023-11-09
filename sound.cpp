@@ -267,7 +267,7 @@ namespace Sound
 		if (data >= 0xf8)
 		{
 			MidiRealtimeBuffer[0] = data;
-			SendMidi(*(unsigned int*)MidiRealtimeBuffer);
+			SendMidi(*(unsigned int*)&MidiRealtimeBuffer);
 			return;
 		}
 		if (MidiStatus == 0xF0)
@@ -311,7 +311,7 @@ namespace Sound
 		if (MidiCommandLength) {
 			MidiCommandBuffer[MidiCommandPosition++] = data;
 			if (MidiCommandPosition >= MidiCommandLength) {
-				SendMidi(*(unsigned int*)MidiCommandBuffer);
+				SendMidi(*(unsigned int*)&MidiCommandBuffer);
 				MidiCommandPosition = 1; //use running status
 			}
 		}
