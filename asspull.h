@@ -239,6 +239,57 @@ namespace Registers
 
 namespace Video
 {
+	struct ObjectA
+	{
+		union
+		{
+			struct
+			{
+				unsigned short Tile : 9;
+				unsigned short Blend : 2;
+				unsigned short Enabled : 1;
+				unsigned short Palette : 4;
+			};
+			unsigned short Raw;
+		};
+	};
+
+	struct ObjectB
+	{
+		union
+		{
+			struct
+			{
+				signed int Horizontal : 11;
+				unsigned int : 1;
+				signed int Vertical : 10;
+				unsigned int : 2;
+				unsigned int DoubleWidth : 1;
+				unsigned int DoubleHeight : 1;
+				unsigned int FlipHoriz : 1;
+				unsigned int FlipVert : 1;
+				unsigned int DoubleUp : 1;
+				unsigned int Priority : 3;
+			};
+			unsigned int Raw;
+		};
+	};
+
+	struct MapTile
+	{
+		union
+		{
+			struct
+			{
+				unsigned short Tile : 10;
+				unsigned short FlipHoriz : 1;
+				unsigned short FlipVert : 1;
+				unsigned short Palette : 4;
+			};
+			unsigned short Raw;
+		};
+	};
+
 	extern SDL_Window* sdlWindow;
 	extern bool stretch200;
 

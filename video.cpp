@@ -3,54 +3,6 @@
 
 namespace Video
 {
-	struct ObjectA
-	{
-		union
-		{
-			struct
-			{
-				unsigned short Tile : 9;
-				unsigned short Blend : 2;
-				unsigned short Enabled : 1;
-				unsigned short Palette : 4;
-			};
-			unsigned short Raw;
-		};
-	};
-	struct ObjectB
-	{
-		union
-		{
-			struct
-			{
-				signed int Horizontal : 11;
-				unsigned int : 1;
-				signed int Vertical : 10;
-				unsigned int : 2;
-				unsigned int DoubleWidth : 1;
-				unsigned int DoubleHeight : 1;
-				unsigned int FlipHoriz : 1;
-				unsigned int FlipVert : 1;
-				unsigned int DoubleUp : 1;
-				unsigned int Priority : 3;
-			};
-			unsigned int Raw;
-		};
-	};
-	struct MapTile {
-		union
-		{
-			struct
-			{
-				unsigned short Tile : 10;
-				unsigned short FlipHoriz : 1;
-				unsigned short FlipVert : 1;
-				unsigned short Palette : 4;
-			};
-			unsigned short Raw;
-		};
-	};
-
 	bool stretch200;
 
 	unsigned char* pixels;
@@ -368,8 +320,8 @@ namespace Video
 
 	void RenderBitmapMode1(int line)
 	{
-		const auto imgWidth = Registers::ScreenMode.HalfWidth ? 160 : 320; //image is 160 or 320 bytes wide
-		auto sourceLine = line; // gfxTextBold ? (int)(line * 0.835) : line;
+		const auto imgWidth = 320 >> Registers::ScreenMode.HalfWidth; //image is 160 or 320 bytes wide
+		auto sourceLine = line;
 		if (Registers::ScreenMode.Aspect && !stretch200)
 			LETTERBOX;
 
@@ -377,9 +329,10 @@ namespace Video
 			RenderPixel(line, col, 0, 0);
 		RenderObjects(line, 1);
 
-		const auto effective = BMP_ADDR + (Registers::ScreenMode.HalfHeight ? sourceLine / 2 : sourceLine);
+		const auto effective = BMP_ADDR + (sourceLine >> Registers::ScreenMode.HalfHeight);
 		auto p = 0;
-		for (auto col = 0; col < 640; col += (Registers::ScreenMode.HalfWidth ? 4 : 2))
+		auto step = 2 << Registers::ScreenMode.HalfWidth;
+		for (auto col = 0; col < 640; col += step)
 		{
 			const auto twoPix = ramVideo[effective * imgWidth + p];
 			p++;
@@ -409,8 +362,8 @@ namespace Video
 
 	void RenderBitmapMode2(int line)
 	{
-		const auto imgWidth = Registers::ScreenMode.HalfWidth ? 320 : 640;
-		auto sourceLine = line; // gfxTextBold ? (int)(line * 0.835) : line;
+		const auto imgWidth = 640 >> Registers::ScreenMode.HalfWidth;
+		auto sourceLine = line;
 		if (Registers::ScreenMode.Aspect && !stretch200)
 			LETTERBOX;
 
@@ -418,7 +371,7 @@ namespace Video
 			RenderPixel(line, col, 0, 0);
 		RenderObjects(line, 1);
 
-		const auto effective = BMP_ADDR + (Registers::ScreenMode.HalfHeight ? sourceLine / 2 : sourceLine);
+		const auto effective = BMP_ADDR + (sourceLine >> Registers::ScreenMode.HalfHeight);
 		auto p = 0;
 		for (auto col = 0; col < 640; col++)
 		{
@@ -551,13 +504,12 @@ namespace Video
 
 	void RenderLine(int line)
 	{
-		switch (Registers::ScreenMode.Mode)
+		static void(*renderers[])(int) =
 		{
-		case 0: RenderTextMode(line); break;
-		case 1: RenderBitmapMode1(line); break;
-		case 2: RenderBitmapMode2(line); break;
-		case 3: RenderTileMode(line); break;
-		}
+			RenderTextMode, RenderBitmapMode1,
+			RenderBitmapMode2, RenderTileMode
+		};
+		renderers[Registers::ScreenMode.Mode](line);
 	}
 
 }
