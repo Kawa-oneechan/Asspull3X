@@ -56,6 +56,7 @@ STRINGTABLE
 	IDS_TEXTUREFAILED, "Creation de la texture impossible: %s"
 	IDS_BPSHEADERFAILED, "L'entête du patch BPS est invalide. La modification n'a pas été appliqué."
 	IDS_BPSPATCHAPPLIED, "Le patch BPS a été appliqué."
+	IDS_BPSPATCHFAILED, "Échec lors de l'allocation de mémoire pour le patch.  La modification n'a pas été appliqué."
 #endif
 
 	IDS_PNGFAILED, "Impossible d'écrire le PNG."
@@ -99,35 +100,35 @@ STRINGTABLE
 	(IDS_REGIONS+6), "VRAM"
 
 	//A3X buttons to map TO
-	(IDS_BUTTONS + 0), "Haut"
-	(IDS_BUTTONS + 1), "Droite"
-	(IDS_BUTTONS + 2), "Bas"
-	(IDS_BUTTONS + 3), "Gauche"
-	(IDS_BUTTONS + 4), "A"
-	(IDS_BUTTONS + 5), "B"
-	(IDS_BUTTONS + 6), "X"
-	(IDS_BUTTONS + 7), "Y"
-	(IDS_BUTTONS + 8), "Gâchette gauche"
-	(IDS_BUTTONS + 9), "Gâchette droite"
-	(IDS_BUTTONS + 10), "Start"
-	(IDS_BUTTONS + 11), "Select"
+	(IDS_BUTTONS+0), "Haut"
+	(IDS_BUTTONS+1), "Droite"
+	(IDS_BUTTONS+2), "Bas"
+	(IDS_BUTTONS+3), "Gauche"
+	(IDS_BUTTONS+4), "A"
+	(IDS_BUTTONS+5), "B"
+	(IDS_BUTTONS+6), "X"
+	(IDS_BUTTONS+7), "Y"
+	(IDS_BUTTONS+8), "Gâchette gauche"
+	(IDS_BUTTONS+9), "Gâchette droite"
+	(IDS_BUTTONS+10), "Start"
+	(IDS_BUTTONS+11), "Select"
 
 	//XInput buttons to map FROM
-	(IDS_BUTTONSFROM + 0), "A"
-	(IDS_BUTTONSFROM + 1), "B"
-	(IDS_BUTTONSFROM + 2), "X"
-	(IDS_BUTTONSFROM + 3), "Y"
-	(IDS_BUTTONSFROM + 4), "Retour"
-	(IDS_BUTTONSFROM + 5), "Boutton Xbox"
-	(IDS_BUTTONSFROM + 6), "Start"
-	(IDS_BUTTONSFROM + 7), "Stick analogique gauche"
-	(IDS_BUTTONSFROM + 8), "Stick analogique droite"
-	(IDS_BUTTONSFROM + 9), "Gâchette gauche"
-	(IDS_BUTTONSFROM + 10), "Gâchette droite"
-	(IDS_BUTTONSFROM + 11), "Haut"
-	(IDS_BUTTONSFROM + 12), "Bas"
-	(IDS_BUTTONSFROM + 13), "Gauche"
-	(IDS_BUTTONSFROM + 14), "Droite"
+	(IDS_BUTTONSFROM+0), "A"
+	(IDS_BUTTONSFROM+1), "B"
+	(IDS_BUTTONSFROM+2), "X"
+	(IDS_BUTTONSFROM+3), "Y"
+	(IDS_BUTTONSFROM+4), "Retour"
+	(IDS_BUTTONSFROM+5), "Boutton Xbox"
+	(IDS_BUTTONSFROM+6), "Start"
+	(IDS_BUTTONSFROM+7), "Stick analogique gauche"
+	(IDS_BUTTONSFROM+8), "Stick analogique droite"
+	(IDS_BUTTONSFROM+9), "Gâchette gauche"
+	(IDS_BUTTONSFROM+10), "Gâchette droite"
+	(IDS_BUTTONSFROM+11), "Haut"
+	(IDS_BUTTONSFROM+12), "Bas"
+	(IDS_BUTTONSFROM+13), "Gauche"
+	(IDS_BUTTONSFROM+14), "Droite"
 
 	(IDS_TOOLTIPS+IDC_ASPECT), "Dans le mode 200 ou 400 lignes, étirer en 4:3 à la place du letterboxing."
 	(IDS_TOOLTIPS+IDC_KEY2JOY), "Permet d'utiliser ZXCVASDF et les touches directionnelles au lieu d'une manette."
@@ -136,9 +137,9 @@ STRINGTABLE
 }
 
 IDR_MAINMENU MENU
-BEGIN
+{
 	POPUP "Fichier"
-	BEGIN
+	{
 		MENUITEM "Charger une ROM\x85\tRCtrl+L", 1001
 		MENUITEM "Décharger la ROM\tRCtrl+U", 1002
 		MENUITEM SEPARATOR
@@ -149,9 +150,9 @@ BEGIN
 		MENUITEM "Redémarrer\tRCtrl+R", 1003
 		MENUITEM SEPARATOR
 		MENUITEM "Quitter", 1006
-	END
+	}
 	POPUP "Outils"
-	BEGIN
+	{
 		MENUITEM "Options", 1010
 		MENUITEM "Shaders", 1011
 		MENUITEM "Manette de jeu", 1019
@@ -162,12 +163,12 @@ BEGIN
 		MENUITEM "Visionneuse Palette", 1008
 		MENUITEM "Sauvegarder RAM\tRCtrl+D", 1005 //as in write the whole thing to file
 		MENUITEM "Capture d écran\tRCtrl+S", 1004
-	END
+	}
 	POPUP "Aide"
-	BEGIN
+	{
 		MENUITEM "A propos", 1009
-	END
-END
+	}
+}
 
 //------------------------//
 
@@ -188,8 +189,6 @@ END
 #define DEVICES_NONE "Le vide tourbillonant hurle avant vous." //poetry about nothingness, there's nothing to change here
 #define DEVICES_INSERTDISK "Inserer"
 #define DEVICES_EJECTDISK "Ejecter"
-#define DEVICES_MUSTBEDISKDRIVE "Le premier péripherique doit être un lecteur disquette."
-#define DEVICES_ONLYFOURDRIVES "Le système ne reconnaîtra que les quatre premiers lecteurs de disque."
 
 //Only COMMON_xxx labels for these two
 #define MEMORY_TITLE "Visionneuse Mémoire"

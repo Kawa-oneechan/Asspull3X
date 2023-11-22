@@ -56,6 +56,7 @@ STRINGTABLE
 	IDS_TEXTUREFAILED, "Textur konnte nicht erstellt werden: %s"
 	IDS_BPSHEADERFAILED, "BPS-Patch-Header ungültig. Patch wird nicht angewendet."
 	IDS_BPSPATCHAPPLIED, "BPS-Patch angewendet."
+	IDS_BPSPATCHFAILED, "Fehler beim Zuweisen von Speicher für den BPS-Patch. Patch wird nicht angewendet."
 #endif
 
 	IDS_PNGFAILED, "PNG konnte nicht geschrieben werden."
@@ -99,35 +100,35 @@ STRINGTABLE
 	(IDS_REGIONS+6), "VRAM"
 
 	//A3X buttons to map TO
-	(IDS_BUTTONS + 0), "Oben"
-	(IDS_BUTTONS + 1), "Rechts"
-	(IDS_BUTTONS + 2), "Unten"
-	(IDS_BUTTONS + 3), "Links"
-	(IDS_BUTTONS + 4), "A"
-	(IDS_BUTTONS + 5), "B"
-	(IDS_BUTTONS + 6), "X"
-	(IDS_BUTTONS + 7), "Y"
-	(IDS_BUTTONS + 8), "Linke Schulter"
-	(IDS_BUTTONS + 9), "Rechte Schulter"
-	(IDS_BUTTONS + 10), "Start"
-	(IDS_BUTTONS + 11), "Auswahl"
+	(IDS_BUTTONS+0), "Oben"
+	(IDS_BUTTONS+1), "Rechts"
+	(IDS_BUTTONS+2), "Unten"
+	(IDS_BUTTONS+3), "Links"
+	(IDS_BUTTONS+4), "A"
+	(IDS_BUTTONS+5), "B"
+	(IDS_BUTTONS+6), "X"
+	(IDS_BUTTONS+7), "Y"
+	(IDS_BUTTONS+8), "Linke Schulter"
+	(IDS_BUTTONS+9), "Rechte Schulter"
+	(IDS_BUTTONS+10), "Start"
+	(IDS_BUTTONS+11), "Auswahl"
 
 	//XInput buttons to map FROM
-	(IDS_BUTTONSFROM + 0), "A"
-	(IDS_BUTTONSFROM + 1), "B"
-	(IDS_BUTTONSFROM + 2), "X"
-	(IDS_BUTTONSFROM + 3), "Y"
-	(IDS_BUTTONSFROM + 4), "Zurück"
-	(IDS_BUTTONSFROM + 5), "Guide"
-	(IDS_BUTTONSFROM + 6), "Start"
-	(IDS_BUTTONSFROM + 7), "Linke Stick"
-	(IDS_BUTTONSFROM + 8), "Rechte Stick"
-	(IDS_BUTTONSFROM + 9), "Linke Schulter"
-	(IDS_BUTTONSFROM + 10), "Rechte Schulter"
-	(IDS_BUTTONSFROM + 11), "Oben"
-	(IDS_BUTTONSFROM + 12), "Unten"
-	(IDS_BUTTONSFROM + 13), "Links"
-	(IDS_BUTTONSFROM + 14), "Rechts"
+	(IDS_BUTTONSFROM+0), "A"
+	(IDS_BUTTONSFROM+1), "B"
+	(IDS_BUTTONSFROM+2), "X"
+	(IDS_BUTTONSFROM+3), "Y"
+	(IDS_BUTTONSFROM+4), "Zurück"
+	(IDS_BUTTONSFROM+5), "Guide"
+	(IDS_BUTTONSFROM+6), "Start"
+	(IDS_BUTTONSFROM+7), "Linke Stick"
+	(IDS_BUTTONSFROM+8), "Rechte Stick"
+	(IDS_BUTTONSFROM+9), "Linke Schulter"
+	(IDS_BUTTONSFROM+10), "Rechte Schulter"
+	(IDS_BUTTONSFROM+11), "Oben"
+	(IDS_BUTTONSFROM+12), "Unten"
+	(IDS_BUTTONSFROM+13), "Links"
+	(IDS_BUTTONSFROM+14), "Rechts"
 
 	(IDS_TOOLTIPS+IDC_ASPECT), "Im 200- oder 400-Zeilen-Modus auf 4:3 strecken, anstatt schwarze Balken hinzuzufügen."
 	(IDS_TOOLTIPS+IDC_KEY2JOY), "Ermöglicht die Verwendung von ZXCVASDF und den Pfeiltasten anstelle eines echten Controllers."
@@ -136,9 +137,9 @@ STRINGTABLE
 }
 
 IDR_MAINMENU MENU
-BEGIN
+{
 	POPUP "File"
-	BEGIN
+	{
 		MENUITEM "ROM laden\x85\tRStrg+L", 1001
 		MENUITEM "ROM entladen\tRStrg+U", 1002
 		MENUITEM SEPARATOR		
@@ -149,9 +150,9 @@ BEGIN
 		MENUITEM "Neustart\tRStrg+R", 1003
 		MENUITEM SEPARATOR
 		MENUITEM "Beenden", 1006
-	END
+	}
 	POPUP "Werkzeuge"
-	BEGIN
+	{
 		MENUITEM "Optionen", 1010
 		MENUITEM "Shader", 1011
 		MENUITEM "Gamepad", 1019
@@ -162,12 +163,12 @@ BEGIN
 		MENUITEM "Paletten-Viewer", 1008
 		MENUITEM "RAM entleeren\tRStrg+D", 1005 //as in write the whole thing to file
 		MENUITEM "Bildschirmfoto\tRStrg+S", 1004
-	END
+	}
 	POPUP "Hilfe"
-	BEGIN
+	{
 		MENUITEM "Über Clunibus", 1009
-	END
-END
+	}
+}
 
 //------------------------//
 

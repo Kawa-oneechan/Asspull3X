@@ -2,6 +2,8 @@
 
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 
+//IDB_POWER PNG ".\\res\\turnedoff.png"
+
 //Note: "RCtrl" is the Control key on the *right* of the keyboard.
 //The left is visible to the A3X, the right controls the emulator.
 
@@ -135,9 +137,9 @@ STRINGTABLE
 }
 
 IDR_MAINMENU MENU
-BEGIN
+{
 	POPUP "File"
-	BEGIN
+	{
 		MENUITEM "Load ROM\x85\tRCtrl+L", 1001
 		MENUITEM "Unload ROM\tRCtrl+U", 1002
 		MENUITEM SEPARATOR
@@ -148,9 +150,9 @@ BEGIN
 		MENUITEM "Reset\tRCtrl+R", 1003
 		MENUITEM SEPARATOR
 		MENUITEM "Exit", 1006
-	END
+	}
 	POPUP "Tools"
-	BEGIN
+	{
 		MENUITEM "Options", 1010
 		MENUITEM "Shaders", 1011
 		MENUITEM "Gamepad", 1019
@@ -161,12 +163,12 @@ BEGIN
 		MENUITEM "Palette viewer", 1008
 		MENUITEM "Dump RAM\tRCtrl+D", 1005 //as in write the whole thing to file
 		MENUITEM "Screenshot\tRCtrl+S", 1004
-	END
+	}
 	POPUP "Help"
-	BEGIN
+	{
 		MENUITEM "About Clunibus", 1009
-	END
-END
+	}
+}
 
 //------------------------//
 
