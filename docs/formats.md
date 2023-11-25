@@ -38,7 +38,7 @@ If the region/language is `j`, the internal name is interpreted by the Clunibus 
 
 # Disk
 
-A3X programs to be run from disk have the extension `.app`. If the BIOS finds a file `start.app` on a diskette in the built-in diskette drive, that will be executed on boot.
+A3X programs to be run from disk have the extension `.app`.
 
 | Offset | Type       | Name              | Description                       |
 |--------|------------|-------------------|-----------------------------------|

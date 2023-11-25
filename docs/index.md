@@ -2,7 +2,7 @@
 
 The structure of an *Asspull IIIx* ROM image and others are explained in the [Formats guide](formats.md).
 
-Address space on the Motorola 68020 is 32-bits, but the *Asspull IIIx* only uses 28.
+Address space on the Motorola 68030 is 32-bits, but the *Asspull IIIx* only uses 28.
 
     $0FFFFFFF
       |_______ bank
