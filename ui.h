@@ -24,8 +24,7 @@ namespace UI
 	extern bool fpsVisible, fpsCap, reloadROM, reloadIMG;
 	extern bool hideUI;
 	extern bool startFullscreen;
-
-	extern bool wasPaused;
+	extern int oldPause;
 
 	extern bool ShowFileDlg(bool toSave, WCHAR* target, size_t max, const WCHAR* filter);
 	extern bool ReportLoadingFail(int messageId, int err, int device, const WCHAR* fileName, bool offerToForget = false);

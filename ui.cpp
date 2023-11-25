@@ -35,7 +35,7 @@ namespace UI
 	int statusTimer = 0;
 	WCHAR uiStatus[512];
 	bool fpsVisible = false, fpsCap = false, reloadROM, reloadIMG;
-	bool wasPaused = false;
+	int oldPause = pauseTurnedOff;
 	int theme = 0;
 	int diskIconTimer = 0, hddIconTimer = 0;
 
