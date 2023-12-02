@@ -1,3 +1,5 @@
+#pragma warning (disable: 4244 4013) //You can shut up now. -- Kawa
+
 #include <math.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -10,11 +12,12 @@ static void fatalerror(const char *format, ...) {
       va_start(ap,format);
       //vfprintf(stderr,format,ap);  // JFF: fixed. Was using fprintf and arguments were wrong
 	  char buffer[256];
-	  vsprintf(buffer, format, ap);
+	  vsprintf_s(buffer, 256, format, ap);
 	  va_end(ap);
-	  wchar_t wBuffer[256];
+	  wchar_t wBuffer[256] = { 0 };
 	  mbstowcs(wBuffer, buffer, 256);
 	  wprintf(wBuffer);
+	  //TODO: do something with this.
       exit(1);
 }
 
@@ -134,7 +137,7 @@ static inline floatx80 load_pack_float80(uint32 ea)
 	*ch++ = (char)(((dw1 >> 16) & 0xf) + '0');
 	*ch = '\0';
 
-	sscanf(str, "%le", &tmp);
+	sscanf_s(str, "%le", &tmp);
 
 	result = double_to_fx80(tmp);
 
@@ -150,8 +153,8 @@ static inline void store_pack_float80(uint32 ea, int k, floatx80 fpr)
 	dw1 = dw2 = dw3 = 0;
 	ch = &str[0];
 
-	sprintf(str, "%.16e", fx80_to_double(fpr));
-
+	sprintf_s(str, 128, "%.16e", fx80_to_double(fpr));
+		
 	if (*ch == '-')
 	{
 		ch++;

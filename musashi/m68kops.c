@@ -1,3 +1,5 @@
+#pragma warning (disable: 4244 4013) //You can shut up now. -- Kawa
+
 #include <stdio.h>
 #include "m68kcpu.h"
 extern void m68040_fpu_op0(void);
