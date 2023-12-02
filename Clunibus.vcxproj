@@ -179,6 +179,7 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\Musashi\m68kmmu.h" />
     <ClInclude Include="asspull.h" />
     <ClInclude Include="device.h" />
     <ClInclude Include="memory.h" />
@@ -206,6 +207,8 @@
     <ClCompile Include="extras.cpp" />
     <ClCompile Include="input.cpp" />
     <ClCompile Include="memory.cpp" />
+    <ClCompile Include="musashi\m68kfpu.c" />
+    <ClCompile Include="musashi\softfloat\softfloat.c" />
     <ClCompile Include="printer.cpp" />
     <ClCompile Include="support\miniz.c" />
     <ClCompile Include="musashi\m68kcpu.c" />

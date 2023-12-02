@@ -67,6 +67,7 @@
 #define M68K_EMULATE_010            OPT_ON
 #define M68K_EMULATE_EC020          OPT_OFF
 #define M68K_EMULATE_020            OPT_ON
+#define M68K_EMULATE_030            OPT_ON
 #define M68K_EMULATE_040            OPT_ON
 
 
@@ -183,6 +184,9 @@
 #define M68K_LOG_1010_1111          OPT_OFF
 #define M68K_LOG_FILEHANDLE         some_file_handle
 
+/* Emulate PMMU : if you enable this, there will be a test to see if the current chip has some enabled pmmu added to every memory access,
+ * so enable this only if it's useful */
+#define M68K_EMULATE_PMMU   OPT_OFF
 
 /* ----------------------------- COMPATIBILITY ---------------------------- */
 
