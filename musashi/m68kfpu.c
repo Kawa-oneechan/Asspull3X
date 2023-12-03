@@ -5,20 +5,18 @@
 #include <stdarg.h>
 #include "m68kcpu.h"
 
-extern void exit(int);
+//extern void exit(int);
+extern __declspec(dllimport) int __stdcall MessageBoxA(_In_opt_ void* hWnd, _In_opt_ char* lpText, _In_opt_ char* lpCaption, _In_ unsigned int uType);
 
 static void fatalerror(const char *format, ...) {
       va_list ap;
       va_start(ap,format);
       //vfprintf(stderr,format,ap);  // JFF: fixed. Was using fprintf and arguments were wrong
+	  //exit(1);
 	  char buffer[256];
 	  vsprintf_s(buffer, 256, format, ap);
 	  va_end(ap);
-	  wchar_t wBuffer[256] = { 0 };
-	  mbstowcs(wBuffer, buffer, 256);
-	  wprintf(wBuffer);
-	  //TODO: do something with this.
-      exit(1);
+	  MessageBoxA(NULL, buffer, "Musashi", 0x10);
 }
 
 #define FPCC_N			0x08000000
