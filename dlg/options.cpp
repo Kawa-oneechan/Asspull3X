@@ -178,6 +178,7 @@ namespace UI
 
 						Presentation::SetThemeColors();
 						Sound::Initialize();
+						UI::Update(); //for status bar
 						return true;
 					}
 					case IDCANCEL:
