@@ -9,12 +9,21 @@ namespace UI
 	{
 		using namespace Presentation;
 
+#define GRIDWIDTH 256
+#define GRIDHEIGHT 512
+#define GRIDCOLS 32
+#define GRIDROWS 64
+#define GRIDBORDER 2
+#define ZOOMSIZE 64
+
 		HWND hWnd = NULL;
 		int currentIndex = 0;
 		int currentPal = 0;
 
-		BITMAPINFO bmpInfo;
+		BITMAPINFO bmpInfo, zoomInfo;
 		unsigned char *bmpData = NULL;
+
+		HBITMAP gridBitmap = NULL;
 
 		void UpdateDetails()
 		{
@@ -25,18 +34,21 @@ namespace UI
 
 		void DrawGrid(DRAWITEMSTRUCT* dis)
 		{
-			const int w = 256;
-			const int h = 512;
+			bmpInfo.bmiHeader.biWidth = GRIDWIDTH;
+			bmpInfo.bmiHeader.biHeight = -GRIDHEIGHT;
+			auto hdc = CreateCompatibleDC(dis->hDC);
+			if (gridBitmap == NULL)
+				gridBitmap = CreateCompatibleBitmap(dis->hDC, GRIDWIDTH, GRIDHEIGHT);
 
 			int c = 0;
-			int skip = w * 4 - 8 * 4;
+			int skip = GRIDWIDTH * 4 - 8 * 4;
 			int offset = TILES_ADDR;
 			int palStart = PAL_ADDR + (currentPal * 32);
-			for (int row = 0; row < 64; row++)
+			for (int row = 0; row < GRIDCOLS; row++)
 			{
-				for (int col = 0; col < 32; col++)
+				for (int col = 0; col < GRIDCOLS; col++)
 				{
-					unsigned char *start = bmpData + row * 8 * w * 4 + col * 8 * 4;
+					unsigned char *start = bmpData + row * 8 * GRIDWIDTH * 4 + col * 8 * 4;
 					
 					for (int i = 0; i < 8; i++)
 					{
@@ -71,53 +83,36 @@ namespace UI
 				}
 			}
 
-			//draw selection
-			{
-				int row = currentIndex / 32;
-				int col = currentIndex % 32;
-				unsigned char *start = bmpData + row * 8 * w * 4 + col * 8 * 4;
-				for (int i = 0; i < 8; i++)
-				{
-					start[0] = 255 - start[0];
-					start[1] = 255 - start[1];
-					start[2] = 255 - start[2];
-					start += 4;
-				}
-				start += skip;
-				for (int i = 1; i < 7; i++)
-				{
-					start[0] = 255 - start[0];
-					start[1] = 255 - start[1];
-					start[2] = 255 - start[2];
-					start += 4;
-					start += 6 * 4;
-					start[0] = 255 - start[0];
-					start[1] = 255 - start[1];
-					start[2] = 255 - start[2];
-					start += 4;
-					start += skip;
-				}
-				for (int i = 0; i < 8; i++)
-				{
-					start[0] = 255 - start[0];
-					start[1] = 255 - start[1];
-					start[2] = 255 - start[2];
-					start += 4;
-				}
-			}
+			auto oldBitmap = SelectObject(hdc, gridBitmap);
+			SetDIBitsToDevice(hdc, 0, 0, GRIDWIDTH, GRIDHEIGHT, 0, 0, 0, GRIDHEIGHT, bmpData, &bmpInfo, DIB_RGB_COLORS);
+			BitBlt(dis->hDC, 0, 0, GRIDWIDTH, GRIDHEIGHT, hdc, 0, 0, SRCCOPY);
+			
+			int row = currentIndex / GRIDCOLS;
+			int col = currentIndex % GRIDCOLS;
+			RECT selection = { col * 8, row * 8, col * 8 + 8, row * 8 + 8 };
+			InvertRect(dis->hDC, &selection);
+			InflateRect(&selection, -1, -1);
+			InvertRect(dis->hDC, &selection);
 
-
-			bmpInfo.bmiHeader.biWidth = w;
-			bmpInfo.bmiHeader.biHeight = -h;
-			auto hdc = CreateCompatibleDC(dis->hDC);
-			auto bitmap = CreateCompatibleBitmap(dis->hDC, w, h);
-			auto oldBitmap = SelectObject(hdc, bitmap);
-			SetDIBitsToDevice(hdc, 0, 0, w, h, 0, 0, 0, h, bmpData, &bmpInfo, DIB_RGB_COLORS);
-			BitBlt(dis->hDC, 0, 0, w, h, hdc, 0, 0, SRCCOPY);
 			SelectObject(hdc, oldBitmap);
-			DeleteObject(bitmap);
 			DeleteDC(hdc);
+
 			UpdateDetails();
+		}
+
+		void DrawZoom(DRAWITEMSTRUCT* dis)
+		{
+			int row = currentIndex / GRIDCOLS;
+			int col = currentIndex % GRIDCOLS;
+
+			auto hdc = CreateCompatibleDC(dis->hDC); 
+			auto oldBitmap = SelectObject(hdc, gridBitmap);
+			SetDIBitsToDevice(hdc, 0, 0, GRIDWIDTH, GRIDHEIGHT, 0, 0, 0, GRIDHEIGHT, bmpData, &bmpInfo, DIB_RGB_COLORS);
+
+			StretchBlt(dis->hDC, 0, 0, ZOOMSIZE, ZOOMSIZE, hdc, col * 8, row * 8, 8, 8, SRCCOPY);
+
+			SelectObject(hdc, oldBitmap);
+			DeleteDC(hdc);
 		}
 
 		void CALLBACK AutoUpdate(HWND a, UINT b, UINT_PTR c, DWORD d)
@@ -132,6 +127,7 @@ namespace UI
 			if (to > MAXRANGE) to = MAXRANGE;
 			currentPal = to;
 			InvalidateRect(GetDlgItem(hWnd, IDC_MEMVIEWERGRID), NULL, true);
+			InvalidateRect(GetDlgItem(hWnd, IDC_ZOOMIN), NULL, true);
 			SetScrollPos(GetDlgItem(hWnd, IDC_MEMVIEWERSCROLL), SB_CTL, to, true);
 		}
 
@@ -176,6 +172,8 @@ namespace UI
 			{
 			case WM_CLOSE:
 			{
+				DeleteObject(gridBitmap);
+				gridBitmap = NULL;
 				DestroyWindow(hWnd);
 				KillTimer(hWnd, 1);
 				PalViewer::hWnd = NULL;
@@ -185,20 +183,23 @@ namespace UI
 			}
 			case WM_SIZE:
 			{
-				RECT rctGrid;
 				HWND hwndGrid = GetDlgItem(hWnd, IDC_MEMVIEWERGRID);
-				GetWindowRect(hwndGrid, &rctGrid);
-				SetWindowPos(hwndGrid, 0, 0, 0, 258, 514, SWP_NOMOVE | SWP_NOZORDER);
+				SetWindowPos(hwndGrid, 0, 0, 0, GRIDWIDTH + GRIDBORDER, GRIDHEIGHT + GRIDBORDER, SWP_NOMOVE | SWP_NOZORDER);
 				HWND hwndDetails = GetDlgItem(hWnd, IDC_DETAILS);
-				SetWindowPos(hwndDetails, 0, 258 + 32, 48, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+				SetWindowPos(hwndDetails, 0, GRIDWIDTH + GRIDBORDER + 32, 48, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+				HWND hwndZoom = GetDlgItem(hWnd, IDC_ZOOMIN);
+				SetWindowPos(hwndZoom, 0, GRIDWIDTH + GRIDBORDER + 32, 96, ZOOMSIZE + GRIDBORDER, ZOOMSIZE + GRIDBORDER, SWP_NOZORDER);
 				HWND hwndScroll = GetDlgItem(hWnd, IDC_MEMVIEWERSCROLL);
-				SetWindowPos(hwndScroll, 0, 258 + 32, 128, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+				SetWindowPos(hwndScroll, 0, GRIDWIDTH + GRIDBORDER + 32, 96 + ZOOMSIZE + GRIDBORDER + 16, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
 				return true;
 			}
 			case WM_SHOWWINDOW:
 			{
 				if (wParam)
+				{
 					InvalidateRect(GetDlgItem(hWnd, IDC_MEMVIEWERGRID), NULL, true);
+					InvalidateRect(GetDlgItem(hWnd, IDC_ZOOMIN), NULL, true);
+				}
 			}
 			case WM_COMMAND:
 			{
@@ -235,6 +236,8 @@ namespace UI
 						return true;
 					currentIndex = (y * 32) + x;
 					InvalidateRect(GetDlgItem(hWnd, IDC_MEMVIEWERGRID), NULL, true);
+					InvalidateRect(GetDlgItem(hWnd, IDC_ZOOMIN), NULL, true);
+
 				}
 				return true;
 			}
@@ -258,6 +261,11 @@ namespace UI
 				if (wParam == IDC_MEMVIEWERGRID)
 				{
 					DrawGrid((DRAWITEMSTRUCT*)lParam);
+					return true;
+				}
+				else if (wParam == IDC_ZOOMIN)
+				{
+					DrawZoom((DRAWITEMSTRUCT*)lParam);
 					return true;
 				}
 				return false;
@@ -307,8 +315,8 @@ namespace UI
 				memset(&bmpInfo, 0, sizeof(bmpInfo));
 
 				bmpInfo.bmiHeader.biSize = sizeof(bmpInfo.bmiHeader);
-				bmpInfo.bmiHeader.biWidth = 256;
-				bmpInfo.bmiHeader.biHeight = 512;
+				bmpInfo.bmiHeader.biWidth = GRIDWIDTH;
+				bmpInfo.bmiHeader.biHeight = GRIDHEIGHT;
 				bmpInfo.bmiHeader.biPlanes = 1;
 				bmpInfo.bmiHeader.biBitCount = 32;
 				bmpInfo.bmiHeader.biCompression = BI_RGB;
