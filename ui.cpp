@@ -953,8 +953,8 @@ namespace UI
 	void SetStatus(int stab)
 	{
 		WCHAR b[256];
-		LoadString(hInstance, stab, b, 256);
-		SetStatus(b);
+		if (LoadString(hInstance, stab, b, 256) > 0)
+			SetStatus(b);
 	}
 
 	void SetFPS(int fps)
@@ -968,8 +968,9 @@ namespace UI
 	static WCHAR getStringBuffer[512];
 	WCHAR* GetString(int stab)
 	{
-		LoadString(hInstance, stab, getStringBuffer, 512);
-		return getStringBuffer;
+		if (LoadString(hInstance, stab, getStringBuffer, 512) > 0)
+			return getStringBuffer;
+		return L"";
 	}
 
 #define MAXSNOW 256
@@ -981,7 +982,7 @@ namespace UI
 		if (snowTimer == -1)
 		{
 			//Prepare
-			srand(0xC001FACE);
+			srand(0xC001FACE); //-V1057 this is entirely on purpose actually lol
 			for (int i = 0; i < MAXSNOW; i++)
 			{
 				snowData[(i * 2) + 0] = rand() % 639;

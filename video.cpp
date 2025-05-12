@@ -148,7 +148,7 @@ namespace Video
 				continue;
 
 			const short renderWidth = (Registers::ScreenMode.HalfWidth ? 16 : 8);
-			if (hPos + (effectiveWidth * (Registers::ScreenMode.HalfWidth ? 2 : 1)) <= 0 || hPos > 640)
+			if (hPos + (effectiveWidth * (Registers::ScreenMode.HalfWidth ? 2 : 1)) <= 0 || hPos > 640) //-V1051
 				continue;
 
 			if (objB.FlipHoriz) //-V614
@@ -164,7 +164,7 @@ namespace Video
 				if (Registers::ScreenMode.HalfHeight && Registers::ScreenMode.Mode > 0)
 					part /= 2;
 				auto tileLine = part / 8;
-				if (tileWidth == 2) tilePic += tileLine * 32;
+				if (tileWidth == 2) tilePic += tileLine * 32; //-V1051
 				if (tileWidth == 4) tilePic += tileLine * 96;
 
 				tilePic += part * 4;
