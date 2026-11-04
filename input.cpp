@@ -38,6 +38,8 @@ InputOutputDevice* inputDev;
 unsigned short joypad[2];
 char joyaxes[2][2];
 
+namespace Video { extern int scale; }
+
 const unsigned char keyMap[] =
 {
 	0x00,
@@ -327,8 +329,10 @@ void InputOutputDevice::VBlank()
 
 	int newX, newY, b;
 	GetCursorPos(&pos);
-	newX = pos.x;
-	newY = pos.y;
+	//WIP: scale to the window size to improve responsiveness
+	int s = (Video::scale == 1) ? 2 : (Video::scale / 2);
+	newX = pos.x / s;
+	newY = pos.y / s;
 	b = (!!GetAsyncKeyState(VK_LBUTTON)) | (!!GetAsyncKeyState(VK_RBUTTON) << 2);
 
 	int x = newX - lastMouseX;
@@ -337,6 +341,9 @@ void InputOutputDevice::VBlank()
 	int dy = y < 0;
 	if (x < 0) x = -x;
 	if (y < 0) y = -y;
+	//Make sure it fits in the alloted six bits per axis.
+	if (x > 63) x = 63;
+	if (y > 63) y = 64;
 
 	lastMouseX = newX;
 	lastMouseY = newY;
